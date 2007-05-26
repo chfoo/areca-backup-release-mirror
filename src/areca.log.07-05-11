@@ -1,0 +1,73 @@
+
+07-05-11 21:48 - 6 - ***************************
+07-05-11 21:48 - 6 - * System informations :
+07-05-11 21:48 - 6 - * Version : 4.5.2
+07-05-11 21:48 - 6 - * Build ID : -1
+07-05-11 21:48 - 6 - * Available Memory : 127 MB
+07-05-11 21:48 - 6 - * OS Name : Linux - 2.6.12-12mdk
+07-05-11 21:48 - 6 - * Java Virtual Machine : Java(TM) 2 Runtime Environment, Standard Edition - 1.4.2_07-b05 - Sun Microsystems Inc.
+07-05-11 21:48 - 6 - * File encoding : ISO-8859-15
+07-05-11 21:48 - 6 - * Language : fr
+07-05-11 21:48 - 6 - * Framework overriden properties : {}
+07-05-11 21:48 - 6 - ***************************
+07-05-11 21:48 - 6 - ***************************
+07-05-11 21:48 - 6 - * User preferences :
+07-05-11 21:48 - 6 - * [lnf] = [com.jgoodies.looks.plastic.PlasticXPLookAndFeel]
+07-05-11 21:48 - 6 - * [mainframe.x] = [0]
+07-05-11 21:48 - 6 - * [workspace.last.copy.mask] = [true]
+07-05-11 21:48 - 6 - * [startup.workspace] = [/usr/apps/areca/config]
+07-05-11 21:48 - 6 - * [lastworkspace] = [/usr/apps/areca/config]
+07-05-11 21:48 - 6 - * [target.lasttargetdir] = [/home/olivier/Desktop]
+07-05-11 21:48 - 6 - * [target.lastsourcedir] = [/home/olivier/Desktop/.]
+07-05-11 21:48 - 6 - * [mainframe.width] = [1280]
+07-05-11 21:48 - 6 - * [mainframe.leftsplitpos] = [413]
+07-05-11 21:48 - 6 - * [archive.displayreport] = [false]
+07-05-11 21:48 - 6 - * [workspace.last.copy.location] = [/backup]
+07-05-11 21:48 - 6 - * [mainframe.mainsplitpos] = [377]
+07-05-11 21:48 - 6 - * [archive.storage] = [/backup]
+07-05-11 21:48 - 6 - * [mainframe.rightsplitpos] = [355]
+07-05-11 21:48 - 6 - * [mainframe.height] = [977]
+07-05-11 21:48 - 6 - * [log.display] = [false]
+07-05-11 21:48 - 6 - * [startup.mode] = [default]
+07-05-11 21:48 - 6 - * [mainframe.maximized] = [true]
+07-05-11 21:48 - 6 - * [mainframe.y] = [0]
+07-05-11 21:48 - 6 - * [lang] = [fr]
+07-05-11 21:48 - 6 - ***************************
+07-05-11 21:48 - 6 - Path : [/home/olivier/Sources/Sources Java/Areca_SWT/src] - 0 groups loaded.
+07-05-11 21:48 - 6 - com.myJava.util.log.LogCleaner - Scheduled task startup.
+07-05-11 21:49 - 6 - ***************************
+07-05-11 21:49 - 6 - * System informations :
+07-05-11 21:49 - 6 - * Version : 4.5.2
+07-05-11 21:49 - 6 - * Build ID : -1
+07-05-11 21:49 - 6 - * Available Memory : 127 MB
+07-05-11 21:49 - 6 - * OS Name : Linux - 2.6.12-12mdk
+07-05-11 21:49 - 6 - * Java Virtual Machine : Java(TM) 2 Runtime Environment, Standard Edition - 1.4.2_07-b05 - Sun Microsystems Inc.
+07-05-11 21:49 - 6 - * File encoding : ISO-8859-15
+07-05-11 21:49 - 6 - * Language : fr
+07-05-11 21:49 - 6 - * Framework overriden properties : {}
+07-05-11 21:49 - 6 - ***************************
+07-05-11 21:49 - 6 - ***************************
+07-05-11 21:49 - 6 - * User preferences :
+07-05-11 21:49 - 6 - * [lnf] = [com.jgoodies.looks.plastic.PlasticXPLookAndFeel]
+07-05-11 21:49 - 6 - * [mainframe.x] = [0]
+07-05-11 21:49 - 6 - * [workspace.last.copy.mask] = [true]
+07-05-11 21:49 - 6 - * [startup.workspace] = [/usr/apps/areca/config]
+07-05-11 21:49 - 6 - * [lastworkspace] = [/usr/apps/areca/config]
+07-05-11 21:49 - 6 - * [target.lasttargetdir] = [/home/olivier/Desktop]
+07-05-11 21:49 - 6 - * [target.lastsourcedir] = [/home/olivier/Desktop/.]
+07-05-11 21:49 - 6 - * [mainframe.width] = [1280]
+07-05-11 21:49 - 6 - * [mainframe.leftsplitpos] = [413]
+07-05-11 21:49 - 6 - * [archive.displayreport] = [false]
+07-05-11 21:49 - 6 - * [workspace.last.copy.location] = [/backup]
+07-05-11 21:49 - 6 - * [mainframe.mainsplitpos] = [377]
+07-05-11 21:49 - 6 - * [archive.storage] = [/backup]
+07-05-11 21:49 - 6 - * [mainframe.rightsplitpos] = [355]
+07-05-11 21:49 - 6 - * [mainframe.height] = [977]
+07-05-11 21:49 - 6 - * [log.display] = [false]
+07-05-11 21:49 - 6 - * [startup.mode] = [default]
+07-05-11 21:49 - 6 - * [mainframe.maximized] = [true]
+07-05-11 21:49 - 6 - * [lang] = [fr]
+07-05-11 21:49 - 6 - * [mainframe.y] = [0]
+07-05-11 21:49 - 6 - ***************************
+07-05-11 21:49 - 6 - Path : [/home/olivier/Sources/Sources Java/Areca_SWT/src] - 0 groups loaded.
+07-05-11 21:49 - 6 - com.myJava.util.log.LogCleaner - Scheduled task startup.

@@ -1,0 +1,264 @@
+package com.application.areca.launcher.gui;
+
+import java.util.Iterator;
+
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
+
+import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.Identifiable;
+import com.application.areca.RecoveryProcess;
+import com.application.areca.launcher.gui.common.ArecaImages;
+
+/**
+ * <BR>
+ * @author Olivier PETRUCCI
+ * <BR>
+ * <BR>Areca Build ID : 4945525256658487980
+ */
+ 
+ /*
+ Copyright 2005-2007, Olivier PETRUCCI.
+ 
+This file is part of Areca.
+
+    Areca is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    Areca is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Areca; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+public class TreeComposite 
+extends Composite 
+implements MouseListener {
+
+    protected Tree tree;
+    protected Application application = Application.getInstance();
+
+    public TreeComposite(Composite parent) {
+        super(parent, SWT.NONE);
+        setLayout(new FillLayout());
+
+        
+        TreeViewer viewer = new TreeViewer(this, SWT.BORDER);
+        tree = viewer.getTree();
+        tree.addMouseListener(this);
+
+        viewer.addDoubleClickListener(new IDoubleClickListener() {
+            public void doubleClick(DoubleClickEvent event) {
+                if (application.isCurrentObjectTarget()) {
+                    application.showEditTarget(application.getCurrentTarget());
+                } else if (application.isCurrentObjectProcess()) {
+                    application.showEditProcess(application.getCurrentProcess());
+                }
+            }
+        });
+
+        Transfer[] types = new Transfer[] { TextTransfer.getInstance() };
+        final int operation = DND.DROP_MOVE;
+
+        final DragSource source = new DragSource(tree, operation);
+        source.setTransfer(types);
+        source.addDragListener(
+                new DragSourceAdapter() {
+                    public void dragStart(DragSourceEvent event) {   
+                        TreeItem[] selection = tree.getSelection();
+                        if (selection.length > 0 && selection[0].getData() instanceof AbstractRecoveryTarget) {
+                            event.doit = true;
+                        } else {
+                            event.doit = false;
+                        }
+                    };
+                    public void dragSetData(DragSourceEvent event) {
+                        event.data = "dummy data";
+                    }
+                }
+        );
+
+        DropTarget target = new DropTarget(tree, operation);
+        target.setTransfer(types);
+        target.addDropListener(new DropTargetAdapter() {
+            public void dragEnter(DropTargetEvent event) {
+                event.detail = DND.DROP_NONE;
+                event.feedback = DND.FEEDBACK_NONE;
+            }
+
+            public void dragOver(DropTargetEvent event) {
+                event.feedback = DND.FEEDBACK_EXPAND | DND.FEEDBACK_SCROLL;
+                if (event.item != null && isValidTreeItem((TreeItem)event.item)) {
+                    event.feedback |= DND.FEEDBACK_SELECT;
+                    event.detail = operation;
+                } else {
+                    event.feedback |= DND.FEEDBACK_NONE;
+                    event.detail = DND.DROP_NONE;
+                }
+            }
+
+            public void drop(DropTargetEvent event) {
+                if (event.item != null) {
+                    TreeItem item = (TreeItem) event.item;
+                    AbstractRecoveryTarget draggedTarget = Application.getInstance().getCurrentTarget();
+                    RecoveryProcess sourceProcess = draggedTarget.getProcess();
+                    RecoveryProcess destinationProcess = extractRecoveryProcess(item);
+
+                    if ( ! destinationProcess.equals(sourceProcess)) {
+                        sourceProcess.removeTarget(draggedTarget);
+
+                        if (destinationProcess.getTargetById(draggedTarget.getId()) != null) {
+                            // A target with same ID already exists
+                            draggedTarget.setId(destinationProcess.getNextFreeTargetId());
+                        }
+
+                        destinationProcess.addTarget(draggedTarget);
+                        draggedTarget.setProcess(destinationProcess);
+                    }
+
+                    application.saveProcess(sourceProcess);
+                    application.saveProcess(destinationProcess);
+                    refresh();
+                }
+            }
+        });
+
+        refresh();
+    }
+
+    private RecoveryProcess extractRecoveryProcess(TreeItem item) {
+        if (item == null) {
+            return null;
+        } else {
+            Object data = item.getData();
+            if (data instanceof RecoveryProcess) {
+                return (RecoveryProcess)data;
+            } else {
+                AbstractRecoveryTarget tg = (AbstractRecoveryTarget)data;
+                return tg.getProcess();
+            }
+        }
+    }
+
+    private boolean isValidTreeItem(TreeItem item) {
+        RecoveryProcess process = extractRecoveryProcess(item);
+        return
+        process != null
+        && ! (process.getUid().equals(Application.getInstance().getCurrentProcess().getUid()));
+    }
+
+    public void refresh() {
+        tree.removeAll();
+        String currentObjectId = Application.getInstance().getCurrentObject() != null ? Application.getInstance().getCurrentObject().getUid() : null;
+
+        Iterator iter = Application.getInstance().getWorkspace().getSortedProcessIterator();
+        while (iter.hasNext()) {
+            TreeItem processNode = new TreeItem(tree, SWT.NONE);
+            RecoveryProcess process = (RecoveryProcess)iter.next();
+            fillProcessData(processNode, process, currentObjectId);
+            processNode.setExpanded(true);
+        }
+    }
+
+    private void fillProcessData(TreeItem processNode, RecoveryProcess process, String currentObjectId) {
+        processNode.setText(" " + process.getName());
+        processNode.setImage(ArecaImages.ICO_REF_PROCESS);
+        processNode.setData(process);
+
+        Iterator iter = process.getSortedTargetIterator();
+        while (iter.hasNext()) {
+            TreeItem targetNode = new TreeItem(processNode, SWT.NONE);
+            AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();
+
+            targetNode.setText(" " + target.getTargetName());
+            targetNode.setImage(ArecaImages.ICO_REF_TARGET);
+            targetNode.setData(target);
+
+            if (target.getUid().equals(currentObjectId)) {
+                tree.setSelection(targetNode);
+            }
+        }
+
+        if (process.getUid().equals(currentObjectId)) {
+            tree.setSelection(processNode);
+        }
+    }
+
+    public void setSelectedTarget(AbstractRecoveryTarget target) {
+        if (target != null) {
+            TreeItem processNode = null;
+            RecoveryProcess process = target.getProcess();
+            TreeItem[] processes = tree.getItems();
+            for (int i=0; i<processes.length; i++) {
+                TreeItem child = processes[i];
+                RecoveryProcess cProcess = (RecoveryProcess)child.getData();
+                if (cProcess.getSource().equals(process.getSource())) {
+                    processNode = child;
+                    break;
+                }
+            }
+
+            TreeItem[] targets = processNode.getItems();
+            for (int i=0; i<targets.length; i++) {
+                TreeItem child = targets[i];
+                AbstractRecoveryTarget cTarget = (AbstractRecoveryTarget)child.getData();
+                if (cTarget.equals(target)) {
+                    tree.setSelection(child);
+                    break;
+                }
+            }
+        }
+    }
+
+    public void mouseDoubleClick(MouseEvent e) {
+    }
+
+    public void mouseDown(MouseEvent e) {
+        TreeItem item = tree.getItem(new Point(e.x, e.y));
+
+        if (item != null) {
+            if (item.getData() instanceof AbstractRecoveryTarget) {
+                showMenu(e, Application.getInstance().getTargetContextMenu());
+            } else if (item.getData() instanceof RecoveryProcess) {
+                showMenu(e, Application.getInstance().getProcessContextMenu());            
+            } else {
+                showMenu(e, Application.getInstance().getWorkspaceContextMenu());
+            }
+
+            Application.getInstance().setCurrentObject((Identifiable)item.getData(), false);
+        }
+    }
+
+    private void showMenu(MouseEvent e, Menu m) {
+        if (e.button == 3) {
+            m.setVisible(true);
+        }
+    }
+
+    public void mouseUp(MouseEvent e) {
+    }
+}
