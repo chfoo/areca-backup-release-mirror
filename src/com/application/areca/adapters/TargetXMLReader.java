@@ -28,6 +28,8 @@ import com.application.areca.impl.policy.DefaultFileSystemPolicy;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
+import com.application.areca.plugins.StoragePlugin;
+import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.postprocess.FileDumpPostProcessor;
 import com.application.areca.postprocess.MailSendPostProcessor;
 import com.application.areca.postprocess.MergePostProcessor;
@@ -39,7 +41,7 @@ import com.application.areca.postprocess.ShellScriptPostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -240,58 +242,22 @@ public class TargetXMLReader implements XMLTags {
     }
     
     protected FileSystemPolicy readFileSystemPolicy(Node mediumNode) throws IOException, AdapterException, ApplicationException {
-        // First case : storage on local file system
-        Node pathNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVEPATH);
-        if (pathNode != null) {
-            DefaultFileSystemPolicy policy = new DefaultFileSystemPolicy();
-            policy.setBaseArchivePath(pathNode.getNodeValue());
-            return policy;
-        } 
-        
-        // Second case : storage on ftp host
-        Node serverNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_HOST);
-        Node portNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PORT);
-        Node passivNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PASSIV);
-        Node protocolNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PROTOCOL);
-        Node implicitNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_IMPLICIT);
-        Node loginNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_LOGIN);
-        Node passwordNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PASSWORD);
-        Node dirNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_REMOTEDIR);
-        
-        // No storage policy found
-        if (serverNode == null && portNode == null && passivNode == null && loginNode == null && passwordNode == null && dirNode == null) {
-            throw new AdapterException("Medium storage policy not found : your medium must have either a '" + XML_MEDIUM_ARCHIVEPATH + "' attribute or FTP attributes (" + XML_MEDIUM_FTP_HOST + ", " + XML_MEDIUM_FTP_LOGIN + ", " + XML_MEDIUM_FTP_PASSWORD + " ...)");            
+        Node policyNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_POLICY);
+        String policyId;
+        if (policyNode != null) {
+            policyId = policyNode.getNodeValue();
+        } else {
+            // Backward compatible read
+            Node pathNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVEPATH);
+            if (pathNode != null) {
+                policyId = POLICY_HD;
+            } else {
+                policyId = POLICY_FTP;                
+            }
         }
         
-        // FTP policy initialization
-        if (serverNode == null) {
-            throw new AdapterException("FTP host not found : your medium must have a '" + XML_MEDIUM_FTP_HOST + "' attribute.");
-        } 
-        if (portNode == null) {
-            throw new AdapterException("FTP remote port not found : your medium must have a '" + XML_MEDIUM_FTP_PORT + "' attribute.");
-        } 
-        if (loginNode == null) {
-            throw new AdapterException("FTP login not found : your medium must have a '" + XML_MEDIUM_FTP_LOGIN + "' attribute.");
-        } 
-        if (passwordNode == null) {
-            throw new AdapterException("FTP password not found : your medium must have a '" + XML_MEDIUM_FTP_PASSWORD + "' attribute.");
-        } 
-        if (dirNode == null) {
-            throw new AdapterException("FTP remote directory not found : your medium must have a '" + XML_MEDIUM_FTP_REMOTEDIR + "' attribute.");
-        } 
-
-        FTPFileSystemPolicy policy = new FTPFileSystemPolicy();
-        policy.setRemoteServer(serverNode.getNodeValue());
-        policy.setRemotePort(Integer.parseInt(portNode.getNodeValue()));
-        policy.setPassivMode(passivNode != null && passivNode.getNodeValue().equalsIgnoreCase("true"));
-        if (protocolNode != null) {
-            policy.setProtocol(protocolNode.getNodeValue());
-            policy.setImplicit(implicitNode != null && implicitNode.getNodeValue().equalsIgnoreCase("true"));            
-        }
-        policy.setLogin(loginNode.getNodeValue());
-        policy.setPassword(passwordNode.getNodeValue());
-        policy.setRemoteDirectory(dirNode.getNodeValue());
-        return policy;
+        StoragePlugin plugin = StoragePluginRegistry.getInstance().getById(policyId);
+        return plugin.getFileSystemPolicyXMLHandler().read(mediumNode);
     }
     
     protected EncryptionPolicy readEncryptionPolicy(Node mediumNode, AbstractRecoveryTarget target) throws IOException, AdapterException, ApplicationException {

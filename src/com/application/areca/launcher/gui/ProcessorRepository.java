@@ -3,7 +3,7 @@ package com.application.areca.launcher.gui;
 import org.eclipse.swt.widgets.Composite;
 
 import com.application.areca.AbstractRecoveryTarget;
-import com.application.areca.launcher.gui.common.ResourceManager;
+import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.postprocessors.AbstractProcessorComposite;
 import com.application.areca.launcher.gui.postprocessors.FileDumpProcessorComposite;
 import com.application.areca.launcher.gui.postprocessors.MailSendProcessorComposite;
@@ -19,7 +19,7 @@ import com.application.areca.postprocess.ShellScriptPostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*

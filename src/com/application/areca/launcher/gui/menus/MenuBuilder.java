@@ -5,13 +5,13 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 
-import com.application.areca.launcher.gui.common.ResourceManager;
+import com.application.areca.ResourceManager;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -61,6 +61,8 @@ extends AppActionReferenceHolder {
         add(AC_DEL_TARGET, mnEdit);
         addSeparator(mnEdit);
         add(AC_DUP_TARGET, mnEdit);
+        addSeparator(mnEdit);
+        add(AC_BUILD_BATCH, mnEdit);
         
         // ACTION
         Menu mnRun = buildSubMenu("menu.run", menu);
@@ -105,6 +107,8 @@ extends AppActionReferenceHolder {
         add(AC_DEL_PROCESS, menu);
         addSeparator(menu);
         add(AC_NEW_TARGET, menu);  
+        addSeparator(menu);
+        add(AC_BUILD_BATCH, menu);  
         
         return menu;
     }
@@ -121,7 +125,9 @@ extends AppActionReferenceHolder {
         add(AC_DEL_TARGET, menu);
         addSeparator(menu);
         add(AC_DUP_TARGET, menu);   
-        
+        addSeparator(menu);
+        add(AC_BUILD_BATCH, menu);  
+
         return menu;
     }
     

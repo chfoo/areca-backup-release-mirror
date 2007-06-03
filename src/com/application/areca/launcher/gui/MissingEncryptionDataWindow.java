@@ -15,16 +15,16 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.ResourceManager;
 import com.application.areca.impl.EncryptionConfiguration;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.application.areca.launcher.gui.common.SavePanel;
 
 /**
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*

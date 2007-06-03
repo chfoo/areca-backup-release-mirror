@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -43,10 +43,9 @@ This file is part of Areca.
 public class LocalPreferences {
 
     private static final String HEADER = "Areca user preferences";
-        
-    private final Properties preferences = new Properties();
-    
     private static LocalPreferences instance = new LocalPreferences();
+
+    private final Properties preferences = new Properties();
     
     private LocalPreferences() {
         load();

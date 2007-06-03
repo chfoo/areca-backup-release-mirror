@@ -4,6 +4,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.impl.AbstractFileSystemMedium;
@@ -16,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -40,6 +45,7 @@ This file is part of Areca.
  */
 public class ManifestManager {
     private static FileTool tool = new FileTool();
+    public static String ENCODING = "UTF-8";
     
     public static Manifest readManifestForArchive(AbstractFileSystemMedium medium, File archive) throws ApplicationException {
         try {
@@ -49,8 +55,15 @@ public class ManifestManager {
             
             File dataDir = medium.getDataDirectory(archive);
             File manifestFile = new File(dataDir, medium.getManifestName());
+            File oldManifestFile = new File(dataDir, medium.getOldManifestName());
             if (FileSystemManager.exists(manifestFile)) {
-                InputStream is = FileSystemManager.getFileInputStream(manifestFile);
+                // Newest version
+                InputStream is = new GZIPInputStream(FileSystemManager.getFileInputStream(manifestFile));
+                String content = tool.getInputStreamContent(is, ENCODING, true);
+                return Manifest.decode(content);
+            } else if (FileSystemManager.exists(oldManifestFile)) {
+                // Older versions
+                InputStream is = FileSystemManager.getFileInputStream(oldManifestFile);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 tool.copy(is, baos, true, true);
                 byte[] content = baos.toByteArray();
@@ -62,6 +75,30 @@ public class ManifestManager {
         } catch (IOException e) {
             Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
+        }
+    }
+    
+    public static void writeManifest(AbstractFileSystemMedium medium, Manifest mf, File archive) throws ApplicationException {
+        // Création du manifeste
+        Writer w = null;
+        try {
+            File metadataDir = medium.getDataDirectory(archive);
+            if (! FileSystemManager.exists(metadataDir)) {
+                tool.createDir(metadataDir);
+            }
+            File manifestFile = new File(metadataDir, medium.getManifestName());
+            OutputStream os = new GZIPOutputStream(FileSystemManager.getFileOutputStream(manifestFile));
+            w = new OutputStreamWriter(os, ENCODING);
+            w.write(mf.encode());
+        } catch (IOException e) {
+            throw new ApplicationException(e);            
+        } finally {
+            try {
+                w.flush();
+                w.close();
+            } catch (IOException e) {
+                Logger.defaultLogger().error(e);
+            }
         }
     }
 }

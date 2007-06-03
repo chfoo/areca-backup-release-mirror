@@ -2,6 +2,8 @@ package com.application.areca.launcher.gui;
 
 import java.util.Iterator;
 
+import javax.swing.event.TreeSelectionEvent;
+
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -17,9 +19,12 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.TreeListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
@@ -33,7 +38,7 @@ import com.application.areca.launcher.gui.common.ArecaImages;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -57,7 +62,7 @@ This file is part of Areca.
  */
 public class TreeComposite 
 extends Composite 
-implements MouseListener {
+implements MouseListener, Listener {
 
     protected Tree tree;
     protected Application application = Application.getInstance();
@@ -70,6 +75,7 @@ implements MouseListener {
         TreeViewer viewer = new TreeViewer(this, SWT.BORDER);
         tree = viewer.getTree();
         tree.addMouseListener(this);
+        tree.addListener(SWT.Selection, this);
 
         viewer.addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {
@@ -87,19 +93,19 @@ implements MouseListener {
         final DragSource source = new DragSource(tree, operation);
         source.setTransfer(types);
         source.addDragListener(
-                new DragSourceAdapter() {
-                    public void dragStart(DragSourceEvent event) {   
-                        TreeItem[] selection = tree.getSelection();
-                        if (selection.length > 0 && selection[0].getData() instanceof AbstractRecoveryTarget) {
-                            event.doit = true;
-                        } else {
-                            event.doit = false;
-                        }
-                    };
-                    public void dragSetData(DragSourceEvent event) {
-                        event.data = "dummy data";
+            new DragSourceAdapter() {
+                public void dragStart(DragSourceEvent event) {   
+                    TreeItem[] selection = tree.getSelection();
+                    if (selection.length > 0 && selection[0].getData() instanceof AbstractRecoveryTarget) {
+                        event.doit = true;
+                    } else {
+                        event.doit = false;
                     }
+                };
+                public void dragSetData(DragSourceEvent event) {
+                    event.data = "dummy data";
                 }
+            }
         );
 
         DropTarget target = new DropTarget(tree, operation);
@@ -248,8 +254,6 @@ implements MouseListener {
             } else {
                 showMenu(e, Application.getInstance().getWorkspaceContextMenu());
             }
-
-            Application.getInstance().setCurrentObject((Identifiable)item.getData(), false);
         }
     }
 
@@ -260,5 +264,13 @@ implements MouseListener {
     }
 
     public void mouseUp(MouseEvent e) {
+    }
+
+    public void valueChanged(TreeSelectionEvent e) {
+        Application.getInstance().setCurrentObject((Identifiable)e.getSource(), false);
+    }
+
+    public void handleEvent(Event event) {
+        Application.getInstance().setCurrentObject((Identifiable)event.item.getData(), false);
     }
 }

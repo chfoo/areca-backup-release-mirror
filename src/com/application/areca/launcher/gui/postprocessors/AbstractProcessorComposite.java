@@ -3,8 +3,8 @@ package com.application.areca.launcher.gui.postprocessors;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
+import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.application.areca.postprocess.PostProcessor;
 
 /**
@@ -12,7 +12,7 @@ import com.application.areca.postprocess.PostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*

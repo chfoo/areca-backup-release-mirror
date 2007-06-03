@@ -16,8 +16,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.myJava.file.FileTool;
 
@@ -25,7 +25,7 @@ import com.myJava.file.FileTool;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -194,7 +194,7 @@ extends AbstractWindow {
     
     private void fillLangCombo() {
         try {
-            URL url = ClassLoader.getSystemResource("languages");
+            URL url = ClassLoader.getSystemResource("languages.txt");
             FileTool tool = new FileTool();
             String[] lges = tool.getInputStreamRows(url.openStream(), true); 
         

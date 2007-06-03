@@ -12,9 +12,9 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
+import com.application.areca.ResourceManager;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.postprocessors.AbstractProcessorComposite;
 import com.application.areca.postprocess.PostProcessor;
@@ -23,7 +23,7 @@ import com.application.areca.postprocess.PostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -80,7 +80,7 @@ extends AbstractWindow {
         cboProcessorType.add(RM.getLabel("procedition.shell.label"));
         cboProcessorType.add(RM.getLabel("procedition.merge.label"));   
         GridData dt1 = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
-        dt1.widthHint = 300;
+        dt1.widthHint = computeWidth(400);
         cboProcessorType.setLayoutData(dt1);
         cboProcessorType.addSelectionListener(new SelectionListener() {
             public void widgetDefaultSelected(SelectionEvent e) {

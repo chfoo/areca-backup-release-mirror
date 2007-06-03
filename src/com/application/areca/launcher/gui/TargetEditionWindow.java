@@ -2,7 +2,9 @@ package com.application.areca.launcher.gui;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -27,6 +29,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ArchiveFilter;
+import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.filter.AbstractArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
@@ -44,8 +47,10 @@ import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.LocalPreferences;
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.application.areca.launcher.gui.common.SavePanel;
+import com.application.areca.plugins.StoragePlugin;
+import com.application.areca.plugins.StoragePluginRegistry;
+import com.application.areca.plugins.StorageSelectionHelper;
 import com.application.areca.postprocess.PostProcessor;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -56,7 +61,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -83,9 +88,10 @@ extends AbstractWindow {
 
     private static final ResourceManager RM = ResourceManager.instance();
     private static final String TITLE = RM.getLabel("targetedition.dialog.title");
+    private static final String PLUGIN_HD = "hd";
     
     protected AbstractRecoveryTarget target;
-    protected FTPFileSystemPolicy ftpPolicy = null;
+    protected FileSystemPolicy currentPolicy = null;
     protected boolean hasBeenSaved = false;
     protected ArrayList lstEncryptionAlgorithms = new ArrayList();
     
@@ -96,12 +102,13 @@ extends AbstractWindow {
     protected Text txtDesc;
     
     protected Text txtMediumPath;
-    protected Button chkIncremental;
     protected Button rdFile;
-    protected Button rdFTP;
-    protected Text txtFTP;
     protected Button btnMediumPath;
-    protected Button btnFTP;
+    
+    protected Map strRadio = new HashMap();
+    protected Map strText = new HashMap();
+    protected Map strButton = new HashMap();
+    protected String currentFileSystemPolicyId = null;
     
     protected Group grpCompression;
     protected Group grpEncryption;
@@ -113,6 +120,7 @@ extends AbstractWindow {
     protected Button chkTrackDirectories;
     protected Button chkTrackPermissions;
     protected Button chkEncrypted;
+    protected Button chkIncremental;
     protected Text txtEncryptionKey;
     protected Combo cboEncryptionAlgorithm;
     protected Label lblEncryptionKey;
@@ -260,38 +268,52 @@ extends AbstractWindow {
         });
         rdFile.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
-                switchToFile(ArecaPreferences.getDefaultArchiveStorage());
+                processSelection(PLUGIN_HD, "");
             }
         });
+        this.strButton.put(PLUGIN_HD, btnMediumPath);
+        this.strText.put(PLUGIN_HD, txtMediumPath);
+        this.strRadio.put(PLUGIN_HD, rdFile);
         
-        // PATH (FTP)
-        rdFTP = new Button(grpPath, SWT.RADIO);
-        rdFTP.setText(RM.getLabel("targetedition.storage.ftp"));
-        rdFTP.setToolTipText(RM.getLabel("targetedition.storage.ftp.tt"));
-        txtFTP = new Text(grpPath, SWT.BORDER);
-        txtFTP.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        monitorControl(txtFTP);
-        txtFTP.setEditable(false);
-        btnFTP = new Button(grpPath, SWT.PUSH);
-        btnFTP.setText(RM.getLabel("common.ftpaction.label"));
-        btnFTP.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event event) {
-                FTPFileSystemPolicy newPolicy = showFTPEditionFrame(ftpPolicy);
-                if (newPolicy != null) {
-                    ftpPolicy = newPolicy;
-                    txtFTP.setText(ftpPolicy.getDisplayableParameters());
-                    registerUpdate();                
-                }   
-            }
-        });
-        rdFTP.addListener(SWT.Selection, new Listener(){
-            public void handleEvent(Event event) {
-                switchToFtp("");
-                rdZip.setSelection(true);
-                rdDir.setSelection(false);
-                rdZip64.setSelection(false);
-            }
-        });
+        // Plugins
+        Iterator iter = StoragePluginRegistry.getInstance().getDisplayable().iterator();
+        while (iter.hasNext()) {
+            final StoragePlugin plugin = (StoragePlugin)iter.next();
+            Button rd = new Button(grpPath, SWT.RADIO);
+            rd.setText(plugin.getDisplayName() == null ? "UNDEFINED" : plugin.getDisplayName());
+            rd.setToolTipText(plugin.getToolTip() == null ? "" : plugin.getToolTip());
+            rd.addListener(SWT.Selection, new Listener(){
+                public void handleEvent(Event event) {
+                    StorageSelectionHelper helper = plugin.getStorageSelectionHelper(); 
+                    helper.setWindow(TargetEditionWindow.this);
+                    helper.handleSelection();
+                    processSelection(plugin.getId(), "");
+                }
+            });
+            this.strRadio.put(plugin.getId(), rd);
+            
+            final Text text = new Text(grpPath, SWT.BORDER);
+            text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+            text.setEditable(false);
+            monitorControl(text);
+            this.strText.put(plugin.getId(), text);
+            
+            Button btn = new Button(grpPath, SWT.PUSH);
+            btn.setText(RM.getLabel("common.browseaction.label"));
+            btn.addListener(SWT.Selection, new Listener() {
+                public void handleEvent(Event event) {
+                    StorageSelectionHelper helper = plugin.getStorageSelectionHelper(); 
+                    helper.setWindow(TargetEditionWindow.this);
+                    FileSystemPolicy newPolicy = helper.handleConfiguration();
+                    if (newPolicy != null) {
+                        currentPolicy = newPolicy;
+                        text.setText(currentPolicy.getDisplayableParameters());
+                        registerUpdate();                
+                    } 
+                }
+            });
+            this.strButton.put(plugin.getId(), btn);
+        }
         
         txtTargetName.forceFocus();
     }
@@ -589,21 +611,24 @@ extends AbstractWindow {
                 rdDir.setSelection(true);
             }
             
-            if ( fMedium.getFileSystemPolicy() instanceof FTPFileSystemPolicy) {
-                this.ftpPolicy = (FTPFileSystemPolicy)(fMedium.getFileSystemPolicy().duplicate());
-                this.rdFTP.setSelection(true);
-                switchToFtp(ftpPolicy.getDisplayableParameters());
-            } else if ( fMedium.getFileSystemPolicy() instanceof DefaultFileSystemPolicy) {
+            if ( fMedium.getFileSystemPolicy() instanceof DefaultFileSystemPolicy) {
                 DefaultFileSystemPolicy policy = (DefaultFileSystemPolicy)fMedium.getFileSystemPolicy();
                 this.rdFile.setSelection(true);
                 File tmpF = FileSystemManager.getParentFile(new File(policy.getBaseArchivePath()));
                 File mainStorageDirectory = FileSystemManager.getParentFile(tmpF);
                 if (mainStorageDirectory == null) {
-                    switchToFile(FileSystemManager.getAbsolutePath(tmpF));
+                    processSelection(PLUGIN_HD, FileSystemManager.getAbsolutePath(tmpF));
                     backwardCompatibilityError = true; // ERROR : archives stored at the root.
                 } else {
-                    switchToFile(FileSystemManager.getAbsolutePath(mainStorageDirectory));                    
+                    processSelection(PLUGIN_HD, FileSystemManager.getAbsolutePath(mainStorageDirectory));               
                 }
+            } else {
+                FileSystemPolicy clone = (FileSystemPolicy)fMedium.getFileSystemPolicy().duplicate();
+                String id = clone.getId();
+                Button rd = (Button)this.strRadio.get(id);
+                rd.setSelection(true);
+                processSelection(id, clone.getDisplayableParameters());
+                this.currentPolicy = clone;
             }
 
             chkEncrypted.setSelection(fMedium.getEncryptionPolicy().isEncrypted());
@@ -653,7 +678,7 @@ extends AbstractWindow {
             rdZip.setSelection(true);
             rdFile.setSelection(true);
             chkIncremental.setSelection(true);
-            switchToFile(ArecaPreferences.getDefaultArchiveStorage());
+            processSelection(PLUGIN_HD, ArecaPreferences.getDefaultArchiveStorage());
             
             // Default filters
             FileExtensionArchiveFilter filter = new FileExtensionArchiveFilter();
@@ -666,11 +691,17 @@ extends AbstractWindow {
         
         // FREEZE
         if (isFrozen(true)) {
-            rdFile.setEnabled(false);
-            btnMediumPath.setEnabled(false);
-            txtMediumPath.setEnabled(false);
-            rdFTP.setEnabled(false);
-            btnFTP.setEnabled(false);
+            Iterator iter = this.strRadio.keySet().iterator();
+            while (iter.hasNext()) {
+                String id = (String)iter.next();
+                Button rd = (Button)strRadio.get(id);
+                Button btn = (Button)strButton.get(id);
+                Text txt = (Text)strText.get(id);
+
+                btn.setEnabled(false);
+                txt.setEnabled(false);
+                rd.setEnabled(false);
+            }
 
             grpCompression.setEnabled(false);
             grpEncryption.setEnabled(false);
@@ -734,30 +765,28 @@ extends AbstractWindow {
         item.setData(proc);
     }
     
-    private void switchToFtp(String s) {
-        this.btnFTP.setEnabled(true);
-        this.txtFTP.setEnabled(true);
+    private void processSelection(String refId, String s) {
+        this.currentPolicy = null;
+        this.currentFileSystemPolicyId = refId;
         
-        this.btnMediumPath.setEnabled(false);
-        this.txtMediumPath.setEnabled(false);
-        
-        this.txtMediumPath.setText("");
-        if (s != null) {
-            txtFTP.setText(s);
-        }
-    }
-    
-    private void switchToFile(String s) {
-        this.btnFTP.setEnabled(false);
-        this.txtFTP.setEnabled(false);
-        
-        this.btnMediumPath.setEnabled(true);
-        this.txtMediumPath.setEnabled(true);
-        
-        this.ftpPolicy = null;
-        this.txtFTP.setText("");
-        if (s != null) {
-            txtMediumPath.setText(s);
+        Iterator iter = this.strRadio.keySet().iterator();
+        while (iter.hasNext()) {
+            String id = (String)iter.next();
+            Button rd = (Button)strRadio.get(id);
+            Button btn = (Button)strButton.get(id);
+            Text txt = (Text)strText.get(id);
+            
+            if (refId.equals(id)) {
+                btn.setEnabled(true);
+                txt.setEnabled(true);
+                if (s != null) {
+                    txt.setText(s);
+                }
+            } else {
+                btn.setEnabled(false);
+                txt.setEnabled(false);
+                txt.setText("");
+            }
         }
     }
 
@@ -782,24 +811,25 @@ extends AbstractWindow {
         }
         
         // - EMPLACEMENT medium + valider qu'il n'est pas un sous répertoire du répertoire source
-        this.resetErrorState(txtMediumPath);
-        this.resetErrorState(txtFTP);
-        if (rdFile.getSelection()) {
-            if (this.txtMediumPath.getText() == null || this.txtMediumPath.getText().length() == 0) {
-                this.setInError(txtMediumPath);
-                return false;
-            } else {
-                File baseDir = new File(this.txtBaseDir.getText());
-                File backupDir = new File(this.txtMediumPath.getText());
-                FileTool tool = new FileTool();
-                if (tool.isParentOf(baseDir, backupDir)) {
+        Text txt = (Text)this.strText.get(this.currentFileSystemPolicyId);
+        Button rd = (Button)this.strRadio.get(this.currentFileSystemPolicyId);
+        this.resetErrorState(txt);
+        if (rd.getSelection()) {
+            if (PLUGIN_HD.equals(this.currentFileSystemPolicyId)) {
+                if (this.txtMediumPath.getText() == null || this.txtMediumPath.getText().length() == 0) {
                     this.setInError(txtMediumPath);
-                    return false;           
-                }
-            }  
-        } else {
-            if (this.ftpPolicy == null) {
-                this.setInError(txtFTP);
+                    return false;
+                } else {
+                    File baseDir = new File(this.txtBaseDir.getText());
+                    File backupDir = new File(this.txtMediumPath.getText());
+                    FileTool tool = new FileTool();
+                    if (tool.isParentOf(baseDir, backupDir)) {
+                        this.setInError(txtMediumPath);
+                        return false;           
+                    }
+                }  
+            } else if (currentPolicy == null) {
+                this.setInError(txt);
                 return false;
             }
         }
@@ -929,10 +959,11 @@ extends AbstractWindow {
 
                 AbstractFileSystemMedium medium = null;
                 FileSystemPolicy storagePolicy;
-                if (this.ftpPolicy != null) {
-                    storagePolicy = this.ftpPolicy;
+                if (this.currentPolicy != null) {
+                    storagePolicy = this.currentPolicy;
                 } else {
                     storagePolicy = new DefaultFileSystemPolicy();
+                    ((DefaultFileSystemPolicy)storagePolicy).setId(PLUGIN_HD);
                     String basePath = this.txtMediumPath.getText() + "/" + storageSubDirectory + "/" + archivePrefix;
                     ((DefaultFileSystemPolicy)storagePolicy).setBaseArchivePath(basePath);
                 }

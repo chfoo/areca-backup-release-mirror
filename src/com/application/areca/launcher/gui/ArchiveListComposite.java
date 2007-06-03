@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.TableItem;
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.RecoveryEntry;
+import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
@@ -30,7 +31,6 @@ import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.Refreshable;
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.application.areca.metadata.content.ArchiveContent;
 import com.application.areca.metadata.content.ArchiveContentManager;
 import com.application.areca.metadata.manifest.Manifest;
@@ -41,7 +41,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*

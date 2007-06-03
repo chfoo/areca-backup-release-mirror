@@ -9,7 +9,7 @@ import com.myJava.util.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -32,6 +32,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface FileSystemPolicy extends PublicClonable {
+    public String getId();
     public String getBaseArchivePath();
     public FileSystemDriver initFileSystemDriver() throws ApplicationException;
     public String getDisplayableParameters();

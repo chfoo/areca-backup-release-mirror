@@ -1,28 +1,29 @@
 package com.application.areca.launcher.gui;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ArchiveFilter;
+import com.application.areca.ResourceManager;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.application.areca.launcher.gui.common.SavePanel;
-import com.myJava.file.FileSystemManager;
-import com.myJava.util.os.OSTool;
+import com.application.areca.launcher.gui.filters.AbstractFilterComposite;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -48,20 +49,12 @@ public class FilterEditionWindow
 extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
     private static final String TITLE = RM.getLabel("filteredition.dialog.title");
-    
-    private static final String EXAMPLE_DIR_WIN = RM.getLabel("filteredition.exampledirwin.label");
-    private static final String EXAMPLE_DIR_LINUX = RM.getLabel("filteredition.exampledirlinux.label");
-    private static final String EXAMPLE_FILEEXTENSION = RM.getLabel("filteredition.examplefileext.label");    
-    private static final String EXAMPLE_REGEX = RM.getLabel("filteredition.exampleregex.label");    
-    private static final String EXAMPLE_DATE = RM.getLabel("filteredition.exampledate.label");    
-    private static final String EXAMPLE_SIZE = RM.getLabel("filteredition.examplesize.label");
-    
+
     protected Combo cboFilterType;
-    protected Text txtFilterParameters;
     protected Button chkExclude;
-    protected Label lblExample;
-    protected Label lblFilterParameters;
     protected Button btnSave;
+    protected AbstractFilterComposite pnlParams;
+    protected Group pnlParamsContainer;
     
     protected ArchiveFilter currentFilter;  
     protected FileSystemRecoveryTarget currentTarget;
@@ -86,9 +79,19 @@ extends AbstractWindow {
         cboFilterType.add(RM.getLabel("filteredition.filesizefilter.label"));
         cboFilterType.add(RM.getLabel("filteredition.filedatefilter.label"));  
         cboFilterType.add(RM.getLabel("filteredition.linkfilter.label"));       
-        cboFilterType.add(RM.getLabel("filteredition.lockedfilefilter.label"));    
-        cboFilterType.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        monitorControl(cboFilterType);
+        cboFilterType.add(RM.getLabel("filteredition.lockedfilefilter.label"));   
+        GridData dt = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        dt.widthHint = AbstractWindow.computeWidth(400);
+        cboFilterType.setLayoutData(dt);
+        
+        cboFilterType.addSelectionListener(new SelectionListener() {
+            public void widgetDefaultSelected(SelectionEvent e) {
+            }
+            public void widgetSelected(SelectionEvent e) {
+                refreshParamPnl();
+                registerUpdate();
+            }
+        });
         
         // EXCLUDE
         new Label(composite, SWT.NONE);
@@ -97,32 +100,24 @@ extends AbstractWindow {
         chkExclude.setToolTipText(RM.getLabel("filteredition.exclusionfilterfield.tooltip"));
         monitorControl(chkExclude);
         
-        // SEPARATOR
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        
-        // PARAMS
-        lblFilterParameters = new Label(composite, SWT.NONE);
-        lblFilterParameters.setText(RM.getLabel("filteredition.parametersfield.label"));
-        txtFilterParameters = new Text(composite, SWT.BORDER);
-        txtFilterParameters.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        monitorControl(txtFilterParameters);
-        
-        // EXAMPLE
-        new Label(composite, SWT.NONE);
-        lblExample = new Label(composite, SWT.NONE);
-        lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        // CONTAINER
+        pnlParamsContainer = new Group(composite, SWT.NONE);
+        pnlParamsContainer.setText(RM.getLabel("filteredition.parametersfield.label"));
+        GridLayout lt = new GridLayout();
+        pnlParamsContainer.setLayout(lt);
+        pnlParamsContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
         
         // INIT
         if (this.currentFilter != null) {
-            txtFilterParameters.setText(currentFilter.getStringParameters() == null ? "" : currentFilter.getStringParameters());
             this.cboFilterType.setEnabled(false);
-            cboFilterType.select(FilterRepository.getIndex(currentFilter));   
             chkExclude.setSelection(currentFilter.isExclude());
+            cboFilterType.select(FilterRepository.getIndex(currentFilter));  
         } else {
             cboFilterType.select(0);
             chkExclude.setSelection(true);
         }
+        
+        buildParamPnl();
         
         // SAVE
         SavePanel sv = new SavePanel(this);
@@ -142,23 +137,26 @@ extends AbstractWindow {
         return currentFilter;
     }
 
+    public FileSystemRecoveryTarget getCurrentTarget() {
+        return currentTarget;
+    }
+
     protected boolean checkBusinessRules() {
-        updateExample();
-        this.resetErrorState(txtFilterParameters);    
-        boolean result = FilterRepository.checkParameters(txtFilterParameters.getText(), this.cboFilterType.getSelectionIndex());
-        if (! result) {
-            this.setInError(txtFilterParameters);
+        if (pnlParams == null) {
+            return true;
+        } else {
+            return pnlParams.validateParams();
         }
-        return result;
     }
 
     protected void saveChanges() {
         if (this.currentFilter == null) {
             this.currentFilter = FilterRepository.buildFilter(this.cboFilterType.getSelectionIndex());
         }
-         
         this.currentFilter.setExclude(this.chkExclude.getSelection());
-        this.currentFilter.acceptParameters(this.txtFilterParameters.getText());
+        if (pnlParams != null) {
+            pnlParams.initFilter(currentFilter);
+        }
         
         this.hasBeenUpdated = false;
         this.close();
@@ -168,40 +166,30 @@ extends AbstractWindow {
         btnSave.setEnabled(rulesSatisfied);
     }
     
-    protected void updateExample() {
-        if (this.cboFilterType.getSelectionIndex() == 0) {
-            // FICHIER
-            this.lblExample.setText(EXAMPLE_FILEEXTENSION);
-        } else if (this.cboFilterType.getSelectionIndex() == 1) {
-            // REGEX
-            this.lblExample.setText(EXAMPLE_REGEX);
-        } else if (this.cboFilterType.getSelectionIndex() == 2) {
-            // REPERTOIRE
-            if (OSTool.isSystemWindows()) {
-                this.lblExample.setText(EXAMPLE_DIR_WIN);
-            } else {
-                this.lblExample.setText(EXAMPLE_DIR_LINUX);                
-            }
-            
-            if (
-                    this.currentTarget != null
-                    && currentTarget.getSourcePath() != null
-                    && (this.txtFilterParameters.getText() == null || this.txtFilterParameters.getText().length() == 0)
-            ) {
-                this.txtFilterParameters.setText(FileSystemManager.getAbsolutePath(currentTarget.getSourcePath()));
-            }      
-        } else if (this.cboFilterType.getSelectionIndex() == 3) {
-            // SIZE
-            this.lblExample.setText(EXAMPLE_SIZE);
-        } else if (this.cboFilterType.getSelectionIndex() == 4) {   
-            // DATE
-            this.lblExample.setText(EXAMPLE_DATE);
-        } else {
-            this.lblExample.setText("");
-        }
+    private void buildParamPnl() {
+        this.pnlParams = FilterRepository.buildFilterComposite(
+                this.cboFilterType.getSelectionIndex(), 
+                this.pnlParamsContainer, 
+                currentFilter, 
+                this);
         
-        boolean paramEnabled = FilterRepository.buildFilter(this.cboFilterType.getSelectionIndex()).requiresParameters();
-        this.lblFilterParameters.setEnabled(paramEnabled);
-        this.txtFilterParameters.setEnabled(paramEnabled);
+        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true);
+        if (this.pnlParams != null) {
+            this.pnlParams.setLayoutData(dt);
+            this.pnlParamsContainer.setVisible(true);
+        } else {
+            this.pnlParamsContainer.setVisible(false);
+        }
+    }
+    
+    private void refreshParamPnl() {      
+        if (pnlParams != null) {
+            this.pnlParams.dispose();
+            this.pnlParams = null;
+            this.getShell().pack(true);
+        }
+
+        buildParamPnl();
+        this.getShell().pack(true);
     }
 }

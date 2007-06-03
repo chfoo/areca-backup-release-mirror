@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -29,6 +29,9 @@ This file is part of Areca.
  */
 public interface XMLTags {
 
+    public static final String POLICY_HD  = "hd";
+    public static final String POLICY_FTP  = "ftp";
+    
     public static final String XML_PROCESS = "process";
     public static final String XML_PROCESS_DESCRIPTION = "description";
     
@@ -55,6 +58,7 @@ public interface XMLTags {
     public static final String XML_MEDIUM = "medium";    
     public static final String XML_MEDIUM_ARCHIVEPATH = "archive_path";   
     public static final String XML_MEDIUM_OVERWRITE = "overwrite";
+    public static final String XML_MEDIUM_POLICY = "policy";
     public static final String XML_MEDIUM_ENCRYPTED = "encrypted";
     public static final String XML_MEDIUM_ENCRYPTIONKEY = "encryption_key";
     public static final String XML_MEDIUM_ENCRYPTIONALGO = "encryption_algo";

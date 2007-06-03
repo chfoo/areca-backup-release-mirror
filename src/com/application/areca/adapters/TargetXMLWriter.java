@@ -17,10 +17,10 @@ import com.application.areca.impl.IncrementalDirectoryMedium;
 import com.application.areca.impl.IncrementalTGZMedium;
 import com.application.areca.impl.IncrementalZip64Medium;
 import com.application.areca.impl.IncrementalZipMedium;
-import com.application.areca.impl.policy.DefaultFileSystemPolicy;
 import com.application.areca.impl.policy.EncryptionPolicy;
-import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
+import com.application.areca.plugins.StoragePlugin;
+import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.postprocess.FileDumpPostProcessor;
 import com.application.areca.postprocess.MailSendPostProcessor;
 import com.application.areca.postprocess.MergePostProcessor;
@@ -32,7 +32,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -356,63 +356,14 @@ public class TargetXMLWriter extends AbstractXMLWriter {
     }
     
     protected void serializeFileSystemPolicy(FileSystemPolicy policy) {
-        if (policy instanceof DefaultFileSystemPolicy) {
-            serializeFileSystemPolicy((DefaultFileSystemPolicy)policy);
-        } else if (policy instanceof FTPFileSystemPolicy) {
-            serializeFileSystemPolicy((FTPFileSystemPolicy)policy);
-        } else {
-            throw new IllegalArgumentException("Unsupported policy implementation : " + policy.getClass().getName());
-        }
-    }
-    
-    protected void serializeFileSystemPolicy(DefaultFileSystemPolicy policy) {
-        sb.append(" ");
-        sb.append(XML_MEDIUM_ARCHIVEPATH);
-        sb.append("=");
-        sb.append(encode(policy.getBaseArchivePath()));   
-    }
-    
-    protected void serializeFileSystemPolicy(FTPFileSystemPolicy policy) {
-        sb.append(" ");
-        sb.append(XML_MEDIUM_FTP_HOST);
-        sb.append("=");
-        sb.append(encode(policy.getRemoteServer()));
+        String id = policy.getId();
         
         sb.append(" ");
-        sb.append(XML_MEDIUM_FTP_PORT);
+        sb.append(XML_MEDIUM_POLICY);
         sb.append("=");
-        sb.append(encode("" + policy.getRemotePort()));
+        sb.append(encode(id)); 
         
-        sb.append(" ");
-        sb.append(XML_MEDIUM_FTP_PASSIV);
-        sb.append("=");
-        sb.append(encode("" + policy.isPassivMode()));
-        
-        if (policy.getProtocol() != null)  {
-	        sb.append(" ");
-	        sb.append(XML_MEDIUM_FTP_PROTOCOL);
-	        sb.append("=");
-	        sb.append(encode("" + policy.getProtocol()));
-	        
-	        sb.append(" ");
-	        sb.append(XML_MEDIUM_FTP_IMPLICIT);
-	        sb.append("=");
-	        sb.append(encode("" + policy.isImplicit()));
-        }
-        
-        sb.append(" ");
-        sb.append(XML_MEDIUM_FTP_LOGIN);
-        sb.append("=");
-        sb.append(encode(policy.getLogin()));
-        
-        sb.append(" ");
-        sb.append(XML_MEDIUM_FTP_PASSWORD);
-        sb.append("=");
-        sb.append(encode(policy.getPassword()));
-        
-        sb.append(" ");
-        sb.append(XML_MEDIUM_FTP_REMOTEDIR);
-        sb.append("=");
-        sb.append(encode(policy.getRemoteDirectory()));
+        StoragePlugin plugin = StoragePluginRegistry.getInstance().getById(id);
+        plugin.getFileSystemPolicyXMLHandler().write(policy, sb);
     }
 }

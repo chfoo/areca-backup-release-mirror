@@ -12,27 +12,30 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.RecoveryEntry;
+import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.myJava.file.FileNameUtil;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -56,7 +59,7 @@ This file is part of Areca.
  */
 public class ArchiveExplorer 
 extends Composite 
-implements org.eclipse.swt.events.MouseListener
+implements MouseListener, Listener
 {
     private static int ITEM_STYLE = SWT.NONE;
     private final ResourceManager RM = ResourceManager.instance();
@@ -75,6 +78,7 @@ implements org.eclipse.swt.events.MouseListener
         tree.setLinesVisible(AbstractWindow.getTableLinesVisible());
         tree.setHeaderVisible(true);
         tree.addMouseListener(this);
+        tree.addListener(SWT.Selection, this);
         
         TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
         column1.setText(RM.getLabel("mainpanel.name.label"));
@@ -202,7 +206,6 @@ implements org.eclipse.swt.events.MouseListener
     }
 
     private static class RecoveryEntryComparator implements Comparator {
-        
         public int compare(Object arg0, Object arg1) {
             RecoveryEntry en0 = (RecoveryEntry)arg0;
             RecoveryEntry en1 = (RecoveryEntry)arg1;
@@ -210,7 +213,6 @@ implements org.eclipse.swt.events.MouseListener
             return en0.getName().toLowerCase().compareTo(en1.getName().toLowerCase());
         }
     }
-    
     
     public static class NodeData {
         public String name;
@@ -286,10 +288,20 @@ implements org.eclipse.swt.events.MouseListener
     }
     
 
-    public void mouseDoubleClick(MouseEvent e) {
+    public void mouseDoubleClick(MouseEvent e) {}
+    public void mouseUp(MouseEvent e) {}
+    
+    public void mouseDown(MouseEvent e) {
+        showMenu(e, logicalView ? Application.getInstance().getArchiveContextMenuLogical() : Application.getInstance().getArchiveContextMenu());
+    }
+    
+    private void showMenu(MouseEvent e, Menu m) {
+        if (e.button == 3) {
+            m.setVisible(true);
+        }
     }
 
-    public void mouseDown(MouseEvent e) {
+    public void handleEvent(Event event) {
         TreeItem[] selection = tree.getSelection();
         
         if (selection.length == 1) {
@@ -300,16 +312,6 @@ implements org.eclipse.swt.events.MouseListener
         }
         
         Application.getInstance().setCurrentFilter(buildFilter(selection));
-        showMenu(e, logicalView ? Application.getInstance().getArchiveContextMenuLogical() : Application.getInstance().getArchiveContextMenu());
-    }
-    
-    private void showMenu(MouseEvent e, Menu m) {
-        if (e.button == 3) {
-            m.setVisible(true);
-        }
-    }
-
-    public void mouseUp(MouseEvent e) {
     }
 
     public Tree getTree() {

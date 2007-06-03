@@ -13,7 +13,7 @@ import com.myJava.file.FileTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -64,6 +64,7 @@ public class ArchiveContentAdapter extends AbstractMetadataAdapter {
     
     public ArchiveContent readContent() throws IOException {
         FileTool tool = new FileTool();
-        return readContent(tool.getInputStreamRows(this.getInputStream(), true));
+        String encoding = resolveEncoding();
+        return readContent(tool.getInputStreamRows(this.getInputStream(), encoding, true));
     }
 }

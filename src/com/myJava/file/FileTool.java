@@ -1,5 +1,6 @@
 package com.myJava.file;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -20,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -263,18 +264,23 @@ public class FileTool {
         return getInputStreamContent(inStream, true);
     }
     
+
+    public String getInputStreamContent(InputStream inStream, boolean closeStreamOnExit) throws IOException {
+        return getInputStreamContent(inStream, null, closeStreamOnExit);
+    }
+    
     /**
      * Retourne le contenu intégral du stream passé en argument sous forme de chaîne de
      * caractères.
      */
-    public String getInputStreamContent(InputStream inStream, boolean closeStreamOnExit) throws IOException {
+    public String getInputStreamContent(InputStream inStream, String encoding, boolean closeStreamOnExit) throws IOException {
     	if (inStream == null) {
     		return null;
     	}
     	
-        StringBuffer content = new StringBuffer("");
+        StringBuffer content = new StringBuffer();
         try {
-            InputStreamReader reader = new InputStreamReader(inStream);            
+            InputStreamReader reader = encoding == null ? new InputStreamReader(inStream) : new InputStreamReader(inStream, encoding);            
             int c;
             while ((c = reader.read()) != -1) {
                 content = content.append((char)c);
@@ -294,6 +300,7 @@ public class FileTool {
         OutputStream fos = FileSystemManager.getFileOutputStream(destinationFile);
         OutputStreamWriter fw = new OutputStreamWriter(fos);
         fw.write(content);
+        fw.flush();
         fw.close();
     }
     
@@ -311,8 +318,24 @@ public class FileTool {
      * <BR>Un String par ligne.
      * <BR>Les espaces superflus sont supprimés et les lignes vides sont ignorées.
      */
+    public String[] getInputStreamRows(InputStream stream, String encoding, boolean closeStreamOnExit) throws IOException {
+        return parseStreamContent(this.getInputStreamContent(stream, encoding, closeStreamOnExit));
+    }
+    
     public String[] getInputStreamRows(InputStream stream, boolean closeStreamOnExit) throws IOException {
-        return parseStreamContent(this.getInputStreamContent(stream, closeStreamOnExit));
+        return getInputStreamRows(stream, null, closeStreamOnExit);
+    }
+    
+    public String getFirstRow(InputStream stream, String encoding) throws IOException {
+        BufferedReader reader = null;
+        String line;
+        try {
+            reader = new BufferedReader(new InputStreamReader(stream, encoding));
+            line = reader.readLine();
+        } finally {
+            reader.close();
+        }
+        return line;
     }
     
     /**

@@ -1,11 +1,12 @@
 package com.application.areca;
 
 import java.io.File;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.GregorianCalendar;
 
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.CalendarUtils;
 
@@ -14,7 +15,7 @@ import com.myJava.util.CalendarUtils;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -40,6 +41,12 @@ public class Utils {
     private static final ResourceManager RM = ResourceManager.instance();
     
     public static final String FILE_DATE_SEPARATOR = ".";
+    
+    public static File getApplicationRoot() {
+        URL url = ClassLoader.getSystemClassLoader().getResource("languages.txt");
+        File licenseFile = new File(URLDecoder.decode(url.getFile()));
+        return FileSystemManager.getParentFile(FileSystemManager.getParentFile(licenseFile));
+    }
     
     /**
      * Intègre la date courante au nom de fichier 

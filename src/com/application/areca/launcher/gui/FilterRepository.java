@@ -2,7 +2,10 @@ package com.application.areca.launcher.gui;
 
 import java.io.File;
 
+import org.eclipse.swt.widgets.Composite;
+
 import com.application.areca.ArchiveFilter;
+import com.application.areca.ResourceManager;
 import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.filter.FileDateArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
@@ -10,7 +13,12 @@ import com.application.areca.filter.FileSizeArchiveFilter;
 import com.application.areca.filter.LinkFilter;
 import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.filter.RegexArchiveFilter;
-import com.application.areca.launcher.gui.common.ResourceManager;
+import com.application.areca.launcher.gui.filters.AbstractFilterComposite;
+import com.application.areca.launcher.gui.filters.DirectoryFilterComposite;
+import com.application.areca.launcher.gui.filters.FileDateFilterComposite;
+import com.application.areca.launcher.gui.filters.FileExtensionFilterComposite;
+import com.application.areca.launcher.gui.filters.FileSizeFilterComposite;
+import com.application.areca.launcher.gui.filters.RegexFilterComposite;
 import com.myJava.file.FileSystemManager;
 
 /**
@@ -18,7 +26,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -69,6 +77,28 @@ public class FilterRepository {
         return true;        
     }
     
+    public static AbstractFilterComposite buildFilterComposite(
+            int index, 
+            Composite composite,
+            ArchiveFilter filter, 
+            FilterEditionWindow frm
+    ) {
+        AbstractFilterComposite pnl = null;
+        if (index == 0) {
+            pnl = new FileExtensionFilterComposite(composite, filter, frm);
+        } else if (index == 1){
+            pnl = new RegexFilterComposite(composite, filter, frm);
+        } else if (index == 2){
+            pnl = new DirectoryFilterComposite(composite, filter, frm);
+        } else if (index == 3){
+            pnl = new FileSizeFilterComposite(composite, filter, frm);
+        } else if (index == 4){
+            pnl = new FileDateFilterComposite(composite, filter, frm);
+        }
+        
+        return pnl;
+    }
+    
     public static ArchiveFilter buildFilter(int filterIndex) {
         ArchiveFilter filter = null;
         if (filterIndex == 0) {
@@ -90,27 +120,30 @@ public class FilterRepository {
         return filter;
     }
     
+    public static int getIndex(Class currentFilter) {
+        if (DirectoryArchiveFilter.class.isAssignableFrom(currentFilter)) {
+            return 2;
+        } else if (RegexArchiveFilter.class.isAssignableFrom(currentFilter)) {
+            return 1;
+        } else if (FileExtensionArchiveFilter.class.isAssignableFrom(currentFilter)) {
+            return 0;         
+        } else if (FileSizeArchiveFilter.class.isAssignableFrom(currentFilter)) {
+            return 3;   
+        } else if (FileDateArchiveFilter.class.isAssignableFrom(currentFilter)) {
+            return 4;               
+        } else if (LinkFilter.class.isAssignableFrom(currentFilter)) {
+            return 5;               
+        } else if (LockedFileFilter.class.isAssignableFrom(currentFilter)) {
+            return 6;               
+        }    
+        return 0;
+    }
+    
     public static int getIndex(ArchiveFilter currentFilter) {
         if (currentFilter == null) {
             return 0;
         }
-        
-    	if (DirectoryArchiveFilter.class.isAssignableFrom(currentFilter.getClass())) {
-    		return 2;
-    	} else if (RegexArchiveFilter.class.isAssignableFrom(currentFilter.getClass())) {
-    		return 1;
-    	} else if (FileExtensionArchiveFilter.class.isAssignableFrom(currentFilter.getClass())) {
-    		return 0;         
-    	} else if (FileSizeArchiveFilter.class.isAssignableFrom(currentFilter.getClass())) {
-    		return 3;   
-    	} else if (FileDateArchiveFilter.class.isAssignableFrom(currentFilter.getClass())) {
-    		return 4;          		
-    	} else if (LinkFilter.class.isAssignableFrom(currentFilter.getClass())) {
-    		return 5;          		
-    	} else if (LockedFileFilter.class.isAssignableFrom(currentFilter.getClass())) {
-    		return 6;          		
-    	}    
-    	return 0;
+        return getIndex(currentFilter.getClass());
     }
     
     public static String getName(Class filter) {

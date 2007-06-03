@@ -1,17 +1,19 @@
 package com.myJava.util.version;
 
 import java.net.URL;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import com.myJava.util.EqualsHelper;
 import com.myJava.util.HashHelper;
+import com.myJava.util.ToStringHelper;
 
 /**
  * Class containing various informations about a sotfware's version
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -94,22 +96,12 @@ public class VersionData {
     }
     
     public String toString() {
-        StringBuffer sb = new StringBuffer();
-        
-        sb
-        	.append("VERSION : ")
-        	.append(versionId)
-        	.append("\n")
-        	.append("DATE : ")
-        	.append(versionDate)
-        	.append('\n')
-        	.append("URL : ")
-        	.append(downloadUrl)
-        	.append('\n')
-        	.append("DESCRIPTION : ")
-        	.append(description);        	
-        
-        return sb.toString();
+        StringBuffer sb = ToStringHelper.init(this);
+        ToStringHelper.append("Version", versionId, sb);
+        ToStringHelper.append("Date", versionDate.get(Calendar.YEAR) + "-" + (versionDate.get(Calendar.MONTH) + 1) + "-" + versionDate.get(Calendar.DAY_OF_MONTH), sb);
+        ToStringHelper.append("URL", downloadUrl, sb);
+        ToStringHelper.append("Description", description, sb); 	
+        return ToStringHelper.close(sb);
     }
 
     public boolean equals(Object obj) {

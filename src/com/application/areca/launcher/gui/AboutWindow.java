@@ -23,9 +23,11 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.MemoryHelper;
+import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
-import com.application.areca.launcher.gui.common.ResourceManager;
+import com.application.areca.plugins.StoragePlugin;
+import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileTool;
 import com.myJava.util.log.Logger;
@@ -36,7 +38,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -202,7 +204,23 @@ extends AbstractWindow {
         prps.put("areca.max.manageable.entries", "" + MemoryHelper.getMaxManageableEntries());
         prps.put("areca.version", VersionInfos.getLastVersion().getVersionId());
         prps.put("areca.build.id", "" + VersionInfos.getBuildId());
+        
+        URL url = ClassLoader.getSystemClassLoader().getResource("languages.txt");
+        prps.put("areca.languages.url", url.toExternalForm());
+        
         prps.putAll(ArecaTechnicalConfiguration.get().getProperties());
+        
+        // Plugins
+        Iterator iter = StoragePluginRegistry.getInstance().getAll().iterator();
+        String plugins = "";
+        while (iter.hasNext()) {
+            StoragePlugin plugin = (StoragePlugin)iter.next();
+            if (plugins.length() != 0) {
+                plugins += ", ";
+            }
+            plugins += plugin.getFullName();
+        }
+        prps.put("areca.plugins", plugins);
         
         String[] keys = (String[])prps.keySet().toArray(new String[0]);
         Arrays.sort(keys);

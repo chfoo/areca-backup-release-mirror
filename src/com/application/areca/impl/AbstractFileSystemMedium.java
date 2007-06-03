@@ -44,7 +44,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -80,7 +80,8 @@ implements TargetActions, IndicatorTypes {
     /**
      * Nom du fichier de manifeste.
      */
-    protected static final String MANIFEST_FILE = "manifest.txt";   
+    protected static final String MANIFEST_FILE = "manifest";   
+    protected static final String MANIFEST_FILE_OLD = "manifest.txt";   
     
     /**
      * Name used for target configuration backup
@@ -150,6 +151,10 @@ implements TargetActions, IndicatorTypes {
     
     public String getManifestName() {
         return MANIFEST_FILE;
+    }
+    
+    public String getOldManifestName() {
+        return MANIFEST_FILE_OLD; // Maintained for backward-compatibility purpose
     }
 
     public String getBaseArchivePath() {
@@ -286,15 +291,6 @@ implements TargetActions, IndicatorTypes {
      * méthode purement utilitaire; en pratique : zip ou répertoire) 
      */
     protected abstract void storeFileInArchive(File file, String entryName, ProcessContext context) throws ApplicationException;
-    
-    /**
-     * Retourne le nom du fichier de manifeste (sans répertoire)
-     * Le fichier de manifeste est temporaire, et n'est créé que durant son
-     * enregistrement dans l'archive.
-     */    
-    protected String getShortManifestFileName() {
-        return MANIFEST_FILE + this.target.getUid();        
-    }    
     
     public abstract File[] listArchives(GregorianCalendar fromDate, GregorianCalendar toDate);
     

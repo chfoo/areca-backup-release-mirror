@@ -14,14 +14,14 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
+import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
-import com.application.areca.launcher.gui.common.ResourceManager;
 
 /**
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*

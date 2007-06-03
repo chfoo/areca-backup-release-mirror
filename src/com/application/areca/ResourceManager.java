@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui.common;
+package com.application.areca;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*

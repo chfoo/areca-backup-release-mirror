@@ -18,7 +18,7 @@ import com.myJava.file.FileTool;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -95,7 +95,7 @@ public class ProcessXMLWriter extends AbstractXMLWriter {
             
             
             OutputStream fos = FileSystemManager.getFileOutputStream(targetFile);
-            OutputStreamWriter fw = new OutputStreamWriter(fos);
+            OutputStreamWriter fw = new OutputStreamWriter(fos, getEncoding());
             fw.write(this.sb.toString());
             fw.close();
         } catch (UnsupportedEncodingException e) {

@@ -21,7 +21,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -44,6 +44,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class FTPFileSystemPolicy 
+extends AbstractFileSystemPolicy
 implements FileSystemPolicy {
 
     private static final String LOCAL_DIR_PREFIX;
@@ -253,7 +254,7 @@ implements FileSystemPolicy {
     }
     
     public boolean isSecured() {
-        return protocol != null;
+        return protocol != null && protocol.length() != 0;
     }
     
     private File getLocalDirectory() {
@@ -303,6 +304,7 @@ implements FileSystemPolicy {
         policy.setImplicit(this.implicit);
         policy.setProtocol(this.protocol);
         policy.setRemoteDirectory(this.remoteDirectory);
+        policy.id = id;
         return policy;
     }
        

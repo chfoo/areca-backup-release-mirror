@@ -9,7 +9,9 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -21,11 +23,11 @@ import org.eclipse.swt.widgets.TreeItem;
 import com.application.areca.ApplicationException;
 import com.application.areca.EntryArchiveData;
 import com.application.areca.RecoveryEntry;
+import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Refreshable;
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.application.areca.metadata.manifest.Manifest;
 import com.myJava.util.log.Logger;
 
@@ -33,7 +35,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -57,7 +59,7 @@ This file is part of Areca.
  */
 public class LogicalViewComposite 
 extends Composite 
-implements MouseListener, Refreshable { 
+implements MouseListener, Refreshable, Listener { 
    
     private ArchiveExplorer explorer;
     private Table history;
@@ -115,6 +117,7 @@ implements MouseListener, Refreshable {
         history.setHeaderVisible(true);
         history.setLinesVisible(AbstractWindow.getTableLinesVisible());
         history.addMouseListener(this);
+        history.addListener(SWT.Selection, this);
         
         GridData dt2 = new GridData();
         dt2.grabExcessVerticalSpace = true;
@@ -139,7 +142,7 @@ implements MouseListener, Refreshable {
         explorer = new ArchiveExplorer(content);
         explorer.setDisplayNonStoredItemsSize(true);
         explorer.setLogicalView(true);
-        explorer.getTree().addMouseListener(this);
+        explorer.getTree().addListener(SWT.Selection, this);
         explorer.setLayoutData(dt);
     }
     
@@ -189,9 +192,15 @@ implements MouseListener, Refreshable {
 
     public void mouseDoubleClick(MouseEvent e) {}
     public void mouseUp(MouseEvent e) {}
-
     public void mouseDown(MouseEvent e) {
-        if (e.getSource() instanceof Tree) {
+        TableItem item = history.getItem(new Point(e.x, e.y));
+        if (item != null) {
+            showMenu(e, Application.getInstance().getHistoryContextMenu());
+        }
+    }
+    
+    public void handleEvent(Event e) {
+        if (e.widget instanceof Tree) {
             TreeItem[] selection = explorer.getTree().getSelection();
             
             if (selection.length == 1) {
@@ -208,15 +217,14 @@ implements MouseListener, Refreshable {
                 resetHistoryContent();
             }
         } else {
-            TableItem item = history.getItem(new Point(e.x, e.y));
-            if (item != null) {
-                EntryArchiveData data = (EntryArchiveData)item.getData();
+            TableItem[] items = history.getSelection();
+            if (items != null && items.length == 1) {
+                EntryArchiveData data = (EntryArchiveData)items[0].getData();
                 refreshManifest(data);
-                showMenu(e, Application.getInstance().getHistoryContextMenu());
             }
         }
     }
-    
+
     private void refreshManifest(EntryArchiveData data) {
         // Affichage manifeste et enregistrement date courante
         this.application.setCurrentHistoryDate(data.getManifest().getDate());

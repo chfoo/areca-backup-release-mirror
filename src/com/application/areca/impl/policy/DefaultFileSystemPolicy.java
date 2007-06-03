@@ -15,7 +15,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -38,6 +38,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class DefaultFileSystemPolicy 
+extends AbstractFileSystemPolicy
 implements FileSystemPolicy {
     
     public static final String STORAGE_DIRECTORY_PREFIX = "storage_";
@@ -67,11 +68,18 @@ implements FileSystemPolicy {
     public PublicClonable duplicate() {
         DefaultFileSystemPolicy other = new DefaultFileSystemPolicy();
         other.baseArchivePath = baseArchivePath;
+        other.id = id;
         return other;
     }
 
     public String getDisplayableParameters() {
-		return FileSystemManager.getAbsolutePath(FileSystemManager.getParentFile(new File(getBaseArchivePath())));
+        File tmpF = FileSystemManager.getParentFile(new File(getBaseArchivePath()));
+        File mainStorageDirectory = FileSystemManager.getParentFile(tmpF);
+        if (mainStorageDirectory == null) {
+            return FileSystemManager.getAbsolutePath(tmpF);
+        } else {
+            return FileSystemManager.getAbsolutePath(mainStorageDirectory);                    
+        }
     }
     
     public String toString() {

@@ -16,7 +16,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -58,7 +58,7 @@ public class VersionInfos {
     static {
         
         // INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-        BUILD_ID = 4945525256658487980L;
+        BUILD_ID = 2162742295696737000L;
         
         // INIT VERSION DATA
         VERSIONS.add(new VersionData("1.0", new GregorianCalendar(2005, 4, 1), "Backup engine implementation."));
@@ -111,7 +111,8 @@ public class VersionInfos {
         VERSIONS.add(new VersionData("4.5", new GregorianCalendar(2007, 3, 11), "Zip64 compression; FTP support; Improved archives controls; XML configuration backup; Log window."));
         VERSIONS.add(new VersionData("4.5.1", new GregorianCalendar(2007, 3, 29), "FTPs (implicit/explicit SSL/TLS) support."));
         VERSIONS.add(new VersionData("4.5.2", new GregorianCalendar(2007, 4, 1), "Some bug fixes; Target duplication feature."));
-        VERSIONS.add(new VersionData("5.0", new GregorianCalendar(2007, 4, 12), "Graphical user interface refactoring (SWT is used instead of Swing)."));        
+        VERSIONS.add(new VersionData("5.0", new GregorianCalendar(2007, 4, 12), "Graphical user interface refactoring (SWT is used instead of Swing)."));
+        VERSIONS.add(new VersionData("5.0.1", new GregorianCalendar(2007, 4, 30), "UTF-8 is used for all metadata files; Backup shortcut implementation; Search-Window enhancements."));        
 
         Iterator iter = VERSIONS.iterator();
         while (iter.hasNext()) {

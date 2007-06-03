@@ -1,7 +1,9 @@
 package com.application.areca.launcher.gui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -22,10 +24,10 @@ import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.RecoveryProcess;
+import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Refreshable;
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.application.areca.search.DefaultSearchCriteria;
 import com.application.areca.search.SearchResult;
 import com.application.areca.search.SearchResultItem;
@@ -35,7 +37,7 @@ import com.application.areca.search.TargetSearchResult;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -65,6 +67,7 @@ implements Listener, Refreshable, IDoubleClickListener {
     private final Application application = Application.getInstance();
     
     private SearchResultItem currentItem = null;
+    private Composite pnlTargets;
     private Tree tree;
     
     protected Text txtPattern;
@@ -118,6 +121,7 @@ implements Listener, Refreshable, IDoubleClickListener {
         txtPattern.setLayoutData(dtPattern);
         
         chkLatest = new Button(panel, SWT.CHECK);
+        chkLatest.setSelection(true);
         chkLatest.setText(RM.getLabel("search.criteria.latest"));
 
         GridData dtTargets = new GridData();
@@ -139,25 +143,11 @@ implements Listener, Refreshable, IDoubleClickListener {
         scr.setLayout(new FillLayout());
         scr.setLayoutData(dtTargetsContent);
    
-        Composite pnlTargets = new Composite(scr, SWT.NONE);
+        pnlTargets = new Composite(scr, SWT.NONE);
         GridLayout tgLayout = new GridLayout();
         tgLayout.numColumns = 1;
         tgLayout.verticalSpacing = 0;
         pnlTargets.setLayout(tgLayout);
-        
-        Iterator pIter = this.application.getWorkspace().getProcessIterator();
-        while (pIter.hasNext()) {
-            RecoveryProcess process = (RecoveryProcess)pIter.next();
-            Iterator tIter = process.getSortedTargetIterator();
-            while (tIter.hasNext()) {
-                AbstractRecoveryTarget target = (AbstractRecoveryTarget)tIter.next();
-                this.targets.add(target);
-                Button chk = new Button(pnlTargets, SWT.CHECK);
-                chk.setText(target.getTargetName());
-                this.checkBoxes.add(chk);
-            }
-        }
-        pnlTargets.setSize(pnlTargets.computeSize(SWT.DEFAULT, SWT.DEFAULT));
         scr.setContent(pnlTargets);
         
         chkCase = new Button(panel, SWT.CHECK);
@@ -198,8 +188,74 @@ implements Listener, Refreshable, IDoubleClickListener {
         return panel;
     }
     
+    private boolean haveTargetsChanged() {
+        Iterator existingTgs = this.targets.iterator();
+        Map map = new HashMap(this.targets.size());
+        while (existingTgs.hasNext()) {
+            AbstractRecoveryTarget target = (AbstractRecoveryTarget)existingTgs.next();
+            map.put(target.getUid(), target);
+        }
+        
+        Iterator pIter = this.application.getWorkspace().getProcessIterator();
+        boolean hasChanged = false;
+        while (pIter.hasNext() && ! hasChanged) {
+            RecoveryProcess process = (RecoveryProcess)pIter.next();
+            Iterator tIter = process.getSortedTargetIterator();
+            while (tIter.hasNext() && ! hasChanged) {
+                AbstractRecoveryTarget target = (AbstractRecoveryTarget)tIter.next();
+                AbstractRecoveryTarget exist = (AbstractRecoveryTarget)map.remove(target.getUid());
+                if (exist == null || ! (exist.getTargetName().equals(target.getTargetName()))) {
+                    return true;
+                }
+            }
+        }
+        return (map.size() != 0);
+    }
+    
+    private void buildTargetList() {
+        // REMOVE EXISTING
+        Iterator chkIter = this.checkBoxes.iterator();
+        while (chkIter.hasNext()) {
+            Button btn = (Button)chkIter.next();
+            btn.dispose();
+        }
+        this.checkBoxes.clear();
+        this.targets.clear();
+        pnlTargets.pack();
+        
+        // ADD TGS
+        Iterator pIter = this.application.getWorkspace().getProcessIterator();
+        while (pIter.hasNext()) {
+            RecoveryProcess process = (RecoveryProcess)pIter.next();
+            Iterator tIter = process.getSortedTargetIterator();
+            while (tIter.hasNext()) {
+                AbstractRecoveryTarget target = (AbstractRecoveryTarget)tIter.next();
+                this.targets.add(target);
+                Button chk = new Button(pnlTargets, SWT.CHECK);
+                chk.setText(target.getTargetName());
+                this.checkBoxes.add(chk);
+            }
+        }
+        pnlTargets.setSize(pnlTargets.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+    }
+    
     public void refresh() {
-        // does nothing
+        // Refresh targets if needed
+        if (haveTargetsChanged()) {
+            buildTargetList();
+        }
+        
+        // pre-check checkBoxes
+        Iterator chkIter = this.checkBoxes.iterator();
+        Iterator tgIter = this.targets.iterator();
+        while (chkIter.hasNext()) {
+            Button chk = (Button)chkIter.next();
+            AbstractRecoveryTarget target = (AbstractRecoveryTarget)tgIter.next();
+            chk.setSelection(
+                    (this.application.isCurrentObjectTarget() && this.application.getCurrentTarget().getUid().equals(target.getUid()))
+                    || (this.application.isCurrentObjectProcess() && this.application.getCurrentProcess().getUid().equals(target.getProcess().getUid()))
+            );
+        }
     }
 
     public Object getRefreshableKey() {

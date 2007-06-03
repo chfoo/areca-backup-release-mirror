@@ -15,18 +15,18 @@ import org.eclipse.swt.widgets.TableItem;
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.HistoryEntryTypes;
+import com.application.areca.ResourceManager;
 import com.application.areca.indicator.Indicator;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.indicator.IndicatorTypes;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.Refreshable;
-import com.application.areca.launcher.gui.common.ResourceManager;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*

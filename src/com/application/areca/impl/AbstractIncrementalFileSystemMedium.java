@@ -2,7 +2,6 @@ package com.application.areca.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.GregorianCalendar;
@@ -64,7 +63,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -638,8 +637,14 @@ implements TargetActions {
                 this.target.getProcess().getInfoChannel().updateCurrentTask(0, 0, FileSystemManager.getPath(context.getCurrentArchiveFile()));
                 
                 // Suppression du manifeste existant
-                File manifestFile = new File(tmpDestination, MANIFEST_FILE);
-                AbstractFileSystemMedium.tool.delete(manifestFile, true);
+                File mfFile = new File(tmpDestination, getManifestName());
+                if (FileSystemManager.exists(mfFile)) {
+                    AbstractFileSystemMedium.tool.delete(mfFile, true);
+                }
+                File oldMfFile = new File(tmpDestination, getOldManifestName()); // Rétro-compatibilité
+                if (FileSystemManager.exists(oldMfFile)) {
+                    AbstractFileSystemMedium.tool.delete(oldMfFile, true);
+                }
                 
                 this.target.getTaskMonitor().checkTaskCancellation();
                 
@@ -1113,22 +1118,7 @@ implements TargetActions {
      */
     public void storeManifest(ProcessContext context) throws ApplicationException {
         if (context.getManifest() != null) {
-            // Création du manifeste
-            File manifestFile;
-            try {
-                File metadataDir = getDataDirectory(context.getCurrentArchiveFile());
-                
-                if (! FileSystemManager.exists(metadataDir)) {
-                    AbstractFileSystemMedium.tool.createDir(metadataDir);
-                }
-                manifestFile = new File(metadataDir, MANIFEST_FILE);
-                Writer fw = FileSystemManager.getWriter(manifestFile);
-                fw.write(context.getManifest().encode());
-                fw.flush();
-                fw.close();
-            } catch (IOException e) {
-                throw new ApplicationException(e);
-            }                
+            ManifestManager.writeManifest(this, context.getManifest(), context.getCurrentArchiveFile());            
         }
     }  
     

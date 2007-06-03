@@ -19,7 +19,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -61,13 +61,11 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
     }    
     
     protected void storeFileInArchive(File file, String path, ProcessContext context) throws ApplicationException {
+        File tg = new File(context.getCurrentArchiveFile(), path);
         try {
-            File tg = new File(context.getCurrentArchiveFile(), path);
             tool.copyFile(file, FileSystemManager.getParentFile(tg), FileSystemManager.getName(tg));
-        } catch (IllegalArgumentException e) {
-            throw new ApplicationException(e);
-        } catch (IOException e) {
-            throw new ApplicationException(e);
+        } catch (Throwable e) {
+            throw new ApplicationException("Error storing file " + FileSystemManager.getAbsolutePath(file) + " - target=" + FileSystemManager.getAbsolutePath(tg), e);
         }
     }
     

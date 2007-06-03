@@ -14,9 +14,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.ProgressBar;
 
+import com.application.areca.ResourceManager;
 import com.application.areca.UserInformationChannel;
 import com.application.areca.launcher.gui.common.Colors;
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskMonitor;
@@ -25,7 +25,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*

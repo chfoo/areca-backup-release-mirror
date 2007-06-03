@@ -18,11 +18,11 @@ import org.eclipse.swt.widgets.TableItem;
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.HistoryEntryTypes;
+import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Refreshable;
-import com.application.areca.launcher.gui.common.ResourceManager;
 import com.myJava.util.Utilitaire;
 import com.myJava.util.history.History;
 import com.myJava.util.history.HistoryEntry;
@@ -31,7 +31,7 @@ import com.myJava.util.history.HistoryEntry;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*

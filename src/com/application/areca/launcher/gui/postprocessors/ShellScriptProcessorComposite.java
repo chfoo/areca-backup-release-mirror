@@ -3,10 +3,14 @@ package com.application.areca.launcher.gui.postprocessors;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
 import com.application.areca.postprocess.PostProcessor;
 import com.application.areca.postprocess.ShellScriptPostProcessor;
@@ -15,7 +19,7 @@ import com.application.areca.postprocess.ShellScriptPostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -41,16 +45,27 @@ public class ShellScriptProcessorComposite extends AbstractProcessorComposite {
 
     private Text txt;
     
-    public ShellScriptProcessorComposite(Composite composite, PostProcessor proc, ProcessorEditionWindow window) {
+    public ShellScriptProcessorComposite(Composite composite, PostProcessor proc, final ProcessorEditionWindow window) {
         super(composite, proc, window);
-        this.setLayout(new GridLayout(2, false));
+        this.setLayout(new GridLayout(3, false));
         
         Label lbl = new Label(this, SWT.NONE);
         lbl.setText(RM.getLabel("procedition.scriptfile.label"));
         
         txt = new Text(this, SWT.BORDER);
-        txt.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        txt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         window.monitorControl(txt);
+        
+        Button btnBrowse = new Button(this, SWT.PUSH);
+        btnBrowse.setText(RM.getLabel("common.browseaction.label"));
+        btnBrowse.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+                String path = Application.getInstance().showFileDialog(txt.getText(), window);
+                if (path != null) {
+                    txt.setText(path);
+                }
+            }
+        });
         
         if (proc != null) {
             ShellScriptPostProcessor sProc = (ShellScriptPostProcessor)proc;

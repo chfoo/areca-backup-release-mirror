@@ -1,13 +1,12 @@
 package com.application.areca.adapters;
 
 import com.myJava.util.Utilitaire;
-import com.myJava.util.os.OSTool;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -30,14 +29,14 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public abstract class AbstractXMLWriter implements XMLTags {
-    private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"" + OSTool.getIANAFileEncoding() + "\"?>";
+    private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"" + getEncoding() + "\"?>";
     protected StringBuffer sb;
     
     public AbstractXMLWriter(StringBuffer sb) {
         this.sb = sb;
     }
 
-    protected String encode(String orig) {
+    protected static String encode(String orig) {
         String ret = orig;
 
         ret = Utilitaire.replace(ret, "&", "&amp;");
@@ -56,5 +55,10 @@ public abstract class AbstractXMLWriter implements XMLTags {
     
     public String getXML() {
         return sb.toString();
+    }
+    
+    protected static String getEncoding() {
+        //return OSTool.getIANAFileEncoding();
+        return "UTF-8";
     }
 }

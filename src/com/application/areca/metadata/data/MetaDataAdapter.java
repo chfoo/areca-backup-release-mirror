@@ -10,7 +10,7 @@ import com.application.areca.metadata.AbstractMetadataAdapter;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -45,7 +45,7 @@ public class MetaDataAdapter extends AbstractMetadataAdapter {
     }
     
     public void writeMetaData(MetaData data) throws IOException {
-        this.initWriter();
+        this.initOutputStream();
         data.getProperties().store(this.outputStream, "");
     }
 }

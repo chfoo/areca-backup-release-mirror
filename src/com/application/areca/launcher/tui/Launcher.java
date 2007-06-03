@@ -14,6 +14,7 @@ import com.application.areca.launcher.UserCommand;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.CalendarUtils;
+import com.myJava.util.Utilitaire;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
 import com.myJava.util.os.OSTool;
@@ -23,7 +24,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -66,7 +67,12 @@ public class Launcher implements CommandConstants {
                 File f = new File(command.getOption(OPTION_CONFIG));
                 if (FileSystemManager.exists(f)) {
         	        Logger.defaultLogger().removeAllProcessors();
-        	        FileLogProcessor proc = new FileLogProcessor(command.getOption(OPTION_CONFIG) + ".log");
+                    File configFile = new File(Utilitaire.replace(command.getOption(OPTION_CONFIG), ".xml", ""));
+                    File logFile = new File(
+                            FileSystemManager.getParentFile(configFile) + "/log/",
+                            FileSystemManager.getName(configFile)
+                    );
+        	        FileLogProcessor proc = new FileLogProcessor(logFile);
         	        Logger.defaultLogger().addProcessor(proc);
                 }
             }

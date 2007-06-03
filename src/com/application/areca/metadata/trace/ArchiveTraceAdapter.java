@@ -18,7 +18,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -100,7 +100,8 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
      */    
     public ArchiveTrace readTrace() throws IOException {
         FileTool tool = new FileTool();
-        String[] traceContent = tool.getInputStreamRows(this.getInputStream(), true);
+        String encoding = resolveEncoding();
+        String[] traceContent = tool.getInputStreamRows(this.getInputStream(), encoding, true);
         // Check memory usage
         long entries = traceContent.length;
         if (entries > MAX_SIZE) {
@@ -119,7 +120,12 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
         // Parse trace
         ArchiveTrace trace = new ArchiveTrace();
         for (int i=0; i<traceContent.length; i++) {
-            trace.deserialize(traceContent[i], this.objectPool);
+            if (
+                    traceContent[i] != null 
+                    && (! traceContent[i].startsWith("#"))
+            ) {
+                trace.deserialize(traceContent[i], this.objectPool);
+            }
         }
         Logger.defaultLogger().info("" + traceContent.length + " traces read for " + FileSystemManager.getAbsolutePath(file));
         return trace;

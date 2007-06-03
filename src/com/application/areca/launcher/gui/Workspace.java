@@ -28,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -132,7 +132,7 @@ public class Workspace {
 	    File f = new File(path);
 	    if (FileSystemManager.exists(f)) {
 	        Logger.defaultLogger().removeAllProcessors();
-	        FileLogProcessor proc = new FileLogProcessor(new File(f, VersionInfos.APP_NAME.toLowerCase() + ".log"));
+	        FileLogProcessor proc = new FileLogProcessor(new File(FileSystemManager.getAbsolutePath(f) + "/log/", VersionInfos.APP_NAME.toLowerCase()));
 	        Logger.defaultLogger().addProcessor(proc);
 
             LogHelper.logStartupInformations();

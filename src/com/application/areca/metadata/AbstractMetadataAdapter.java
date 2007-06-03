@@ -18,7 +18,7 @@ import com.myJava.file.FileTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -42,6 +42,11 @@ This file is part of Areca.
  */
 public class AbstractMetadataAdapter {
 
+    protected static final String DATA_CHARSET = "UTF-8";
+    protected static final String VERSION_HEADER = "#### MDT_FORMAT_VERSION=";
+    protected static final String VERSION_1 = VERSION_HEADER + "1"; // Initial metadata version : uses the default character encoding
+    protected static final String VERSION_2 = VERSION_HEADER + "2"; // Latest metadata version : uses UTF-8 encoding
+    
     /**
      * Optional object pool.
      */
@@ -72,8 +77,8 @@ public class AbstractMetadataAdapter {
      */
     protected File file;
     
-    protected void initWriter() throws IOException {
-        if (writer == null) {
+    protected void initOutputStream() throws IOException {
+        if (outputStream == null) {
             File parent = FileSystemManager.getParentFile(file);
             if (! FileSystemManager.exists(parent)) {
                 FileTool tool = new FileTool();
@@ -89,10 +94,21 @@ public class AbstractMetadataAdapter {
                 this.outputStream = FileSystemManager.getCachedFileOutputStream(file); // METADATA are written in "cached" mode
             }
             
-            this.writer = new OutputStreamWriter(this.outputStream);
             this.written = 0;
         }
     }    
+    
+    protected void initWriter() throws IOException {
+        if (writer == null) {
+            initOutputStream();
+            this.writer = new OutputStreamWriter(this.outputStream, DATA_CHARSET);
+            this.writer.write(getVersionHeader() + "\n");
+        }
+    }    
+    
+    protected String getVersionHeader() {
+        return VERSION_2 ;
+    }
     
     public void setObjectPool(ObjectPool objectPool) {
         this.objectPool = objectPool;
@@ -102,6 +118,9 @@ public class AbstractMetadataAdapter {
         if (writer != null) {
             this.writer.flush();
             this.writer.close();
+        } else if (outputStream != null) {
+            this.outputStream.flush();
+            this.outputStream.close();
         }
         
         if (! FileSystemManager.exists(file)) {
@@ -114,6 +133,16 @@ public class AbstractMetadataAdapter {
 	        return new GZIPInputStream(FileSystemManager.getFileInputStream(file));
         } else {
 	        return FileSystemManager.getFileInputStream(file);
+        }
+    }
+    
+    protected String resolveEncoding() throws IOException {
+        FileTool tool = new FileTool();
+        String firstLine = tool.getFirstRow(getInputStream(), DATA_CHARSET);
+        if (firstLine != null && firstLine.startsWith(VERSION_2)) {
+            return DATA_CHARSET; // Version2 <=> UTF-8
+        } else {
+            return null; // Version1 <=> Default charset
         }
     }
     

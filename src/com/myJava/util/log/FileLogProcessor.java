@@ -1,6 +1,7 @@
 package com.myJava.util.log;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
@@ -12,7 +13,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -61,11 +62,20 @@ implements LogProcessor {
     public FileLogProcessor(String file) {
         this();
         this.fileName = file;
+        
+        File f = new File(fileName);
+        File parent = FileSystemManager.getParentFile(f);
+        if (! FileSystemManager.exists(parent)) {
+            try {
+                FileSystemManager.mkdir(parent);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
     
     public FileLogProcessor(File file) {
-        this();
-        fileName = FileSystemManager.getAbsolutePath(file);
+        this(FileSystemManager.getAbsolutePath(file));
     }
     
     /**
@@ -87,10 +97,9 @@ implements LogProcessor {
      */
     public String getCurrentLogFile() {
         if (! this.uniqueFile) {
-            SimpleDateFormat df = new SimpleDateFormat("yy-MM-dd");
-            return this.fileName + "." + df.format(new Date());
+            return this.fileName + "." + DF.format(new Date()) + ".log";
         } else {
-            return this.fileName;
+            return this.fileName + ".log";
         }
     }
     
@@ -101,12 +110,7 @@ implements LogProcessor {
         
         // Ecriture de la log.
         try {
-            String tgFile = this.fileName;
-            
-            // Gestion de l'historique de log
-            if (! this.uniqueFile) {
-                tgFile += "." + DF.format(new Date());
-            }
+            String tgFile = getCurrentLogFile();
             synchronized(this) { 
                 Writer fw = FileSystemManager.getWriter(tgFile, true);
                 fw.write("\n" + logCt);

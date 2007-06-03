@@ -18,7 +18,7 @@ import com.myJava.file.FileNameUtil;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4945525256658487980
+ * <BR>Areca Build ID : 2162742295696737000
  */
  
  /*
@@ -69,7 +69,9 @@ public class ArchiveContent {
     
     public void parse(String[] serialized) {
         for (int i=0; i<serialized.length; i++) {
-            this.content.add(this.deserialize(serialized[i]));
+            if (serialized[i] != null && (! serialized[i].startsWith("#"))) {
+                this.content.add(this.deserialize(serialized[i]));
+            }
         }
     }
     
