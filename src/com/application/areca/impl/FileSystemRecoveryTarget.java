@@ -23,7 +23,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2162742295696737000
+ * <BR>Areca Build ID : -6307890396762748969
  */
  
  /*
@@ -163,15 +163,31 @@ implements TargetActions {
      * Lance le recover sur la target
      */    
     public void processRecoverImpl(String destination, String[] filters, GregorianCalendar date, boolean recoverDeletedEntries, ProcessContext context) throws ApplicationException {
-        this.medium.recover(new File(destination, RECOVERY_LOCATION_SUFFIX), filters, date, recoverDeletedEntries, context);
+        this.medium.recover(
+                new File(normalizeDestination(destination), RECOVERY_LOCATION_SUFFIX), 
+                filters, 
+                date, 
+                recoverDeletedEntries, 
+                context
+         );
     }  
     
     /**
      * Lance le recover sur la target
      */    
     public void processRecoverImpl(String destination, GregorianCalendar date, RecoveryEntry entry, ProcessContext context) throws ApplicationException {
-        this.medium.recoverEntry(date, entry, new File(destination), context);
-    }  
+        this.medium.recoverEntry(date, entry, new File(normalizeDestination(destination)), context);
+    } 
+    
+    private static String normalizeDestination(String destination) {
+        if (destination == null) {
+            return null;
+        } else if (destination.endsWith("\\") || destination.endsWith("/")) {
+            return destination.substring(0, destination.length() - 1);  
+        } else {
+            return destination;
+        }
+    }
     
     /**
      * @see AbstractRecoveryTarget#getSpecificTargetDescription()

@@ -13,7 +13,7 @@ import com.application.areca.launcher.gui.FilterEditionWindow;
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2162742295696737000
+ * <BR>Areca Build ID : -6307890396762748969
  */
  
  /*
