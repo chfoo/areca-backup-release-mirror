@@ -22,7 +22,7 @@ import com.myJava.file.archive.ArchiveWriter;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -76,9 +76,9 @@ public abstract class AbstractIncrementalArchiveMedium extends AbstractIncrement
     public void open(ProcessContext context) throws ApplicationException {
         if (overwrite) {
             // Delete all archives
-            this.target.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2);
+            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2);
             this.deleteArchives(null, context);
-            this.target.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8);
+            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8);
         }
         super.open(context);
     }
@@ -113,13 +113,18 @@ public abstract class AbstractIncrementalArchiveMedium extends AbstractIncrement
     protected abstract ArchiveAdapter getArchiveAdapter(InputStream in, long length) throws IOException;
 
     
-    protected void archiveRawRecover(File[] elementaryArchives, String[] entriesToRecover, File targetFile) throws ApplicationException {
+    protected void archiveRawRecover(
+            File[] elementaryArchives, 
+            String[] entriesToRecover, 
+            File targetFile,
+            ProcessContext context
+    ) throws ApplicationException {
         try {
-            this.target.getProcess().getInfoChannel().logInfo(null, "Data recovery ...");
+            context.getInfoChannel().print("Data recovery ...");
             
             for (int i=0; i<elementaryArchives.length; i++) {
-                this.target.getTaskMonitor().checkTaskCancellation();      
-                this.target.getProcess().getInfoChannel().updateCurrentTask(i+1, elementaryArchives.length, "Processing " + FileSystemManager.getPath(elementaryArchives[i]) + " ...");
+                context.getTaskMonitor().checkTaskCancellation();      
+                context.getInfoChannel().updateCurrentTask(i+1, elementaryArchives.length, "Processing " + FileSystemManager.getPath(elementaryArchives[i]) + " ...");
                 
                 ArchiveReader zrElement = new ArchiveReader(getArchiveAdapter(elementaryArchives[i], false));
 
@@ -127,7 +132,7 @@ public abstract class AbstractIncrementalArchiveMedium extends AbstractIncrement
                 zrElement.injectIntoDirectory(targetFile, entriesToRecover);
                 zrElement.close();
                 
-                this.target.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, elementaryArchives.length);  
+                context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, elementaryArchives.length);  
             }
         } catch (Throwable e) {
             throw new ApplicationException(e);

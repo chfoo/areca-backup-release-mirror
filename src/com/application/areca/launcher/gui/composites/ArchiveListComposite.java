@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui;
+package com.application.areca.launcher.gui.composites;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +27,7 @@ import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
+import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
@@ -41,7 +42,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*

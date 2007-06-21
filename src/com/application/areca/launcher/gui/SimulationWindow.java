@@ -28,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -62,10 +62,12 @@ implements Listener {
     protected Label lblCreated;
     protected Label lblModified;
     protected Label lblTotalSize;
+    protected AbstractRecoveryTarget target;
     
-    public SimulationWindow(RecoveryEntry[] entries) {
+    public SimulationWindow(RecoveryEntry[] entries, AbstractRecoveryTarget target) {
         super();
         this.entries = entries;
+        this.target = target;
     }
 
     protected Control createContents(Composite parent) {
@@ -206,7 +208,6 @@ implements Listener {
     }
 
     public String getTitle() {
-        AbstractRecoveryTarget target = (AbstractRecoveryTarget)this.application.getCurrentObject();   
         return RM.getLabel("simulation.dialog.title", new Object[] {target.getTargetName()});
     }
 
@@ -225,19 +226,19 @@ implements Listener {
             this.close();
             Manifest mf = new Manifest();
             mf.setType(Manifest.TYPE_BACKUP);
-            this.application.launchBackupOnTarget(mf);
+            this.application.launchBackupOnTarget(target, mf);
         } else {
             this.close();
             Manifest mf;
             try {
-                mf = ((AbstractIncrementalFileSystemMedium)this.application.getCurrentTarget().getMedium()).buildDefaultBackupManifest();
+                mf = ((AbstractIncrementalFileSystemMedium)target.getMedium()).buildDefaultBackupManifest();
             } catch (ApplicationException e1) {
                 Logger.defaultLogger().error(e1);
                 mf = new Manifest();
                 mf.setType(Manifest.TYPE_BACKUP);
             }
             
-            this.application.showManifestEditionFrame(false, mf);
+            this.application.showManifestEditionFrame(false, target, mf);
         }
     }
 }

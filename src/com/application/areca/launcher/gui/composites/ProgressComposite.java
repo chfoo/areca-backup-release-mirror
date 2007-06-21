@@ -1,4 +1,12 @@
-package com.application.areca.cache;
+package com.application.areca.launcher.gui.composites;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+
+import com.application.areca.ResourceManager;
+import com.application.areca.launcher.gui.Application;
+import com.application.areca.launcher.gui.common.Refreshable;
 
 /**
  * <BR>
@@ -26,30 +34,22 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class CachedData {
-
-    private String hash;
-    private Object data;
-    private long approximateSize = 0;
-
-    public CachedData(String hash, Object data, long approximateSize) {
-        this.hash = hash;
-        this.data = data;
-    }
+public class ProgressComposite 
+extends Composite 
+implements Refreshable {
+    protected final ResourceManager RM = ResourceManager.instance();
+    private Application application = Application.getInstance();
     
-    public Object getData() {
-        return data;
-    }
-    
-    public String getHash() {
-        return hash;
-    }
-    
-    public boolean isUpToDate(String currentHash) {
-        return this.hash != null && this.hash.equals(currentHash);
+    public ProgressComposite(Composite parent) {
+        super(parent, SWT.NONE);
+        this.setLayout(new GridLayout(1, false));
     }
 
-    public long getApproximateSize() {
-        return approximateSize;
+    public Object getRefreshableKey() {
+        return this.getClass().getName();
+    }
+
+    public void refresh() {
+        // Does nothing
     }
 }

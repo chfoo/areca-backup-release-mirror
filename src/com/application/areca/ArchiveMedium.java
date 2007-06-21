@@ -18,7 +18,7 @@ import com.myJava.util.history.History;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -84,6 +84,11 @@ public interface ArchiveMedium extends PublicClonable {
             boolean recoverDeletedEntries,
             ProcessContext context            
     ) throws ApplicationException;
+    
+    /**
+     * Détruit toutes les archives et données les concernant.
+     */
+    public void destroyRepository() throws ApplicationException;
     
     /**
      * Ouvre le support afin qu'il puisse héberger par la suite des entrées.

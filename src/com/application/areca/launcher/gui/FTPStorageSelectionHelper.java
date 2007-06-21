@@ -8,7 +8,7 @@ import com.application.areca.plugins.StorageSelectionHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -55,7 +55,9 @@ public class FTPStorageSelectionHelper implements StorageSelectionHelper {
         frm.open();
         
         FTPFileSystemPolicy ft = frm.getCurrentPolicy();
-        ft.setId("ftp");
+        if (ft != null) {
+            ft.setId("ftp");
+        }
         return ft;
     }
 }

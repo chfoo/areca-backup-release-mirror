@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui;
+package com.application.areca.launcher.gui.composites;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.RecoveryProcess;
 import com.application.areca.ResourceManager;
+import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Refreshable;
@@ -37,7 +38,7 @@ import com.application.areca.search.TargetSearchResult;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*

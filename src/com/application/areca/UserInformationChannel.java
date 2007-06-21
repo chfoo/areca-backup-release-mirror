@@ -1,12 +1,13 @@
 package com.application.areca;
 
+import com.myJava.util.taskmonitor.TaskMonitor;
 import com.myJava.util.taskmonitor.TaskMonitorListener;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -29,13 +30,12 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface UserInformationChannel extends TaskMonitorListener {
-    public void logInfo(String title, String info);
-    public void logWarning(String title, String warning);
-    public void logError(String title, String error, Throwable e);    
+    public void print(String info);
     public void updateCurrentTask(long taskIndex, long taskCount, String taskDescription);
+    
     public void startRunning();
     public void stopRunning();
-    public boolean isRunning(); 
-    public void reset();    
-    public void displayApplicationMessage(String messageKey, String title, String message);
+    
+    public void setTaskMonitor(TaskMonitor tm);
+    public TaskMonitor getTaskMonitor();
 }

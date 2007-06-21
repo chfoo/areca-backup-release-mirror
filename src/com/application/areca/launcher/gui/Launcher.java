@@ -5,6 +5,7 @@ import java.util.Locale;
 import javax.swing.JOptionPane;
 
 import com.application.areca.ArecaTechnicalConfiguration;
+import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.version.VersionInfos;
 import com.myJava.util.log.Logger;
 import com.myJava.util.os.OSTool;
@@ -13,7 +14,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*

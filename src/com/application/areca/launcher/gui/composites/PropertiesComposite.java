@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui;
+package com.application.areca.launcher.gui.composites;
 
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
@@ -12,6 +12,7 @@ import com.application.areca.RecoveryProcess;
 import com.application.areca.ResourceManager;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.myJava.file.FileSystemManager;
 
@@ -19,7 +20,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*

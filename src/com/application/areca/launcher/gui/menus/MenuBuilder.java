@@ -11,7 +11,7 @@ import com.application.areca.ResourceManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -167,6 +167,7 @@ extends AppActionReferenceHolder {
         Menu menu = new Menu(parent, SWT.POP_UP);
         
         add(AC_RECOVER_HISTORY, menu);
+        add(AC_TEXTEDIT_HISTORY, menu);
         
         return menu;
     }

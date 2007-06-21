@@ -18,7 +18,7 @@ import com.myJava.file.archive.tar.TarOutputStream;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -44,7 +44,7 @@ public class TGZArchiveAdapter
 extends AbstractArchiveAdapter
 implements ArchiveAdapter {
     
-    private static long ZIP32_OVERALL_SIZE_LIMIT = 4294967295L;
+    //private static long TGZ_OVERALL_SIZE_LIMIT = 4294967295L;
     
     public TGZArchiveAdapter(InputStream in, long streamSize) throws IOException {
         super(ACCESS_READ, streamSize);
@@ -58,8 +58,8 @@ implements ArchiveAdapter {
         super(ACCESS_WRITE, 0);
         
         MeteredOutputStream os = new MeteredOutputStream(new BufferedOutputStream(out));
-        os.setMaxSize(ZIP32_OVERALL_SIZE_LIMIT, "Archive too voluminous : Zip32 archives can't grow over " + (long)(ZIP32_OVERALL_SIZE_LIMIT/1024) + " kbytes.");
-        os.setMaxSize(-1, null); //tmp
+        //os.setMaxSize(TGZ_OVERALL_SIZE_LIMIT, "Archive too voluminous : Zip32 archives can't grow over " + (long)(TGZ_OVERALL_SIZE_LIMIT/1024) + " kbytes.");
+        os.setMaxSize(-1, null); // Tar.GZ archives are not limited -> to be checked
         
         GZIPOutputStream gzip = new GZIPOutputStream(os);
         this.zout = new TarOutputStream(gzip);

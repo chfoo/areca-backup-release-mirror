@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.metadata.manifest.Manifest;
@@ -16,7 +17,7 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -43,14 +44,16 @@ extends AbstractWindow {
     
     protected Manifest manifest;
     protected boolean mergeMode;
+    protected AbstractRecoveryTarget target;
     
     protected Text txtTitle;
     protected Text txtDescription;
     
-    public ManifestWindow(Manifest manifest, boolean mergeMode) {
+    public ManifestWindow(Manifest manifest, AbstractRecoveryTarget target, boolean mergeMode) {
         super();
         this.manifest = manifest;
         this.mergeMode = mergeMode;
+        this.target = target;
     }
 
     protected Control createContents(Composite parent) {
@@ -120,7 +123,7 @@ extends AbstractWindow {
         if (mergeMode) {
             this.application.launchCompactOnTarget(this.manifest);
         } else {
-            this.application.launchBackupOnTarget(this.manifest);            
+            this.application.launchBackupOnTarget(target, this.manifest);            
         }
         
         this.hasBeenUpdated = false;

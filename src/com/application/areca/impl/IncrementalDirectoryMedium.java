@@ -19,7 +19,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -69,12 +69,17 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
         }
     }
     
-    protected void archiveRawRecover(File[] elementaryArchives, String[] entriesToRecover, File targetFile) throws ApplicationException {
+    protected void archiveRawRecover(
+            File[] elementaryArchives, 
+            String[] entriesToRecover, 
+            File targetFile,
+            ProcessContext context
+    ) throws ApplicationException {
         try {
-            this.target.getProcess().getInfoChannel().logInfo(null, "Data recovery ...");
+            context.getInfoChannel().print("Data recovery ...");
             for (int i=0; i<elementaryArchives.length; i++) {
-                this.target.getTaskMonitor().checkTaskCancellation();
-                this.target.getProcess().getInfoChannel().updateCurrentTask(i+1, elementaryArchives.length, FileSystemManager.getPath(elementaryArchives[i]));
+                context.getTaskMonitor().checkTaskCancellation();
+                context.getInfoChannel().updateCurrentTask(i+1, elementaryArchives.length, FileSystemManager.getPath(elementaryArchives[i]));
                 Logger.defaultLogger().info("Archive recovery : " + FileSystemManager.getPath(elementaryArchives[i]) + " ...");                
                 
                 // Copie de l'élément en cours.
@@ -90,7 +95,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
                     }
                 }
 
-                this.target.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, elementaryArchives.length);
+                context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, elementaryArchives.length);
             }
         } catch (IOException e) {
             throw new ApplicationException(e);
@@ -120,7 +125,8 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
                         new File(computeFinalArchivePath()),
                         ArchiveTraceCache.getInstance().getTrace(this, context.getFinalArchiveFile()),
                         false,
-                        false); // --> Call to "clean" in "cancel unsensitive" mode
+                        false,
+                        context); // --> Call to "clean" in "cancel unsensitive" mode
             } catch (IOException e) {
                 throw new ApplicationException(e);
             } catch (TaskCancelledException e) {

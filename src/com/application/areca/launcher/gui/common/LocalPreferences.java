@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -77,7 +77,6 @@ public class LocalPreferences {
     }
 
     public int getInt(String key) {
-        
         try {
             return Integer.parseInt(get(key));
         } catch (Exception ex) {
@@ -89,6 +88,15 @@ public class LocalPreferences {
         try {
             String value = get(key);
             return value == null ? defaultValue : Integer.parseInt(get(key));
+        } catch (Exception ex) {
+            return defaultValue;
+        }
+    }
+    
+    public boolean getBoolean(String key, boolean defaultValue) {
+        try {
+            String value = get(key);
+            return value == null ? defaultValue : Boolean.valueOf(get(key)).booleanValue();
         } catch (Exception ex) {
             return defaultValue;
         }

@@ -16,7 +16,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -80,8 +80,8 @@ public class PostProcessorList implements PublicClonable {
 	        Iterator iter = this.postProcessors.iterator();
 	        StringBuffer exceptions = new StringBuffer();
 	        while (iter.hasNext()) {
-	            context.getReport().getTarget().getProcess().getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(taskShare);
-	            TaskMonitor itemMonitor = context.getReport().getTarget().getProcess().getTaskMonitor().getCurrentActiveSubTask();
+	            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(taskShare);
+	            TaskMonitor itemMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
 	            PostProcessor processor = (PostProcessor)iter.next();
 	            try {
 	                processor.postProcess(context);

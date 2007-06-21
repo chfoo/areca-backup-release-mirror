@@ -63,7 +63,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -331,7 +331,7 @@ implements TargetActions {
      * Fermeture de l'archive
      */
     public void commitBackup(ProcessContext context) throws ApplicationException {
-        this.target.secureUpdateCurrentTask("Commiting backup ...");
+        this.target.secureUpdateCurrentTask("Commiting backup ...", context);
         long entries = context.getTraceAdapter().getWritten();
         try {  
             writeMetaData(context);
@@ -366,11 +366,11 @@ implements TargetActions {
             
             // Create a copy of the target's XML configuration
             if (ArecaTechnicalConfiguration.get().isXMLBackup()) {
-	            this.target.secureUpdateCurrentTask("Creating a copy of the target's XML configuration ...");
+	            this.target.secureUpdateCurrentTask("Creating a copy of the target's XML configuration ...", context);
 	            this.storeTargetConfigBackup(context);
             }
             
-            this.target.secureUpdateCurrentTask("Commit completed.");
+            this.target.secureUpdateCurrentTask("Commit completed.", context);
         } catch (Exception e) {
             if (e instanceof ApplicationException) {
                 throw (ApplicationException)e;
@@ -388,7 +388,7 @@ implements TargetActions {
     	
     		// Check memory usage
     		if (MemoryHelper.isOverQuota(entries)) {
-    		    this.getTarget().getProcess().getInfoChannel().displayApplicationMessage(
+    		    Logger.defaultLogger().displayApplicationMessage(
     		            "" + this.getTarget().getUid(),
     		           MemoryHelper.getMemoryTitle(this.getTarget(), entries),
     		           MemoryHelper.getMemoryMessage(this.getTarget(), entries)
@@ -457,7 +457,7 @@ implements TargetActions {
     }
     
     public void rollbackBackup(ProcessContext context) throws ApplicationException {
-        this.target.secureUpdateCurrentTask("Rollbacking backup ...");
+        this.target.secureUpdateCurrentTask("Rollbacking backup ...", context);
         try {
             try {
                 // Fermeture de la trace
@@ -490,7 +490,7 @@ implements TargetActions {
 	                        AbstractFileSystemMedium.tool.delete(context.getCurrentArchiveFile(), true);
 	                        AbstractFileSystemMedium.tool.delete(this.getDataDirectory(context.getCurrentArchiveFile()), true);
 	                        
-	                        this.target.secureUpdateCurrentTask("Rollback completed.");
+	                        this.target.secureUpdateCurrentTask("Rollback completed.", context);
                         }
                     }
                 }
@@ -618,6 +618,10 @@ implements TargetActions {
         try {
             this.checkRepository();
             
+            if (toDate == null) {
+                throw new ApplicationException("'To date' is mandatory");
+            }
+            
             if (! overwrite) { // No "compact" if "overwrite" = true
                 Logger.defaultLogger().info("Starting merge from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate));
                 
@@ -630,11 +634,11 @@ implements TargetActions {
                 
                 // Restauration dans ce répertoire
                 File tmpDestination = new File(FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()) + TMP_COMPACT_LOCATION_SUFFIX);
-                this.target.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8);
+                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8);
                 ArchiveTrace trace = ArchiveTraceCache.getInstance().getTrace(this, getLastArchive(toDate));
                 context.getReport().setRecoveredFiles(recover(tmpDestination, null, fromDate, toDate, false, trace, context));
-                this.target.getProcess().getInfoChannel().logInfo(null, "Recovery completed - Merged archive creation ...");     
-                this.target.getProcess().getInfoChannel().updateCurrentTask(0, 0, FileSystemManager.getPath(context.getCurrentArchiveFile()));
+                context.getInfoChannel().print("Recovery completed - Merged archive creation ...");     
+                context.getInfoChannel().updateCurrentTask(0, 0, FileSystemManager.getPath(context.getCurrentArchiveFile()));
                 
                 // Suppression du manifeste existant
                 File mfFile = new File(tmpDestination, getManifestName());
@@ -646,7 +650,7 @@ implements TargetActions {
                     AbstractFileSystemMedium.tool.delete(oldMfFile, true);
                 }
                 
-                this.target.getTaskMonitor().checkTaskCancellation();
+                context.getTaskMonitor().checkTaskCancellation();
                 
                 if (context.getReport().getRecoveredFiles().length > 0) {
 	                // Construction de l'archive à un emplacement temporaire
@@ -695,7 +699,7 @@ implements TargetActions {
         } catch (TaskCancelledException e) {
             throw new ApplicationException(e);            
         } finally {
-            this.target.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);     
+            context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);     
             try {
                 FileSystemManager.getInstance().flush(context.getCurrentArchiveFile());
             } catch (IOException e) {
@@ -711,7 +715,7 @@ implements TargetActions {
     
     public void commitCompact(ProcessContext context) throws ApplicationException {
         if (! this.overwrite) {
-            this.target.secureUpdateCurrentTask("Commiting merge ...");
+            this.target.secureUpdateCurrentTask("Commiting merge ...", context);
             super.commitCompact(context);
             
             try {
@@ -731,7 +735,7 @@ implements TargetActions {
                 // conversion de l'archive
                 this.convertArchiveToFinal(context);
                 
-                this.target.secureUpdateCurrentTask("Merge completed.");
+                this.target.secureUpdateCurrentTask("Merge completed.", context);
             } catch (IOException e) {		
                 Logger.defaultLogger().error("Exception caught during merge commit.", e);
                 this.rollbackCompact(context);
@@ -742,7 +746,7 @@ implements TargetActions {
     
     public void rollbackCompact(ProcessContext context) throws ApplicationException {
         if (! this.overwrite) {
-            this.target.secureUpdateCurrentTask("Rollbacking merge ...");
+            this.target.secureUpdateCurrentTask("Rollbacking merge ...", context);
             try {
                 try {
                     // Nettoyage des données temporaires
@@ -756,7 +760,7 @@ implements TargetActions {
                         AbstractFileSystemMedium.tool.delete(context.getCurrentArchiveFile(), true);
                         AbstractFileSystemMedium.tool.delete(this.getDataDirectory(context.getCurrentArchiveFile()), true);
                         
-                        this.target.secureUpdateCurrentTask("Rollback completed.");
+                        this.target.secureUpdateCurrentTask("Rollback completed.", context);
                     }
                 }
             } catch (IOException e) {
@@ -781,8 +785,10 @@ implements TargetActions {
             ArchiveTrace trace,
             ProcessContext context            
     ) throws ApplicationException {
-        toDate = (GregorianCalendar)toDate.clone();
-        toDate.add(GregorianCalendar.MILLISECOND, 1);   
+        if (toDate != null) {
+            toDate = (GregorianCalendar)toDate.clone();
+            toDate.add(GregorianCalendar.MILLISECOND, 1);
+        }
         if (fromDate != null) {
             fromDate = (GregorianCalendar)fromDate.clone();
             fromDate.add(GregorianCalendar.MILLISECOND, -1);
@@ -795,17 +801,18 @@ implements TargetActions {
             recoveredArchives = this.listArchives(fromDate, toDate);
             
             if (recoveredArchives.length != 0) {
-                this.target.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.9);
-                this.archiveRawRecover(recoveredArchives, filters, targetFile);
+                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.9);
+                this.archiveRawRecover(recoveredArchives, filters, targetFile, context);
                 
-                this.target.getTaskMonitor().checkTaskCancellation();
+                context.getTaskMonitor().checkTaskCancellation();
                 
                 // Deuxième étape : on nettoie le répertoire cible.
                 this.applyTrace(
                         targetFile, 
                         trace,
                         applyAttributes,
-                        true);
+                        true,
+                        context);
             }
             
             // On retourne pour info la liste des fichiers restaurés
@@ -816,7 +823,7 @@ implements TargetActions {
         } catch (TaskCancelledException e) {
             throw new ApplicationException(e);
         } finally {
-            this.target.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);            
+            context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);            
         }
     } 
     
@@ -827,7 +834,8 @@ implements TargetActions {
             File targetFile, 
             ArchiveTrace trace,
             boolean applyAttributes,
-            boolean cancelSensitive
+            boolean cancelSensitive,
+            ProcessContext context
     ) throws IOException, TaskCancelledException {      
         // Nettoyage : on supprime 
         // - Tous les fichiers n'apparaissant pas dans la trace
@@ -836,7 +844,7 @@ implements TargetActions {
         Iterator iter = new FileSystemIterator(targetFile);
         while (iter.hasNext()) {
             if (cancelSensitive) {
-                this.target.getTaskMonitor().checkTaskCancellation();  // Check for cancels only if we are cancel sensitive --> useful for "commit"
+                context.getTaskMonitor().checkTaskCancellation();  // Check for cancels only if we are cancel sensitive --> useful for "commit"
             }
             
             File f = (File)iter.next();
@@ -877,7 +885,12 @@ implements TargetActions {
      * Récupération brute du contenu de l'archive sans trace, ni suppression des fichiers obsolètes. 
      * <BR>'filters' can be null ...
      */
-    protected abstract void archiveRawRecover(File[] elementaryArchives, String[] filters, File targetFile) throws ApplicationException;
+    protected abstract void archiveRawRecover(
+            File[] elementaryArchives, 
+            String[] filters, 
+            File targetFile,
+            ProcessContext context
+    ) throws ApplicationException;
     
     /**
      * Indique si l'entrée a été modifiée depuis la dernière exécution 
@@ -1169,7 +1182,9 @@ implements TargetActions {
         
         if (dCriteria.isRestrictLatestArchive()) {
             File lastArchive = this.getLastArchive(null);
-            this.searchWithinArchive(criteria, lastArchive, result);
+            if (lastArchive != null) {
+                this.searchWithinArchive(criteria, lastArchive, result);
+            }
         } else {
             File[] archives = this.listArchives(null, null);
             for (int i=0; i<archives.length; i++) {

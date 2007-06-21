@@ -13,7 +13,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -163,5 +163,9 @@ implements LogProcessor {
         } else {
             return false;
         }
+    }
+
+    public void displayApplicationMessage(String messageKey, String title, String message) {
+        log(3, message, null, title);
     }
 }

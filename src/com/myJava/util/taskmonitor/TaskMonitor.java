@@ -10,7 +10,7 @@ import java.util.List;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -65,7 +65,11 @@ public class TaskMonitor {
     
     // Ajoute un listener à la liste
     public void addListener(TaskMonitorListener listener) {
-        this.listeners.add(listener);
+        if (listener == null) {
+            throw new NullPointerException();
+        } else {
+            this.listeners.add(listener);
+        }
     }
     
     // Supprime tous les listeners.

@@ -44,7 +44,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -160,7 +160,19 @@ implements TargetActions, IndicatorTypes {
     public String getBaseArchivePath() {
         return fileSystemPolicy.getBaseArchivePath();
     } 
-    
+
+    public void destroyRepository() throws ApplicationException {
+        File storage = FileSystemManager.getParentFile(new File(this.getBaseArchivePath()));
+        Logger.defaultLogger().info("Deleting repository : " + FileSystemManager.getAbsolutePath(storage) + " ...");
+        try {
+            FileTool tool = new FileTool();
+            tool.delete(storage, true);
+            Logger.defaultLogger().info(FileSystemManager.getAbsolutePath(storage) + " deleted.");
+        } catch (Exception e) {
+            throw new ApplicationException("Error trying to delete directory : " + FileSystemManager.getAbsolutePath(storage), e);
+        }
+    }
+
     /**
      * Checks that the archive provided as argument belongs to this medium
      */
@@ -273,7 +285,7 @@ implements TargetActions, IndicatorTypes {
 	                    Logger.defaultLogger().error(e);
 	                }
 
-	                this.getTarget().getProcess().getInfoChannel().displayApplicationMessage(
+                    Logger.defaultLogger().displayApplicationMessage(
 	                        null, 
 	                        "Temporary archive detected.", 
 	                        "Areca has detected that the following file is a temporary archive which has not been commited :" 
@@ -370,9 +382,9 @@ implements TargetActions, IndicatorTypes {
         
         for (int i=0; i<archives.length; i++) {
             try {
-                this.target.getProcess().getInfoChannel().updateCurrentTask(i+1, archives.length, FileSystemManager.getName(archives[i]));
+                context.getInfoChannel().updateCurrentTask(i+1, archives.length, FileSystemManager.getName(archives[i]));
                 deleteArchive(archives[i]);
-                this.target.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, archives.length + 1);
+                context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, archives.length + 1);
             } catch (Exception e) {
                 throw new ApplicationException(e);
             }
@@ -383,7 +395,7 @@ implements TargetActions, IndicatorTypes {
         } catch (IOException e) {
             throw new ApplicationException(e);
         }
-        this.target.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);          
+        context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);          
     }
     
     protected abstract void deleteArchive(File archive) throws IOException;

@@ -13,7 +13,7 @@ import com.application.areca.ResourceManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -37,6 +37,8 @@ This file is part of Areca.
  */
 public class SavePanel implements Listener {
 
+    private static final int MIN_BUTTON_WIDTH = 80;
+    
     protected String saveLabel;
     protected String cancelLabel;
     protected AbstractWindow parentWindow;
@@ -69,8 +71,26 @@ public class SavePanel implements Listener {
     public Composite buildComposite(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         
-        GridLayout layout = new GridLayout();
-        layout.numColumns = showCancel ? 2 : 1;
+        GridLayout layout = new GridLayout(2, false);
+        layout.verticalSpacing = 0;
+        layout.marginBottom = 0;
+        layout.marginTop = 0;
+        layout.marginLeft = 0;
+        layout.marginRight = 0;
+        layout.marginHeight = 0;
+        layout.marginWidth = 0;
+        composite.setLayout(layout);
+        
+        Composite content = buildInnerComposite(composite);
+        GridData dt = new GridData(SWT.RIGHT, SWT.BOTTOM, true, false);
+        content.setLayoutData(dt);
+        return composite;
+    }
+    
+    public Composite buildInnerComposite(Composite parent) {
+        Composite composite = new Composite(parent, SWT.NONE);
+        
+        GridLayout layout = new GridLayout(showCancel ? 2 : 1, true);
         layout.verticalSpacing = 0;
         layout.marginBottom = 0;
         layout.marginTop = 0;
@@ -82,9 +102,8 @@ public class SavePanel implements Listener {
         
         btnSave = new Button(composite, SWT.PUSH);
         btnSave.setText(this.saveLabel);
-        GridData ldSave = new GridData();
-        ldSave.grabExcessHorizontalSpace = true;
-        ldSave.horizontalAlignment = SWT.RIGHT;
+        GridData ldSave = new GridData(SWT.FILL, SWT.FILL, true, false);
+        ldSave.minimumWidth = AbstractWindow.computeWidth(MIN_BUTTON_WIDTH);
         btnSave.setLayoutData(ldSave);
         btnSave.addListener(SWT.Selection, this);
         
@@ -93,11 +112,12 @@ public class SavePanel implements Listener {
         if (showCancel) {
             btnCancel = new Button(composite, SWT.PUSH);        
             btnCancel.setText(this.cancelLabel);
-            GridData ldCancel = new GridData();
-            ldCancel.horizontalAlignment = SWT.RIGHT;
+            GridData ldCancel = new GridData(SWT.FILL, SWT.FILL, false, false);
+            ldCancel.minimumWidth = AbstractWindow.computeWidth(MIN_BUTTON_WIDTH);
             btnCancel.setLayoutData(ldCancel);
             btnCancel.addListener(SWT.Selection, this);
         }
+        
         return composite;
     }
 

@@ -16,7 +16,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -54,6 +54,7 @@ public class OSTool {
     private static String JAVA_FILE_ENCODING;
     private static String IANA_FILE_ENCODING;
     private static String USER_HOME;
+    private static String TMP_DIR;
     
     static {
         JAVA_FILE_ENCODING = System.getProperty("file.encoding");
@@ -85,6 +86,7 @@ public class OSTool {
             }
         }
         
+        TMP_DIR = System.getProperty("java.io.tmpdir");
         USER_HOME = System.getProperty("user.home");
     }
     
@@ -110,6 +112,10 @@ public class OSTool {
     
     public static String getUserDir() {
         return System.getProperty("user.dir");
+    }
+    
+    public static String getTempDirectory() {
+        return TMP_DIR;
     }
     
     /**

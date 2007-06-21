@@ -12,7 +12,7 @@ import com.myJava.util.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -55,7 +55,7 @@ public class MergePostProcessor extends AbstractPostProcessor {
     
     public void run(ProcessContext context) throws ApplicationException {
         AbstractRecoveryTarget target = context.getReport().getTarget();
-        target.getProcess().processCompactOnTargetImpl(target, delay, new ProcessContext(target));
+        target.getProcess().processCompactOnTargetImpl(target, delay, new ProcessContext(target, context.getInfoChannel()));
     }
     
     public boolean requiresProcessReport() {

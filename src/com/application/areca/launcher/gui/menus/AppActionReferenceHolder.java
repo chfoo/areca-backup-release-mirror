@@ -6,13 +6,14 @@ import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.Workspace;
 import com.application.areca.launcher.gui.common.ActionConstants;
 import com.application.areca.launcher.gui.common.ArecaImages;
+import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -67,24 +68,29 @@ public class AppActionReferenceHolder implements ActionConstants{
 
     public static AppAction AC_RECOVER_FILTER = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_WITH_FILTER);
     public static AppAction AC_RECOVER_FILTER_LATEST = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_FROM_LOGICAL);
-    public static AppAction AC_RECOVER_HISTORY = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_ENTRY);    
+    public static AppAction AC_RECOVER_HISTORY = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_ENTRY);
+    public static AppAction AC_TEXTEDIT_HISTORY = new AppAction("app.editaction", CMD_EDIT_FILE);    
 
     public static void refresh() {
         SecuredRunner.execute(Application.getInstance().getDisplay(), new Runnable() {
             public void run() {
                 Application application = Application.getInstance();
-                boolean available = application.getChannel() == null || ! application.getChannel().isRunning();
-
-                AC_RECOVER_FILTER.setEnabled(available);
-                AC_RECOVER_HISTORY.setEnabled(available);
 
                 if (application.getCurrentObject() == null || Workspace.class.isAssignableFrom(application.getCurrentObject().getClass())) {
                     enableCommands(false);
                     AC_NEW_PROCESS.setEnabled(true);
                 } else if (RecoveryProcess.class.isAssignableFrom(application.getCurrentObject().getClass())) {
-                    AC_SIMULATE.setEnabled(false);
+                    boolean available = ! application.getCurrentProcess().isRunning();
+                    
+                    AC_BUILD_BATCH.setEnabled(true);
+                    AC_EDIT_PROCESS.setEnabled(true);
+                    AC_NEW_PROCESS.setEnabled(true);
+                    AC_NEW_TARGET.setEnabled(true);           
+                    
+                    AC_DEL_PROCESS.setEnabled(available);
                     AC_BACKUP.setEnabled(available);
-                    AC_BUILD_BATCH.setEnabled(available);
+                    
+                    AC_SIMULATE.setEnabled(false);
                     AC_BACKUP_MANIFEST.setEnabled(false);            
                     AC_MERGE.setEnabled(false);
                     AC_DELETE_ARCHIVES.setEnabled(false);
@@ -93,18 +99,21 @@ public class AppActionReferenceHolder implements ActionConstants{
                     AC_HISTORY.setEnabled(false);
                     AC_EDIT_TARGET.setEnabled(false);
                     AC_DUP_TARGET.setEnabled(false);     
-                    AC_EDIT_PROCESS.setEnabled(available);
                     AC_DEL_TARGET.setEnabled(false);            
-                    AC_DEL_PROCESS.setEnabled(available);
-                    AC_NEW_PROCESS.setEnabled(true);
-                    AC_NEW_TARGET.setEnabled(true);             
                 } else if (FileSystemRecoveryTarget.class.isAssignableFrom(application.getCurrentObject().getClass())) {
+                    boolean available = ! application.getCurrentTarget().isRunning();
+                    
+                    AC_BUILD_BATCH.setEnabled(true);
+                    AC_HISTORY.setEnabled(true);   
+                    AC_EDIT_PROCESS.setEnabled(true);
+                    AC_DUP_TARGET.setEnabled(true); 
+                    AC_NEW_PROCESS.setEnabled(true);
+                    AC_NEW_TARGET.setEnabled(true);   
+                    
                     AC_SIMULATE.setEnabled(available);
                     AC_BACKUP.setEnabled(available);
-                    AC_BUILD_BATCH.setEnabled(available);
                     AC_BACKUP_MANIFEST.setEnabled(available);    
-                    AC_INDICATORS.setEnabled(available);
-                    AC_HISTORY.setEnabled(true);            
+                    AC_INDICATORS.setEnabled(available);         
                     AC_MERGE.setEnabled(
                             available 
                             && application.areMultipleDatesSelected()
@@ -120,13 +129,13 @@ public class AppActionReferenceHolder implements ActionConstants{
                             && application.getCurrentDate() != null
                             && ! application.isLatestVersionRecoveryMode()
                      );
-                    AC_EDIT_PROCESS.setEnabled(available);
                     AC_EDIT_TARGET.setEnabled(available);
-                    AC_DUP_TARGET.setEnabled(available); 
                     AC_DEL_PROCESS.setEnabled(available);
                     AC_DEL_TARGET.setEnabled(available);
-                    AC_NEW_PROCESS.setEnabled(true);
-                    AC_NEW_TARGET.setEnabled(true);             
+                    AC_RECOVER_FILTER.setEnabled(available);
+                    AC_RECOVER_HISTORY.setEnabled(available);
+                    String cmd = ArecaPreferences.getEditionCommand();
+                    AC_TEXTEDIT_HISTORY.setEnabled(available && cmd != null && cmd.length() != 0);
                 } else {
                     enableCommands(false);
                 }

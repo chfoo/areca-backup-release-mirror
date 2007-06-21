@@ -22,7 +22,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -49,21 +49,11 @@ implements TargetActions, Identifiable {
     
     private File source;
     private String comments;
-
-    /**
-     * Object used to monitor the current process
-     */
-    protected TaskMonitor taskMonitor;    
     
     /**
      * Liste des cibles à traiter
      */
     private HashMap targets;
-    
-    /**
-     * Logger spécifique utilisé pour les retours utilisateur (typiquement : affichage à l'écran)
-     */
-    private UserInformationChannel infoChannel;
     
     /**
      * Constructeur
@@ -84,7 +74,7 @@ implements TargetActions, Identifiable {
     		tg.doBeforeDelete();
     	}
     }
-    
+
     /**
      *Appelée après suppression
      */
@@ -164,6 +154,18 @@ implements TargetActions, Identifiable {
     	}
     }
     
+    public boolean isRunning() {
+        Iterator iter = this.getTargetIterator();            
+        while (iter.hasNext()) {
+            AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();
+            if (target.isRunning()) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
     public int getNextFreeTargetId() {
         if (this.targets.size() == 0) {
             return 1;
@@ -177,16 +179,22 @@ implements TargetActions, Identifiable {
                 target = (AbstractRecoveryTarget)iter.next();
                 id = (int)Math.max(id, target.getId());
             }
-            return id + 1;
+            
+            if (id == this.targets.size()) {
+                // Cas 1 : tous les ids sont utilisés (pas de trou)
+                return id + 1;
+            } else {
+                // Cas 2 : il y a des trous -> on retourne le premier id libre
+                for (int i = 1; i<id; i++) {
+                    if (this.getTargetById(i) == null) {
+                        return i;
+                    }
+                }
+                
+                // Cas 3 : ne doit jamais arriver
+                return id+1;
+            }
         }
-    }
-
-    public TaskMonitor getTaskMonitor() {
-        return taskMonitor;
-    }
-    
-    public void setTaskMonitor(TaskMonitor taskMonitor) {
-        this.taskMonitor = taskMonitor;
     }
     
     public int getTargetCount() {
@@ -210,43 +218,6 @@ implements TargetActions, Identifiable {
     }
 
     /**
-     * Lance le process de backup et traite itérativement chacune des targets.
-     */
-    public void launchBackup() throws ApplicationException {
-        this.initProgress();
-        double nb = this.getTargetCount();
-        double targetShare = (nb == 0? 0.99 : 0.99/nb);
-        Iterator iter = this.getTargetIterator();
-        StringBuffer errors = new StringBuffer();
-        boolean hasErrors = false;
-        while (iter.hasNext()) {
-            this.taskMonitor.resetCancellationState();
-            AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();
-            this.taskMonitor.addNewSubTask(targetShare);
-            TaskMonitor mon = this.taskMonitor.getCurrentActiveSubTask();
-            try {
-                processBackupOnTargetImpl(target, null, new ProcessContext(target));
-            } catch (Throwable e) {
-                if (! TaskCancelledException.isTaskCancellation(e)) {
-                    Logger.defaultLogger().error("An error occured during the processing of target " + target.getTargetName() + ".", e);
-                    errors.append("\n").append(e.getMessage());
-                    hasErrors = true;
-                } else {
-                    Logger.defaultLogger().info("Task cancelled : " + target.getTargetName());
-                }
-
-                mon.enforceCompletion();
-            }
-        }
-        
-        if (hasErrors) {
-            throw new ApplicationException("Errors : " + errors.toString());
-        }
-        
-        this.getTaskMonitor().setCurrentCompletion(1.0);
-    }
-
-    /**
      * Traite le backup d'une cible donnée.
      * 
      * @param target
@@ -263,7 +234,7 @@ implements TargetActions, Identifiable {
      * @throws ApplicationException
      */
     public void processBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest, ProcessContext context) throws ApplicationException {
-        initProgress();
+        initProgress(context);
         processBackupOnTargetImpl(target, manifest, context);
     }
     
@@ -284,36 +255,36 @@ implements TargetActions, Identifiable {
      */
     public RecoveryEntry[] processSimulateOnTarget(AbstractRecoveryTarget target, ProcessContext context) throws ApplicationException {
         checkTarget(target, ACTION_BACKUP);
-        this.initProgress();
+        this.initProgress(context);
         return target.processSimulate(context);
     }
     
-    public IndicatorMap processIndicatorsOnTarget(AbstractRecoveryTarget target) throws ApplicationException {
+    public IndicatorMap processIndicatorsOnTarget(AbstractRecoveryTarget target, ProcessContext context) throws ApplicationException {
         checkTarget(target, ACTION_INDICATORS); // Même contraintes que pour un backup
-        this.initProgress();
+        this.initProgress(context);
         return target.computeIndicators();
     }
     
     public void processRecoverOnTarget(AbstractRecoveryTarget target, String[] filters, String path, GregorianCalendar date, boolean recoverDeletedEntries, ProcessContext context) throws ApplicationException {
         checkTarget(target, ACTION_RECOVER);
-		this.initProgress();
+		this.initProgress(context);
         target.processRecover(path, filters, date, recoverDeletedEntries, context);
     }
     
     public void processRecoverOnTarget(AbstractRecoveryTarget target, String path, GregorianCalendar date, RecoveryEntry entry, ProcessContext context) throws ApplicationException {
         checkTarget(target, ACTION_RECOVER);
-		this.initProgress();
+		this.initProgress(context);
         target.processRecover(path, date, entry, context);
     }
     
     public void processCompactOnTarget(AbstractRecoveryTarget target, GregorianCalendar fromDate, GregorianCalendar toDate, Manifest manifest, ProcessContext context) throws ApplicationException {
         checkTarget(target, ACTION_COMPACT_OR_DELETE);     
-		this.initProgress();
+		this.initProgress(context);
         target.processCompact(fromDate, toDate, manifest, context);
     }  
     
     public void processCompactOnTarget(AbstractRecoveryTarget target, int delay, ProcessContext context) throws ApplicationException {
- 		this.initProgress();
+ 		this.initProgress(context);
  		processCompactOnTargetImpl(target, delay, context);
     }  
     
@@ -324,13 +295,13 @@ implements TargetActions, Identifiable {
     
     public void processDeleteOnTarget(AbstractRecoveryTarget target, int delay, ProcessContext context) throws ApplicationException {
         checkTarget(target, ACTION_COMPACT_OR_DELETE);    
-		this.initProgress();
+		this.initProgress(context);
         target.processDeleteArchives(delay, context);
     }  
     
     public void processDeleteOnTarget(AbstractRecoveryTarget target, GregorianCalendar fromDate, ProcessContext context) throws ApplicationException {
         checkTarget(target, ACTION_COMPACT_OR_DELETE);    
-		this.initProgress();
+		this.initProgress(context);
         target.processDeleteArchives(fromDate, context);
     }  
     
@@ -370,18 +341,7 @@ implements TargetActions, Identifiable {
         return new String(buf);
     }
     
-    private void initProgress() {
-        this.taskMonitor = new TaskMonitor();
-        this.taskMonitor.addListener(this.getInfoChannel());
-        this.taskMonitor.setCurrentCompletion(0.0);
-    }
-    
-    public UserInformationChannel getInfoChannel() {
-        return infoChannel;
-    }
-    
-    public void setInfoChannel(UserInformationChannel infoChannel) {
-        this.infoChannel = infoChannel;
+    private void initProgress(ProcessContext pc) {
     }
 }
 

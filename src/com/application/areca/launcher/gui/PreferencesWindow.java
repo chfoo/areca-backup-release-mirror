@@ -9,7 +9,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -18,6 +17,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.common.AbstractWindow;
+import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.myJava.file.FileTool;
 
@@ -25,7 +25,7 @@ import com.myJava.file.FileTool;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -54,9 +54,11 @@ extends AbstractWindow {
     private Combo langCombo;
     private Button openLastWorkspace;
     private Button openDefaultWorkspace;
+    private Button informationSynthetic;
     private Text defaultWorkspace;
     private Text defaultArchiveStorage;
     private Button displayReport;
+    private Text editor;
 
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
@@ -124,6 +126,13 @@ extends AbstractWindow {
         langCombo = new Combo(parent, SWT.READ_ONLY);
         fillLangCombo();
         monitorControl(langCombo);
+        
+        informationSynthetic = new Button(parent, SWT.CHECK);
+        informationSynthetic.setText(RM.getLabel("preferences.synthetic.label"));
+        GridData dtSynthetic = new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1);
+        informationSynthetic.setLayoutData(dtSynthetic);
+        informationSynthetic.setSelection(ArecaPreferences.isInformationSynthetic());
+        monitorControl(informationSynthetic);
     }
     
     private void buildStartupComposite(Composite parent) {
@@ -186,6 +195,17 @@ extends AbstractWindow {
             }
         });
         
+        Label lblEditor = new Label(parent, SWT.NONE);
+        lblEditor.setText(RM.getLabel("preferences.editor.label"));
+        editor = new Text(parent, SWT.BORDER);
+        GridData ldEd = new GridData();
+        ldEd.grabExcessHorizontalSpace = true;
+        ldEd.horizontalAlignment = SWT.FILL;
+        ldEd.horizontalSpan = 2;
+        editor.setLayoutData(ldEd);
+        editor.setText(ArecaPreferences.getEditionCommand());
+        monitorControl(editor);
+        
         displayReport = new Button(parent, SWT.CHECK);
         displayReport.setText(RM.getLabel("preferences.displayreport.label"));
         displayReport.setSelection(ArecaPreferences.getDisplayReport());
@@ -225,6 +245,8 @@ extends AbstractWindow {
         ArecaPreferences.setDefaultWorkspace(defaultWorkspace.getText());
         ArecaPreferences.setDefaultArchiveStorage(defaultArchiveStorage.getText());
         ArecaPreferences.setDisplayReport(displayReport.getSelection());
+        ArecaPreferences.setEditionCommand(editor.getText());
+        ArecaPreferences.setInformationSynthetic(informationSynthetic.getSelection());
         
         this.hasBeenUpdated = false;
         this.close();

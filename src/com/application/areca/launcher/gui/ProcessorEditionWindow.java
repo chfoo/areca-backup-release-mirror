@@ -23,7 +23,7 @@ import com.application.areca.postprocess.PostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -58,7 +58,6 @@ extends AbstractWindow {
     protected FileSystemRecoveryTarget currentTarget;
     protected Button btnSave;
 
-    
     public ProcessorEditionWindow(PostProcessor proc, FileSystemRecoveryTarget currentTarget) {
         super();
         this.proc = proc;
@@ -74,7 +73,7 @@ extends AbstractWindow {
         // TYPE
         Label lblProcType = new Label(composite, SWT.NONE);
         lblProcType.setText(RM.getLabel("procedition.type.label"));
-        cboProcessorType = new Combo(composite, SWT.NONE);
+        cboProcessorType = new Combo(composite, SWT.READ_ONLY);
         cboProcessorType.add(RM.getLabel("procedition.dump.label"));
         cboProcessorType.add(RM.getLabel("procedition.mail.label"));
         cboProcessorType.add(RM.getLabel("procedition.shell.label"));

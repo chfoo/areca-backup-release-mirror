@@ -10,7 +10,7 @@ import java.util.List;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -98,6 +98,14 @@ public final class Logger {
             b &= proc.clearLog();
         }
         return b;
+    }
+    
+    public void displayApplicationMessage(String messageKey, String title, String message) {
+        Iterator iter = this.processors.iterator();
+        while(iter.hasNext()) {
+            LogProcessor proc = (LogProcessor)iter.next();
+            proc.displayApplicationMessage(messageKey, title, message);
+        }
     }
     
     public LogProcessor find(Class c) {

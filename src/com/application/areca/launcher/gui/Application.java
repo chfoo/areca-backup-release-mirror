@@ -1,15 +1,18 @@
 package com.application.areca.launcher.gui;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
@@ -37,8 +40,11 @@ import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ActionConstants;
 import com.application.areca.launcher.gui.common.ArecaImages;
+import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.CTabFolderManager;
 import com.application.areca.launcher.gui.common.SecuredRunner;
+import com.application.areca.launcher.gui.composites.InfoChannel;
+import com.application.areca.launcher.gui.composites.LogComposite;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.application.areca.launcher.gui.menus.MenuBuilder;
 import com.application.areca.metadata.manifest.Manifest;
@@ -55,7 +61,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -80,8 +86,8 @@ This file is part of Areca.
 public class Application 
 implements ActionConstants, Window.IExceptionHandler {
 
-    protected static String[] STATUS_LABELS;
-    protected static Image[] STATUS_ICONS;  
+    public static String[] STATUS_LABELS;
+    public static Image[] STATUS_ICONS;  
     private static final ResourceManager RM = ResourceManager.instance();
     private static Application instance = new Application();
     public static boolean SIMPLE_SUBTABS = true;
@@ -131,7 +137,7 @@ implements ActionConstants, Window.IExceptionHandler {
     private String[] currentFilter;									// En cas de sélection d'un noeud sur le panel de détail d'une archive (répertoire ou Entry réelle), nom de celui ci.
     private boolean latestVersionRecoveryMode;         // Indique si la recovery se fera en dernière version ou non
     
-    private UserInformationChannel channel;
+    private Set channels = new HashSet();
 
     private FileTool fileTool = new FileTool();
 
@@ -223,7 +229,7 @@ implements ActionConstants, Window.IExceptionHandler {
         }       
     }
 
-    public void processCommand(String command) {
+    public void processCommand(final String command) {
         if (command == null) {
             return;
         } else if (command.equals(CMD_ABOUT)) {
@@ -237,17 +243,13 @@ implements ActionConstants, Window.IExceptionHandler {
             // BACKUP
             if (RecoveryProcess.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                 RecoveryProcess process = (RecoveryProcess)this.getCurrentObject();
-                ProcessRunner rn = new ProcessRunner() {
-                    public void runCommand() throws ApplicationException {
-                        rProcess.launchBackup();
-                    }
-                };
-                rn.rProcess = process;
-                rn.rName = RM.getLabel("app.backupaction.process.message");
-                rn.launch();
-
+                Iterator iter = process.getTargetIterator();
+                while (iter.hasNext()) {
+                    AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
+                    this.launchBackupOnTarget(tg, null);
+                }
             } else if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
-                launchBackupOnTarget(null);
+                launchBackupOnTarget(this.getCurrentTarget(), null);
             }
         } else if (command.equals(CMD_COMPACT)) {
             // COMPACT
@@ -264,7 +266,7 @@ implements ActionConstants, Window.IExceptionHandler {
             } else {
                 try {
                     Manifest manifest = this.getCurrentTarget().buildDefaultMergeManifest(this.getCurrentFromDate(), this.getCurrentToDate());
-                    this.showManifestEditionFrame(true, manifest);
+                    this.showManifestEditionFrame(true, target, manifest);
                 } catch (ApplicationException e1) {
                     handleException(e1);
                 }                
@@ -279,13 +281,12 @@ implements ActionConstants, Window.IExceptionHandler {
                 if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                     FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
                     RecoveryProcess process = target.getProcess();
-                    ProcessRunner rn = new ProcessRunner() {
+                    ProcessRunner rn = new ProcessRunner(target) {
                         public void runCommand() throws ApplicationException {
                             rProcess.processDeleteOnTarget(rTarget, rFromDate, context);
                         }
                     };
                     rn.rProcess = process;
-                    rn.rTarget = target;
                     rn.rName = RM.getLabel("app.deletearchivesaction.process.message");
                     rn.rFromDate = currentFromDate;      
                     rn.rToDate = currentToDate;     
@@ -320,7 +321,7 @@ implements ActionConstants, Window.IExceptionHandler {
             showDeleteProcess();
         } else if (command.equals(CMD_SIMULATE)) {
             // SIMULATE
-            ProcessRunner rn = new ProcessRunner() {
+            ProcessRunner rn = new ProcessRunner(this.getCurrentTarget()) {
                 private RecoveryEntry[] entries;
 
                 public void runCommand() throws ApplicationException {
@@ -330,7 +331,7 @@ implements ActionConstants, Window.IExceptionHandler {
                 protected void finishCommand() {
                     SecuredRunner.execute(new Runnable() {
                         public void run() {
-                            SimulationWindow frm = new SimulationWindow(entries);
+                            SimulationWindow frm = new SimulationWindow(entries, rTarget);
                             showDialog(frm);     
                         }
                     });
@@ -338,7 +339,6 @@ implements ActionConstants, Window.IExceptionHandler {
             };
             rn.rProcess = this.getCurrentProcess();
             rn.rName = RM.getLabel("app.simulateaction.process.message");
-            rn.rTarget = this.getCurrentTarget();
             rn.refreshAfterProcess = false;
             rn.launch();
         } else if (command.equals(CMD_EXIT)) {
@@ -346,7 +346,7 @@ implements ActionConstants, Window.IExceptionHandler {
             this.processExit();            
         } else if (command.equals(CMD_OPEN)) {
             // OPEN WORKSPACE
-            String path = showDirectoryDialog(null, this.mainWindow);
+            String path = showDirectoryDialog(this.workspace.path, this.mainWindow);
             if (path != null) {
                 try {
                     this.setWorkspace(new Workspace(FileSystemManager.getAbsolutePath(new File(path)), this), true);
@@ -388,13 +388,12 @@ implements ActionConstants, Window.IExceptionHandler {
                 if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                     FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
                     RecoveryProcess process = target.getProcess();
-                    ProcessRunner rn = new ProcessRunner() {
+                    ProcessRunner rn = new ProcessRunner(target) {
                         public void runCommand() throws ApplicationException {
                             rProcess.processRecoverOnTarget(rTarget, (String[])argument, rPath, rFromDate, recoverDeletedEntries, context);
                         }
                     };
                     rn.rProcess = process;
-                    rn.rTarget = target;
                     rn.refreshAfterProcess = false;
                     rn.rName = RM.getLabel("app.recoverfilesaction.process.message");
                     rn.rPath = FileSystemManager.getAbsolutePath(new File(path));
@@ -409,21 +408,41 @@ implements ActionConstants, Window.IExceptionHandler {
             }  
         } else if (command.equals(CMD_BUILD_BATCH)) {
             buildBatch();
-        } else if (command.equals(CMD_RECOVER_ENTRY)) {
+        } else if (command.equals(CMD_RECOVER_ENTRY) || command.equals(CMD_EDIT_FILE)) {
             // RECOVER ENTRY
-            String path = showDirectoryDialog(null, this.mainWindow);
+            final String path;
+            if (command.equals(CMD_RECOVER_ENTRY)) {
+                path= showDirectoryDialog(null, this.mainWindow);
+            } else {
+                path= OSTool.getTempDirectory();
+            }
 
             if (path != null) {
                 if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                     FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
                     RecoveryProcess process = target.getProcess();
-                    ProcessRunner rn = new ProcessRunner() {
+                    ProcessRunner rn = new ProcessRunner(target) {
                         public void runCommand() throws ApplicationException {
                             rProcess.processRecoverOnTarget(rTarget, rPath, rFromDate, rEntry, context);
                         }
+                        
+                        protected void finishCommand() {
+                            if (command.equals(CMD_EDIT_FILE)) {
+                                File entry = new File(path, rEntry.getName());
+                                File f = new File(path, FileSystemManager.getName(entry));
+                                FileSystemManager.deleteOnExit(f);
+                                try {
+                                    String editCommand = ArecaPreferences.getEditionCommand();
+                                    String targetFile = FileSystemManager.getAbsolutePath(f).replace('\\', '/');
+                                    Logger.defaultLogger().info("Launching '" + editCommand + "' on file '"  + targetFile + "'");
+                                    Runtime.getRuntime().exec(new String[] {editCommand, targetFile});
+                                } catch (IOException e) {
+                                    Application.getInstance().handleException("Error attempting to edit " + FileSystemManager.getAbsolutePath(f) + " - Text edition command = " + ArecaPreferences.getEditionCommand(), e);
+                                }
+                            }
+                        }                        
                     };
                     rn.rProcess = process;
-                    rn.rTarget = target;
                     rn.refreshAfterProcess = false;
                     rn.rEntry = this.currentEntry;
                     rn.rName = RM.getLabel("app.recoverfileaction.process.message");
@@ -442,7 +461,7 @@ implements ActionConstants, Window.IExceptionHandler {
                 mf = new Manifest();
                 mf.setType(Manifest.TYPE_BACKUP);
             }
-            this.showManifestEditionFrame(false, mf);
+            this.showManifestEditionFrame(false, this.getCurrentTarget(), mf);
         }  else if (command.equals(CMD_VIEW_MANIFEST)) {
             this.showArchiveDetail(null);
         } 
@@ -572,30 +591,43 @@ implements ActionConstants, Window.IExceptionHandler {
     }
 
     public void showDeleteProcess() {       
-        int result = showConfirmDialog(
-                RM.getLabel("app.deletegroupaction.confirm.message"),
-                RM.getLabel("app.deletegroupaction.confirm.title"),
-                SWT.YES | SWT.NO);
+        DeleteWindow window = new DeleteWindow(this.getCurrentProcess());
+        showDialog(window);
 
-        if (result == SWT.YES) {
+        if (window.isOk()) {
+            if (window.isDeleteContent()) {
+                try {
+                    Iterator iter = this.getCurrentProcess().getTargetIterator();
+                    while (iter.hasNext()) {
+                        ((AbstractRecoveryTarget)iter.next()).getMedium().destroyRepository();
+                    }
+                } catch (Exception e) {
+                    handleException(e);
+                }
+            }
             this.getWorkspace().removeProcess(this.getCurrentProcess());
             FileSystemManager.delete(this.getCurrentProcess().getSourceFile());
             this.currentObject = null;
             this.mainWindow.refresh(true, true);                   
-        }    
+        }
     }
 
     public void showDeleteTarget() {
-        int result = showConfirmDialog(
-                RM.getLabel("app.deletetargetaction.confirm.message"),
-                RM.getLabel("app.deletetargetaction.confirm.title"),
-                SWT.YES | SWT.NO);
+        try {
+            DeleteWindow window = new DeleteWindow((FileSystemRecoveryTarget)this.getCurrentTarget());
+            showDialog(window);
 
-        if (result == SWT.YES) {
-            this.getCurrentProcess().removeTarget(this.getCurrentTarget());
-            this.saveProcess(this.getCurrentProcess());
-            this.currentObject = null;
-            this.mainWindow.refresh(true, true);                   
+            if (window.isOk()) {
+                if (window.isDeleteContent()) {
+                    this.getCurrentTarget().getMedium().destroyRepository();
+                }
+                this.getCurrentProcess().removeTarget(this.getCurrentTarget());
+                this.saveProcess(this.getCurrentProcess());
+                this.currentObject = null;
+                this.mainWindow.refresh(true, true);                   
+            }
+        } catch (Exception e) {
+            handleException(e);
         }
     }
 
@@ -640,7 +672,7 @@ implements ActionConstants, Window.IExceptionHandler {
      */
     public boolean processExit() {
         this.mainWindow.savePreferences();
-        if (! this.channel.isRunning()) {
+        if (this.channels.size() == 0) {
             return this.mainWindow.close(true);            
         } else {
             int result = showConfirmDialog(
@@ -661,10 +693,9 @@ implements ActionConstants, Window.IExceptionHandler {
         }
     } 
 
-    public void launchBackupOnTarget(Manifest manifest) {
-        FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
+    public void launchBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest) {
         RecoveryProcess process = target.getProcess();
-        ProcessRunner rn = new ProcessRunner() {
+        ProcessRunner rn = new ProcessRunner(target) {
             public void runCommand() throws ApplicationException {
                 rProcess.processBackupOnTarget(rTarget, rManifest, context);
             }
@@ -683,7 +714,6 @@ implements ActionConstants, Window.IExceptionHandler {
         rn.rProcess = process;
         rn.rManifest = manifest;
         rn.rName = RM.getLabel("app.backupaction.process.message");
-        rn.rTarget = target;
         rn.launch();           
     }
 
@@ -691,13 +721,12 @@ implements ActionConstants, Window.IExceptionHandler {
         // COMPACT
         FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
         RecoveryProcess process = target.getProcess();
-        ProcessRunner rn = new ProcessRunner() {
+        ProcessRunner rn = new ProcessRunner(target) {
             public void runCommand() throws ApplicationException {
                 rProcess.processCompactOnTarget(rTarget, rFromDate, rToDate, rManifest, context);
             }
         };
         rn.rProcess = process;
-        rn.rTarget = target;
         rn.rFromDate = currentFromDate;    
         rn.rName = RM.getLabel("app.mergearchivesaction.process.message");
         rn.rToDate = currentToDate;     
@@ -705,9 +734,10 @@ implements ActionConstants, Window.IExceptionHandler {
         rn.launch();                    
     }
 
-    public void showManifestEditionFrame(boolean isCompact, Manifest manifest) {
+    public void showManifestEditionFrame(boolean isCompact, AbstractRecoveryTarget target, Manifest manifest) {
         ManifestWindow frm = new ManifestWindow(
                 manifest, 
+                target,
                 isCompact);
         showDialog(frm);
     }
@@ -738,17 +768,21 @@ implements ActionConstants, Window.IExceptionHandler {
         return new Object[] {frm.getAlgo(), frm.getPassword()};
     }
 
-    public void handleException(String msg, Throwable e) {
-        disableWaitCursor();
+    public void handleException(final String msg, final Throwable e) {
+        SecuredRunner.execute(new Runnable() {
+            public void run() {
+                disableWaitCursor();
 
-        if (e != null) {
-            Logger.defaultLogger().error(e);
-            e.printStackTrace(System.err);
-        }
+                if (e != null) {
+                    Logger.defaultLogger().error(e);
+                    e.printStackTrace(System.err);
+                }
 
-        showErrorDialog(
-                msg,
-                ResourceManager.instance().getLabel("error.dialog.title"));
+                showErrorDialog(
+                        msg,
+                        ResourceManager.instance().getLabel("error.dialog.title"));
+            }
+        });
     }
 
     public void handleException(Throwable e) {
@@ -861,13 +895,6 @@ implements ActionConstants, Window.IExceptionHandler {
     }
     public void setWorkspace(Workspace workspace, boolean refreshInterface) {
         this.workspace = workspace;
-
-        // Set the user information channel
-        Iterator iter = workspace.getProcessIterator();
-        while (iter.hasNext()) {
-            RecoveryProcess process = (RecoveryProcess)iter.next();
-            process.setInfoChannel(this.channel);
-        }
 
         // Refresh the gui
         if (refreshInterface) {
@@ -999,20 +1026,13 @@ implements ActionConstants, Window.IExceptionHandler {
     public String showFileDialog(String dir, AbstractWindow parent) {
         return showFileDialog(dir, parent, null, null, SWT.OPEN);
     }
-
-    public UserInformationChannel getChannel() {
-        return channel;
+    
+    public void addChannel(UserInformationChannel channel) {
+        this.channels.add(channel);
     }
-
-    public void setChannel(UserInformationChannel channel) {
-        this.channel = channel;
-
-        // Set the user information channel
-        Iterator iter = workspace.getProcessIterator();
-        while (iter.hasNext()) {
-            RecoveryProcess process = (RecoveryProcess)iter.next();
-            process.setInfoChannel(this.channel);
-        }
+    
+    public void removeChannel(UserInformationChannel channel) {
+        this.channels.remove(channel);
     }
 
     public void enforceSelectedTarget(AbstractRecoveryTarget target) {
@@ -1038,20 +1058,37 @@ implements ActionConstants, Window.IExceptionHandler {
         public boolean refreshAfterProcess = true;
         protected ProcessContext context;
         public Object argument;
+        protected InfoChannel channel;
 
         public abstract void runCommand() throws ApplicationException;
+
+        public ProcessRunner(AbstractRecoveryTarget target) {
+            this.rTarget = target;
+            channel = new InfoChannel(rTarget, mainWindow.getProgressContainer());
+            
+            GridData infoData = new GridData();
+            infoData.grabExcessHorizontalSpace = true;
+            infoData.horizontalAlignment = SWT.FILL;
+            channel.setLayoutData(infoData);
+            mainWindow.getProgressContainer().layout();
+            mainWindow.focusOnProgress();
+        }
 
         // Called in the AWT event thread, to update GUI after the command execution
         protected void finishCommand() {
         }
 
         public void run() {
+            addChannel(channel);
+            
             try {
-                this.context = new ProcessContext(rTarget);
+                this.context = new ProcessContext(rTarget, channel);
+
                 channel.startRunning();
+                registerState(true);
                 AppActionReferenceHolder.refresh();
                 runCommand();
-                channel.stopRunning();  
+                registerState(false);
                 if (refreshAfterProcess) {
                     SecuredRunner.execute(mainWindow, new Runnable() {
                         public void run() {
@@ -1063,7 +1100,7 @@ implements ActionConstants, Window.IExceptionHandler {
                 }
                 finishCommand();
             } catch (Exception e) {
-                channel.stopRunning();  
+                registerState(false);
                 try {
                     SecuredRunner.execute(mainWindow, new Runnable() {
                         public void run() {
@@ -1072,14 +1109,20 @@ implements ActionConstants, Window.IExceptionHandler {
                     });
                 } finally {
                     if (! TaskCancelledException.isTaskCancellation(e)) {
-                        channel.logError(RM.getLabel("error.processerror.message"), getExceptionMessage(e), e);
                         handleException(e);
                     } else {
-                        channel.logInfo(null, RM.getLabel("common.processcancelled.label"));
-                        rProcess.getTaskMonitor().enforceCompletion();
+                        channel.print(RM.getLabel("common.processcancelled.label"));
+                        context.getTaskMonitor().enforceCompletion();
                     }
                 }
+            } finally {
+                channel.stopRunning(); 
+                removeChannel(channel);
             }
+        }
+        
+        private void registerState(boolean running) {
+            rTarget.setRunning(running);
         }
 
         public void launch() {

@@ -7,7 +7,6 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -20,6 +19,15 @@ import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.LocalPreferences;
+import com.application.areca.launcher.gui.composites.ArchiveListComposite;
+import com.application.areca.launcher.gui.composites.HistoryComposite;
+import com.application.areca.launcher.gui.composites.IndicatorsComposite;
+import com.application.areca.launcher.gui.composites.LogComposite;
+import com.application.areca.launcher.gui.composites.LogicalViewComposite;
+import com.application.areca.launcher.gui.composites.ProgressComposite;
+import com.application.areca.launcher.gui.composites.PropertiesComposite;
+import com.application.areca.launcher.gui.composites.SearchComposite;
+import com.application.areca.launcher.gui.composites.TreeComposite;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.application.areca.launcher.gui.menus.MenuBuilder;
 import com.application.areca.launcher.gui.menus.ToolBarBuilder;
@@ -29,7 +37,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -58,8 +66,7 @@ public class MainWindow extends AbstractWindow {
     private CTabFolder tabs;
     private SashForm leftSash;
     private SashForm mainSash;
-
-    private InfoChannel pnlInfo;
+    private Composite progressContainer;
 
     /**
      * @param display
@@ -81,7 +88,9 @@ public class MainWindow extends AbstractWindow {
         Composite composite = new Composite(parent, SWT.NONE);
 
         GridLayout mainLayout = new GridLayout(1, false);
-        mainLayout.marginHeight = 0;
+        mainLayout.marginHeight = 0;        
+        mainLayout.marginTop = 0;
+        mainLayout.marginBottom = 5;
         mainLayout.verticalSpacing = 2;
         composite.setLayout(mainLayout);
 
@@ -109,33 +118,36 @@ public class MainWindow extends AbstractWindow {
         tabs.setSimple(Application.SIMPLE_MAINTABS);
         tabs.setUnselectedCloseVisible(true);
 
+        progressContainer = new ProgressComposite(tabs);
+        
         addFolderItem(RM.getLabel("mainpanel.physical.label"), ArecaImages.ICO_REF_TARGET, new ArchiveListComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.logical.label"), ArecaImages.ICO_REF_TARGET, new LogicalViewComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.history.label"), ArecaImages.ICO_HISTORY, new HistoryComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.indicators.label"), ArecaImages.ICO_TARGET_NEW, new IndicatorsComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.search.label"), ArecaImages.ICO_FIND, new SearchComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.log.label"), ArecaImages.ICO_TARGET_NEW, new LogComposite(tabs));
+        addFolderItem(RM.getLabel("mainpanel.progress.label"), ArecaImages.ICO_TARGET_NEW, progressContainer);
 
         tabs.setSelection(0);
         application.getFolderMonitor().handleSelection(tabs.getItem(0));
 
         mainSash.setWeights(new int[] {30, 70});
 
-        // INFO CHANNEL
-        pnlInfo = new InfoChannel(composite);
-        GridData infoData = new GridData();
-        infoData.grabExcessHorizontalSpace = true;
-        infoData.horizontalAlignment = SWT.FILL;
-        pnlInfo.setLayoutData(infoData);
-
-        Application.getInstance().setChannel(pnlInfo);
-
-        // Force load of colors
+        // Force colors loading
         Color c = Colors.C_BLACK;
+        c.getBlue();
 
         readPreferences();
-                
+        
         return composite;
+    }
+    
+    public void focusOnProgress() {
+        this.tabs.setSelection(6);
+    }
+
+    public Composite getProgressContainer() {
+        return progressContainer;
     }
 
     public void addFolderItem(String title, Image img, Composite content) {
@@ -156,9 +168,6 @@ public class MainWindow extends AbstractWindow {
 
         pnlProperties.refresh();
 
-        if (refreshLog && this.application.getChannel() != null && ! this.application.getChannel().isRunning()) {
-            this.application.getChannel().reset();
-        }
         if (refreshTree) {
             this.pnlTree.refresh();
         }

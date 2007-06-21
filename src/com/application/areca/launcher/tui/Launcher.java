@@ -1,6 +1,9 @@
 package com.application.areca.launcher.tui;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ArecaTechnicalConfiguration;
@@ -24,7 +27,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -48,7 +51,7 @@ This file is part of Areca.
  */
 public class Launcher implements CommandConstants {
     public static String SEPARATOR = "------------------------------------------------------------------";
-    private static UserInformationChannel channel = new LoggerUserInformationChannel();
+    private static UserInformationChannel channel = new LoggerUserInformationChannel(false);
     
     /**
      * Méthode principale de lancement.
@@ -78,52 +81,60 @@ public class Launcher implements CommandConstants {
             }
             
             Logger.defaultLogger().info("Starting the process ... config = [" + command.getOption(OPTION_CONFIG) + "].");
-            channel.logInfo("", "Starting the process ... config = [" + command.getOption(OPTION_CONFIG) + "].");
+            channel.print("Starting the process ... config = [" + command.getOption(OPTION_CONFIG) + "].");
             
             ProcessXMLReader adapter = new ProcessXMLReader(command.getOption(OPTION_CONFIG));
             adapter.setMissingDataListener(new MissingDataListener());
             RecoveryProcess process = adapter.load();
-            process.setInfoChannel(channel);
+            AbstractRecoveryTarget target = null;
+            if (command.hasOption(OPTION_TARGET)) {
+                target = getTarget(process, command.getOption(OPTION_TARGET));
+            }
+            ProcessContext context = new ProcessContext(target, channel);
             
             if (command.getCommand().equalsIgnoreCase(COMMAND_COMPACT)) {
-                processCompact(command, process);
+                processCompact(command, process, context);
             } else if (command.getCommand().equalsIgnoreCase(COMMAND_RECOVER)) {
-                processRecover(command, process);
+                processRecover(command, process, context);
             } else if (command.getCommand().equalsIgnoreCase(COMMAND_BACKUP)) {
-                processBackup(command, process);
+                processBackup(command, process, context);
             } else if (command.getCommand().equalsIgnoreCase(COMMAND_DESCRIBE)) {
-                processDescribe(command, process);
+                processDescribe(command, process, context);
             } else if (command.getCommand().equalsIgnoreCase(COMMAND_DELETE)) {
-                processDelete(command, process);
+                processDelete(command, process, context);
             }
             
             Logger.defaultLogger().info("End of process.");
-            channel.logInfo("", "End of process.");
+            channel.print("End of process.");
             
         } catch (InvalidCommandException e) {
-            channel.logInfo("", SEPARATOR);
-            channel.logInfo("", "File Backup Software (Copyright 2005-2007, Olivier PETRUCCI)");
-            channel.logInfo("", SEPARATOR);
-            channel.logInfo("", "Syntax   : (command) (options)");
-            channel.logInfo("", "Commands : describe / backup / merge / delete / recover");
-            channel.logInfo("", "Options (describe): -config (your xml config file)");
-            channel.logInfo("", "Options (backup)  : -config (your xml config file) [-target (specific target)]");
-            channel.logInfo("", "Options (merge) : -config (your xml config file) -target (specific target) [-date (recovery date : YYYY-MM-DD) / -delay (nr of days)]");
-            channel.logInfo("", "Options (delete) : -config (your xml config file) -target (specific target) [-date (recovery date : YYYY-MM-DD) / -delay (nr of days)]");
-            channel.logInfo("", "Options (recover) : -config (your xml config file) -target (specific target) -destination (destination folder) [-date (recovery date : YYYY-MM-DD)]");
-            channel.logInfo("", SEPARATOR);
-            channel.logInfo("", "Invalid Command : " + command.toString());
-            channel.logInfo("", e.getMessage());
-            channel.logInfo("", SEPARATOR);
+            channel.print(SEPARATOR);
+            channel.print("File Backup Software (Copyright 2005-2007, Olivier PETRUCCI)");
+            channel.print(SEPARATOR);
+            channel.print("Syntax   : (command) (options)");
+            channel.print("Commands : describe / backup / merge / delete / recover");
+            channel.print("Options (describe): -config (your xml config file)");
+            channel.print("Options (backup)  : -config (your xml config file) [-target (specific target)]");
+            channel.print("Options (merge) : -config (your xml config file) -target (specific target) [-date (recovery date : YYYY-MM-DD) / -delay (nr of days)]");
+            channel.print("Options (delete) : -config (your xml config file) -target (specific target) [-date (recovery date : YYYY-MM-DD) / -delay (nr of days)]");
+            channel.print("Options (recover) : -config (your xml config file) -target (specific target) -destination (destination folder) [-date (recovery date : YYYY-MM-DD)]");
+            channel.print(SEPARATOR);
+            channel.print("Invalid Command : " + command.toString());
+            channel.print(e.getMessage());
+            channel.print(SEPARATOR);
         } catch (Throwable e) {
-            channel.logInfo("", SEPARATOR);
-            channel.logWarning("", "An error occured during the process : " + e.getMessage());
-            channel.logWarning("", "Please refer to the log file : " + ((FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class)).getCurrentLogFile());
-            channel.logInfo("", SEPARATOR);
-            
-            // On logge tout systématiquement.
-            Logger.defaultLogger().error(e);
+            handleError(e);
         }
+    }
+    
+    private static void handleError(Throwable e) {
+        channel.print(SEPARATOR);
+        channel.print("An error occured during the process : " + e.getMessage());
+        channel.print("Please refer to the log file : " + ((FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class)).getCurrentLogFile());
+        channel.print(SEPARATOR);
+        
+        // On logge tout systématiquement.
+        Logger.defaultLogger().error(e);
     }
     
     /**
@@ -132,16 +143,44 @@ public class Launcher implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processBackup(UserCommand command, RecoveryProcess process) throws Exception {
+    private static void processBackup(UserCommand command, final RecoveryProcess process, final ProcessContext context) throws Exception {
         if (command.hasOption(OPTION_TARGET)) {
             AbstractRecoveryTarget target = getTarget(process, command.getOption(OPTION_TARGET));
-            ProcessContext context = new ProcessContext(target);
             process.processBackupOnTarget(
                     target,
                     context
             );
         } else {
-            process.launchBackup();
+            List thList = new ArrayList();
+            
+            Iterator iter = process.getTargetIterator();
+            while (iter.hasNext()) {
+                final AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
+                final ProcessContext cloneCtx = new ProcessContext(tg, new LoggerUserInformationChannel(true));
+                Thread th = new Thread(new Runnable() {
+                    public void run() {
+                        try {
+                            process.processBackupOnTarget(
+                                    tg,
+                                    cloneCtx
+                            );
+                        } catch (Exception e) {
+                            handleError(e);
+                        }
+                    }
+                });
+                th.setName("Backup on " + tg.getTargetName());
+                th.setDaemon(false);
+                thList.add(th);
+                th.start();
+            }
+            
+            // Wait for all threads to die
+            Iterator thIter = thList.iterator();
+            while (thIter.hasNext()) {
+                Thread th = (Thread) thIter.next();
+                th.join();
+            }
         }
     }
     
@@ -151,7 +190,7 @@ public class Launcher implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processCompact(UserCommand command, RecoveryProcess process) throws Exception {
+    private static void processCompact(UserCommand command, RecoveryProcess process, ProcessContext context) throws Exception {
         String strDelay = command.getOption(OPTION_DELAY);
         AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         if (strDelay != null) {
@@ -159,7 +198,7 @@ public class Launcher implements CommandConstants {
             process.processCompactOnTarget(
                     target,
                     Integer.parseInt(strDelay),
-                    new ProcessContext(target)
+                    context
             );
         } else {
             // A full date is provided
@@ -168,7 +207,7 @@ public class Launcher implements CommandConstants {
                     null,
                     CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null),
                     null,
-                    new ProcessContext(target)
+                    context
             );
         }
     }
@@ -179,7 +218,7 @@ public class Launcher implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processDelete(UserCommand command, RecoveryProcess process) throws Exception {
+    private static void processDelete(UserCommand command, RecoveryProcess process, ProcessContext context) throws Exception {
         String strDelay = command.getOption(OPTION_DELAY);
         AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         if (strDelay != null) {
@@ -187,14 +226,14 @@ public class Launcher implements CommandConstants {
             process.processDeleteOnTarget(
                     target,
                     Integer.parseInt(strDelay),
-                    new ProcessContext(target)
+                    context
             );
         } else {
             // A full date is provided
             process.processDeleteOnTarget(
                     target,
                     CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null),
-                    new ProcessContext(target)
+                    context
             );
         }
     }
@@ -205,7 +244,7 @@ public class Launcher implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processRecover(UserCommand command, RecoveryProcess process) throws Exception {
+    private static void processRecover(UserCommand command, RecoveryProcess process, ProcessContext context) throws Exception {
         AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         process.processRecoverOnTarget(
                 target,
@@ -213,7 +252,7 @@ public class Launcher implements CommandConstants {
                 command.getOption(OPTION_DESTINATION),
                 CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null),
                 false, 
-                new ProcessContext(target)
+                context
         );
     }
     
@@ -223,8 +262,8 @@ public class Launcher implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processDescribe(UserCommand command, RecoveryProcess process) throws Exception {
-        channel.logInfo("", process.getDescription());
+    private static void processDescribe(UserCommand command, RecoveryProcess process, ProcessContext context) throws Exception {
+        channel.print(process.getDescription());
     }
     
     /**

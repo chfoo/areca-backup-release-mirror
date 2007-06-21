@@ -4,7 +4,7 @@ package com.application.areca.launcher.gui.common;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -37,6 +37,7 @@ public interface ActionConstants {
     public static final String CMD_BACKUP_MANIFEST = "backup with manifest";    
     public static final String CMD_RECOVER = "recover";
     public static final String CMD_RECOVER_ENTRY = "recover entry";
+    public static final String CMD_EDIT_FILE = "edit entry";
     public static final String CMD_RECOVER_WITH_FILTER = "recover with filter";
     public static final String CMD_RECOVER_FROM_LOGICAL = "recover latest version with filter";
     public static final String CMD_COMPACT = "merge";

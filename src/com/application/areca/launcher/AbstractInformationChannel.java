@@ -1,13 +1,13 @@
 package com.application.areca.launcher;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.application.areca.UserInformationChannel;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -29,23 +29,18 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public abstract class AbstractInformationChannel {
-
-    private Set displayedMessages = new HashSet();
+public abstract class AbstractInformationChannel implements UserInformationChannel {
+    protected TaskMonitor taskMonitor;
 
     public AbstractInformationChannel() {
     }
-    
-    protected void registerMessage(Object messageKey) {
-        if (messageKey != null) {
-            this.displayedMessages.add(messageKey);
-        }
+
+    public TaskMonitor getTaskMonitor() {
+        return taskMonitor;
     }
-    
-    protected boolean hasMessageBeenDisplayed(Object messageKey) {
-        return (
-                messageKey != null
-                && displayedMessages.contains(messageKey)
-        );
+
+    public void setTaskMonitor(TaskMonitor taskMonitor) {
+        this.taskMonitor = taskMonitor;
+        taskMonitor.addListener(this);
     }
 }

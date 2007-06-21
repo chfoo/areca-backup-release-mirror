@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui;
+package com.application.areca.launcher.gui.composites;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
+import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
@@ -35,7 +36,7 @@ import com.myJava.file.FileNameUtil;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*

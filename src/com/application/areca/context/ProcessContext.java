@@ -4,18 +4,20 @@ import java.io.File;
 import java.util.Stack;
 
 import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.UserInformationChannel;
 import com.application.areca.impl.FileSystemLevel;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.trace.ArchiveTrace;
 import com.application.areca.metadata.trace.ArchiveTraceAdapter;
 import com.myJava.file.archive.ArchiveWriter;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -88,11 +90,21 @@ public class ProcessContext {
     protected Stack fileSystemLevels;
     protected FileSystemLevel currentLevel;    
     
-    public ProcessContext(AbstractRecoveryTarget target) {
-        this.currentReport = new ProcessReport(target);
-        this.fileSystemLevels = new Stack();
+    /**
+     * Logger spécifique utilisé pour les retours utilisateur (typiquement : affichage à l'écran)
+     */
+    private UserInformationChannel infoChannel;
+    
+    public ProcessContext(AbstractRecoveryTarget target, UserInformationChannel channel) {
+        this(target, channel, new TaskMonitor());
     }
     
+    public ProcessContext(AbstractRecoveryTarget target, UserInformationChannel channel, TaskMonitor taskMonitor) {
+        this.currentReport = new ProcessReport(target);
+        this.fileSystemLevels = new Stack();
+        this.infoChannel = channel;
+        this.infoChannel.setTaskMonitor(taskMonitor);
+    }
     
     public ArchiveContentAdapter getContentAdapter() {
         return contentAdapter;
@@ -172,5 +184,13 @@ public class ProcessContext {
     
     public Stack getFileSystemLevels() {
         return fileSystemLevels;
+    }
+
+    public UserInformationChannel getInfoChannel() {
+        return infoChannel;
+    }
+    
+    public TaskMonitor getTaskMonitor() {
+        return infoChannel.getTaskMonitor();
     }
 }

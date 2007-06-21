@@ -13,6 +13,7 @@ import java.util.zip.GZIPOutputStream;
 
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.Logger;
+import com.myJava.util.os.OSTool;
 
 /**
  * Partial <code>Collection</code> implementation which allows to store large collections.
@@ -26,7 +27,7 @@ import com.myJava.util.log.Logger;
  * implemented by these classes when "read/writeObject" is called (which results in a growing HashTable)
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -58,7 +59,7 @@ public abstract class SerializedCollection implements Collection {
     
     public SerializedCollection() {
         long rnd = Utilitaire.getRndLong();
-        this.bufferFile = new File(System.getProperty("user.home"), "java_serialized_collection_" + rnd + ".tmp");
+        this.bufferFile = new File(OSTool.getTempDirectory(), "java_serialized_collection_" + rnd + ".tmp");
     }
     
     public SerializedCollection(File bufferFile) {

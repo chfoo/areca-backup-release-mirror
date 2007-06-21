@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -81,7 +81,7 @@ public class FileTool {
      * @param sourceFile Pointeur sur le fichier à copier
      * @param targetDirectory Répertoire cible. Si ce répertoire n'existe pas, il est créé (récursivement).
      */
-    private void copyFile(File sourceFile, File targetDirectory) throws IllegalArgumentException, IOException  {
+    private void copyFile(File sourceFile, File targetDirectory) throws IOException  {
         copyFile(sourceFile, targetDirectory, FileSystemManager.getName(sourceFile));
     }
     
@@ -92,7 +92,7 @@ public class FileTool {
      * @param sourceFile Pointeur sur le fichier à copier
      * @param targetDirectory Répertoire cible. Si ce répertoire n'existe pas, il est créé (récursivement).
      */
-    public void copyFile(File sourceFile, File targetDirectory, String targetShortFileName) throws IllegalArgumentException, IOException  {
+    public void copyFile(File sourceFile, File targetDirectory, String targetShortFileName) throws IOException  {
         
         // Vérifications préalables
         if (! FileSystemManager.exists(targetDirectory)) {
@@ -111,7 +111,7 @@ public class FileTool {
      * Copie le fichier sourceFile vers le flux outStream.
      * <BR>closeStream détermine si le flux de sortie sera fermé après la copie ou non
      */
-    public void copyFile(File sourceFile, OutputStream outStream, boolean closeStream) throws IllegalArgumentException, IOException  {      
+    public void copyFile(File sourceFile, OutputStream outStream, boolean closeStream) throws IOException  {      
         this.copy(FileSystemManager.getFileInputStream(sourceFile), outStream, true, closeStream);
     }
     
@@ -120,7 +120,7 @@ public class FileTool {
      * <BR>inStream est fermé après copie.
      * <BR>closeStream détermine si le flux de sortie sera fermé après la copie ou non
      */
-    public void copy(InputStream inStream, OutputStream outStream, boolean closeInputStream, boolean closeOutputStream) throws IllegalArgumentException, IOException  {
+    public void copy(InputStream inStream, OutputStream outStream, boolean closeInputStream, boolean closeOutputStream) throws IOException  {
         try {
             byte[] in = new byte[BUFFER_SIZE];
             int nbRead;
@@ -158,7 +158,7 @@ public class FileTool {
      * <BR>Alors après la copie, le contenu de c:\toto\sourceDir sera copié dans d:\myDir
      * <BR>targetDirectory est créé (récursivement) s'il n'existe pas.
      */
-    public void copyDirectoryContent(File sourceDirectory, File targetDirectory) throws IllegalArgumentException, IOException {
+    public void copyDirectoryContent(File sourceDirectory, File targetDirectory) throws IOException {
         if (! FileSystemManager.exists(targetDirectory)) {
             this.createDir(targetDirectory);
         }
@@ -251,7 +251,7 @@ public class FileTool {
         }
     }
     
-    public void delete(File fileOrDirectory, boolean waitForAvailability) throws IOException, IllegalArgumentException {
+    public void delete(File fileOrDirectory, boolean waitForAvailability) throws IOException {
         delete(fileOrDirectory, waitForAvailability, DEFAULT_DELETION_DELAY);
     }
     

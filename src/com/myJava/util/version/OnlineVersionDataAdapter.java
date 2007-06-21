@@ -17,7 +17,7 @@ import java.util.StringTokenizer;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -89,13 +89,12 @@ public class OnlineVersionDataAdapter implements VersionDataAdapter {
                 data.setDownloadUrl(new URL(line));
             }
             
-            // Description
-            line = in.readLine();
-            if (line == null) {
-                throw new VersionDataAdapterException("Description not found");
-            } else {
-                data.setDescription(line);
+            // Description (all remaining lines)
+            String description = "";
+            while ((line = in.readLine()) != null) {
+                description += line + "\n";
             }
+            data.setDescription(description);
 
             return data;
         } catch (IOException e) {

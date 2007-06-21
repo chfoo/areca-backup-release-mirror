@@ -1,9 +1,7 @@
-package com.application.areca.launcher.gui;
-
-import java.util.HashSet;
-import java.util.Set;
+package com.application.areca.launcher.gui.composites;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -11,11 +9,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.ProgressBar;
 
+import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ResourceManager;
 import com.application.areca.UserInformationChannel;
+import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.util.log.Logger;
@@ -25,7 +24,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -54,55 +53,67 @@ implements UserInformationChannel, Colors, Listener {
     private static final ResourceManager RM = ResourceManager.instance();
 
     private Composite parent;
-    private Set displayedMessages = new HashSet();
     private String currentMessage = "";
+    private AbstractRecoveryTarget target;
     
     private Label lblMessage;
     private ProgressBar pgbProgress;
     private Button btnCancel;
     
+    protected TaskMonitor taskMonitor;
     protected boolean running;
+    
+    protected boolean synthetic = ArecaPreferences.isInformationSynthetic();
 
     /**
      * @param parent
      * @param style
      */
-    public InfoChannel(Composite parent) {
+    public InfoChannel(AbstractRecoveryTarget target, Composite parent) {
         super(parent, SWT.NONE);
         this.parent = parent;
+        this.target = target;
+        this.setLayout(new FillLayout());
+        this.setToolTipText(target.getTargetName());
+        Composite grp = this;
         
         GridLayout layout = new GridLayout();
         layout.numColumns = 2;
-        layout.horizontalSpacing = 30;
+        layout.horizontalSpacing = 40;
         layout.verticalSpacing = 1;
-        layout.marginHeight = 3;
+        layout.marginHeight = 5;
         layout.marginWidth = 0;
-        this.setLayout(layout);
+        grp.setLayout(layout);
 
-        lblMessage = new Label(this, SWT.NONE);
+        lblMessage = new Label(grp, SWT.NONE);
         GridData gdMessage = new GridData();
         gdMessage.grabExcessHorizontalSpace = true;
         gdMessage.horizontalAlignment = SWT.FILL;
         lblMessage.setLayoutData(gdMessage);
+        lblMessage.setForeground(C_INFO);
         
-        btnCancel = new Button(this, SWT.PUSH);
+        btnCancel = new Button(grp, SWT.PUSH);
         btnCancel.setText(RM.getLabel("common.cancel.label"));
         GridData gdCancel = new GridData();
         gdCancel.grabExcessHorizontalSpace = false;
         gdCancel.horizontalAlignment = SWT.RIGHT;
+        gdCancel.verticalAlignment = SWT.BOTTOM;
         gdCancel.verticalSpan = 2;
         btnCancel.setLayoutData(gdCancel);
-        btnCancel.addListener(SWT.Selection, this);
+        btnCancel.addListener(SWT.Selection, this);   
+        btnCancel.setForeground(C_INFO);
         
-        pgbProgress = new ProgressBar(this, SWT.NONE);
+        pgbProgress = new ProgressBar(grp, SWT.NONE);
         pgbProgress.setMinimum(0);
         pgbProgress.setMaximum(100);
         GridData gdProgress = new GridData();
         gdProgress.grabExcessHorizontalSpace = true;
         gdProgress.horizontalAlignment = SWT.FILL;
         pgbProgress.setLayoutData(gdProgress);
+    }
 
-        reset();
+    public void setSynthetic(boolean synthetic) {
+        this.synthetic = synthetic;
     }
 
     public void cancellableChanged(final TaskMonitor task) {
@@ -130,74 +141,23 @@ implements UserInformationChannel, Colors, Listener {
         });
     }
 
-    public void displayApplicationMessage(final String messageKey, final String title, final String message) {
-        if (! hasMessageBeenDisplayed(messageKey)) {
-            registerMessage(messageKey);
-
-            Logger.defaultLogger().warn(title);
-            Logger.defaultLogger().warn(message);
-
-            SecuredRunner.execute(parent, new Runnable() {
-                public void run() {
-                    MessageBox msg = new MessageBox(parent.getShell(), SWT.OK | SWT.ICON_INFORMATION);
-                    msg.setText(title);
-                    msg.setMessage(message);
-                    
-                    msg.open();
+    public void print(final String info) {
+        SecuredRunner.execute(parent, new Runnable() {
+            public void run() {
+                if (synthetic) {
+                    lblMessage.setText(format(target.getTargetName(), info));
+                } else {
+                    lblMessage.setText(info);
+                    currentMessage = info;
                 }
-            });
-        }
-    }
-
-    public boolean isRunning() {
-        return running;
-    }
-
-    public void logError(String title, String error, Throwable e) {
-        log(getText(title, error), C_ERROR);
-        Logger.defaultLogger().error(error, e, title);
-    }
-
-    public void logInfo(String title, String info) {
-        log(getText(title, info), C_INFO);
-        Logger.defaultLogger().info(info, title);
-    }
-
-    public void logWarning(String title, String warning) {
-        log(getText(title, warning), C_WARNING);
-        Logger.defaultLogger().warn(warning, title);
-    }
-
-    private void log(final String msg, final org.eclipse.swt.graphics.Color color) {
-        SecuredRunner.execute(parent, new Runnable() {
-            public void run() {
-                lblMessage.setForeground(color);    
-                btnCancel.setForeground(color);
-                lblMessage.setText(msg);
-                currentMessage = msg;
             }
         });
-    }
-
-    public void reset() {
-        SecuredRunner.execute(parent, new Runnable() {
-            public void run() {
-                pgbProgress.setVisible(false);
-                btnCancel.setVisible(false);
-                lblMessage.setVisible(false);
-                pgbProgress.setSelection(0);
-                lblMessage.setText(" ");
-            }
-        });
+        Logger.defaultLogger().info(info);
     }
 
     public void startRunning() {
         SecuredRunner.execute(parent, new Runnable() {
             public void run() {
-                btnCancel.setEnabled(true);
-                pgbProgress.setVisible(true);
-                btnCancel.setVisible(true);
-                lblMessage.setVisible(true);
                 running = true;
             }
         });
@@ -206,51 +166,42 @@ implements UserInformationChannel, Colors, Listener {
     public void stopRunning() {
         SecuredRunner.execute(parent, new Runnable() {
             public void run() {
-                btnCancel.setEnabled(false);
+                dispose();
+                parent.layout();
                 running = false;
             }
         });
     }
 
     public void updateCurrentTask(final long taskIndex, final long taskCount, final String taskDescription) {
-        SecuredRunner.execute(parent, new Runnable() {
-            public void run() {
-                lblMessage.setText(currentMessage + "\t" + taskDescription);
-                if (taskCount != 0) {
-                    Logger.defaultLogger().info(taskDescription);
+        if (! synthetic) {
+            SecuredRunner.execute(parent, new Runnable() {
+                public void run() {
+                    lblMessage.setText(format(currentMessage, taskDescription));
+                    if (taskCount != 0) {
+                        Logger.defaultLogger().info(taskDescription);
+                    }
                 }
-            }
-        });
-    }
-
-    private String getText(String title, String message) {
-        if (title == null && message == null) {
-            return "";
-        } else if (title == null) {
-            return message;
-        } else if (message == null) {
-            return title;            
-        } else {
-            return title + " - " + message;
+            });
         }
-    }
-
-    protected void registerMessage(Object messageKey) {
-        if (messageKey != null) {
-            this.displayedMessages.add(messageKey);
-        }
-    }
-
-    protected boolean hasMessageBeenDisplayed(Object messageKey) {
-        return (
-                messageKey != null
-                && displayedMessages.contains(messageKey)
-        );
     }
 
     public void handleEvent(Event event) {
         if (event.widget == this.btnCancel) {
-            Application.getInstance().getCurrentProcess().getTaskMonitor().setCancelRequested();
+            taskMonitor.setCancelRequested();
         }
+    }
+
+    public void setTaskMonitor(TaskMonitor taskMonitor) {
+        this.taskMonitor = taskMonitor;
+        taskMonitor.addListener(this);
+    }
+
+    public TaskMonitor getTaskMonitor() {
+        return taskMonitor;
+    }
+    
+    private String format(String t1, String t2) {
+        return t1 + "\t\t" + t2;
     }
 }

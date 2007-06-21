@@ -34,7 +34,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -67,6 +67,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     protected RecoveryProcess process;
     protected String comments;
     protected PostProcessorList postProcessors = new PostProcessorList();
+    protected boolean running;
      
     public void setProcess(RecoveryProcess process) {
         this.process = process;
@@ -87,7 +88,15 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     public PostProcessorList getPostProcessors() {
         return postProcessors;
     }
-    
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public void setRunning(boolean running) {
+        this.running = running;
+    }
+
     public int getId() {
         return this.id;
     }
@@ -217,19 +226,19 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         // - Le support requiert une pré-vérification
         // - Le manifeste est null (ie l'utilisateur n'en a pas fourni un explicitement) - Si un manifeste est renseigné, on fait tjs le backup.
         if (this.medium.isPreBackupCheckUseful() && manifest == null) {
-            this.process.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.3);
-            this.getProcess().getInfoChannel().logInfo(null, "Pre-check in progress ...");
+            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.3);
+            context.getInfoChannel().print("Pre-check in progress ...");
             this.processSimulateImpl(context, false);
-            this.getProcess().getInfoChannel().logInfo(null, "Pre-check completed.");
+            context.getInfoChannel().print("Pre-check completed.");
             backupRequired = (context.getReport().getSavedFiles() > 0 || context.getReport().getDeletedFiles() > 0);
-            this.process.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.7);
+            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.7);
             
             context.getReport().reset();
         }
         
         if (backupRequired) {
             if (! this.postProcessors.isEmpty()) {
-                this.process.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.9);
+                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.9);
             }
             
             if (manifest == null) {
@@ -239,8 +248,8 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
 
             try {
                 // Lance le backup ...
-                this.getProcess().getInfoChannel().logInfo(null, "Backup in progress ...");
-                this.getTaskMonitor().checkTaskCancellation();
+                context.getInfoChannel().print("Backup in progress ...");
+                context.getTaskMonitor().checkTaskCancellation();
                 this.open(manifest, context);
 
                 try {
@@ -253,12 +262,12 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                 RecoveryEntry entry = this.nextElement(context);
                 long index = 0;
                 while (entry != null) {
-                    this.getTaskMonitor().checkTaskCancellation();
+                    context.getInfoChannel().getTaskMonitor().checkTaskCancellation();
                     if (this.filterEntryBeforeStore(entry)) {
                         try {
                             index++;
                             this.medium.store(entry, context);
-                            this.process.getInfoChannel().updateCurrentTask(index, 0, entry.toString());
+                            context.getInfoChannel().updateCurrentTask(index, 0, entry.toString());
                         } catch (StoreException e) {
                             throw new ApplicationException(e);
                         }
@@ -276,20 +285,20 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                 }
             } finally {
                 if (! this.postProcessors.isEmpty()) {
-	                this.process.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1);
-	                TaskMonitor postProcessMon = this.process.getTaskMonitor().getCurrentActiveSubTask();
+                    context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1);
+	                TaskMonitor postProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
 	                try {     
 	                    this.postProcessors.postProcess(context);
 	                } finally {
 	                    postProcessMon.enforceCompletion();
 	                }
                 }
-                this.getProcess().getInfoChannel().logInfo(null, "Backup completed."); 
+                context.getInfoChannel().print("Backup completed."); 
             }
         } else {
             // Aucun backup nécessaire : on termine directement la tâche.
-            this.process.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
-            this.getProcess().getInfoChannel().logInfo(null, "No backup required - Operation completed.");     
+            context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
+            context.getInfoChannel().print("No backup required - Operation completed.");     
         }
     }
     
@@ -298,11 +307,11 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
      */
     public synchronized RecoveryEntry[] processSimulate(ProcessContext context) throws ApplicationException {
         try {
-            this.getProcess().getInfoChannel().logInfo(null, "Simulation in progress ...");
+            context.getInfoChannel().print("Simulation in progress ...");
             
             return this.processSimulateImpl(context, true);
         } finally {
-            this.getProcess().getInfoChannel().logInfo(null, "Simulation completed.");            
+            context.getInfoChannel().print("Simulation completed.");            
         }
     }    
     
@@ -312,17 +321,17 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     public synchronized RecoveryEntry[] processSimulateImpl(ProcessContext context, boolean returnDetailedResult) throws ApplicationException {
         try {  
             
-            TaskMonitor simulationGlobalMonitor = this.getTaskMonitor().getCurrentActiveSubTask();
+            TaskMonitor simulationGlobalMonitor = context.getInfoChannel().getTaskMonitor().getCurrentActiveSubTask();
             
             List entries = new ArrayList();
             RecoveryEntry entry = this.nextElement(context);
             long index = 0;
             while (entry != null) {
-                this.getTaskMonitor().checkTaskCancellation();
+                context.getTaskMonitor().checkTaskCancellation();
                 if (this.filterEntryBeforeStore(entry)) {
                     index++;
                     this.medium.simulateEntryProcessing(entry, context);
-                    this.process.getInfoChannel().updateCurrentTask(index, 0, entry.toString());
+                    context.getInfoChannel().updateCurrentTask(index, 0, entry.toString());
                     if (entry.getStatus() != RecoveryEntry.STATUS_NOT_STORED) {
                         context.getReport().addSavedFile();
                         if (returnDetailedResult) {
@@ -338,7 +347,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                 }
                 entry = this.nextElement(context); 
             }
-            this.getTaskMonitor().checkTaskCancellation();
+            context.getTaskMonitor().checkTaskCancellation();
 
             // Add all deleted files
             List deletedEntries = medium.closeSimulation(context); 
@@ -355,10 +364,6 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         }
     }    
     
-    public TaskMonitor getTaskMonitor() {
-        return this.process.taskMonitor;
-    }
-    
     public static void addBasicInformationsToManifest(Manifest mf) {
         mf.addProperty("Version", VersionInfos.getLastVersion().getVersionId() + " (" + VersionInfos.formatVersionDate(VersionInfos.getLastVersion().getVersionDate()) + ")");
     }
@@ -369,8 +374,8 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
      */
     protected void commitBackup(ProcessContext context) throws ApplicationException {
     	try {
-            this.getTaskMonitor().checkTaskCancellation();
-            this.getTaskMonitor().setCancellable(false);
+            context.getTaskMonitor().checkTaskCancellation();
+            context.getTaskMonitor().setCancellable(false);
         	context.getManifest().addProperty("Filtered entries", "" + context.getReport().getFilteredEntries());
         	context.getManifest().addProperty("Backup duration", Utils.formatDuration(System.currentTimeMillis() - context.getReport().getStartMillis()));     
         	context.getManifest().addProperty("Target ID", this.getUid());
@@ -396,7 +401,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
      */
     protected void rollbackBackup(ProcessContext context) throws ApplicationException {
 		try {
-            this.getTaskMonitor().setCancellable(false);
+            context.getTaskMonitor().setCancellable(false);
             HistoryEntry entry = new HistoryEntry(HISTO_BACKUP_CANCEL, "Backup cancellation.");
 			this.getHistory().addEntry(entry);
 		} catch (IOException e1) {
@@ -433,7 +438,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
             ProcessContext context
     ) throws ApplicationException {
         try {
-            this.getProcess().getInfoChannel().logInfo(null, "Merge in progress ...");
+            context.getInfoChannel().print("Merge in progress ...");
             
     		try {
     		    
@@ -453,7 +458,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     			throw new ApplicationException(e);
     		}
     	} finally {
-            this.getProcess().getInfoChannel().logInfo(null, "Merge completed.");
+            context.getInfoChannel().print("Merge completed.");
         }
     }  
     
@@ -465,8 +470,8 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
             ProcessContext context
     ) throws ApplicationException {
     	try {
-            this.getTaskMonitor().setCancellable(false);
-            this.getProcess().getInfoChannel().logInfo(null, "Deletion in progress ...");
+            context.getTaskMonitor().setCancellable(false);
+            context.getInfoChannel().print("Deletion in progress ...");
     		
     		try {
     		    if (this.getHistory() != null) {
@@ -484,7 +489,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     			throw new ApplicationException(e);
     		}
     	} finally {
-            this.getProcess().getInfoChannel().logInfo(null, "Deletion completed.");
+            context.getInfoChannel().print("Deletion completed.");
         }   
     }  
     
@@ -504,8 +509,8 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
      */
     protected void commitCompact(ProcessContext context) throws ApplicationException {
         try {
-            this.getTaskMonitor().checkTaskCancellation();
-            this.getTaskMonitor().setCancellable(false);
+            context.getTaskMonitor().checkTaskCancellation();
+            context.getTaskMonitor().setCancellable(false);
             this.medium.commitCompact(context);
             context.getReport().setCommited();
         } catch (TaskCancelledException e) {
@@ -519,7 +524,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
      */
     protected void rollbackCompact(ProcessContext context) throws ApplicationException {
 		try {
-            this.getTaskMonitor().setCancellable(false);
+            context.getInfoChannel().getTaskMonitor().setCancellable(false);
             
             HistoryEntry entry = new HistoryEntry(HISTO_MERGE_CANCEL, "Merge cancellation.");
 			this.getHistory().addEntry(entry);
@@ -534,10 +539,10 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
      * Rétablit l'archive
      */
     public void processRecover(String destination, String[] filters, GregorianCalendar date, boolean recoverDeletedEntries, ProcessContext context) throws ApplicationException {
-        TaskMonitor globalMonitor = this.getTaskMonitor().getCurrentActiveSubTask();
+        TaskMonitor globalMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
         try {
             String strDate = date == null ? "" : " as of " + CalendarUtils.getDateToString(date);
-            this.getProcess().getInfoChannel().logInfo(null, "Recovery" + strDate + " in progress ...");
+            context.getInfoChannel().print("Recovery" + strDate + " in progress ...");
             StringBuffer sb = new StringBuffer("Recovery destination = " + destination);
             if (filters != null && filters.length != 0) {
                 sb.append(", Items = {");
@@ -562,7 +567,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
             }   
             this.processRecoverImpl(destination, filters, date, recoverDeletedEntries, context);
         } finally {
-            this.getProcess().getInfoChannel().logInfo(null, "Recovery completed.");
+            context.getInfoChannel().print("Recovery completed.");
             globalMonitor.enforceCompletion();
         }
     }
@@ -571,13 +576,14 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
      * Rétablit une version d'une élément d'archive
      */
     public void processRecover(String destination, GregorianCalendar date, RecoveryEntry entry, ProcessContext context) throws ApplicationException {
-        TaskMonitor globalMonitor = this.getTaskMonitor().getCurrentActiveSubTask();
+        TaskMonitor globalMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
         try {
             String strDate = date == null ? "" : " as of " + CalendarUtils.getDateToString(date);
-            this.getProcess().getInfoChannel().logInfo(null, "Recovery of " + entry.getName() + strDate + " in progress ...");
+            context.getInfoChannel().print("Recovery of " + entry.getName() + strDate + " in progress ...");
+            Logger.defaultLogger().info("Recovery destination = " + destination);
             this.processRecoverImpl(destination, date, entry, context);
         } finally {
-            this.getProcess().getInfoChannel().logInfo(null, "Recovery of " + entry.getName() + " completed.");
+            context.getInfoChannel().print("Recovery of " + entry.getName() + " completed.");
             globalMonitor.enforceCompletion();
         }
     }
@@ -713,16 +719,16 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         }
     }
     
-    public void secureUpdateCurrentTask(long taskIndex, long taskCount, String task) {
+    public void secureUpdateCurrentTask(long taskIndex, long taskCount, String task, ProcessContext context) {
         try {
-            this.process.getInfoChannel().updateCurrentTask(taskIndex, taskCount, task);
+            context.getInfoChannel().updateCurrentTask(taskIndex, taskCount, task);
         } catch (Throwable e) {
             Logger.defaultLogger().error(e);
         }
     }
     
-    public void secureUpdateCurrentTask(String task) {
-        secureUpdateCurrentTask(0, 1, task);
+    public void secureUpdateCurrentTask(String task, ProcessContext context) {
+        secureUpdateCurrentTask(0, 1, task, context);
     }
 }
 

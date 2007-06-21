@@ -46,6 +46,7 @@ import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
+import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.plugins.StoragePlugin;
@@ -61,7 +62,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -116,7 +117,7 @@ extends AbstractWindow {
     protected Button rdDir;
     protected Button rdZip;
     protected Button rdZip64;
-    protected Button rdTgz;
+    //protected Button rdTgz;
     protected Button chkTrackDirectories;
     protected Button chkTrackPermissions;
     protected Button chkEncrypted;
@@ -350,6 +351,11 @@ extends AbstractWindow {
         rdZip.setText(RM.getLabel("targetedition.compression.zip"));
         rdZip.setToolTipText(RM.getLabel("targetedition.compression.zip.tt"));
         
+        //rdTgz = new Button(grpCompression, SWT.RADIO);
+        //monitorControl(rdTgz);
+        //rdTgz.setText(RM.getLabel("targetedition.compression.tgz"));
+        //rdTgz.setToolTipText(RM.getLabel("targetedition.compression.tgz.tt"));
+        
         rdZip64 = new Button(grpCompression, SWT.RADIO);
         monitorControl(rdZip64);
         rdZip64.setText(RM.getLabel("targetedition.compression.zip64"));
@@ -360,7 +366,7 @@ extends AbstractWindow {
         grpFileManagement.setText(RM.getLabel("targetedition.filemanagement.label"));
         RowLayout lytFileManagement = new RowLayout(SWT.VERTICAL);
         grpFileManagement.setLayout(lytFileManagement);
-        grpFileManagement.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        grpFileManagement.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
         
         chkIncremental = new Button(grpFileManagement, SWT.CHECK);
         monitorControl(chkIncremental);
@@ -606,7 +612,7 @@ extends AbstractWindow {
             } else if (IncrementalZip64Medium.class.isAssignableFrom(fMedium.getClass())) {
                 rdZip64.setSelection(true);
             } else if (IncrementalTGZMedium.class.isAssignableFrom(fMedium.getClass())) {
-                rdTgz.setSelection(true);
+                //rdTgz.setSelection(true);
             } else {
                 rdDir.setSelection(true);
             }
@@ -710,6 +716,7 @@ extends AbstractWindow {
             rdDir.setEnabled(false);
             rdZip.setEnabled(false);
             rdZip64.setEnabled(false);
+            //rdTgz.setEnabled(false);
             chkEncrypted.setEnabled(false);
             chkIncremental.setEnabled(false);
             cboEncryptionAlgorithm.setEnabled(false);
@@ -990,8 +997,8 @@ extends AbstractWindow {
                     medium = new IncrementalZipMedium();                        
                 } else if (this.rdZip64.getSelection()) {
                     medium = new IncrementalZip64Medium();                        
-                } else if (this.rdTgz.getSelection()) {
-                    medium = new IncrementalTGZMedium();
+                //} else if (this.rdTgz.getSelection()) {
+                //    medium = new IncrementalTGZMedium();
                 }
                 ((AbstractIncrementalFileSystemMedium)medium).setFileSystemPolicy(storagePolicy);
                 ((AbstractIncrementalFileSystemMedium)medium).setEncryptionPolicy(encrArgs);

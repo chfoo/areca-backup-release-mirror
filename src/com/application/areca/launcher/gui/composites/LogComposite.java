@@ -1,7 +1,9 @@
-package com.application.areca.launcher.gui;
+package com.application.areca.launcher.gui.composites;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -10,9 +12,11 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ResourceManager;
+import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.Refreshable;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.util.log.LogHelper;
@@ -23,7 +27,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -53,6 +57,7 @@ implements LogProcessor, Refreshable, Listener {
     private int position = 0;
     protected Button btnClear;
     private Application application = Application.getInstance();
+    private Set displayedMessages = new HashSet();
     
     public LogComposite(Composite parent) {
         super(parent, SWT.NONE);
@@ -149,5 +154,34 @@ implements LogProcessor, Refreshable, Listener {
     
     public void handleEvent(Event event) {
         application.clearLog();
+    }
+
+    public void displayApplicationMessage(final String messageKey, final String title, final String message) {
+        if (! hasMessageBeenDisplayed(messageKey)) {
+            registerMessage(messageKey);
+
+            SecuredRunner.execute(Application.getInstance().getMainWindow().getShell(), new Runnable() {
+                public void run() {
+                    MessageBox msg = new MessageBox(Application.getInstance().getMainWindow().getShell(), SWT.OK | SWT.ICON_INFORMATION);
+                    msg.setText(title);
+                    msg.setMessage(message);
+                    
+                    msg.open();
+                }
+            });
+        }
+    }
+
+    protected void registerMessage(Object messageKey) {
+        if (messageKey != null) {
+            this.displayedMessages.add(messageKey);
+        }
+    }
+
+    protected boolean hasMessageBeenDisplayed(Object messageKey) {
+        return (
+                messageKey != null
+                && displayedMessages.contains(messageKey)
+        );
     }
 }

@@ -1,12 +1,11 @@
 package com.application.areca.version;
 
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import com.myJava.util.os.OSTool;
@@ -16,7 +15,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -43,9 +42,7 @@ public class VersionInfos {
     protected static Map VERSION_BY_ID = new HashMap();
     
     protected static long BUILD_ID = -1;
-    
-    private static final SimpleDateFormat FORMAT = new SimpleDateFormat("MMMMMM yyyy", Locale.getDefault());
-    
+
     public static String APP_NAME = "Areca";
     public static int[] REQUIRED_JAVA_VERSION = new int[] {1, 4, 2};
     public static String VERSION_MSG = APP_NAME + 
@@ -58,7 +55,7 @@ public class VersionInfos {
     static {
         
         // INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-        BUILD_ID = -6307890396762748969L;
+        BUILD_ID = 3274863990151426915L;
         
         // INIT VERSION DATA
         VERSIONS.add(new VersionData("1.0", new GregorianCalendar(2005, 4, 1), "Backup engine implementation."));
@@ -113,7 +110,9 @@ public class VersionInfos {
         VERSIONS.add(new VersionData("4.5.2", new GregorianCalendar(2007, 4, 1), "Some bug fixes; Target duplication feature."));
         VERSIONS.add(new VersionData("5.0", new GregorianCalendar(2007, 4, 12), "Graphical user interface refactoring (SWT is used instead of Swing)."));
         VERSIONS.add(new VersionData("5.0.1", new GregorianCalendar(2007, 4, 30), "UTF-8 is used for all metadata files; Backup shortcut implementation; Search-Window enhancements."));
-        VERSIONS.add(new VersionData("5.0.2", new GregorianCalendar(2007, 5, 5), "Bug fix : directories starting with '#' were not processed properly."));        
+        VERSIONS.add(new VersionData("5.0.2", new GregorianCalendar(2007, 5, 5), "Bug fix : directories starting with '#' were not processed properly."));
+        VERSIONS.add(new VersionData("5.1", new GregorianCalendar(2007, 5, 17), "Better multithreading management; User interface enhancements (Archive's files edition feature & improved target deletion)."));
+    
 
         Iterator iter = VERSIONS.iterator();
         while (iter.hasNext()) {
@@ -131,6 +130,7 @@ public class VersionInfos {
     }
     
     public static String formatVersionDate(GregorianCalendar date) {
+        DateFormat FORMAT = DateFormat.getDateInstance(DateFormat.LONG);
         return FORMAT.format(date.getTime());
     }
     

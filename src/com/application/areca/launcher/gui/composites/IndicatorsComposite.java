@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui;
+package com.application.areca.launcher.gui.composites;
 
 import java.lang.reflect.Field;
 
@@ -19,6 +19,7 @@ import com.application.areca.ResourceManager;
 import com.application.areca.indicator.Indicator;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.indicator.IndicatorTypes;
+import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.Refreshable;
 
@@ -26,7 +27,7 @@ import com.application.areca.launcher.gui.common.Refreshable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*

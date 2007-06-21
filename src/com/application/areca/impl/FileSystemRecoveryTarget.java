@@ -23,7 +23,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -106,22 +106,22 @@ implements TargetActions {
 	                context.setCurrentLevel(new FileSystemLevel(f));
 	                
 	                // Progress information
-	                this.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(completionStep);
+                    context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(completionStep);
 	                
 	                // MAJ stats
 	                context.getReport().addDirectoryCount();
 	            } else {
 	                entry.setSize(FileSystemManager.length(f));
-	                this.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);
+                    context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);
 	                context.getReport().addFileCount();
 	            }
 	            return entry;  
             } else {
-                this.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);                
+                context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);                
                 return this.nextElement(context);
             }
         } else {
-            this.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
+            context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
             
             if (context.getFileSystemLevels().isEmpty()) {
                 return null;

@@ -23,13 +23,14 @@ import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
+import com.application.areca.launcher.gui.composites.ArchiveExplorer;
 import com.application.areca.metadata.manifest.Manifest;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*

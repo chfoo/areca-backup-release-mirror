@@ -1,12 +1,11 @@
-package com.application.areca.launcher.gui;
+package com.application.areca.launcher.gui.common;
 
 import com.application.areca.context.ReportingConfiguration;
-import com.application.areca.launcher.gui.common.LocalPreferences;
 
 /**
- * @author Stephane
+ * @author Stephane Brunel
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -39,6 +38,8 @@ public final class ArecaPreferences {
 	private static final String LAST_WORKSPACE_COPY_LOCATION = "workspace.last.copy.location";
 	private static final String LAST_WORKSPACE_COPY_MASK = "workspace.last.copy.mask";
 	private static final String DISPLAY_LOG = "log.display";
+    private static final String TEXT_EDITOR = "editor.text";
+    private static final String INFO_SYNTHETIC = "info.channel.synthetic";
 	
 	public static final int UNDEFINED = -1;
 	public static final int LAST_WORKSPACE_MODE = 0;
@@ -61,11 +62,21 @@ public final class ArecaPreferences {
 	    LocalPreferences.instance().set(LAST_WORKSPACE_COPY_LOCATION, dir);
 	    synchronizeClientConfigurations();
 	}
+    
+    public static void setEditionCommand(String command) {
+        LocalPreferences.instance().set(TEXT_EDITOR, command);
+        synchronizeClientConfigurations();
+    }
 	
 	public static void setLastWorkspaceCopyMask(boolean mask) {
 	    LocalPreferences.instance().set(LAST_WORKSPACE_COPY_MASK, mask);
 	    synchronizeClientConfigurations();
 	}
+    
+    public static void setInformationSynthetic(boolean synthetic) {
+        LocalPreferences.instance().set(INFO_SYNTHETIC, synthetic);
+        synchronizeClientConfigurations();
+    }
 	
 	public static String getLastWorkspace() {
 	    return LocalPreferences.instance().get(LAST_WORKSPACE, "");
@@ -74,10 +85,18 @@ public final class ArecaPreferences {
 	public static String getLastWorkspaceCopyLocation() {
 	    return LocalPreferences.instance().get(LAST_WORKSPACE_COPY_LOCATION, "");
 	}
+    
+    public static String getEditionCommand() {
+        return LocalPreferences.instance().get(TEXT_EDITOR, "");
+    }
 	
 	public static boolean getLastWorkspaceCopyMask() {
 	    return LocalPreferences.instance().getBoolean(LAST_WORKSPACE_COPY_MASK);
 	}
+    
+    public static boolean isInformationSynthetic() {
+        return LocalPreferences.instance().getBoolean(INFO_SYNTHETIC, true);
+    }
 	
 	public static void setLastWorkspace(String lw) {
 	    LocalPreferences.instance().set(LAST_WORKSPACE, lw);

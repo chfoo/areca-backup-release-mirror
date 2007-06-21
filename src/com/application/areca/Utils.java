@@ -3,6 +3,7 @@ package com.application.areca;
 import java.io.File;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.GregorianCalendar;
@@ -15,7 +16,7 @@ import com.myJava.util.CalendarUtils;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -39,10 +40,12 @@ This file is part of Areca.
  */
 public class Utils {
     private static final ResourceManager RM = ResourceManager.instance();
-    
+    private static final DateFormat DF = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
     public static final String FILE_DATE_SEPARATOR = ".";
+    private static final NumberFormat NF = new DecimalFormat();
     
     public static File getApplicationRoot() {
+        NF.setGroupingUsed(true);
         URL url = ClassLoader.getSystemClassLoader().getResource("languages.txt");
         File licenseFile = new File(URLDecoder.decode(url.getFile()));
         return FileSystemManager.getParentFile(FileSystemManager.getParentFile(licenseFile));
@@ -82,33 +85,7 @@ public class Utils {
         if (cal == null) {
             return RM.getLabel("common.undated.label");
         } else {
-            StringBuffer sb = new StringBuffer();
-	        
-            if (cal.get(GregorianCalendar.DAY_OF_MONTH) < 10) {
-                sb.append("0");
-            }
-            sb.append(cal.get(GregorianCalendar.DAY_OF_MONTH));
-            sb.append("/");
-            if (cal.get(GregorianCalendar.MONTH)+1 < 10) {
-                sb.append("0");                
-            }
-            sb.append(cal.get(GregorianCalendar.MONTH)+1);
-            sb.append("/");
-	        sb.append(cal.get(GregorianCalendar.YEAR));
-            sb.append(" - ");
-            
-            if (cal.get(GregorianCalendar.HOUR_OF_DAY) < 10) {
-                sb.append("0");                
-            }
-            
-            sb.append(cal.get(GregorianCalendar.HOUR_OF_DAY));
-	        sb.append(":");
-            if (cal.get(GregorianCalendar.MINUTE) < 10) {
-                sb.append("0");                
-            }     
-            sb.append(cal.get(GregorianCalendar.MINUTE));
-           
-	        return sb.toString();
+            return DF.format(cal.getTime());
         }
     }    
     
@@ -120,17 +97,14 @@ public class Utils {
         }
     }
     
-    public static String formatFileSize(long argSize) {
-        NumberFormat nf = new DecimalFormat();
-        nf.setGroupingUsed(true);
-        
+    public static String formatFileSize(long argSize) {      
         long size = argSize;
         
     	if (size >= 1024) {
     		size = (long)(argSize / 1024);
-            return nf.format(size) + " " + RM.getLabel("common.kb.label");
+            return NF.format(size) + " " + RM.getLabel("common.kb.label");
     	} else {
-            return nf.format(size) + " " + RM.getLabel("common.bytes.label");
+            return NF.format(size) + " " + RM.getLabel("common.bytes.label");
     	}
     }
     

@@ -18,7 +18,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -105,16 +105,11 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
         // Check memory usage
         long entries = traceContent.length;
         if (entries > MAX_SIZE) {
-            if (this.medium.getTarget().getProcess().getInfoChannel() != null) {
-                this.medium.getTarget().getProcess().getInfoChannel().displayApplicationMessage(
-                        "" + this.medium.getTarget().getUid(),
-                       MemoryHelper.getMemoryTitle(this.medium.getTarget(), entries),
-                       MemoryHelper.getMemoryMessage(this.medium.getTarget(), entries)
-                );
-            } else {
-                Logger.defaultLogger().warn(MemoryHelper.getMemoryTitle(this.medium.getTarget(), entries));
-                Logger.defaultLogger().warn(MemoryHelper.getMemoryMessage(this.medium.getTarget(), entries));
-            }
+            Logger.defaultLogger().displayApplicationMessage(
+                    "" + this.medium.getTarget().getUid(),
+                   MemoryHelper.getMemoryTitle(this.medium.getTarget(), entries),
+                   MemoryHelper.getMemoryMessage(this.medium.getTarget(), entries)
+            );
         }
         
         // Parse trace

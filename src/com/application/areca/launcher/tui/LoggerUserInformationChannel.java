@@ -9,7 +9,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -38,29 +38,32 @@ implements UserInformationChannel {
     protected Logger userLogger = new Logger();
     protected boolean running;
     protected int previousProgress = -1;
+    protected boolean displayThreadName = false;
     
-    public void logInfo(String title, String info) {
-        this.userLogger.info(info, title);
+    public LoggerUserInformationChannel(boolean displayThreadName) {
+        super();
+        this.displayThreadName = displayThreadName;
     }
 
-    public void logWarning(String title, String warning) {
-        this.userLogger.warn(warning, title);
+    public void print(String info) {
+        if (displayThreadName) {
+            this.userLogger.info(info, Thread.currentThread().getName());
+        } else {
+            this.userLogger.info(info);
+        }
     }
-    
-    public void logError(String title, String error, Throwable e) {
-        this.userLogger.error(error, e, title);
-    }
-    
+
     public void updateProgress(double percent) {
         int pc = (int)(0.1*percent);
         if (pc != previousProgress) {
             previousProgress = pc;
-            userLogger.info("" + (10*pc) + "%");
+            String info = "" + (10*pc) + "%";
+            if (displayThreadName) {
+                this.userLogger.info(info, Thread.currentThread().getName());
+            } else {
+                userLogger.info(info);
+            }
         }
-    }
-    
-    public boolean isRunning() {
-        return running;
     }
     
     public void startRunning() {
@@ -77,7 +80,11 @@ implements UserInformationChannel {
     
     public void updateCurrentTask(long taskindex, long taskCount, String taskDescription) {
         if (taskCount != 0) {
-            this.userLogger.info(taskDescription);
+            if (displayThreadName) {
+                this.userLogger.info(taskDescription, Thread.currentThread().getName());
+            } else {
+                this.userLogger.info(taskDescription);
+            }
         }
     }
 
@@ -91,16 +98,5 @@ implements UserInformationChannel {
     
     public void cancelRequested(TaskMonitor task) {
         // does nothing
-    }
-    
-    public void displayApplicationMessage(String messageKey, String title, String message) {
-        if (! hasMessageBeenDisplayed(messageKey)) {
-            userLogger.warn(Launcher.SEPARATOR);        
-            userLogger.warn(title);
-            userLogger.warn(message);
-            userLogger.warn(Launcher.SEPARATOR);   
-	        
-	        registerMessage(messageKey);
-        }
     }
 }

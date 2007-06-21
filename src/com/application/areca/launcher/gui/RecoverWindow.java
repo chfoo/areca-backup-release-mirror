@@ -25,7 +25,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -6307890396762748969
+ * <BR>Areca Build ID : 3274863990151426915
  */
  
  /*
@@ -103,6 +103,7 @@ extends AbstractWindow {
         chkRecoverDeletedEntries.setText(RM.getLabel("recover.recoverdeleted.label"));
         chkRecoverDeletedEntries.setToolTipText(RM.getLabel("recover.recoverdeleted.tt"));
         chkRecoverDeletedEntries.setLayoutData(new GridData());
+        chkRecoverDeletedEntries.setSelection(true);
         monitorControl(SWT.Selection, chkRecoverDeletedEntries);
 
         SavePanel pnlSave = new SavePanel(RM.getLabel("common.ok.label"), RM.getLabel("common.cancel.label"), this);
