@@ -1,17 +1,21 @@
 package com.myJava.file.archive.zip64;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import com.myJava.file.FileSystemManager;
 import com.myJava.file.archive.AbstractArchiveAdapter;
 import com.myJava.file.archive.ArchiveAdapter;
+import com.myJava.file.archive.ArchiveReader;
+import com.myJava.file.archive.ArchiveWriter;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -85,6 +89,27 @@ implements ArchiveAdapter {
             return null;
         } else {
             return entry.getName();
+        }
+    }
+    
+    public static void main(String[] args) {
+        try {
+            String source = "/home/olivier/Desktop/test";
+            String destination = "/home/olivier/Desktop/test64.zip";
+            
+            FileSystemManager.delete(new File(destination));
+            
+            Zip64ArchiveAdapter adapter = new Zip64ArchiveAdapter(FileSystemManager.getFileOutputStream(new File(destination)));
+            ArchiveWriter writer = new ArchiveWriter(adapter);
+            
+            File[] files = FileSystemManager.listFiles(new File(source));
+            for (int i=0; i<files.length; i++) {
+                writer.addFile(files[i]);
+            }
+            
+            writer.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

@@ -8,7 +8,7 @@ import com.myJava.util.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -33,7 +33,7 @@ This file is part of Areca.
 public interface PostProcessor extends Comparable, PublicClonable {
 
     public void postProcess(ProcessContext context) throws ApplicationException;
-    public boolean requiresProcessReport();
+    public boolean requiresFilteredEntriesListing();
     public String getParametersSummary();
     public void validate() throws PostProcessorValidationException;
 }

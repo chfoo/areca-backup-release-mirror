@@ -16,7 +16,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -41,12 +41,12 @@ This file is part of Areca.
 public class PostProcessorList implements PublicClonable {
 
     protected List postProcessors = new ArrayList();
-    protected boolean shallGenerateReport = false;
+    protected boolean requiresFilteredEntriesListing = false;
 
     public PublicClonable duplicate() {
         PostProcessorList other = new PostProcessorList();
         other.postProcessors = DuplicateHelper.duplicate(postProcessors);
-        other.shallGenerateReport = shallGenerateReport;
+        other.requiresFilteredEntriesListing = requiresFilteredEntriesListing;
         return other;
     }
     
@@ -54,15 +54,15 @@ public class PostProcessorList implements PublicClonable {
         Iterator iter = this.postProcessors.iterator();
         while (iter.hasNext()) {
             PostProcessor processor = (PostProcessor)iter.next();
-            if (processor.requiresProcessReport()) {
-                shallGenerateReport = true;
+            if (processor.requiresFilteredEntriesListing()) {
+                requiresFilteredEntriesListing = true;
                 return;
             }
         }
     }
     
-    public boolean requiresProcessReport() {
-        return shallGenerateReport;
+    public boolean requiresFilteredEntriesListing() {
+        return requiresFilteredEntriesListing;
     }
     
     public void addPostProcessor(PostProcessor postProcessor) {

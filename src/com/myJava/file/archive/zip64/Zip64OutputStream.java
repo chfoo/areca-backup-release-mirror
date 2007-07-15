@@ -20,7 +20,6 @@ import com.myJava.util.log.Logger;
 /**
  * This class implements an output stream filter for writing files in the
  * ZIP file format. Includes support for both compressed and uncompressed
- * entries. 
  * @author	David Connelly
  *
  *
@@ -36,7 +35,7 @@ import com.myJava.util.log.Logger;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
 public class Zip64OutputStream extends DeflaterOutputStream implements ZipConstants {
     private ZipEntry entry;
@@ -177,7 +176,6 @@ public class Zip64OutputStream extends DeflaterOutputStream implements ZipConsta
         }
         e.offset = written;
         writeLOC(e);
-        entries.add(e);
         entry = e;
     }
     
@@ -227,6 +225,7 @@ public class Zip64OutputStream extends DeflaterOutputStream implements ZipConsta
             }
             crc.reset();
             entry = null;
+            entries.add(e);
         }
     }
     

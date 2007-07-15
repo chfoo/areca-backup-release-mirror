@@ -30,7 +30,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -150,11 +150,11 @@ extends ApplicationWindow {
         });
     }
     
-    protected void monitorControl(Button ctrl) {
+    public void monitorControl(Button ctrl) {
         monitorControl(SWT.Selection, ctrl);
     }
     
-    protected void monitorControl(Combo ctrl) {
+    public void monitorControl(Combo ctrl) {
         monitorControl(SWT.Selection, ctrl);
     }
     

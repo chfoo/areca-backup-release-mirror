@@ -1,7 +1,5 @@
 package com.application.areca.launcher.gui;
 
-import java.util.Locale;
-
 import javax.swing.JOptionPane;
 
 import com.application.areca.ArecaTechnicalConfiguration;
@@ -14,7 +12,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -43,7 +41,7 @@ public class Launcher {
         try {
             ArecaTechnicalConfiguration.initialize();
             checkJavaVersion();
-            
+                       
             String workspace = null;
             switch (ArecaPreferences.getStartupMode()) {
             case ArecaPreferences.LAST_WORKSPACE_MODE:
@@ -59,13 +57,6 @@ public class Launcher {
                 } else {
                     workspace = System.getProperty("user.dir");
                 }
-            }
-
-            String lang = ArecaPreferences.getLang();
-            if (lang != null) {
-                Locale.setDefault(new Locale(lang));
-            } else {
-                ArecaPreferences.setLang(Locale.getDefault().getCountry().toLowerCase());
             }
             
             Application gui = Application.getInstance();

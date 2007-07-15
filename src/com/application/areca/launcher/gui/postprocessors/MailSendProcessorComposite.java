@@ -23,7 +23,7 @@ import com.application.areca.postprocess.PostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -52,6 +52,8 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
     private Text txtUser;
     private Text txtPassword;
     private Button btnTest;
+    private Button btnOnlyError;
+    private Button btnListFiltered;
     
     public MailSendProcessorComposite(Composite composite, PostProcessor proc, ProcessorEditionWindow window) {
         super(composite, proc, window);
@@ -110,12 +112,26 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
             }
         });
         
+        // List filtered entries
+        btnListFiltered = new Button(this, SWT.CHECK);
+        btnListFiltered.setText(RM.getLabel("procedition.listfiltered.label"));
+        btnListFiltered.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+        window.monitorControl(btnListFiltered);
+        
+        // Send only if in error
+        btnOnlyError = new Button(this, SWT.CHECK);
+        btnOnlyError.setText(RM.getLabel("procedition.onlyerror.label"));
+        btnOnlyError.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+        window.monitorControl(btnOnlyError);
+        
         if (proc != null) {
             MailSendPostProcessor mProc = (MailSendPostProcessor)proc;
             txtRecipients.setText(mProc.getRecipients());
             txtSmtp.setText(mProc.getSmtpServer());
             txtUser.setText(mProc.getUser());
             txtPassword.setText(mProc.getPassword());
+            btnOnlyError.setSelection(mProc.isOnlyIfError());
+            btnListFiltered.setSelection(mProc.isListFiltered());
         }
     }
 
@@ -125,6 +141,8 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         mProc.setSmtpServer(txtSmtp.getText());
         mProc.setUser(txtUser.getText());
         mProc.setPassword(txtPassword.getText());
+        mProc.setOnlyIfError(btnOnlyError.getSelection());
+        mProc.setListFiltered(btnListFiltered.getSelection());
     }
     
     public boolean validateParams() {

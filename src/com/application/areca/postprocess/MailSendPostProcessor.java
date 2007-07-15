@@ -34,7 +34,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -62,6 +62,8 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
     private String recipients;
     private String user;
     private String password;
+    private boolean onlyIfError;
+    private boolean listFiltered = true;
 
     public MailSendPostProcessor() {
         super();
@@ -86,7 +88,23 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
     public void setUser(String user) {
         this.user = user;
     }
-    
+
+    public boolean isOnlyIfError() {
+        return onlyIfError;
+    }
+
+    public void setOnlyIfError(boolean onlyIfError) {
+        this.onlyIfError = onlyIfError;
+    }
+
+    public boolean isListFiltered() {
+        return listFiltered;
+    }
+
+    public void setListFiltered(boolean listFiltered) {
+        this.listFiltered = listFiltered;
+    }
+
     /**
      * Sets the recipients.
      * <BR>Multiple recipients are separated by one of the following characters : ' '    ','    ';' 
@@ -135,30 +153,34 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
     }
     
     public void run(ProcessContext context) throws ApplicationException {
-        PrintStream str = null;
-        ByteArrayOutputStream baos = null;
-        try {
-            String subject = "Areca : Backup report for target '" + context.getReport().getTarget().getTargetName() + "'";
-            String content = getReportAsText(context.getReport());
-            
-            if (ArecaTechnicalConfiguration.get().isSMTPDebugMode()) {
-                baos = new ByteArrayOutputStream();
-            	str = new PrintStream(baos);
+        if ((! context.getReport().isCommited()) || (! this.onlyIfError)) {
+            PrintStream str = null;
+            ByteArrayOutputStream baos = null;
+            try {
+                String subject = "Areca : Backup report for target '" + context.getReport().getTarget().getTargetName() + "'";
+                String content = getReportAsText(context.getReport());
+                
+                if (ArecaTechnicalConfiguration.get().isSMTPDebugMode()) {
+                    baos = new ByteArrayOutputStream();
+                	str = new PrintStream(baos);
+                }
+    
+                sendMail(
+                        subject,
+                        content,
+                        str
+                );
+            } catch (IOException e) {
+                Logger.defaultLogger().error("Error during mail processing", e);
+                throw new ApplicationException("Error during mail processing", e);
+            } finally {
+                if (baos != null) {
+                    System.out.println(baos.toString());
+                    Logger.defaultLogger().info(baos.toString(), "MailSendPostProcessor.run()");
+                }
             }
-
-            sendMail(
-                    subject,
-                    content,
-                    str
-            );
-        } catch (IOException e) {
-            Logger.defaultLogger().error("Error during mail processing", e);
-            throw new ApplicationException("Error during mail processing", e);
-        } finally {
-            if (baos != null) {
-                System.out.println(baos.toString());
-                Logger.defaultLogger().info(baos.toString(), "MailSendPostProcessor.run()");
-            }
+        } else {
+            Logger.defaultLogger().info("No mail report was send because the backup was successfull");
         }
     }
     
@@ -208,8 +230,8 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
     	}
     }
     
-    public boolean requiresProcessReport() {
-        return true;
+    public boolean requiresFilteredEntriesListing() {
+        return listFiltered;
     }
     
     /**
@@ -219,7 +241,7 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
         ProcessReportWriter writer = null;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            writer = new ProcessReportWriter(new OutputStreamWriter(baos));
+            writer = new ProcessReportWriter(new OutputStreamWriter(baos), this.listFiltered);
             writer.writeReport(report);
         } finally {
             writer.close();            
@@ -238,6 +260,8 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
         pro.smtpServer = this.smtpServer;   
         pro.user = this.user;
         pro.password = this.password;
+        pro.onlyIfError = this.onlyIfError;
+        pro.listFiltered = this.listFiltered;
         return pro;
     }
     
@@ -279,6 +303,8 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
             	&& EqualsHelper.equals(this.user, other.user)
             	&& EqualsHelper.equals(this.smtpServer, other.smtpServer)
             	&& EqualsHelper.equals(this.recipients, other.recipients)
+                && EqualsHelper.equals(this.onlyIfError, other.onlyIfError)
+                && EqualsHelper.equals(this.listFiltered, other.listFiltered)                
             	;
         }
     }
@@ -289,6 +315,8 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
         h = HashHelper.hash(h, this.user);
         h = HashHelper.hash(h, this.smtpServer);
         h = HashHelper.hash(h, this.recipients);
+        h = HashHelper.hash(h, this.onlyIfError);
+        h = HashHelper.hash(h, this.listFiltered);        
         return h;
     }
 }

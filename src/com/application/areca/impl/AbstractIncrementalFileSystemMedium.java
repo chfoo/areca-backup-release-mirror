@@ -63,7 +63,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -692,12 +692,10 @@ implements TargetActions {
 	                writeMetaData(context);
                 }
             }
-        } catch (IllegalArgumentException e) {
+        } catch (ApplicationException e) {
+            throw e;
+        } catch (Exception e) {
             throw new ApplicationException(e);
-        } catch (IOException e) {
-            throw new ApplicationException(e);
-        } catch (TaskCancelledException e) {
-            throw new ApplicationException(e);            
         } finally {
             context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);     
             try {
@@ -707,6 +705,22 @@ implements TargetActions {
             }
         }
     } 
+    
+    protected boolean checkArchive(String basePath, String archivePath, File archive) {
+        boolean ok = super.checkArchive(basePath, archivePath, archive);
+        if (ok) {
+            // Additional check : merge temporary directories
+            if (            
+                    archivePath.startsWith(basePath + Utils.FILE_DATE_SEPARATOR)
+                    && archivePath.endsWith(TMP_COMPACT_LOCATION_SUFFIX)
+                    && FileSystemManager.isDirectory(archive)
+            ) {     
+                destroyTemporaryFile(archive);
+                return false;
+            }
+        }
+        return true;
+    }
     
     public void cleanCompact(ProcessContext context) throws IOException {
         File tmpDestination = new File(FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()) + TMP_COMPACT_LOCATION_SUFFIX);
@@ -922,33 +936,13 @@ implements TargetActions {
         }
         return map;
     }
-    
+
     public Set getEntries(File archive) throws ApplicationException {
         try {
             Map storedFiles = this.formatContent(archive);
-            
             ArchiveTrace trace = ArchiveTraceCache.getInstance().getTrace(this, archive);
-            HashSet elements = new HashSet();
-            
-            Iterator iter = trace.fileEntrySet().iterator();
-            File baseDirectory = ((FileSystemRecoveryTarget)this.getTarget()).getSourceDirectory();
-            while (iter.hasNext()) {
-                Map.Entry entry = (Map.Entry)iter.next();
-                
-                String entryPath = (String)entry.getKey();
-                String entryTrace = (String)entry.getValue();
-                
-                elements.add(new FileSystemRecoveryEntry(
-                        baseDirectory, 
-                        new File(baseDirectory, entryPath),
-                        storedFiles.keySet().contains(entryPath) ? RecoveryEntry.STATUS_STORED : RecoveryEntry.STATUS_NOT_STORED,
-                                ArchiveTrace.extractFileSizeFromTrace(entryTrace)
-                ));
-            }
-            
-            return elements;
-        } catch (ZipException e) {
-            throw new ApplicationException(e);
+        
+            return getEntrySetFromTrace(trace, storedFiles);
         } catch (IOException e) {
             throw new ApplicationException(e);
         }
@@ -971,13 +965,18 @@ implements TargetActions {
     }
     
     public Set getLogicalView() throws ApplicationException {
-        Set elements = new HashSet();
-        
-        Map merged = buildAggregatedTrace(null, false).getFileMap();
+        ArchiveTrace mergedTrace = buildAggregatedTrace(null, true);
         ArchiveTrace latestTrace = ArchiveTraceCache.getInstance().getTrace(this, this.getLastArchive(null));
-        Map latestContent = latestTrace == null ? new HashMap() : latestTrace.getFileMap();
         
-        Iterator iter = merged.entrySet().iterator();
+        Map latestContent = latestTrace == null ? new HashMap() : latestTrace.getFileMap();
+        latestContent.putAll(latestTrace == null ? new HashMap() : latestTrace.getDirectoryMap());
+        
+        return getEntrySetFromTrace(mergedTrace, latestContent);
+    }
+    
+    private Set getEntrySetFromTrace(ArchiveTrace source, Map referenceMap) {
+        Set elements = new HashSet();
+        Iterator iter = source.fileEntrySet().iterator();
         File baseDirectory = ((FileSystemRecoveryTarget)this.getTarget()).getSourceDirectory();
         while (iter.hasNext()) {
             Map.Entry entry = (Map.Entry)iter.next();
@@ -988,8 +987,21 @@ implements TargetActions {
             elements.add(new FileSystemRecoveryEntry(
                     baseDirectory, 
                     new File(baseDirectory, entryPath),
-                    latestContent.containsKey(entryPath) ? RecoveryEntry.STATUS_STORED: RecoveryEntry.STATUS_NOT_STORED,
+                    referenceMap.containsKey(entryPath) ? RecoveryEntry.STATUS_STORED: RecoveryEntry.STATUS_NOT_STORED,
                     ArchiveTrace.extractFileSizeFromTrace(entryTrace)
+            ));
+        }
+        
+        iter = source.directoryEntrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry entry = (Map.Entry)iter.next();
+            String entryPath = (String)entry.getKey();
+            
+            elements.add(new FileSystemRecoveryEntry(
+                    baseDirectory, 
+                    new File(baseDirectory, entryPath),
+                    referenceMap.containsKey(entryPath) ? RecoveryEntry.STATUS_STORED: RecoveryEntry.STATUS_NOT_STORED,
+                    -1
             ));
         }
    
@@ -1017,37 +1029,42 @@ implements TargetActions {
     
     public void simulateEntryProcessing(RecoveryEntry entry, ProcessContext context) throws ApplicationException {
         FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;
-        if (FileSystemManager.isFile(fEntry.getFile())) {
-            // Init du contexte
-            if (! context.isInitialized()) {
-                File archive = this.getLastArchive(null);
-                ArchiveTrace trace = ArchiveTraceCache.getInstance().getTrace(this, archive);
-                
-                ArchiveTrace cloned = null;
-                if (trace != null) {
-                    cloned = trace.cloneTrace();
-                } else {
-                    cloned = new ArchiveTrace();
-                }
-                
-                context.setPreviousTrace(cloned);
-                context.setInitialized();
+        
+        // Init du contexte
+        if (! context.isInitialized()) {
+            File archive = this.getLastArchive(null);
+            ArchiveTrace trace = ArchiveTraceCache.getInstance().getTrace(this, archive);
+            ArchiveTrace cloned = null;
+            if (trace != null) {
+                cloned = trace.cloneTrace();
+            } else {
+                cloned = new ArchiveTrace();
             }
-            
+            context.setPreviousTrace(cloned);
+            context.setInitialized();
+        }
+        
+        ArchiveTrace trace = context.getPreviousTrace();
+        
+        if (FileSystemManager.isFile(fEntry.getFile())) {
             // Vérification que l'entrée sera stockée.
-            ArchiveTrace trace = context.getPreviousTrace();
-            
-            if (! trace.contains(fEntry)) {
+            if (! trace.containsFile(fEntry)) {
                 fEntry.setStatus(EntryArchiveData.STATUS_CREATED);
             } else if (trace.hasBeenModified(fEntry)) {
                 fEntry.setStatus(EntryArchiveData.STATUS_MODIFIED);
             } else {
                 fEntry.setStatus(RecoveryEntry.STATUS_NOT_STORED);            
             }
-            
-            trace.remove(fEntry);
+            trace.removeFile(fEntry);
+        } else if (this.trackDirectories) {
+            if (! trace.containsDirectory(fEntry)) {
+                fEntry.setStatus(EntryArchiveData.STATUS_CREATED);
+            } else {
+                fEntry.setStatus(RecoveryEntry.STATUS_NOT_STORED);
+            }
+            trace.removeDirectory(fEntry);
         } else {
-            fEntry.setStatus(RecoveryEntry.STATUS_NOT_STORED);    
+            fEntry.setStatus(RecoveryEntry.STATUS_NOT_STORED);
         }
     }
     
@@ -1056,8 +1073,9 @@ implements TargetActions {
         if (trace == null) {
             return new ArrayList();
         } else {
-            ArrayList ret = new ArrayList(trace.fileSize());
+            ArrayList ret = new ArrayList(trace.fileSize() + trace.directorySize());
             
+            // Files
             Iterator iter = trace.fileEntrySet().iterator();
             while (iter.hasNext()) {
                 Map.Entry entry = (Map.Entry)iter.next();
@@ -1067,6 +1085,14 @@ implements TargetActions {
                 long size = ArchiveTrace.extractFileSizeFromTrace(hash); 
                 ret.add(new FileSystemRecoveryEntry(new File(fileSystemPolicy.getBaseArchivePath()), new File(fileSystemPolicy.getBaseArchivePath(), path), EntryArchiveData.STATUS_DELETED, size));
             }
+            
+            // Directories
+            iter = trace.directoryEntrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry entry = (Map.Entry)iter.next();
+                String path = (String)entry.getKey();               
+                ret.add(new FileSystemRecoveryEntry(new File(fileSystemPolicy.getBaseArchivePath()), new File(fileSystemPolicy.getBaseArchivePath(), path), EntryArchiveData.STATUS_DELETED, 0));
+            }            
             
             return ret;
         }
@@ -1163,7 +1189,7 @@ implements TargetActions {
 			if (content.contains(entry)) {
 				ead.setStatus(EntryArchiveData.STATUS_CHANGED);
 			} else {
-				if (trace.contains(entry)) {
+				if (trace.containsFile(entry)) {
 					ead.setStatus(EntryArchiveData.STATUS_UNCHANGED);
 				} else {
 					ead.setStatus(EntryArchiveData.STATUS_NONEXISTANT);

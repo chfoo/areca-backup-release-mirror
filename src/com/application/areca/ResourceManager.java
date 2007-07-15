@@ -1,7 +1,6 @@
 package com.application.areca;
 
 import java.text.MessageFormat;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -13,8 +12,9 @@ import com.myJava.util.log.Logger;
  * 
  * <BR>
  * @author Stephane BRUNEL
+ * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -37,21 +37,13 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ResourceManager {
+    public static final String RESOURCE_NAME = "resources";
+    private static ResourceManager instance = new ResourceManager(RESOURCE_NAME);
+    
     private ResourceBundle properties = null;
-    
-    private static ResourceManager instance = null;
-    
-    private static HashMap instances = new HashMap();
+    private ResourceBundle defaultProperties = null;
 
-    public static synchronized ResourceManager instance() {
-        return instance("resources");
-    }
-    
-    public static synchronized ResourceManager instance(String domain) {
-        ResourceManager rm = (ResourceManager)instances.get(domain);
-        if (instance == null) {
-            instance = new ResourceManager(domain);
-        }
+    public static ResourceManager instance() {
         return instance;
     }
 
@@ -62,18 +54,33 @@ public class ResourceManager {
             properties = ResourceBundle.getBundle(domain, Locale.ENGLISH);
         } catch (Exception ex) {
             Logger.defaultLogger().error(ex);
+        } finally {
+            try {
+                defaultProperties = ResourceBundle.getBundle(domain, Locale.ENGLISH);
+            } catch (Exception ex) {
+                Logger.defaultLogger().error(ex);
+            } 
         }
     }
 
     private String getString(String key, boolean useDefault, String def) {
         try {
-	        String str = properties.getString(key);
-	        return str;
+            // Attempt to find the value
+            return properties.getString(key);
         } catch (MissingResourceException mrex) {
+            // Value not found
             if (useDefault) {
+                // Use default value
                 return def;
+            } else {
+                // Attempt to find it in the default resource file
+                try {
+                    return defaultProperties.getString(key);
+                } catch (MissingResourceException defMrex) {
+                    // Value not found in default property file -> return dummy value
+                    return new StringBuffer().append('[').append(key).append(']').toString();
+                }
             }
-            return new StringBuffer().append('[').append(key).append(']').toString();
         }
     }
 

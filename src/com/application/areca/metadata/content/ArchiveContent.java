@@ -18,7 +18,7 @@ import com.myJava.file.FileNameUtil;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -111,7 +111,7 @@ public class ArchiveContent {
         List entriesToRemove = new ArrayList();
         while (iter.hasNext()) {
             FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)iter.next();
-            if (! trace.contains(entry)) {
+            if (! trace.containsFile(entry)) {
                 entriesToRemove.add(entry);
             }
         }

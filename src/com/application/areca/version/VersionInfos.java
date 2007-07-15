@@ -15,7 +15,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -55,7 +55,7 @@ public class VersionInfos {
     static {
         
         // INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-        BUILD_ID = 3274863990151426915L;
+        BUILD_ID = -1628055869823963574L;
         
         // INIT VERSION DATA
         VERSIONS.add(new VersionData("1.0", new GregorianCalendar(2005, 4, 1), "Backup engine implementation."));
@@ -112,7 +112,7 @@ public class VersionInfos {
         VERSIONS.add(new VersionData("5.0.1", new GregorianCalendar(2007, 4, 30), "UTF-8 is used for all metadata files; Backup shortcut implementation; Search-Window enhancements."));
         VERSIONS.add(new VersionData("5.0.2", new GregorianCalendar(2007, 5, 5), "Bug fix : directories starting with '#' were not processed properly."));
         VERSIONS.add(new VersionData("5.1", new GregorianCalendar(2007, 5, 17), "Better multithreading management; User interface enhancements (Archive's files edition feature & improved target deletion)."));
-    
+        VERSIONS.add(new VersionData("5.2", new GregorianCalendar(2007, 5, 27), "Zip64 bug fix; Russian translation; Mail reports enhancements; Shell script dynamic parameters."));        
 
         Iterator iter = VERSIONS.iterator();
         while (iter.hasNext()) {

@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -70,7 +70,7 @@ public class FileDumpPostProcessor extends AbstractPostProcessor {
             }
             File destination = new File(destinationFolder, report.getTarget().getUid() + "_" + FileSystemManager.getName(context.getFinalArchiveFile()) + ".report");
             
-            writer = new ProcessReportWriter(FileSystemManager.getWriter(destination));
+            writer = new ProcessReportWriter(FileSystemManager.getWriter(destination), true);
             writer.writeReport(report);
         } catch (IOException e) {
             Logger.defaultLogger().error("Exception caught during report generation", e);            
@@ -84,7 +84,7 @@ public class FileDumpPostProcessor extends AbstractPostProcessor {
         }
     }
     
-    public boolean requiresProcessReport() {
+    public boolean requiresFilteredEntriesListing() {
         return true;
     }
     

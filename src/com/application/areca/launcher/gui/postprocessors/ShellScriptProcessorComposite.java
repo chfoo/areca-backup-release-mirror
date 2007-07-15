@@ -19,7 +19,7 @@ import com.application.areca.postprocess.ShellScriptPostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -43,50 +43,73 @@ This file is part of Areca.
  */
 public class ShellScriptProcessorComposite extends AbstractProcessorComposite {
 
-    private Text txt;
+    private Text txtScript;
+    private Text txtParams;
     
     public ShellScriptProcessorComposite(Composite composite, PostProcessor proc, final ProcessorEditionWindow window) {
         super(composite, proc, window);
         this.setLayout(new GridLayout(3, false));
         
-        Label lbl = new Label(this, SWT.NONE);
-        lbl.setText(RM.getLabel("procedition.scriptfile.label"));
+        Label lblScript = new Label(this, SWT.NONE);
+        lblScript.setText(RM.getLabel("procedition.scriptfile.label"));
         
-        txt = new Text(this, SWT.BORDER);
-        txt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        window.monitorControl(txt);
+        txtScript = new Text(this, SWT.BORDER);
+        txtScript.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        window.monitorControl(txtScript);
         
         Button btnBrowse = new Button(this, SWT.PUSH);
         btnBrowse.setText(RM.getLabel("common.browseaction.label"));
         btnBrowse.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
-                String path = Application.getInstance().showFileDialog(txt.getText(), window);
+                String path = Application.getInstance().showFileDialog(txtScript.getText(), window);
                 if (path != null) {
-                    txt.setText(path);
+                    txtScript.setText(path);
                 }
             }
         });
         
+        Label lblParams = new Label(this, SWT.NONE);
+        lblParams.setText(RM.getLabel("procedition.scriptparams.label"));
+        
+        txtParams = new Text(this, SWT.BORDER);
+        txtParams.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        window.monitorControl(txtParams);
+        
+        Label lbl1 = new Label(this, SWT.NONE);
+        Label lblExample = new Label(this, SWT.NONE);
+        lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        lblExample.setText(RM.getLabel("procedition.scriptparams.example.label"));
+        
         if (proc != null) {
             ShellScriptPostProcessor sProc = (ShellScriptPostProcessor)proc;
-            txt.setText(sProc.getCommand());
+            txtScript.setText(sProc.getCommand());
+            txtParams.setText(sProc.getCommandParameters() == null ? "" : sProc.getCommandParameters());
         }
     }
 
     public void initProcessor(PostProcessor proc) {
         ShellScriptPostProcessor fProc = (ShellScriptPostProcessor)proc;
-        fProc.setCommand(txt.getText());
+        fProc.setCommand(txtScript.getText());
+        fProc.setCommandParameters(txtParams.getText());
     }
     
     public boolean validateParams() {
-        window.resetErrorState(txt);
+        window.resetErrorState(txtScript);
+        window.resetErrorState(txtParams);
         
         if (
-                txt.getText() == null 
-                || txt.getText().trim().length() == 0 
+                txtScript.getText() == null 
+                || txtScript.getText().trim().length() == 0 
         ) {
-            window.setInError(txt);
+            window.setInError(txtScript);
             return false;
+        }
+        
+        if (txtParams.getText() != null) {
+            if (txtParams.getText().indexOf('\"') != -1) {
+                window.setInError(txtParams);
+                return false;
+            }
         }
 
         return true;

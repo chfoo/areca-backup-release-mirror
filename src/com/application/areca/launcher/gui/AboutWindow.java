@@ -38,7 +38,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -204,9 +204,6 @@ extends AbstractWindow {
         prps.put("areca.max.manageable.entries", "" + MemoryHelper.getMaxManageableEntries());
         prps.put("areca.version", VersionInfos.getLastVersion().getVersionId());
         prps.put("areca.build.id", "" + VersionInfos.getBuildId());
-        
-        URL url = ClassLoader.getSystemClassLoader().getResource("languages.txt");
-        prps.put("areca.languages.url", url.toExternalForm());
         
         prps.putAll(ArecaTechnicalConfiguration.get().getProperties());
         

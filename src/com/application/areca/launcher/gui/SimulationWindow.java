@@ -19,16 +19,18 @@ import com.application.areca.EntryArchiveData;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
+import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.metadata.manifest.Manifest;
+import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -188,7 +190,11 @@ implements Listener {
             if (entries[i].getStatus() == EntryArchiveData.STATUS_CREATED) {
                 nbNew++;
                 totalSize += entries[i].getSize();
-                item.setImage(0, ArecaImages.ICO_HISTO_NEW);
+                if (FileSystemManager.isFile(((FileSystemRecoveryEntry)entries[i]).getFile())) {
+                    item.setImage(0, ArecaImages.ICO_HISTO_NEW);
+                } else {
+                    item.setImage(0, ArecaImages.ICO_HISTO_FOLDER_NEW);
+                }
             } else if (entries[i].getStatus() == EntryArchiveData.STATUS_DELETED) {
                 nbDeleted++;     
                 item.setImage(0, ArecaImages.ICO_HISTO_DELETE); 

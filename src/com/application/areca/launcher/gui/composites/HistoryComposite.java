@@ -32,7 +32,7 @@ import com.myJava.util.history.HistoryEntry;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -134,29 +134,31 @@ implements Listener, Refreshable, HistoryEntryTypes {
 
     private void fillTargetData(AbstractRecoveryTarget target) {
         History h = target.getHistory();
-        HashMap content = h.getContent();
-        GregorianCalendar[] keys = h.getOrderedKeys();
-        
-        for (int i=keys.length - 1; i>=0; i--) {
-            HistoryEntry entry = (HistoryEntry)content.get(keys[i]);
-            int type = getEntryType(entry);
-            
-            TableItem item = new TableItem(table, SWT.NONE);
-            
-            if (type == HISTO_BACKUP_CANCEL) {
-                item.setImage(0, ArecaImages.ICO_ACT_CANCEL);
-            } else if (type == HISTO_BACKUP) {
-                item.setImage(0, ArecaImages.ICO_ACT_ARCHIVE);
-            } else if (type == HISTO_DELETE) {
-                item.setImage(0, ArecaImages.ICO_ACT_DELETE);
-            } else if (type == HISTO_RECOVER) {
-                item.setImage(0, ArecaImages.ICO_ACT_RESTAURE);
-            } else {
-                item.setImage(0, ArecaImages.ICO_ACT_COMPACT);
+        if (h != null) {
+            HashMap content = h.getContent();
+            GregorianCalendar[] keys = h.getOrderedKeys();
+
+            for (int i=keys.length - 1; i>=0; i--) {
+                HistoryEntry entry = (HistoryEntry)content.get(keys[i]);
+                int type = getEntryType(entry);
+
+                TableItem item = new TableItem(table, SWT.NONE);
+
+                if (type == HISTO_BACKUP_CANCEL) {
+                    item.setImage(0, ArecaImages.ICO_ACT_CANCEL);
+                } else if (type == HISTO_BACKUP) {
+                    item.setImage(0, ArecaImages.ICO_ACT_ARCHIVE);
+                } else if (type == HISTO_DELETE) {
+                    item.setImage(0, ArecaImages.ICO_ACT_DELETE);
+                } else if (type == HISTO_RECOVER) {
+                    item.setImage(0, ArecaImages.ICO_ACT_RESTAURE);
+                } else {
+                    item.setImage(0, ArecaImages.ICO_ACT_COMPACT);
+                }
+
+                item.setText(1, Utils.formatDisplayDate(keys[i]));
+                item.setText(0, entry.getDescription());
             }
-            
-            item.setText(1, Utils.formatDisplayDate(keys[i]));
-            item.setText(0, entry.getDescription());
         }
     }
 

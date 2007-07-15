@@ -6,7 +6,7 @@ package com.application.areca;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -35,5 +35,6 @@ public interface TargetActions {
     public static final int ACTION_RECOVER = 2;
     public static final int ACTION_COMPACT_OR_DELETE = 3;
     public static final int ACTION_DESCRIBE = 4;    
-    public static final int ACTION_INDICATORS = 5;    
+    public static final int ACTION_INDICATORS = 5;  
+    public static final int ACTION_SIMULATE = 6;
 }

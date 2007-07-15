@@ -34,7 +34,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -254,7 +254,10 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
 
                 try {
                     HistoryEntry entry = new HistoryEntry(HISTO_BACKUP, "Backup.");
-                    this.getHistory().addEntry(entry);
+                    History h = this.getHistory();
+                    if (h != null) {
+                        h.addEntry(entry);
+                    }
                 } catch (IOException e1) {
                     throw new ApplicationException(e1);
                 }
@@ -403,7 +406,10 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
 		try {
             context.getTaskMonitor().setCancellable(false);
             HistoryEntry entry = new HistoryEntry(HISTO_BACKUP_CANCEL, "Backup cancellation.");
-			this.getHistory().addEntry(entry);
+            History h = this.getHistory();
+            if (h != null) {
+                h.addEntry(entry);
+            }
 		} catch (IOException e1) {
 			throw new ApplicationException(e1);
 		} finally {
@@ -443,7 +449,10 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     		try {
     		    
                 HistoryEntry entry = new HistoryEntry(HISTO_MERGE, "Merge from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate) + ".");
-    			this.getHistory().addEntry(entry);
+                History h = this.getHistory();
+                if (h != null) {
+                    h.addEntry(entry);
+                }
     		} catch (IOException e) {
     			throw new ApplicationException(e);
     		}        
@@ -474,10 +483,11 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
             context.getInfoChannel().print("Deletion in progress ...");
     		
     		try {
-    		    if (this.getHistory() != null) {
-    		        HistoryEntry entry = new HistoryEntry(HISTO_DELETE, "Archive deletion from " + Utils.formatDisplayDate(fromDate) + ".");
-                	this.getHistory().addEntry(entry);
-    		    }
+                History h = this.getHistory();
+                if (h != null) {
+                    HistoryEntry entry = new HistoryEntry(HISTO_DELETE, "Archive deletion from " + Utils.formatDisplayDate(fromDate) + ".");
+                    h.addEntry(entry);
+                }
     		} catch (IOException e) {
     			throw new ApplicationException(e);
     		}        
@@ -527,7 +537,10 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
             context.getInfoChannel().getTaskMonitor().setCancellable(false);
             
             HistoryEntry entry = new HistoryEntry(HISTO_MERGE_CANCEL, "Merge cancellation.");
-			this.getHistory().addEntry(entry);
+            History h = this.getHistory();
+            if (h != null) {
+                h.addEntry(entry);
+            }
 		} catch (IOException e1) {
 			throw new ApplicationException(e1);
 		} 
@@ -561,7 +574,10 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
             }
             try {
                 HistoryEntry entry = new HistoryEntry(HISTO_RECOVER, "Recovery : " + Utils.formatDisplayDate(date) + ".");
-    			this.getHistory().addEntry(entry);
+                History h = this.getHistory();
+                if (h != null) {
+                    h.addEntry(entry);
+                }
             } catch (IOException e1) {
                 throw new ApplicationException(e1);
             }   
@@ -627,7 +643,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
             ArchiveFilter filter = (ArchiveFilter)iter.next();
             if (! filter.accept(entry)) {
                 context.getReport().addFilteredEntry();
-                if (requiresProcessReport() && filter.traceFilteredFiles()) {
+                if (requiresFilteredEntriesListing() && filter.traceFilteredFiles()) {
                     context.getReport().getFilteredEntriesData().addFilteredEntry(entry, filter);
                 }
                 return false;
@@ -636,10 +652,10 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         return true;
     }
     
-    protected boolean requiresProcessReport() {
+    protected boolean requiresFilteredEntriesListing() {
         return 
         	ReportingConfiguration.getInstance().isReportingEnabled()
-        	|| this.postProcessors.requiresProcessReport()
+        	|| this.postProcessors.requiresFilteredEntriesListing()
         ;
     }
     

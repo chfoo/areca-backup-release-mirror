@@ -36,7 +36,7 @@ import com.myJava.file.FileNameUtil;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -115,7 +115,11 @@ implements MouseListener, Listener
         directoryMap.put("/", root);
         
         for (int i=0; i<entries.length; i++) {
-            addNode("/" + entries[i].getName(), entries[i].getStatus(), entries[i].getSize(), entries[i], directoryMap);
+            if (entries[i].getSize() == -1) {
+                addNode("/" + entries[i].getName() + "/", entries[i].getStatus(), 0, entries[i], directoryMap);                
+            } else {
+                addNode("/" + entries[i].getName(), entries[i].getStatus(), entries[i].getSize(), entries[i], directoryMap);
+            }
         }
         
         Iterator iter = directoryMap.values().iterator();
@@ -155,7 +159,7 @@ implements MouseListener, Listener
         }
     }
     
-    private TreeItem addNode(String fullPath, short status, long size, RecoveryEntry entry, Hashtable table) {
+    private TreeItem addNode(String fullPath, short status, long size, RecoveryEntry entry, Hashtable table) {        
         int i= resolveParentIndex(fullPath);
         String parentKey = fullPath.substring(0, i + 1);
         String name = fullPath.substring(i + 1);
@@ -184,9 +188,7 @@ implements MouseListener, Listener
         
         if (! isDirectory(name)) {
             configure(child);
-        }
-        
-        if (FileNameUtil.endsWithSeparator(fullPath)) {
+        } else {
             // If it's a directory, add it to the map of parents
             table.put(fullPath, child);
         }
@@ -230,8 +232,8 @@ implements MouseListener, Listener
         }
     }
 
-    public void setEntries(Set entries) {
-        this.entries = (RecoveryEntry[])entries.toArray(new RecoveryEntry[0]);
+    public void setEntries(Set files) {
+        this.entries = (RecoveryEntry[])files.toArray(new RecoveryEntry[files.size()]);
         Arrays.sort(this.entries, new RecoveryEntryComparator());
         initContent();
     }

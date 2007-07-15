@@ -16,7 +16,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -41,10 +41,14 @@ This file is part of Areca.
 public class ProcessReportWriter {
 
     private Writer writer;
+    private boolean writeFilteredEntries = true;
     
-    public ProcessReportWriter(Writer writer) {
+    public ProcessReportWriter(Writer writer, boolean writeFilteredEntries) {
+        this.writeFilteredEntries = writeFilteredEntries;
         this.writer = writer;
     }
+    
+    
 
     public void writeReport(ProcessReport report) throws IOException {
         write("ARECA : BACKUP REPORT");
@@ -72,7 +76,7 @@ public class ProcessReportWriter {
         write("Ignored files (not modified) : " + report.getIgnoredFiles());
         write("Saved files : " + report.getSavedFiles());
         
-        if (report.getFilteredEntries() != 0) {
+        if (writeFilteredEntries && (! report.filteredEntriesData.isEmpty())) {
 	        writeSpace();
 	        write("Filtered entries (grouped by filter) :");
 	        Iterator iter = report.getFilteredEntriesData().getFilterIterator();

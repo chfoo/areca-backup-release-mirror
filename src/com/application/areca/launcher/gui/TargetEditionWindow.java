@@ -33,6 +33,7 @@ import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.filter.AbstractArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
+import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.impl.AbstractFileSystemMedium;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.EncryptionConfiguration;
@@ -62,7 +63,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -687,10 +688,14 @@ extends AbstractWindow {
             processSelection(PLUGIN_HD, ArecaPreferences.getDefaultArchiveStorage());
             
             // Default filters
-            FileExtensionArchiveFilter filter = new FileExtensionArchiveFilter();
-            filter.acceptParameters("*.tmp, *.temp");
-            filter.setExclude(true);
-            addFilter(filter);
+            FileExtensionArchiveFilter filter1 = new FileExtensionArchiveFilter();
+            filter1.acceptParameters("*.tmp, *.temp");
+            filter1.setExclude(true);
+            addFilter(filter1);
+            
+            LockedFileFilter filter2 = new LockedFileFilter();
+            filter2.setExclude(true);
+            addFilter(filter2);
         }
         
         this.resetEcryptionKey();
@@ -1011,7 +1016,11 @@ extends AbstractWindow {
                 
                 if (historyBck != null) {
                     // Réécriture de l'historique
-                    newTarget.getHistory().importHistory(historyBck);
+                    try {
+                        newTarget.getHistory().importHistory(historyBck);
+                    } catch (Throwable e) {
+                        Logger.defaultLogger().error("Error during user action history import.", e);
+                    }
                 }
             }
             

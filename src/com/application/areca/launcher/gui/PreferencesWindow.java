@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ResourceManager;
+import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
@@ -25,7 +26,7 @@ import com.myJava.file.FileTool;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -59,6 +60,7 @@ extends AbstractWindow {
     private Text defaultArchiveStorage;
     private Button displayReport;
     private Text editor;
+    private Text dateFormat;
 
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
@@ -67,12 +69,9 @@ extends AbstractWindow {
         layout.verticalSpacing = 20;
         composite.setLayout(layout);
         
-        GridData mainData1 = new GridData();
-        mainData1.grabExcessHorizontalSpace = true;
+        GridData mainData1 = new GridData(SWT.FILL, SWT.FILL, true, false);
         mainData1.widthHint = computeWidth(600);
-        mainData1.horizontalAlignment = SWT.FILL;
-        mainData1.verticalAlignment = SWT.FILL;
-        
+
         Group grpDisp = new Group(composite, SWT.NONE);
         grpDisp.setLayoutData(mainData1);
         grpDisp.setText(RM.getLabel("preferences.appearence.title"));
@@ -81,11 +80,7 @@ extends AbstractWindow {
         grpDisp.setLayout(layDisp);
         buildAppearenceComposite(grpDisp);
         
-        GridData mainData2 = new GridData();
-        mainData2.grabExcessHorizontalSpace = true;
-        mainData2.horizontalAlignment = SWT.FILL;
-        mainData2.verticalAlignment = SWT.FILL;
-        
+        GridData mainData2 = new GridData(SWT.FILL, SWT.FILL, true, false);       
         Group grpStart = new Group(composite, SWT.NONE);
         grpStart.setLayoutData(mainData2);
         grpStart.setText(RM.getLabel("preferences.startup.title"));
@@ -94,11 +89,7 @@ extends AbstractWindow {
         grpStart.setLayout(layStart);
         buildStartupComposite(grpStart);
         
-        GridData mainData3 = new GridData();
-        mainData3.grabExcessHorizontalSpace = true;
-        mainData3.horizontalAlignment = SWT.FILL;
-        mainData3.verticalAlignment = SWT.FILL;
-        
+        GridData mainData3 = new GridData(SWT.FILL, SWT.FILL, true, false);
         Group grpArchives = new Group(composite, SWT.NONE);
         grpArchives.setLayoutData(mainData3);
         grpArchives.setText(RM.getLabel("preferences.workspace.title"));
@@ -107,11 +98,7 @@ extends AbstractWindow {
         grpArchives.setLayout(layArchives);
         buildArchivesComposite(grpArchives);
         
-        GridData saveData = new GridData();
-        saveData.grabExcessHorizontalSpace = true;
-        saveData.horizontalAlignment = SWT.FILL;
-        saveData.verticalAlignment = SWT.FILL;
-        
+        GridData saveData = new GridData(SWT.FILL, SWT.FILL, true, false);
         SavePanel pnlSave = new SavePanel(this);
         pnlSave.buildComposite(composite).setLayoutData(saveData);
         
@@ -122,10 +109,21 @@ extends AbstractWindow {
     private void buildAppearenceComposite(Composite parent) {
         Label lblLang = new Label(parent, SWT.NONE);
         lblLang.setText(RM.getLabel("preferences.lang.label"));
-        
         langCombo = new Combo(parent, SWT.READ_ONLY);
         fillLangCombo();
         monitorControl(langCombo);
+        
+        Label lblDate = new Label(parent, SWT.NONE);
+        lblDate.setText(RM.getLabel("preferences.dateformat.label"));
+        lblDate.setToolTipText(RM.getLabel("preferences.dateformat.tt"));
+        dateFormat = new Text(parent, SWT.BORDER);
+        GridData ldWs = new GridData();
+        ldWs.grabExcessHorizontalSpace = true;
+        ldWs.horizontalAlignment = SWT.FILL;
+        dateFormat.setLayoutData(ldWs);
+        dateFormat.setText(ArecaPreferences.getDateFormat() == null ? "" : ArecaPreferences.getDateFormat());
+        dateFormat.setToolTipText(RM.getLabel("preferences.dateformat.tt"));
+        monitorControl(dateFormat);
         
         informationSynthetic = new Button(parent, SWT.CHECK);
         informationSynthetic.setText(RM.getLabel("preferences.synthetic.label"));
@@ -214,10 +212,7 @@ extends AbstractWindow {
     
     private void fillLangCombo() {
         try {
-            URL url = ClassLoader.getSystemResource("languages.txt");
-            FileTool tool = new FileTool();
-            String[] lges = tool.getInputStreamRows(url.openStream(), true); 
-        
+            String[] lges = Utils.getTranslations();
             for (int i=0; i<lges.length; i++) {
                 langCombo.add(lges[i]);
                 
@@ -247,6 +242,7 @@ extends AbstractWindow {
         ArecaPreferences.setDisplayReport(displayReport.getSelection());
         ArecaPreferences.setEditionCommand(editor.getText());
         ArecaPreferences.setInformationSynthetic(informationSynthetic.getSelection());
+        ArecaPreferences.setDateFormat(dateFormat.getText());
         
         this.hasBeenUpdated = false;
         this.close();

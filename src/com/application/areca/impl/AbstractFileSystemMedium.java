@@ -44,7 +44,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -264,38 +264,48 @@ implements TargetActions, IndicatorTypes {
 	        // List all potential archive files
 	        for (int i=0; i<archives.length; i++) {
 	            File archive = archives[i];
-	            String archivePath = FileNameUtil.normalizePath(FileSystemManager.getAbsolutePath(archive));
-
-	            // Check wether the archive has been commited or not
-	            if (        	
-	                    archivePath.equals(basePath + TMP_ARCHIVE_SUFFIX)
-	                    || (
-	                            archivePath.startsWith(basePath + Utils.FILE_DATE_SEPARATOR)
-	                            && archivePath.endsWith(TMP_ARCHIVE_SUFFIX)
-	                    )
-	            ) {
-	                // If it has not been commited - destroy it            
-	                LogHelper.logFileInformations("CAUTION : Uncommited archive detected : ", archive);
-
-	                try {
-	                    this.deleteArchive(archive);
-	                } catch (IllegalArgumentException e) {
-	                    Logger.defaultLogger().error(e);
-	                } catch (IOException e) {
-	                    Logger.defaultLogger().error(e);
-	                }
-
-                    Logger.defaultLogger().displayApplicationMessage(
-	                        null, 
-	                        "Temporary archive detected.", 
-	                        "Areca has detected that the following file is a temporary archive which has not been commited :" 
-	                        + "\n" + FileSystemManager.getAbsolutePath(archive) 
-	                        + "\n\nThis file has been deleted."
-	                );
-	            }
+                String archivePath = FileNameUtil.normalizePath(FileSystemManager.getAbsolutePath(archive));
+                
+	            checkArchive(basePath, archivePath, archive);
 	        }
 	    }
 	}
+    
+    protected boolean checkArchive(String basePath, String archivePath, File archive) {
+        // Check wether the archive has been commited or not
+        if (            
+                archivePath.equals(basePath + TMP_ARCHIVE_SUFFIX)
+                || (
+                        archivePath.startsWith(basePath + Utils.FILE_DATE_SEPARATOR)
+                        && archivePath.endsWith(TMP_ARCHIVE_SUFFIX)
+                )
+        ) {
+            // If it has not been commited - destroy it            
+            destroyTemporaryFile(archive);
+            return false;
+        } else {
+            return true;
+        }
+    }
+    
+    protected void destroyTemporaryFile(File archive) {
+        String name = FileSystemManager.isFile(archive) ? "file" : "directory";
+        LogHelper.logFileInformations("CAUTION : Uncommited " + name + " detected : ", archive);
+
+        try {
+            this.deleteArchive(archive);
+        } catch (Exception e) {
+            Logger.defaultLogger().error(e);
+        }
+
+        Logger.defaultLogger().displayApplicationMessage(
+                null, 
+                "Temporary " + name + " detected.", 
+                "Areca has detected that the following " + name + " is a temporary archive which has not been commited :" 
+                + "\n" + FileSystemManager.getAbsolutePath(archive) 
+                + "\n\nThis " + name + " has been deleted."
+        );
+    }
     
     /**
      * Stocke le fichier passé en argument dans l'archive

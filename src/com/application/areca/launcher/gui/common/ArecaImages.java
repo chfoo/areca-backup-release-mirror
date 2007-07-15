@@ -12,7 +12,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -81,6 +81,7 @@ public class ArecaImages {
     
     // Historique
     public static Image ICO_HISTO_NEW = ICO_TARGET_NEW;
+    public static Image ICO_HISTO_FOLDER_NEW = ICO_REF_PROCESS;
     public static Image ICO_HISTO_EDIT = ICO_TARGET_EDIT;
     public static Image ICO_HISTO_DELETE = loadImage("delete.png");
     

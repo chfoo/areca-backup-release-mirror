@@ -26,7 +26,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -413,22 +413,27 @@ public class FileSystemManager {
         getInstance().getDriver(f).deleteOnExit(f);        
     }
     
-    public static boolean isReadable(File file) throws IOException {
+    public static boolean isReadable(File file) {
         if (isDirectory(file)) {
             return false;
         } else {
-	            boolean isLocked = false;
-	            InputStream str = null;
-	            try {
-	                str = getFileInputStream(file);
-	            } catch (FileNotFoundException e) {
-	                isLocked = true;	                
-	            } finally {
-	                if (str != null) {
-	                    str.close();
-	                }
-	            }
-            
+            boolean isLocked = false;
+            InputStream str = null;
+            try {
+                str = getFileInputStream(file);
+                str.read();
+            } catch (Exception e) {
+                isLocked = true;	    
+                Logger.defaultLogger().info("The following file is locked by the system : " + FileSystemManager.getAbsolutePath(file));
+            } finally {
+                if (str != null) {
+                    try {
+                        str.close();
+                    } catch (IOException ignored) {
+                    }
+                }
+            }
+
             return ! isLocked;
         }
     }

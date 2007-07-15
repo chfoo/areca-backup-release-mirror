@@ -15,7 +15,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -59,15 +59,10 @@ public class LockedFileFilter extends AbstractArchiveFilter {
         if (fEntry == null) {
             return false;
         } else {
-            try {
-                if (FileSystemManager.isReadable(fEntry.getFile())) {
-                    return exclude;
-                } else {
-                    return ! exclude;
-                }
-            } catch (IOException ex) {
-                Logger.defaultLogger().error("Error during filtering of " + FileSystemManager.getAbsolutePath(fEntry.getFile()), ex);
-                throw new IllegalArgumentException("Error during filtering of " + FileSystemManager.getAbsolutePath(fEntry.getFile()));
+            if (FileSystemManager.isReadable(fEntry.getFile())) {
+                return exclude;
+            } else {
+                return ! exclude;
             }
         }
     }

@@ -1,11 +1,14 @@
 package com.application.areca.launcher.gui.common;
 
+import java.util.Locale;
+
+import com.application.areca.Utils;
 import com.application.areca.context.ReportingConfiguration;
 
 /**
  * @author Stephane Brunel
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -40,6 +43,7 @@ public final class ArecaPreferences {
 	private static final String DISPLAY_LOG = "log.display";
     private static final String TEXT_EDITOR = "editor.text";
     private static final String INFO_SYNTHETIC = "info.channel.synthetic";
+    private static final String DATE_FORMAT = "date.format";
 	
 	public static final int UNDEFINED = -1;
 	public static final int LAST_WORKSPACE_MODE = 0;
@@ -48,6 +52,15 @@ public final class ArecaPreferences {
 	static {
 	    synchronizeClientConfigurations();
 	}
+    
+    public static String getDateFormat() {
+        return LocalPreferences.instance().get(DATE_FORMAT, null);
+    }
+    
+    public static void setDateFormat(String df) {
+        LocalPreferences.instance().set(DATE_FORMAT, df);
+        synchronizeClientConfigurations();
+    }
 	
 	public static String getDefaultArchiveStorage() {
 	    return LocalPreferences.instance().get(ARCHIVE_STORAGE, "");
@@ -146,7 +159,7 @@ public final class ArecaPreferences {
 	}
 	
 	public static String getLang() {
-	    return LocalPreferences.instance().get(LANG, "en");
+	    return LocalPreferences.instance().get(LANG, Locale.getDefault().getCountry().toLowerCase());
 	}
 	
 	public static void setLang(String lang) {
@@ -165,5 +178,9 @@ public final class ArecaPreferences {
 	
 	private static void synchronizeClientConfigurations() {
 	    ReportingConfiguration.getInstance().setReportingEnabled(getDisplayReport());
+        if (getLang() != null) {
+            Locale.setDefault(new Locale(getLang()));
+        }
+        Utils.initDateFormat(getDateFormat());
 	}
 }

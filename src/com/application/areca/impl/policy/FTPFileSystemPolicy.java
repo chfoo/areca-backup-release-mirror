@@ -21,7 +21,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -181,7 +181,7 @@ implements FileSystemPolicy {
         if ((! subdir.endsWith("/")) && (! subdir.endsWith("\\"))) {
             subdir += "/";
         }
-        subdir += "ftptest";
+        subdir += "areca_cnx_tst";
         String testFile = subdir + "/filetest.txt";
         String fileContent = "0123456789 0123456789 0123456789 0123456789 0123456789 ";
         

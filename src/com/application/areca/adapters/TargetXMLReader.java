@@ -24,9 +24,7 @@ import com.application.areca.impl.IncrementalDirectoryMedium;
 import com.application.areca.impl.IncrementalTGZMedium;
 import com.application.areca.impl.IncrementalZip64Medium;
 import com.application.areca.impl.IncrementalZipMedium;
-import com.application.areca.impl.policy.DefaultFileSystemPolicy;
 import com.application.areca.impl.policy.EncryptionPolicy;
-import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
@@ -41,7 +39,7 @@ import com.application.areca.postprocess.ShellScriptPostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -156,12 +154,20 @@ public class TargetXMLReader implements XMLTags {
     }
     
     protected PostProcessor readShellProcessor(Node node, AbstractRecoveryTarget target) throws AdapterException {
-        Node paramNode = node.getAttributes().getNamedItem(XML_PP_SHELL_SCRIPT);
-        if (paramNode == null) {
+        Node scriptNode = node.getAttributes().getNamedItem(XML_PP_SHELL_SCRIPT);
+        if (scriptNode == null) {
             throw new AdapterException("Shell script file not found for Shell Processor. A '" + XML_PP_SHELL_SCRIPT + "' attribute must be set.");
-        }          
+        }     
+        
         ShellScriptPostProcessor pp = new ShellScriptPostProcessor();
-        pp.setCommand(paramNode.getNodeValue());
+        pp.setCommand(scriptNode.getNodeValue());
+        
+        
+        Node paramNode = node.getAttributes().getNamedItem(XML_PP_SHELL_PARAMS);
+        if (paramNode != null) {
+            pp.setCommandParameters(paramNode.getNodeValue());
+        }
+        
         return pp;
     }
     
@@ -194,6 +200,16 @@ public class TargetXMLReader implements XMLTags {
         Node passwordNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_PASSWORD);
         if (passwordNode != null) {
             pp.setPassword(passwordNode.getNodeValue());
+        }
+        
+        Node failureOnlyNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_ONLY_IF_ERROR);
+        if (failureOnlyNode != null) {
+            pp.setOnlyIfError(Boolean.getBoolean(failureOnlyNode.getNodeValue()));
+        }
+        
+        Node listFilteredNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_LIST_FILTERED);
+        if (listFilteredNode != null) {
+            pp.setListFiltered(Boolean.getBoolean(listFilteredNode.getNodeValue()));
         }
         
         pp.setRecipients(recipientsNode.getNodeValue());

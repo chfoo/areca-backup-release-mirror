@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -136,12 +136,20 @@ public class ArchiveTrace {
         return files.size();
     }
     
+    public int directorySize() {
+        return directories.size();
+    }
+    
     public Set getDirectoryList() {
         return directories.keySet();
     }
     
     public Map getFileMap() {
         return this.files;
+    }
+    
+    public Map getDirectoryMap() {
+        return this.directories;
     }
     
     public void merge(ArchiveTrace other, boolean mergeDirectories) {
@@ -271,20 +279,25 @@ public class ArchiveTrace {
         }
     }  
     
-    public boolean containsKey(String key) {
+    public boolean containsFileKey(String key) {
         return this.files.containsKey(key);
+    }
+    
+    public boolean containsDirectoryKey(String key) {
+        return this.directories.containsKey(key);
     }
     
     public long getApproximateMemorySize() {
         double ratio = ((double) (this.files.size() + this.directories.size()) / ((double)Math.max(this.files.size(), 1)));
         return (long)(approximateMemorySize * ratio);
     }
+
+    public boolean containsFile(FileSystemRecoveryEntry fEntry) {
+        return this.containsFileKey(fEntry.getName());
+    }
     
-    /**
-     * Checks wether the entry has been modified
-     */
-    public boolean contains(FileSystemRecoveryEntry fEntry) {
-        return this.containsKey(fEntry.getName());
+    public boolean containsDirectory(FileSystemRecoveryEntry fEntry) {
+        return this.containsDirectoryKey(fEntry.getName());
     }
     
     public String getFileHash(FileSystemRecoveryEntry fEntry) {
@@ -303,12 +316,17 @@ public class ArchiveTrace {
         return (String)this.directories.get(entryName);        
     }
     
-    public Object remove(FileSystemRecoveryEntry entry) {
+    public Object removeFile(FileSystemRecoveryEntry entry) {
         String key = entry.getName();
         String hash = (String)files.remove(key);
         this.approximateMemorySize -= measureString(key) + measureString(hash);
         
         return hash;
+    }
+    
+    public Object removeDirectory(FileSystemRecoveryEntry entry) {
+        String key = entry.getName();
+        return (String)directories.remove(key);
     }
     
     /**

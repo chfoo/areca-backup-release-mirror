@@ -1,11 +1,15 @@
 package com.application.areca;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
 
 import com.myJava.file.FileSystemManager;
@@ -16,7 +20,7 @@ import com.myJava.util.CalendarUtils;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -40,15 +44,47 @@ This file is part of Areca.
  */
 public class Utils {
     private static final ResourceManager RM = ResourceManager.instance();
-    private static final DateFormat DF = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
+    private static DateFormat DF;
     public static final String FILE_DATE_SEPARATOR = ".";
     private static final NumberFormat NF = new DecimalFormat();
     
-    public static File getApplicationRoot() {
+    static {
         NF.setGroupingUsed(true);
-        URL url = ClassLoader.getSystemClassLoader().getResource("languages.txt");
+        initDateFormat(null);
+    }
+    
+    public static void initDateFormat(String format) {
+        if (format != null && format.trim().length() != 0) {
+            DF = new SimpleDateFormat(format);
+        } else {
+            DF = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
+        }
+    }
+    
+    public static File getApplicationRoot() {
+        URL url = ClassLoader.getSystemClassLoader().getResource(ResourceManager.RESOURCE_NAME + "_en.properties");
         File licenseFile = new File(URLDecoder.decode(url.getFile()));
         return FileSystemManager.getParentFile(FileSystemManager.getParentFile(licenseFile));
+    }
+    
+    public static String[] getTranslations() {
+        final int length = ResourceManager.RESOURCE_NAME.length() + 14;
+        final String prefix = ResourceManager.RESOURCE_NAME + "_";
+        final String suffix = ".properties";
+        
+        File translationsRoot = new File(getApplicationRoot(), "translations");
+        File[] files = FileSystemManager.listFiles(translationsRoot, new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.length() == length && name.startsWith(prefix) && name.endsWith(suffix);
+            }
+        });
+        
+        String[] languages = new String[files.length];
+        for (int i=0; i<files.length; i++) {
+            languages[i] = FileSystemManager.getName(files[i]).substring(ResourceManager.RESOURCE_NAME.length() + 1, ResourceManager.RESOURCE_NAME.length() + 3);
+        }
+        
+        return languages;
     }
     
     /**

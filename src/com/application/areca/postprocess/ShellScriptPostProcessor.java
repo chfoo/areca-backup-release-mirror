@@ -1,10 +1,15 @@
 package com.application.areca.postprocess;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
 import com.myJava.util.EqualsHelper;
 import com.myJava.util.HashHelper;
 import com.myJava.util.PublicClonable;
+import com.myJava.util.Utilitaire;
 import com.myJava.util.log.Logger;
 
 /**
@@ -12,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3274863990151426915
+ * <BR>Areca Build ID : -1628055869823963574
  */
  
  /*
@@ -36,7 +41,12 @@ This file is part of Areca.
  */
 public class ShellScriptPostProcessor extends AbstractPostProcessor {
 
+    public static final String PARAM_ARCHIVE = "%ARCHIVE%";
+    public static final String PARAM_TARGET_UID = "%TARGET_UID%";
+    public static final String PARAM_TARGET_NAME = "%TARGET_NAME%";   
+    
     private String command;
+    private String commandParameters;
 
     public ShellScriptPostProcessor() {
         super();
@@ -49,23 +59,72 @@ public class ShellScriptPostProcessor extends AbstractPostProcessor {
     public void setCommand(String command) {
         this.command = command;
     }
+
+    public String getCommandParameters() {
+        return commandParameters;
+    }
+
+    public void setCommandParameters(String parameters) {
+        this.commandParameters = parameters;
+    }
+
+    private String[] getFullCommand(ProcessContext context) {
+        List args = new ArrayList();
+        
+        if (commandParameters != null) {
+            StringTokenizer stt = new StringTokenizer(commandParameters, ";");
+            while (stt.hasMoreTokens()) {
+                args.add(replaceParamValue(stt.nextToken(), context));
+            }
+        }
+        
+        String[] elements = new String[args.size() + 1];
+        elements[0] = this.command;
+        for (int i=0; i<args.size(); i++) {
+            elements[i+1] = (String)args.get(i);
+        }
+        
+        return elements;
+    }
+
+    private String replaceParamValue(String param, ProcessContext context) {
+        String value = param;
+        value = Utilitaire.replace(value, PARAM_ARCHIVE, context.getFinalArchiveFile().getAbsolutePath());
+        value = Utilitaire.replace(value, PARAM_TARGET_UID, context.getReport().getTarget().getUid());
+        value = Utilitaire.replace(value, PARAM_TARGET_NAME, context.getReport().getTarget().getTargetName());
+        
+        return value;
+    }
     
     public void run(ProcessContext context) throws ApplicationException {
         try {
-            Process p = Runtime.getRuntime().exec(command);
-            Logger.defaultLogger().info("Shell command [" + this.command + "] executed. Exit value = [" + p.waitFor() + "]"); // Wait until the process finishes
+            String[] fullCommand = getFullCommand(context);
+            Process p = Runtime.getRuntime().exec(fullCommand);
+            Logger.defaultLogger().info("Shell command [" + this.command + "] executed with the following parameters :" + paramsToString(fullCommand) + ". Exit value = [" + p.waitFor() + "]"); // Wait until the process finishes
         } catch (Throwable e) {
             String msg = "Error during shell commmand execution (" + command + ") : " + e.getMessage();
             throw new ApplicationException(msg, e);
         }
     }
     
-    public boolean requiresProcessReport() {
+    public boolean requiresFilteredEntriesListing() {
         return false;
     }
     
     public String getParametersSummary() {
-        return this.command;
+        if (commandParameters != null && commandParameters.trim().length() != 0) {
+            return this.command + " - {" + commandParameters + "}";   
+        } else {
+            return this.command;
+        }
+    }
+
+    private String paramsToString(String[] params) {
+        String s = "";
+        for (int i=1; i<params.length; i++) {
+            s += " \"" + params[i] + "\"";
+        }
+        return s;
     }
     
     public PublicClonable duplicate() {
@@ -78,6 +137,12 @@ public class ShellScriptPostProcessor extends AbstractPostProcessor {
         if (command == null || command.trim().length() == 0) {
             throw new PostProcessorValidationException("A shell command must be supplied.");
         }
+        
+        if (commandParameters != null) {
+            if (commandParameters.indexOf('\"') != -1) {
+                throw new PostProcessorValidationException("Shell arguments can't contain quotes.");
+            }
+        }
     }
     
     
@@ -86,13 +151,17 @@ public class ShellScriptPostProcessor extends AbstractPostProcessor {
             return false;
         } else {
             ShellScriptPostProcessor other = (ShellScriptPostProcessor)obj;
-            return EqualsHelper.equals(this.command, other.command);
+            return 
+                EqualsHelper.equals(this.command, other.command)
+                && EqualsHelper.equals(this.commandParameters, other.commandParameters)
+            ;
         }
     }
     
     public int hashCode() {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, this.command);
+        h = HashHelper.hash(h, this.commandParameters);
         return h;
     }
 }
