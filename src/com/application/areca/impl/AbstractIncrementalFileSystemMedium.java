@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.zip.ZipException;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
@@ -63,7 +62,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -968,8 +967,11 @@ implements TargetActions {
         ArchiveTrace mergedTrace = buildAggregatedTrace(null, true);
         ArchiveTrace latestTrace = ArchiveTraceCache.getInstance().getTrace(this, this.getLastArchive(null));
         
-        Map latestContent = latestTrace == null ? new HashMap() : latestTrace.getFileMap();
-        latestContent.putAll(latestTrace == null ? new HashMap() : latestTrace.getDirectoryMap());
+        Map latestContent = new HashMap();
+        if (latestTrace != null) {
+            latestContent.putAll(latestTrace.getFileMap());
+            latestContent.putAll(latestTrace.getDirectoryMap());
+        }
         
         return getEntrySetFromTrace(mergedTrace, latestContent);
     }

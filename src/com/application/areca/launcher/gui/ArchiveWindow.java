@@ -30,7 +30,7 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -82,12 +82,12 @@ extends AbstractWindow {
             tabs.setLayoutData(dt);
 
             CTabItem itm1 = new CTabItem(tabs, SWT.NONE);
-            itm1.setText(RM.getLabel("archivedetail.manifest.label") + "    ");
+            Application.setTabLabel(itm1, RM.getLabel("archivedetail.manifest.label"), true);
             itm1.setImage(ArecaImages.ICO_TARGET_NEW);
             itm1.setControl(getDataPanel(tabs));
 
             CTabItem itm2 = new CTabItem(tabs, SWT.NONE);
-            itm2.setText(RM.getLabel("archivedetail.archivecontent.label") + "    ");
+            Application.setTabLabel(itm2, RM.getLabel("archivedetail.archivecontent.label"), true);
             itm2.setImage(ArecaImages.ICO_REF_TARGET);
             itm2.setControl(getContentPanel(tabs));
 

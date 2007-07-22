@@ -38,7 +38,7 @@ import com.application.areca.search.TargetSearchResult;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -69,6 +69,7 @@ implements Listener, Refreshable, IDoubleClickListener {
     
     private SearchResultItem currentItem = null;
     private Composite pnlTargets;
+    private Composite pnlButtons;
     private Tree tree;
     
     protected Text txtPattern;
@@ -76,6 +77,10 @@ implements Listener, Refreshable, IDoubleClickListener {
     protected Button chkCase;
     protected Button chkRegex;
     protected Button btnSearch;
+    protected Button btnSelectAll;
+    protected Button btnClear;    
+    
+    protected boolean select = true;
     
     protected ArrayList targets = new ArrayList();
     protected ArrayList checkBoxes = new ArrayList();
@@ -157,14 +162,31 @@ implements Listener, Refreshable, IDoubleClickListener {
         chkRegex = new Button(panel, SWT.CHECK);
         chkRegex.setText(RM.getLabel("search.criteria.regex"));
         
-        GridData dtButton = new GridData();
-        dtButton.verticalAlignment = SWT.BOTTOM;
-        dtButton.horizontalAlignment = SWT.RIGHT;
-        btnSearch = new Button(panel, SWT.PUSH);
+        pnlButtons = new Composite(panel, SWT.NONE);
+        GridLayout ly = new GridLayout(3, false);
+        ly.marginHeight = 0;
+        ly.marginWidth = 0;
+        pnlButtons.setLayout(ly);
+        pnlButtons.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+                
+        GridData dtSelectAll = new GridData(SWT.RIGHT, SWT.BOTTOM, true, true);
+        btnSelectAll = new Button(pnlButtons, SWT.PUSH);
+        btnSelectAll.setLayoutData(dtSelectAll);
+        btnSelectAll.setText(RM.getLabel("search.selectall.label"));
+        btnSelectAll.addListener(SWT.Selection, this);
+        
+        GridData dtClearAll = new GridData(SWT.RIGHT, SWT.BOTTOM, false, true);
+        btnClear = new Button(pnlButtons, SWT.PUSH);
+        btnClear.setLayoutData(dtClearAll);
+        btnClear.setText(RM.getLabel("search.clearall.label"));
+        btnClear.addListener(SWT.Selection, this);
+        
+        GridData dtButton = new GridData(SWT.RIGHT, SWT.BOTTOM, false, true);
+        btnSearch = new Button(pnlButtons, SWT.PUSH);
         btnSearch.setLayoutData(dtButton);
         btnSearch.setText(RM.getLabel("search.search.label"));
         btnSearch.addListener(SWT.Selection, this);
-
+        
         return panel;
     }
     
@@ -211,6 +233,27 @@ implements Listener, Refreshable, IDoubleClickListener {
             }
         }
         return (map.size() != 0);
+    }
+    
+    private void selectAll() {
+        if (select) {
+            btnSelectAll.setText(RM.getLabel("search.deselectall.label"));            
+        } else {
+            btnSelectAll.setText(RM.getLabel("search.selectall.label"));    
+        }
+        
+        Iterator iter = this.checkBoxes.iterator();
+        while (iter.hasNext()) {
+            Button btn = (Button)iter.next();
+            btn.setSelection(select);
+        }
+        
+        select = ! select;
+        pnlButtons.layout();
+    }
+    
+    private void clearAll() {
+        refreshContent(null);
     }
     
     private void buildTargetList() {
@@ -265,29 +308,35 @@ implements Listener, Refreshable, IDoubleClickListener {
 
     public void handleEvent(Event event) {
         try {
-            if (this.txtPattern.getText().trim().length() != 0) {              
-                application.enableWaitCursor();
-                SearchResult result = new SearchResult();
-
-                DefaultSearchCriteria criteria = new DefaultSearchCriteria();
-                criteria.setPattern(txtPattern.getText());
-                criteria.setRestrictLatestArchive(this.chkLatest.getSelection());
-                criteria.setMatchCase(chkCase.getSelection());
-                criteria.setRegularExpression(chkRegex.getSelection());
-
-                for (int i=0; i<this.targets.size(); i++) {
-                    Button chk = (Button)this.checkBoxes.get(i);
-                    if (chk.getSelection()) {
-                        AbstractRecoveryTarget target = (AbstractRecoveryTarget)this.targets.get(i);
-                        TargetSearchResult targetResult = target.search(criteria);
-                        if (! targetResult.isEmpty()) {
-                            result.setTargetSearchResult(target, targetResult);
+            if (event.widget.equals(this.btnSearch)) {
+                if (this.txtPattern.getText().trim().length() != 0) {              
+                    application.enableWaitCursor();
+                    SearchResult result = new SearchResult();
+    
+                    DefaultSearchCriteria criteria = new DefaultSearchCriteria();
+                    criteria.setPattern(txtPattern.getText());
+                    criteria.setRestrictLatestArchive(this.chkLatest.getSelection());
+                    criteria.setMatchCase(chkCase.getSelection());
+                    criteria.setRegularExpression(chkRegex.getSelection());
+    
+                    for (int i=0; i<this.targets.size(); i++) {
+                        Button chk = (Button)this.checkBoxes.get(i);
+                        if (chk.getSelection()) {
+                            AbstractRecoveryTarget target = (AbstractRecoveryTarget)this.targets.get(i);
+                            TargetSearchResult targetResult = target.search(criteria);
+                            if (! targetResult.isEmpty()) {
+                                result.setTargetSearchResult(target, targetResult);
+                            }
                         }
                     }
-                }
-
-                refreshContent(result);
-            } 
+    
+                    refreshContent(result);
+                } 
+            } else if (event.widget.equals(this.btnClear)) {
+                clearAll();                
+            } else {
+                selectAll();
+            }
         } catch (Throwable e) {
             this.application.handleException(e);
         } finally {
@@ -299,33 +348,35 @@ implements Listener, Refreshable, IDoubleClickListener {
         this.currentItem = null;
         tree.removeAll();
 
-        Iterator iter = result.targetIterator();
-        while (iter.hasNext()) {
-            AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();
-
-            TreeItem targetNode =new TreeItem(tree, SWT.NONE);
-            targetNode.setText(target.getTargetName());
-            targetNode.setData(target);
-            targetNode.setImage(ArecaImages.ICO_REF_TARGET);
-
-            TargetSearchResult tResult = result.getTargetSearchResult(target);
-            Iterator items = tResult.getItems().iterator();
-            while (items.hasNext()) {
-                SearchResultItem searchItem = (SearchResultItem)items.next();
-                TreeItem item = new TreeItem(targetNode, SWT.NONE);
-                item.setData(searchItem);
-                item.setText(searchItem.getEntry().getName());
-                item.setImage(ArecaImages.ICO_FS_FILE);
+        if (result != null) {
+            Iterator iter = result.targetIterator();
+            while (iter.hasNext()) {
+                AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();
+    
+                TreeItem targetNode =new TreeItem(tree, SWT.NONE);
+                targetNode.setText(target.getTargetName());
+                targetNode.setData(target);
+                targetNode.setImage(ArecaImages.ICO_REF_TARGET);
+    
+                TargetSearchResult tResult = result.getTargetSearchResult(target);
+                Iterator items = tResult.getItems().iterator();
+                while (items.hasNext()) {
+                    SearchResultItem searchItem = (SearchResultItem)items.next();
+                    TreeItem item = new TreeItem(targetNode, SWT.NONE);
+                    item.setData(searchItem);
+                    item.setText(searchItem.getEntry().getName());
+                    item.setImage(ArecaImages.ICO_FS_FILE);
+                }
             }
-        }
-
-        if (result.size() == 0) {
-            TreeItem noresult = new TreeItem(tree, SWT.NONE);
-            noresult.setText(RM.getLabel("search.noresult.label"));
-        }
-
-        if (result.size() == 1) {
-            tree.getItem(0).setExpanded(true);
+    
+            if (result.size() == 0) {
+                TreeItem noresult = new TreeItem(tree, SWT.NONE);
+                noresult.setText(RM.getLabel("search.noresult.label"));
+            }
+    
+            if (result.size() == 1) {
+                tree.getItem(0).setExpanded(true);
+            }
         }
     }
 

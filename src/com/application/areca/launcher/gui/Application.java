@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -61,7 +62,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -239,15 +240,13 @@ implements ActionConstants, Window.IExceptionHandler {
         } else if (command.equals(CMD_HELP)) {
             // HELP
             showHelpFrame();
-        } else if (command.equals(CMD_BACKUP)) {
+        } else if (command.equals(CMD_BACKUP_ALL)) {
+            launchBackupOnWorkspace();
+        } else if (command.equals(CMD_BACKUP)) {            
             // BACKUP
             if (RecoveryProcess.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                 RecoveryProcess process = (RecoveryProcess)this.getCurrentObject();
-                Iterator iter = process.getTargetIterator();
-                while (iter.hasNext()) {
-                    AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
-                    this.launchBackupOnTarget(tg, null);
-                }
+                launchBackupOnProcess(process);
             } else if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                 launchBackupOnTarget(this.getCurrentTarget(), null);
             }
@@ -693,6 +692,22 @@ implements ActionConstants, Window.IExceptionHandler {
         }
     } 
 
+    public void launchBackupOnProcess(RecoveryProcess process) {
+        Iterator iter = process.getTargetIterator();
+        while (iter.hasNext()) {
+            AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
+            this.launchBackupOnTarget(tg, null);
+        }
+    }
+    
+    public void launchBackupOnWorkspace() {
+        Iterator iter = this.workspace.getProcessIterator();
+        while (iter.hasNext()) {
+            RecoveryProcess process = (RecoveryProcess)iter.next();
+            this.launchBackupOnProcess(process);
+        }
+    }
+    
     public void launchBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest) {
         RecoveryProcess process = target.getProcess();
         ProcessRunner rn = new ProcessRunner(target) {
@@ -1021,6 +1036,14 @@ implements ActionConstants, Window.IExceptionHandler {
             fileChooser.setFileName(fileName);
         }
         return fileChooser.open();
+    }
+    
+    public static void setTabLabel(CTabItem item, String label, boolean hasImage) {
+        if (hasImage) {
+            item.setText(label + "    ");
+        } else {
+            item.setText("   " + label + "   ");
+        }
     }
     
     public String showFileDialog(String dir, AbstractWindow parent) {

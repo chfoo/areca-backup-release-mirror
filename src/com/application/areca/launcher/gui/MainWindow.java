@@ -37,7 +37,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -152,7 +152,7 @@ public class MainWindow extends AbstractWindow {
 
     public void addFolderItem(String title, Image img, Composite content) {
         CTabItem itm = new CTabItem(tabs, SWT.NONE);
-        itm.setText(title + "    ");
+        Application.setTabLabel(itm, title, img != null);
         if (img != null) {
             itm.setImage(img);
         }

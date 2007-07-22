@@ -63,7 +63,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -184,7 +184,7 @@ extends AbstractWindow {
     
     private Composite initTab(CTabFolder tabs, String title) {
         CTabItem itm = new CTabItem(tabs, SWT.NONE);
-        itm.setText(title + "    ");
+        Application.setTabLabel(itm, title, false);
         Composite composite = new Composite(tabs, SWT.NONE);
         itm.setControl(composite);
         return composite;

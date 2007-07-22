@@ -1,6 +1,7 @@
 package com.myJava.file.ftp;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
 
 import javax.net.ssl.SSLSocket;
@@ -12,7 +13,7 @@ import org.apache.commons.net.ftp.FTPClient;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -38,9 +39,24 @@ public class FTPSClient extends FTPClient {
     
     private boolean negociated = false;
     
-    public FTPSClient(String protocol, boolean implicit) {
+    public FTPSClient(
+            String protocol, 
+            String protection, 
+            boolean implicit,
+            InputStream certificateInputStream,
+            String certificatePassword            
+    ) {
         super();
-        this.setSocketFactory(new SecuredSocketFactory(protocol, false, implicit, this));
+        this.setSocketFactory(
+                new SecuredSocketFactory(
+                        protocol, 
+                        protection, 
+                        false, 
+                        implicit,
+                        certificateInputStream,
+                        certificatePassword,
+                        this)
+        );
     }
     
     public boolean hasBeenNegociated() {

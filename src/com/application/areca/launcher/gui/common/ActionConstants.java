@@ -4,7 +4,7 @@ package com.application.areca.launcher.gui.common;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -34,6 +34,7 @@ public interface ActionConstants {
     public static final String CMD_EXIT = "exit";
     public static final String CMD_SIMULATE = "simulate";    
     public static final String CMD_BACKUP = "backup";
+    public static final String CMD_BACKUP_ALL = "backup all";    
     public static final String CMD_BACKUP_MANIFEST = "backup with manifest";    
     public static final String CMD_RECOVER = "recover";
     public static final String CMD_RECOVER_ENTRY = "recover entry";

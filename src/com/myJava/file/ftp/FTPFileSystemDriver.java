@@ -38,7 +38,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -382,11 +382,13 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     } 
 
     public void unmount() throws IOException {
+        Logger.defaultLogger().info("Unmounting FTP driver ...");
         this.flush();
         disconnect();
     }
     
     private void disconnect() {
+        Logger.defaultLogger().info("Disconnecting all proxies ...");
         this.ftpProxy.disconnect();
         Iterator iter = this.alternateProxies.iterator();
         while (iter.hasNext()) {
@@ -421,7 +423,6 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public synchronized void flush() throws IOException {
-        this.logProxies();
         Logger.defaultLogger().info("Flushing cached data : " + this.localFiles.size() + " files ...");
         Iterator iter = this.localFiles.entrySet().iterator();
         FileTool ft = new FileTool();
@@ -430,6 +431,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
 	            Map.Entry entry = (Map.Entry)iter.next();
 	            String remoteFile = (String)entry.getKey();
 	            File localFile = (File)entry.getValue();
+                Logger.defaultLogger().info("Flushing " + FileSystemManager.getAbsolutePath(localFile) + " to " + remoteFile);
 	
 	            FTPProxy proxy = this.getAvailableProxy(this.buildNewOwnerId("flush"));
 	            ft.copy(
@@ -448,7 +450,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
 	        }
 	        this.ftpProxy.flush();
         } catch (IOException e) {
-            Logger.defaultLogger().error("Got Exception during flush : ", e);
+            Logger.defaultLogger().error("Got exception during flush : ", e);
             throw e;
         } finally {
             try {
@@ -462,19 +464,8 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
                 this.localFiles.clear();
             }
         }
-        Logger.defaultLogger().info("Flush complete.");
+        Logger.defaultLogger().info("Flush completed.");
         Logger.defaultLogger().info("" + this.alternateProxies.size() + " alternate proxies are currently active.");
-    }
-    
-    private void logProxies() {
-        Logger.defaultLogger().info("Proxy informations : ");
-        Logger.defaultLogger().info("Main proxy :" + this.ftpProxy.getOwnerId());
-        Iterator iter = this.alternateProxies.iterator();
-        while (iter.hasNext()) {
-            FTPProxy proxy = (FTPProxy)iter.next();
-            Logger.defaultLogger().info("Alternate proxy : " + proxy.getOwnerId());            
-        }
-        Logger.defaultLogger().info("End of proxy informations.");
     }
     
     private synchronized FTPProxy getAvailableProxy(String owner) {

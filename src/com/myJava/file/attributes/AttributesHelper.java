@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import com.myJava.file.FileSystemManager;
+import com.myJava.util.log.Logger;
 import com.myJava.util.os.OSTool;
 
 /**
@@ -14,7 +15,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -92,25 +93,21 @@ public class AttributesHelper {
     private static Attributes readUnixAttributes(File f) throws IOException {
         UnixAttributes p = new UnixAttributes();
         BufferedReader reader = null;
+        BufferedReader errorReader = null;
+        Process process = null;
         
         try {
-            Process process = Runtime.getRuntime().exec(new String[] {"ls", "-ald1", FileSystemManager.getAbsolutePath(f)});
-            reader =new BufferedReader(new InputStreamReader(process.getInputStream()));
+            process = Runtime.getRuntime().exec(new String[] {"ls", "-ald1", FileSystemManager.getAbsolutePath(f)});
+            process.waitFor();
+            reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String str = reader.readLine();
 
             if (str == null) {
-                BufferedReader errorReader = null;
-                try {
-                    errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                    String err = errorReader.readLine();
-                    throw new IOException("Error during file permission reading for file [" + FileSystemManager.getAbsolutePath(f) + "] : " + err); 
-                } finally {
-                    if (errorReader != null) {
-                        errorReader.close();
-                    }
-                }
+                errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                String err = errorReader.readLine();
+                throw new IOException("Error during file permission reading for file [" + FileSystemManager.getAbsolutePath(f) + "] : " + err); 
             }
-
+            
             // Permissions
             int perm = 
                 100 * readrwx(str.charAt(1), str.charAt(2), str.charAt(3))
@@ -137,10 +134,29 @@ public class AttributesHelper {
             // owner group
             int index3 = str.indexOf(" ", index2 + 1);
             p.setOwnerGroup(str.substring(index2 + 1, index3).trim());
-            
+        } catch (InterruptedException e) {
+            Logger.defaultLogger().error(e);
+            throw new IOException("Unable to read attributes for file : " + FileSystemManager.getAbsolutePath(f));
         } finally {
+            // Explicitly close all streams
+            
+            // IN
             if (reader != null) {
                 reader.close();
+            } else if (process != null) {
+                process.getInputStream().close();
+            }
+            
+            // ERROR
+            if (errorReader != null) {
+                errorReader.close();
+            } else if (process != null) {
+                process.getErrorStream().close();
+            }
+            
+            // OUT
+            if (process != null) {
+                process.getOutputStream().close();
             }
         }
 

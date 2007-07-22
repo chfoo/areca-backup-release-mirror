@@ -9,6 +9,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -26,7 +29,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -99,7 +102,20 @@ public class FileSystemManager {
      */
     public synchronized void registerDriver(File mountPoint, FileSystemDriver driver) throws DriverAlreadySetException, IOException {
         FileSystemDriver existing = this.getDriverAtMountPoint(mountPoint);
-        if (driver.isContentSensitive() && existing != null && ! existing.equals(driver)) {
+        if (existing != null && ! existing.equals(driver)) {
+            if (driver.isContentSensitive()) {
+                File[] files = null;
+                try {
+                    files = FileSystemManager.listFiles(mountPoint);
+                } catch (Exception e) {
+                    Logger.defaultLogger().error("An error occured while trying to list existing file during the driver registration. The driver will still be registered but this can result in an unstable state.", e, "FilesystemManager.registerDriver");
+                }
+                
+                if (files != null && files.length != 0) {
+                    throw new DriverAlreadySetException("Driver already set for mount point : [" + mountPoint.getAbsolutePath() + "] ; existing driver = [" + existing.getClass().getName() + "]. This mountPoint contains " + files.length + " files or directories. It must be cleared before this operation.");
+                } 
+            }
+            
             // Si un autre driver existait pour ce point de montage, on tente de le supprimer.
             unregisterDriver(mountPoint);
         }
@@ -110,40 +126,23 @@ public class FileSystemManager {
     }
     
     /**
-     * Supprime le driver enregistré pour le point de montage.
-     * <BR>Cette méthode est à manier avec précaution; en particulier, il faut s'assurer qu'aucune donnée n'a été écrite avec
-     * un driver existant avant de supprimer ce driver. En effet, il y aurait alors un risque de ne plus pouvoir relire ces données. 
+     * Deletes the driver currently registered at this mount point.
      */
-    public synchronized void unregisterDriver(File mountPoint) throws DriverAlreadySetException, IOException {
-        File[] files = null;
-        try {
-            files = FileSystemManager.listFiles(mountPoint);
-        } catch (Exception e) {
-            Logger.defaultLogger().error("An error occured while trying to list existing file during the driver unregistration. The driver will still be unregistered but this can result in an unstable state.", e, "FilesystemManager.unregisterDriver");
-        }
-        
-        // We still unregister the driver if an error occurs because the file system is already unstable -> so give a chance to the driver update.
-        
+    public synchronized void unregisterDriver(File mountPoint) throws IOException {
         FileSystemDriver existing = this.getDriverAtMountPoint(mountPoint);
-        
-        if (files != null && files.length != 0) {
-            throw new DriverAlreadySetException("Driver already set for mount point : [" + mountPoint.getAbsolutePath() + "] ; existing driver = [" + existing.getClass().getName() + "]. This mountPoint contains " + files.length + " files or directories. It must be cleared before this operation.");
-        } else {
-            Logger.defaultLogger().info("Unregistring an existing file system driver : Mount Point = " + mountPoint + ", Existing Driver = " + existing);
-            
-            try {
-                existing.unmount();
-            } catch (Exception e) {
-                Logger.defaultLogger().error("An error occured while trying to list existing file during the driver unmounting. The driver will still be unmounted but this can result in an unstable state.", e, "FilesystemManager.unregisterDriver");
-            }
-            
-            // Suppression du driver de la map de référence
-            this.driversReference.remove(mountPoint);
-            
-            // Réinitialisation de la map de drivers
-            this.drivers.clear();
-            this.drivers.putAll(this.driversReference);
+        Logger.defaultLogger().info("Unregistring file system driver : Mount Point = " + mountPoint + ", Driver = " + existing);
+        try {
+            existing.unmount();
+        } catch (Throwable e) {
+            Logger.defaultLogger().error(e);
         }
+        
+        // Suppression du driver de la map de référence
+        this.driversReference.remove(mountPoint);
+        
+        // Réinitialisation de la map de drivers
+        this.drivers.clear();
+        this.drivers.putAll(this.driversReference);
     }
 
     /**
@@ -414,9 +413,51 @@ public class FileSystemManager {
     }
     
     public static boolean isReadable(File file) {
-        if (isDirectory(file)) {
+        if (file == null || isDirectory(file)) {
             return false;
         } else {
+            String message = null;
+            
+            FileLock lock = null;
+            RandomAccessFile raf = null;
+            try {
+                raf = new RandomAccessFile(file, "r");
+            } catch (Throwable e) {
+                message = e.getMessage();
+            }
+            
+            if (raf != null) {
+                FileChannel chn = raf.getChannel();
+                try {
+                    lock = chn.tryLock(0L, Long.MAX_VALUE, true);
+                } catch (Throwable e) {
+                    message = e.getMessage();             
+                } finally {
+                    if (lock != null) {
+                        try {
+                            lock.release();
+                        } catch (IOException ignored) {
+                        }
+                    }
+
+                    try {
+                        raf.close();
+                    } catch (IOException ignored) {
+                    }
+                }
+            }
+            
+            if (lock == null) {
+                Logger.defaultLogger().info("The following file is locked by the system : " + FileSystemManager.getAbsolutePath(file));
+                if (message != null) {
+                    Logger.defaultLogger().info("Cause : " + message);
+                }
+                return false;
+            } else {
+                return true;
+            }
+
+            /*
             boolean isLocked = false;
             InputStream str = null;
             try {
@@ -435,6 +476,7 @@ public class FileSystemManager {
             }
 
             return ! isLocked;
+            */
         }
     }
 }

@@ -14,7 +14,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -37,7 +37,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class LogHelper {
-    private static String SEPARATOR = "***************************";
+    private static String SEPARATOR = "----------------------------------------";
     
     public static void logStartupInformations() {
         Logger.defaultLogger().info(SEPARATOR);
@@ -54,26 +54,23 @@ public class LogHelper {
     }
     
     public static void logFileInformations(String description, File f) {
+        StringBuffer sb = new StringBuffer(description).append(' ');
         try {
-            Logger.defaultLogger().info(SEPARATOR);
-            log(description);
-            
             if (f == null) {
-                log("<null>");
+                sb.append("<null>");
             } else {
-                log("AbsolutePath=" + FileSystemManager.getAbsolutePath(f));
-                log("CanonicalPath=" + FileSystemManager.getCanonicalPath(f));
-                /*
-                log("Exists=" + FileSystemManager.exists(f));
-                log("Is File=" + FileSystemManager.isFile(f));    
-                log("Is Directory=" + FileSystemManager.isDirectory(f));
-                log("Size=" + FileSystemManager.length(f));
-                */
+                String ap = FileSystemManager.getAbsolutePath(f);
+                String cp = FileSystemManager.getCanonicalPath(f);
+                sb.append("AbsolutePath = ").append(ap);
+                if (! ap.equals(cp)) {
+                    sb.append(", CanonicalPath = ").append(cp);
+                }
             }
-            Logger.defaultLogger().info(SEPARATOR);
         } catch (Throwable e) {
             Logger.defaultLogger().error(e);
-        }        
+        } finally {
+            log(sb.toString());
+        }
     }
     
     public static void logProperties(String description, Properties p) {
@@ -97,6 +94,6 @@ public class LogHelper {
     }
     
     private static void log(String str) {
-        Logger.defaultLogger().info("* " + str);
+        Logger.defaultLogger().info(str);
     }
 }

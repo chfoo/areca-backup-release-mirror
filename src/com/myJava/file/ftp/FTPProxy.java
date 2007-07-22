@@ -27,7 +27,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -60,6 +60,7 @@ public class FTPProxy {
     private String password;
     private boolean passivMode;
     private String protocol = null;
+    private String protection = null;
     private boolean impliciteSec = false;
     
     // CLIENT
@@ -150,7 +151,19 @@ public class FTPProxy {
             this.protocol = protocol;
         }
     }
-    
+
+    public String getProtection() {
+        return protection;
+    }
+
+    public void setProtection(String protection) {
+        if (protection != null && protection.trim().length() == 0) {
+            this.protection = null;
+        } else {
+            this.protection = protection;
+        }
+    }
+
     public synchronized boolean acquireLock(String owner) {
         if (ownerId != null && (! ownerId.equals(owner))) {
             debug("The owner : [" + owner + "] cannot lock the proxy because it is already locked by : [" + ownerId + "]");
@@ -185,6 +198,7 @@ public class FTPProxy {
             return
             	EqualsHelper.equals(this.passivMode, o.passivMode)
             	&& EqualsHelper.equals(this.protocol, o.protocol)
+                && EqualsHelper.equals(this.protection, o.protection)
             	&& EqualsHelper.equals(this.impliciteSec, o.impliciteSec)      
             	&& EqualsHelper.equals(this.remotePort, o.remotePort)
             	&& EqualsHelper.equals(this.login, o.login)
@@ -199,6 +213,7 @@ public class FTPProxy {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, this.passivMode);
         h = HashHelper.hash(h, this.protocol);
+        h = HashHelper.hash(h, this.protection);
         h = HashHelper.hash(h, this.impliciteSec);
         h = HashHelper.hash(h, this.remotePort);
         h = HashHelper.hash(h, this.login);
@@ -248,7 +263,13 @@ public class FTPProxy {
             
             // Open new connection
             if (isSecured()) {
-                this.client = new FTPSClient(protocol, impliciteSec);
+                this.client = new FTPSClient(
+                        protocol, 
+                        protection, 
+                        impliciteSec,
+                        null, // TODO
+                        null  // TODO
+                );
             } else {
                 this.client = new FTPClient();
             }
@@ -259,13 +280,13 @@ public class FTPProxy {
             debug("connect : connect", remoteServer);
             client.connect(remoteServer, this.remotePort);
             
-            Logger.defaultLogger().info("Received FTP server response : " + client.getReplyString());
+            Logger.defaultLogger().info("Received FTP server response : " + formatFTPReplyString(client.getReplyString()));
             this.connectionId = Utilitaire.getRndLong();
 
             reply = client.getReplyCode();
             
             if( ! FTPReply.isPositiveCompletion(reply)) {
-                String msg = client.getReplyString();
+                String msg = formatFTPReplyString(client.getReplyString());
                 this.disconnect();
                 throw new FTPConnectionException("Unable to communicate with remote FTP server. Got message : " + msg);
             } else {
@@ -273,11 +294,11 @@ public class FTPProxy {
                 Logger.defaultLogger().info("Trying to log in with user : " + this.login +  " ...");
                 debug("connect : login", login + "/" + password);
                 if ( ! client.login(this.login, this.password)) {
-                    String msg = client.getReplyString();
+                    String msg = formatFTPReplyString(client.getReplyString());
                     this.disconnect();
                     throw new FTPConnectionException("Unable to login on FTP server (" + login + "/" + password + "). Received response : " + msg);
                 } else {
-                    Logger.defaultLogger().info("Logged in with user : " + this.login +  ". Received response : " + client.getReplyString());
+                    Logger.defaultLogger().info("Logged in with user : " + this.login +  ". Received response : " + formatFTPReplyString(client.getReplyString()));
                     
                     // LOGIN OK
                     if (this.passivMode) {
@@ -289,7 +310,7 @@ public class FTPProxy {
                         
                         reply = client.getReplyCode();
                         if( ! FTPReply.isPositiveCompletion(reply)) {
-                            String msg = client.getReplyString();
+                            String msg = formatFTPReplyString(client.getReplyString());
                             this.disconnect();
                             throw new FTPConnectionException("Unable to switch to passiv mode. Received response : " + msg);
                         } else {
@@ -339,7 +360,7 @@ public class FTPProxy {
                 Logger.defaultLogger().info("Disconnecting from server : " + this.remoteServer + " ...");
                 debug("disconnect : disconnect");
                 this.client.disconnect();
-                Logger.defaultLogger().info("Disconnected from server : " + this.remoteServer);
+                Logger.defaultLogger().info("OK : disconnected from server : " + this.remoteServer + ".");
             }
         } catch (IOException e) {
             Logger.defaultLogger().error("An error occured while trying to disconnect from the following FTP server : " + this.remoteServer, e);
@@ -646,9 +667,9 @@ public class FTPProxy {
         debug( "completePendingCommand : completePendingCommand");
         if (! this.client.completePendingCommand()) {
             if (blocking) {
-                throw new FTPConnectionException("Error trying to complete pending FTP instructions - got the following response from server : " + this.client.getReplyString());
+                throw new FTPConnectionException("Error trying to complete pending FTP instructions - got the following response from server : " + formatFTPReplyString(this.client.getReplyString()));
             } else {
-                Logger.defaultLogger().warn("Closing inputstream : got the following response from server : " + this.client.getReplyString());                
+                Logger.defaultLogger().warn("Closing inputstream : got the following response from server : " + formatFTPReplyString(this.client.getReplyString()));                
             }
         }
         
@@ -695,6 +716,7 @@ public class FTPProxy {
         proxy.setPassivMode(passivMode);
         proxy.setImpliciteSec(impliciteSec);
         proxy.setProtocol(protocol);
+        proxy.setProtection(protection);
         proxy.setPassword(password);
         proxy.setRemotePort(remotePort);
         proxy.setRemoteServer(remoteServer);
@@ -724,5 +746,9 @@ public class FTPProxy {
     private void registerFileInfo(String remoteFileName, FictiveFile info) {
         debug("Adding cached data if possible - cache size = " + this.fileInfoCache.size(), info);
         this.fileInfoCache.registerFileInfo(remoteFileName, info);
+    }
+    
+    private static String formatFTPReplyString(String source) {
+        return source.replace('\n', ' ').replace('\r', ' ');
     }
 }

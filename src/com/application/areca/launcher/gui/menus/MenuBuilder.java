@@ -11,7 +11,7 @@ import com.application.areca.ResourceManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -74,7 +74,9 @@ extends AppActionReferenceHolder {
         add(AC_DELETE_ARCHIVES, mnRun);
         addSeparator(mnRun);
         add(AC_RECOVER, mnRun);
-      
+        addSeparator(mnRun);
+        add(AC_BACKUP_ALL, mnRun);
+        
         // HELP
         Menu mnHelp = buildSubMenu("menu.help", menu);
         add(AC_HELP, mnHelp);

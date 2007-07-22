@@ -7,6 +7,7 @@ import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.context.ProcessReport;
 import com.application.areca.context.ProcessReportWriter;
+import com.application.areca.impl.TagHelper;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.EqualsHelper;
@@ -19,7 +20,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -44,6 +45,9 @@ This file is part of Areca.
 public class FileDumpPostProcessor extends AbstractPostProcessor {
 
     private File destinationFolder;
+    private String reportName = "%TARGET_UID%_%ARCHIVE_NAME%.report";
+    private boolean onlyIfError;
+    private boolean listFiltered = true;
 
     /**
      * @param target
@@ -55,46 +59,77 @@ public class FileDumpPostProcessor extends AbstractPostProcessor {
     public File getDestinationFolder() {
         return destinationFolder;
     }
-    
+
     public void setDestinationFolder(File destinationFolder) {
         this.destinationFolder = destinationFolder;
     }
-    
+
+    public boolean isListFiltered() {
+        return listFiltered;
+    }
+
+    public void setListFiltered(boolean listFiltered) {
+        this.listFiltered = listFiltered;
+    }
+
+    public String getReportName() {
+        return reportName;
+    }
+
+    public void setReportName(String name) {
+        this.reportName = name;
+    }
+
+    public boolean isOnlyIfError() {
+        return onlyIfError;
+    }
+
+    public void setOnlyIfError(boolean onlyIfError) {
+        this.onlyIfError = onlyIfError;
+    }
+
     public void run(ProcessContext context) throws ApplicationException {
-        ProcessReportWriter writer = null;
-        try {
-            ProcessReport report = context.getReport();
-            if (! FileSystemManager.exists(destinationFolder)) {
-                FileTool tool = new FileTool();
-                tool.createDir(destinationFolder);
-            }
-            File destination = new File(destinationFolder, report.getTarget().getUid() + "_" + FileSystemManager.getName(context.getFinalArchiveFile()) + ".report");
-            
-            writer = new ProcessReportWriter(FileSystemManager.getWriter(destination), true);
-            writer.writeReport(report);
-        } catch (IOException e) {
-            Logger.defaultLogger().error("Exception caught during report generation", e);            
-            throw new ApplicationException("Exception caught during report generation", e);
-        } finally {
+        if ((! context.getReport().isCommited()) || (! this.onlyIfError)) {
+            ProcessReportWriter writer = null;
             try {
-                writer.close();
-            } catch (IOException e1) {
-                Logger.defaultLogger().error("Exception caught during report generation", e1);
+                ProcessReport report = context.getReport();
+                if (! FileSystemManager.exists(destinationFolder)) {
+                    FileTool tool = new FileTool();
+                    tool.createDir(destinationFolder);
+                }
+                File destination = new File(destinationFolder, TagHelper.replaceParamValues(reportName, context));
+
+                writer = new ProcessReportWriter(FileSystemManager.getWriter(destination), listFiltered);
+                writer.writeReport(report);
+            } catch (IOException e) {
+                Logger.defaultLogger().error("Exception caught during report generation", e);            
+                throw new ApplicationException("Exception caught during report generation", e);
+            } finally {
+                try {
+                    writer.close();
+                } catch (IOException e1) {
+                    Logger.defaultLogger().error("Exception caught during report generation", e1);
+                }
             }
+        } else {
+            Logger.defaultLogger().info("No report file was written on disk because the backup was successfull");
         }
     }
-    
+
     public boolean requiresFilteredEntriesListing() {
-        return true;
+        return listFiltered;
     }
-    
+
     public String getParametersSummary() {
         return FileSystemManager.getAbsolutePath(this.destinationFolder);
     }
-    
+
     public PublicClonable duplicate() {
         FileDumpPostProcessor pro = new FileDumpPostProcessor();
         pro.destinationFolder = this.destinationFolder;
+        pro.reportName = this.reportName;
+        pro.listFiltered = this.listFiltered;
+        pro.onlyIfError = this.onlyIfError;
         return pro;
     }
 
@@ -109,13 +144,21 @@ public class FileDumpPostProcessor extends AbstractPostProcessor {
             return false;
         } else {
             FileDumpPostProcessor other = (FileDumpPostProcessor)obj;
-            return EqualsHelper.equals(this.destinationFolder, other.destinationFolder);
+            return 
+                EqualsHelper.equals(this.destinationFolder, other.destinationFolder)
+                && EqualsHelper.equals(this.reportName, other.reportName)
+                && EqualsHelper.equals(this.listFiltered, other.listFiltered)
+                && EqualsHelper.equals(this.onlyIfError, other.onlyIfError)
+            ;
         }
     }
-    
+
     public int hashCode() {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, this.destinationFolder.getAbsolutePath());
+        h = HashHelper.hash(h, this.reportName);
+        h = HashHelper.hash(h, this.listFiltered);
+        h = HashHelper.hash(h, this.onlyIfError);
         return h;
     }
 }

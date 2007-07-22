@@ -21,7 +21,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -56,6 +56,7 @@ implements FileSystemPolicy {
     private String password;
     private boolean passivMode;
     private String protocol = null;
+    private String protection = null;
     private boolean implicit = false;
     private String remoteDirectory;
     private ArchiveMedium medium;
@@ -283,6 +284,7 @@ implements FileSystemPolicy {
         proxy.setPassivMode(passivMode);
         proxy.setImpliciteSec(implicit);
         proxy.setProtocol(protocol);
+        proxy.setProtection(protection);
         proxy.setPassword(password);
         proxy.setRemotePort(remotePort);
         proxy.setRemoteServer(remoteServer);
@@ -303,6 +305,7 @@ implements FileSystemPolicy {
         policy.setPassivMode(this.passivMode);
         policy.setImplicit(this.implicit);
         policy.setProtocol(this.protocol);
+        policy.setProtection(this.protection);
         policy.setRemoteDirectory(this.remoteDirectory);
         policy.id = id;
         return policy;
@@ -375,6 +378,14 @@ implements FileSystemPolicy {
         this.protocol = protocol;
     }
 
+    public String getProtection() {
+        return protection;
+    }
+
+    public void setProtection(String protection) {
+        this.protection = protection;
+    }
+
     public boolean isImplicit() {
         return implicit;
     }
@@ -391,6 +402,7 @@ implements FileSystemPolicy {
         ToStringHelper.append("PASSWORD", this.password, sb);
         ToStringHelper.append("PASSIV", this.passivMode, sb);
         ToStringHelper.append("PROTOCOL", this.protocol, sb);
+        ToStringHelper.append("PROTECTION", this.protection, sb);        
         ToStringHelper.append("IMPLICIT", this.implicit, sb);
         ToStringHelper.append("DIRECTORY", this.remoteDirectory, sb);
         return ToStringHelper.close(sb);

@@ -23,7 +23,7 @@ import com.application.areca.postprocess.PostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -51,6 +51,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
     private Text txtSmtp;
     private Text txtUser;
     private Text txtPassword;
+    private Text txtTitle;
     private Button btnTest;
     private Button btnOnlyError;
     private Button btnListFiltered;
@@ -58,6 +59,20 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
     public MailSendProcessorComposite(Composite composite, PostProcessor proc, ProcessorEditionWindow window) {
         super(composite, proc, window);
         this.setLayout(new GridLayout(2, false));
+        
+        // Title
+        Label lblTitle = new Label(this, SWT.NONE);
+        lblTitle.setText(RM.getLabel("procedition.mailtitle.label"));
+        
+        txtTitle = new Text(this, SWT.BORDER);
+        txtTitle.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        window.monitorControl(txtTitle);
+        
+        // Example
+        Label lblNull = new Label(this, SWT.NONE);
+        Label lblExample = new Label(this, SWT.NONE);
+        lblExample.setText(RM.getLabel("procedition.dynparams.label"));
+        lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         
         // Recipients
         Label lblRecipients = new Label(this, SWT.NONE);
@@ -132,6 +147,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
             txtPassword.setText(mProc.getPassword());
             btnOnlyError.setSelection(mProc.isOnlyIfError());
             btnListFiltered.setSelection(mProc.isListFiltered());
+            txtTitle.setText(mProc.getTitle());
         }
     }
 
@@ -143,11 +159,18 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         mProc.setPassword(txtPassword.getText());
         mProc.setOnlyIfError(btnOnlyError.getSelection());
         mProc.setListFiltered(btnListFiltered.getSelection());
+        mProc.setTitle(txtTitle.getText());
     }
     
     public boolean validateParams() {
         this.window.resetErrorState(txtRecipients);
         this.window.resetErrorState(txtSmtp);
+        this.window.resetErrorState(txtTitle);
+        
+        if (txtTitle.getText() == null || txtTitle.getText().trim().length() == 0) {
+            this.window.setInError(txtTitle);
+            return false;
+        }
         
         if (txtRecipients.getText() == null || txtRecipients.getText().trim().length() == 0) {
             this.window.setInError(txtRecipients);

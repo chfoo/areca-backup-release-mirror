@@ -6,10 +6,10 @@ import java.util.StringTokenizer;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
+import com.application.areca.impl.TagHelper;
 import com.myJava.util.EqualsHelper;
 import com.myJava.util.HashHelper;
 import com.myJava.util.PublicClonable;
-import com.myJava.util.Utilitaire;
 import com.myJava.util.log.Logger;
 
 /**
@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -40,11 +40,6 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ShellScriptPostProcessor extends AbstractPostProcessor {
-
-    public static final String PARAM_ARCHIVE = "%ARCHIVE%";
-    public static final String PARAM_TARGET_UID = "%TARGET_UID%";
-    public static final String PARAM_TARGET_NAME = "%TARGET_NAME%";   
-    
     private String command;
     private String commandParameters;
 
@@ -74,7 +69,7 @@ public class ShellScriptPostProcessor extends AbstractPostProcessor {
         if (commandParameters != null) {
             StringTokenizer stt = new StringTokenizer(commandParameters, ";");
             while (stt.hasMoreTokens()) {
-                args.add(replaceParamValue(stt.nextToken(), context));
+                args.add(TagHelper.replaceParamValues(stt.nextToken(), context));
             }
         }
         
@@ -85,15 +80,6 @@ public class ShellScriptPostProcessor extends AbstractPostProcessor {
         }
         
         return elements;
-    }
-
-    private String replaceParamValue(String param, ProcessContext context) {
-        String value = param;
-        value = Utilitaire.replace(value, PARAM_ARCHIVE, context.getFinalArchiveFile().getAbsolutePath());
-        value = Utilitaire.replace(value, PARAM_TARGET_UID, context.getReport().getTarget().getUid());
-        value = Utilitaire.replace(value, PARAM_TARGET_NAME, context.getReport().getTarget().getTargetName());
-        
-        return value;
     }
     
     public void run(ProcessContext context) throws ApplicationException {

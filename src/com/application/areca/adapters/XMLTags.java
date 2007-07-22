@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -75,6 +75,7 @@ public interface XMLTags {
     public static final String XML_MEDIUM_FTP_PORT = "ftp_port";
     public static final String XML_MEDIUM_FTP_PASSIV = "ftp_passiv";
     public static final String XML_MEDIUM_FTP_PROTOCOL = "ftp_protocol";
+    public static final String XML_MEDIUM_FTP_PROTECTION = "ftp_protection";
     public static final String XML_MEDIUM_FTP_IMPLICIT = "ftp_implicit";
     public static final String XML_MEDIUM_FTP_REMOTEDIR= "ftp_remotedir";
     
@@ -83,11 +84,13 @@ public interface XMLTags {
     public static final String XML_POSTPROCESSOR_DUMP = "dump_processor";
     public static final String XML_POSTPROCESSOR_MERGE = "merge_processor";
     public static final String XML_PP_DUMP_DIRECTORY = "directory";
+    public static final String XML_PP_DUMP_NAME = "filename";
     public static final String XML_PP_EMAIL_RECIPIENTS = "recipients";
     public static final String XML_PP_EMAIL_SMTP = "smtp_host";
+    public static final String XML_PP_EMAIL_TITLE = "title";    
     public static final String XML_PP_EMAIL_USER = "smtp_user";
-    public static final String XML_PP_EMAIL_ONLY_IF_ERROR = "smtp_failure_only";
-    public static final String XML_PP_EMAIL_LIST_FILTERED = "smtp_list_filtered";
+    public static final String XML_PP_ONLY_IF_ERROR = "failure_only";
+    public static final String XML_PP_LIST_FILTERED = "list_filtered";
     public static final String XML_PP_EMAIL_PASSWORD = "smtp_password";    
     public static final String XML_PP_SHELL_SCRIPT = "script";
     public static final String XML_PP_SHELL_PARAMS = "parameters";    

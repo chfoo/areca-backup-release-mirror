@@ -39,7 +39,7 @@ import com.application.areca.postprocess.ShellScriptPostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -150,6 +150,22 @@ public class TargetXMLReader implements XMLTags {
         }          
         FileDumpPostProcessor pp = new FileDumpPostProcessor();
         pp.setDestinationFolder(new File(paramNode.getNodeValue()));
+        
+        Node failureOnlyNode = node.getAttributes().getNamedItem(XML_PP_ONLY_IF_ERROR);
+        if (failureOnlyNode != null) {
+            pp.setOnlyIfError(Boolean.valueOf(failureOnlyNode.getNodeValue()).booleanValue());
+        }
+        
+        Node listFilteredNode = node.getAttributes().getNamedItem(XML_PP_LIST_FILTERED);
+        if (listFilteredNode != null) {
+            pp.setListFiltered(Boolean.valueOf(listFilteredNode.getNodeValue()).booleanValue());
+        }
+        
+        Node nameNode = node.getAttributes().getNamedItem(XML_PP_DUMP_NAME);
+        if (nameNode != null) {
+            pp.setReportName(nameNode.getNodeValue());
+        }
+        
         return pp;
     }
     
@@ -202,14 +218,30 @@ public class TargetXMLReader implements XMLTags {
             pp.setPassword(passwordNode.getNodeValue());
         }
         
-        Node failureOnlyNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_ONLY_IF_ERROR);
+        Node failureOnlyNode = node.getAttributes().getNamedItem(XML_PP_ONLY_IF_ERROR);
         if (failureOnlyNode != null) {
-            pp.setOnlyIfError(Boolean.getBoolean(failureOnlyNode.getNodeValue()));
+            pp.setOnlyIfError(Boolean.valueOf(failureOnlyNode.getNodeValue()).booleanValue());
         }
         
-        Node listFilteredNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_LIST_FILTERED);
+        Node listFilteredNode = node.getAttributes().getNamedItem(XML_PP_LIST_FILTERED);
         if (listFilteredNode != null) {
-            pp.setListFiltered(Boolean.getBoolean(listFilteredNode.getNodeValue()));
+            pp.setListFiltered(Boolean.valueOf(listFilteredNode.getNodeValue()).booleanValue());
+        }
+        
+        // BACKWARD-COMPATIBILITY //
+        Node failureOnlyNode_old = node.getAttributes().getNamedItem("smtp_" + XML_PP_ONLY_IF_ERROR);
+        if (failureOnlyNode_old != null) {
+            pp.setOnlyIfError(Boolean.valueOf(failureOnlyNode_old.getNodeValue()).booleanValue());
+        }
+        Node listFilteredNode_old = node.getAttributes().getNamedItem("smtp_" + XML_PP_LIST_FILTERED);
+        if (listFilteredNode_old != null) {
+            pp.setListFiltered(Boolean.valueOf(listFilteredNode_old.getNodeValue()).booleanValue());
+        }
+        // EOF BACKWARD-COMPATIBILITY //
+        
+        Node titleNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_TITLE);
+        if (titleNode != null) {
+            pp.setTitle(titleNode.getNodeValue());
         }
         
         pp.setRecipients(recipientsNode.getNodeValue());

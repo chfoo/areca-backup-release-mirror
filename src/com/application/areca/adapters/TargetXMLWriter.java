@@ -32,7 +32,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -156,6 +156,18 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XML_PP_DUMP_DIRECTORY);
         sb.append("=");
         sb.append(encode(FileSystemManager.getAbsolutePath(pp.getDestinationFolder())));
+        sb.append(" ");     
+        sb.append(XML_PP_ONLY_IF_ERROR);
+        sb.append("=");
+        sb.append(encode("" + pp.isOnlyIfError()));     
+        sb.append(" ");     
+        sb.append(XML_PP_LIST_FILTERED);
+        sb.append("=");
+        sb.append(encode("" + pp.isListFiltered()));  
+        sb.append(" ");     
+        sb.append(XML_PP_DUMP_NAME);
+        sb.append("=");
+        sb.append(encode("" + pp.getReportName()));  
         sb.append("/>");        
     }
     
@@ -189,13 +201,17 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("=");
         sb.append(encode(pp.getPassword()));  
         sb.append(" ");     
-        sb.append(XML_PP_EMAIL_ONLY_IF_ERROR);
+        sb.append(XML_PP_ONLY_IF_ERROR);
         sb.append("=");
         sb.append(encode("" + pp.isOnlyIfError()));     
         sb.append(" ");     
-        sb.append(XML_PP_EMAIL_LIST_FILTERED);
+        sb.append(XML_PP_LIST_FILTERED);
         sb.append("=");
         sb.append(encode("" + pp.isListFiltered()));  
+        sb.append(" ");
+        sb.append(XML_PP_EMAIL_TITLE);
+        sb.append("=");
+        sb.append(encode(pp.getTitle()));          
         sb.append("/>");        
     }
     

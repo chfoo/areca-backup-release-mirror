@@ -3,6 +3,7 @@ package com.myJava.file.ftp;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
@@ -10,8 +11,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSocket;
@@ -31,7 +35,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -56,29 +60,65 @@ This file is part of Areca.
 public class SecuredSocketFactory implements SocketFactory {
 
     private static TrustManager[] NO_CHECK_TM = new TrustManager [] {new NoCheckX509TrustManager()};
-
+    public static String[] PROTECTIONS = new String[] {"P", "C"};
+    private static String KEY_ALGORITHM = "SunX509";
+    private static String KEY_TYPE = "JKS";
+    
     private DefaultSocketFactory unsecuredSocketFactory = new DefaultSocketFactory();
     private SSLContext sslContext = null;
     private String protocol = null;
+    private String protection;
     private FTPSClient client;
     private boolean implicit = false;
     
     public SecuredSocketFactory(
             String protocol, 
+            String protection,
             boolean checkServerCertificate,
             boolean implicit,
+            InputStream certificateInputStream,
+            String certificatePassword,
             FTPSClient client
     ) {
+        Logger.defaultLogger().info("Initializing secured socket factory ...");
         acceptProtocol(protocol);
         this.protocol = protocol;
+        this.protection = protection;
+        
+        if (protection == null || (! protection.equals("C") && ! protection.equals("P"))) {
+            throw new IllegalArgumentException("Illegal protection method : [" + protection + "]. Only \"C\" and \"P\" are accepted.");
+        }
+        
         this.implicit = implicit;
         this.client = client;
         
+        TrustManager tm[] = null;
+        KeyManager km[] = null;
+        
+        // Init the keyStore if needed
+        if (certificateInputStream != null) {
+            try {
+                Logger.defaultLogger().info("Loading certificate ...");
+                KeyManagerFactory kmf = KeyManagerFactory.getInstance(KEY_ALGORITHM);
+                KeyStore ks = KeyStore.getInstance(KEY_TYPE);
+                char[] pwdChars = (certificatePassword == null ? null : certificatePassword.toCharArray());
+                ks.load(certificateInputStream, pwdChars);
+                kmf.init(ks, pwdChars);
+                km = kmf.getKeyManagers();
+            } catch (Exception e) {
+                Logger.defaultLogger().error(e);
+            }
+        }
+        
+        // Init the trustmanager if needed
+        if (! checkServerCertificate) {
+            Logger.defaultLogger().info("Disabling server identification ...");
+            tm = NO_CHECK_TM;
+        }
+        
         try {
             sslContext = SSLContext.getInstance(protocol);
-            if (! checkServerCertificate) {
-                sslContext.init(null, NO_CHECK_TM, null);
-            }
+            sslContext.init(km, tm, null);
         } catch (NoSuchAlgorithmException e) {
             Logger.defaultLogger().error(e);
         } catch (KeyManagementException e) {
@@ -145,7 +185,7 @@ public class SecuredSocketFactory implements SocketFactory {
 	
 	        readReply(socket);
 	        this.sendCommand("PBSZ 0", socket, true);
-	        this.sendCommand("PROT P", socket, false);
+	        this.sendCommand("PROT " + protection, socket, false);
 	        
 	        return socket;
         }
@@ -164,7 +204,7 @@ public class SecuredSocketFactory implements SocketFactory {
 	        init(socket);
 
             this.sendCommand("PBSZ 0", socket, true);
-            this.sendCommand("PROT P", socket, false);
+            this.sendCommand("PROT " + protection, socket, false);
 
             return socket;
         }

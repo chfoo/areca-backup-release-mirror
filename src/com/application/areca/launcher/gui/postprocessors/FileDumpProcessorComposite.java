@@ -22,7 +22,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -46,50 +46,94 @@ This file is part of Areca.
  */
 public class FileDumpProcessorComposite extends AbstractProcessorComposite {
 
-    private Text txt;
+    private Text txtDir;
+    private Text txtName;
+    private Button btnOnlyError;
+    private Button btnListFiltered;
     
     public FileDumpProcessorComposite(Composite composite, PostProcessor proc, final ProcessorEditionWindow window) {
         super(composite, proc, window);
         this.setLayout(new GridLayout(3, false));
         
-        Label lbl = new Label(this, SWT.NONE);
-        lbl.setText(RM.getLabel("procedition.filedump.label"));
-        
-        txt = new Text(this, SWT.BORDER);
-        txt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        window.monitorControl(txt);
+        Label lblDirectory = new Label(this, SWT.NONE);
+        lblDirectory.setText(RM.getLabel("procedition.filedump.label"));
+        txtDir = new Text(this, SWT.BORDER);
+        txtDir.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        window.monitorControl(txtDir);
         
         Button btnBrowse = new Button(this, SWT.PUSH);
         btnBrowse.setText(RM.getLabel("common.browseaction.label"));
         btnBrowse.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
-                String path = Application.getInstance().showDirectoryDialog(txt.getText(), window);
+                String path = Application.getInstance().showDirectoryDialog(txtDir.getText(), window);
                 if (path != null) {
-                    txt.setText(path);
+                    txtDir.setText(path);
                 }
             }
         });
         
+        Label lblName = new Label(this, SWT.NONE);
+        lblName.setText(RM.getLabel("procedition.filename.label"));
+        txtName = new Text(this, SWT.BORDER);
+        txtName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        new Label(this, SWT.NONE);
+        window.monitorControl(txtName);
+        
+        // Example
+        new Label(this, SWT.NONE);
+        Label lblExample = new Label(this, SWT.NONE);
+        lblExample.setText(RM.getLabel("procedition.dynparams.label"));
+        lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        
+        // List filtered entries
+        btnListFiltered = new Button(this, SWT.CHECK);
+        btnListFiltered.setText(RM.getLabel("procedition.listfiltered.label"));
+        btnListFiltered.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
+        window.monitorControl(btnListFiltered);
+        
+        // Send only if in error
+        btnOnlyError = new Button(this, SWT.CHECK);
+        btnOnlyError.setText(RM.getLabel("procedition.onlyerror.label"));
+        btnOnlyError.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
+        window.monitorControl(btnOnlyError);
+        
         if (proc != null) {
             FileDumpPostProcessor sProc = (FileDumpPostProcessor)proc;
-            txt.setText(sProc.getDestinationFolder().getAbsolutePath());
+            txtDir.setText(sProc.getDestinationFolder().getAbsolutePath());
+            txtName.setText(sProc.getReportName());
+            btnListFiltered.setSelection(sProc.isListFiltered());
+            btnOnlyError.setSelection(sProc.isOnlyIfError());
         }
     }
 
     public void initProcessor(PostProcessor proc) {
         FileDumpPostProcessor fProc = (FileDumpPostProcessor)proc;
-        fProc.setDestinationFolder(new File(txt.getText()));
+        fProc.setDestinationFolder(new File(txtDir.getText()));
+        fProc.setReportName(txtName.getText());
+        fProc.setOnlyIfError(btnOnlyError.getSelection());
+        fProc.setListFiltered(btnListFiltered.getSelection());
     }
     
     public boolean validateParams() {
-        window.resetErrorState(txt);
+        window.resetErrorState(txtDir);
+        window.resetErrorState(txtName);
         
+        // DIRECTORY
         if (
-                txt.getText() == null 
-                || txt.getText().trim().length() == 0
-                || FileSystemManager.isFile(new File(txt.getText()))
+                txtDir.getText() == null 
+                || txtDir.getText().trim().length() == 0
+                || FileSystemManager.isFile(new File(txtDir.getText()))
         ) {
-            window.setInError(txt);
+            window.setInError(txtDir);
+            return false;
+        }
+        
+        // NAME
+        if (
+                txtName.getText() == null 
+                || txtName.getText().trim().length() == 0
+        ) {
+            window.setInError(txtName);
             return false;
         }
 

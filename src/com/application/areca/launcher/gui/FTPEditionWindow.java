@@ -1,6 +1,9 @@
 package com.application.areca.launcher.gui;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -8,6 +11,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
@@ -17,6 +21,7 @@ import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.configuration.FrameworkConfiguration;
+import com.myJava.file.ftp.SecuredSocketFactory;
 import com.myJava.util.Utilitaire;
 import com.myJava.util.log.Logger;
 
@@ -24,7 +29,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -76,6 +81,7 @@ extends AbstractWindow {
     protected Button btnTest;
     protected Button btnSave;
     protected Button btnCancel;
+    protected Combo cboProtection;
     
     public FTPEditionWindow(FTPFileSystemPolicy currentPolicy) {
         super();
@@ -83,32 +89,138 @@ extends AbstractWindow {
     }
 
     protected Control createContents(Composite parent) {
-        Composite composite = new Composite(parent, SWT.NONE);
-        composite.setLayout(new GridLayout(4, false));
+        Composite ret = new Composite(parent, SWT.NONE);
+        ret.setLayout(new GridLayout(1, false));
+
+        CTabFolder tabs = new CTabFolder(ret, SWT.BORDER);
+        tabs.setSimple(Application.SIMPLE_SUBTABS);
+        tabs.setLayout(new FillLayout());
+        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true);
+        tabs.setLayoutData(dt);
+
+        CTabItem itm1 = new CTabItem(tabs, SWT.NONE);
+        Application.setTabLabel(itm1, RM.getLabel("ftpedition.main.title"), false);
+        itm1.setControl(getMainPanel(tabs));
+
+        CTabItem itm2 = new CTabItem(tabs, SWT.NONE);
+        Application.setTabLabel(itm2, RM.getLabel("ftpedition.ftps.label"), false);
+        itm2.setControl(getFTPsPanel(tabs));
         
-        Label lblHost = new Label(composite, SWT.NONE);
+        buildSaveComposite(ret);
+        initValues();
+        
+        ret.pack();
+        return ret;
+    }
+    
+    private void initValues() {
+        if (this.currentPolicy != null) {            
+            this.txtHost.setText(currentPolicy.getRemoteServer());
+            this.txtPort.setText("" + currentPolicy.getRemotePort());
+            this.chkPassiv.setSelection(currentPolicy.isPassivMode());
+            this.chkImplicit.setSelection(currentPolicy.isImplicit());
+            
+            int index = -1;
+            for (int i=0; i<PROTOCOLS.length; i++) {
+                if (PROTOCOLS[i].equals(currentPolicy.getProtocol())) {
+                    index = i;
+                    break;
+                }
+            }
+            this.cboProtocol.select(index);
+            
+            index = 0;
+            for (int i=0; i<SecuredSocketFactory.PROTECTIONS.length; i++) {
+                if (SecuredSocketFactory.PROTECTIONS[i].equals(currentPolicy.getProtection())) {
+                    index = i;
+                    break;
+                }
+            }
+            this.cboProtection.select(index);
+            
+            this.txtLogin.setText(currentPolicy.getLogin());
+            this.txtPassword.setText(currentPolicy.getPassword());
+            this.txtRemoteDir.setText(currentPolicy.getRemoteDirectory());
+        } else {
+            this.txtPort.setText("" + FTPFileSystemPolicy.DEFAULT_PORT);
+            this.cboProtection.select(0);
+        }
+    }
+    
+    private GridLayout initLayout(int nbCols) {
+        GridLayout layout = new GridLayout();
+        layout.marginWidth = 10;
+        layout.numColumns = nbCols;
+        layout.marginHeight = 10;
+        layout.verticalSpacing = 10;
+        layout.horizontalSpacing = 10;
+        return layout;
+    }
+    
+    private Composite getMainPanel(Composite parent) {
+        Composite composite = new Composite(parent, SWT.NONE);
+        composite.setLayout(initLayout(1));
+        
+        Group grpServer = new Group(composite, SWT.NONE);
+        grpServer.setText(RM.getLabel("ftpedition.servergroup.label"));
+        grpServer.setLayout(new GridLayout(3, false));
+        grpServer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        
+        Label lblHost = new Label(grpServer, SWT.NONE);
         lblHost.setText(RM.getLabel("ftpedition.host.label"));
-        txtHost = new Text(composite, SWT.BORDER);
-        txtHost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+        txtHost = new Text(grpServer, SWT.BORDER);
+        GridData dt = new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1);
+        dt.widthHint = computeWidth(300);
+        txtHost.setLayoutData(dt);
         monitorControl(txtHost);
         
-        Label lblPort = new Label(composite, SWT.NONE);
+        Label lblPort = new Label(grpServer, SWT.NONE);
         lblPort.setText(RM.getLabel("ftpedition.port.label"));
-        txtPort = new Text(composite, SWT.BORDER);
-        GridData dt = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
-        dt.widthHint = 100;
-        txtPort.setLayoutData(dt);
+        txtPort = new Text(grpServer, SWT.BORDER);
+        txtPort.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         monitorControl(txtPort);
         
-        chkPassiv = new Button(composite, SWT.CHECK);
-        chkPassiv.setText(RM.getLabel("ftpedition.passiv.label"));
-        chkPassiv.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        chkPassiv = new Button(grpServer, SWT.CHECK);
+        chkPassiv.setText(RM.getLabel("ftpedition.passiv.label") + " ");
+        chkPassiv.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
         monitorControl(chkPassiv);
         
+        Label lblRemoteDir = new Label(grpServer, SWT.NONE);
+        lblRemoteDir.setText(RM.getLabel("ftpedition.dir.label"));
+        txtRemoteDir = new Text(grpServer, SWT.BORDER);
+        txtRemoteDir.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        monitorControl(txtRemoteDir);
+        
+        new Label(composite, SWT.NONE);
+        
+        Group grpAuthent = new Group(composite, SWT.NONE);
+        grpAuthent.setText(RM.getLabel("ftpedition.authentgroup.label"));
+        grpAuthent.setLayout(new GridLayout(2, false));
+        grpAuthent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        
+        Label lblLogin = new Label(grpAuthent, SWT.NONE);
+        lblLogin.setText(RM.getLabel("ftpedition.login.label"));
+        txtLogin = new Text(grpAuthent, SWT.BORDER);
+        txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        monitorControl(txtLogin);
+        
+        Label lblPassword = new Label(grpAuthent, SWT.NONE);
+        lblPassword.setText(RM.getLabel("ftpedition.password.label"));
+        txtPassword = new Text(grpAuthent, SWT.BORDER);
+        txtPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        monitorControl(txtPassword);
+        
+        return composite;
+    }
+    
+    private Composite getFTPsPanel(Composite parent) {
+        Composite composite = new Composite(parent, SWT.NONE);
+        composite.setLayout(initLayout(3));
+
         Label lblFTPs = new Label(composite, SWT.NONE);
         lblFTPs.setText(RM.getLabel("ftpedition.secured.label"));
         cboProtocol = new Combo(composite, SWT.READ_ONLY);
-        cboProtocol.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        cboProtocol.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         for (int i=0; i<PROTOCOLS.length; i++) {
             cboProtocol.add(PROTOCOLS[i]);
         }
@@ -116,33 +228,28 @@ extends AbstractWindow {
         
         chkImplicit = new Button(composite, SWT.CHECK);
         chkImplicit.setText(RM.getLabel("ftpedition.implicit.label"));
-        chkImplicit.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        chkImplicit.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
         monitorControl(chkImplicit);
         
-        Label lblLogin = new Label(composite, SWT.NONE);
-        lblLogin.setText(RM.getLabel("ftpedition.login.label"));
-        txtLogin = new Text(composite, SWT.BORDER);
-        txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-        monitorControl(txtLogin);
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
+        Label lblProtection = new Label(composite, SWT.NONE);
+        lblProtection.setText(RM.getLabel("ftpedition.protection.label"));
+        cboProtection = new Combo(composite, SWT.READ_ONLY);
+        cboProtection.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        for (int i=0; i<SecuredSocketFactory.PROTECTIONS.length; i++) {
+            cboProtection.add(SecuredSocketFactory.PROTECTIONS[i]);
+        }
+        monitorControl(cboProtection);
         
-        Label lblPassword = new Label(composite, SWT.NONE);
-        lblPassword.setText(RM.getLabel("ftpedition.password.label"));
-        txtPassword = new Text(composite, SWT.BORDER);
-        txtPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-        monitorControl(txtPassword);
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        
-        Label lblRemoteDir = new Label(composite, SWT.NONE);
-        lblRemoteDir.setText(RM.getLabel("ftpedition.dir.label"));
-        txtRemoteDir = new Text(composite, SWT.BORDER);
-        txtRemoteDir.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-        monitorControl(txtRemoteDir);
+        return composite;
+    }
+    
+    private void buildSaveComposite(Composite parent) {
+        Composite composite = new Composite(parent, SWT.NONE);
+        composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        composite.setLayout(new GridLayout(3, false));
         
         btnTest = new Button(composite, SWT.PUSH);
-        btnTest.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+        btnTest.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
         btnTest.setText(RM.getLabel("ftpedition.test.label"));
         btnTest.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
@@ -177,35 +284,9 @@ extends AbstractWindow {
         btnCancel.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
                 registerCurrentRunningTest(null);
-                hasBeenUpdated = false;
-                close();
+                cancelChanges();
             }
         });
-        
-        // INIT
-        if (this.currentPolicy != null) {            
-            this.txtHost.setText(currentPolicy.getRemoteServer());
-            this.txtPort.setText("" + currentPolicy.getRemotePort());
-            this.chkPassiv.setSelection(currentPolicy.isPassivMode());
-            this.chkImplicit.setSelection(currentPolicy.isImplicit());
-            
-            int index = -1;
-            for (int i=0; i<PROTOCOLS.length; i++) {
-                if (PROTOCOLS[i].equals(currentPolicy.getProtocol())) {
-                    index = i;
-                    break;
-                }
-            }
-            this.cboProtocol.select(index);
-            this.txtLogin.setText(currentPolicy.getLogin());
-            this.txtPassword.setText(currentPolicy.getPassword());
-            this.txtRemoteDir.setText(currentPolicy.getRemoteDirectory());
-        } else {
-            this.txtPort.setText("" + FTPFileSystemPolicy.DEFAULT_PORT);
-        }
-        
-        composite.pack();
-        return composite;
     }
     
     public String getTitle() {
@@ -252,33 +333,49 @@ extends AbstractWindow {
         }
     }
 
-    protected boolean checkBusinessRules() {
-        boolean result = true;
+    protected boolean checkBusinessRules() {   
+        this.resetErrorState(txtHost);
+        this.resetErrorState(txtPort);
+        this.resetErrorState(txtRemoteDir);
+        this.resetErrorState(txtLogin);
+        this.resetErrorState(txtPassword);
         
-        result = check(txtHost, result);
-        result = check(txtLogin, result);
-        result = check(txtPassword, result);
-        result = check(txtPort, result);
-        result = check(txtRemoteDir, result);
+        if (! check(txtHost)) {
+            return false;
+        }
         
+        if (! check(txtPort)) {
+            return false;
+        }
+
         try {
             Integer.parseInt(txtPort.getText());
         } catch (Throwable e) {
             this.setInError(txtPort);
-            result = false;
+            return false;
+        }
+
+        if (! check(txtRemoteDir)) {
+            return false;
         }
         
-        return result;
+        if (! check(txtLogin)) {
+            return false;
+        }
+        
+        if (! check(txtPassword)) {
+            return false;
+        }
+
+        return true;
     }
 
-    private boolean check(Text fld, boolean b) {
-        this.resetErrorState(fld);
+    private boolean check(Text fld) {
         if (fld.getText() == null || fld.getText().trim().length() == 0) {
             this.setInError(fld);
             return false;
-        } else {
-            return b;
         }
+        return true;
     }
     
     protected void saveChanges() {
@@ -307,6 +404,14 @@ extends AbstractWindow {
         } else {
             policy.setProtocol(null);
         }
+        
+        if (cboProtection.getSelectionIndex() != -1) {
+            String protection = (String)cboProtection.getItem(cboProtection.getSelectionIndex());
+            policy.setProtection(protection);
+        } else {
+            policy.setProtection(null);
+        }
+        
         policy.setPassword(txtPassword.getText());
         policy.setRemoteDirectory(txtRemoteDir.getText());
         policy.setRemotePort(Integer.parseInt(txtPort.getText()));

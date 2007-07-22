@@ -38,7 +38,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -95,7 +95,7 @@ extends AbstractWindow {
     
     private Composite addTab(CTabFolder tabs, String titleKey) {
         CTabItem itm = new CTabItem(tabs, SWT.NONE);
-        itm.setText(titleKey + "    ");
+        Application.setTabLabel(itm, titleKey, false);
         
         Composite tab = new Composite(tabs, SWT.NONE);
         GridLayout layout = new GridLayout();

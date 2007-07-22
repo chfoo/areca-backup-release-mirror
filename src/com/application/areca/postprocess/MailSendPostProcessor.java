@@ -22,6 +22,7 @@ import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.context.ProcessReport;
 import com.application.areca.context.ProcessReportWriter;
+import com.application.areca.impl.TagHelper;
 import com.myJava.util.CommonRules;
 import com.myJava.util.EqualsHelper;
 import com.myJava.util.HashHelper;
@@ -34,7 +35,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -64,6 +65,7 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
     private String password;
     private boolean onlyIfError;
     private boolean listFiltered = true;
+    private String title = "Areca : backup report for target %TARGET_NAME%.";
 
     public MailSendPostProcessor() {
         super();
@@ -103,6 +105,14 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
 
     public void setListFiltered(boolean listFiltered) {
         this.listFiltered = listFiltered;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     /**
@@ -157,7 +167,7 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
             PrintStream str = null;
             ByteArrayOutputStream baos = null;
             try {
-                String subject = "Areca : Backup report for target '" + context.getReport().getTarget().getTargetName() + "'";
+                String subject = TagHelper.replaceParamValues(this.title, context);
                 String content = getReportAsText(context.getReport());
                 
                 if (ArecaTechnicalConfiguration.get().isSMTPDebugMode()) {
@@ -262,6 +272,7 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
         pro.password = this.password;
         pro.onlyIfError = this.onlyIfError;
         pro.listFiltered = this.listFiltered;
+        pro.title = this.title;
         return pro;
     }
     
@@ -304,7 +315,8 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
             	&& EqualsHelper.equals(this.smtpServer, other.smtpServer)
             	&& EqualsHelper.equals(this.recipients, other.recipients)
                 && EqualsHelper.equals(this.onlyIfError, other.onlyIfError)
-                && EqualsHelper.equals(this.listFiltered, other.listFiltered)                
+                && EqualsHelper.equals(this.listFiltered, other.listFiltered)
+                && EqualsHelper.equals(this.title, other.title)                         
             	;
         }
     }
@@ -316,7 +328,8 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
         h = HashHelper.hash(h, this.smtpServer);
         h = HashHelper.hash(h, this.recipients);
         h = HashHelper.hash(h, this.onlyIfError);
-        h = HashHelper.hash(h, this.listFiltered);        
+        h = HashHelper.hash(h, this.listFiltered);     
+        h = HashHelper.hash(h, this.title);    
         return h;
     }
 }

@@ -13,7 +13,7 @@ import com.application.areca.launcher.gui.common.SecuredRunner;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -54,6 +54,7 @@ public class AppActionReferenceHolder implements ActionConstants{
     public static AppAction AC_INDICATORS = new AppAction("app.indicatorsaction", CMD_INDICATORS);
     public static AppAction AC_SIMULATE = new AppAction("app.simulateaction", ArecaImages.ICO_ACT_ARCHIVE, ArecaImages.ICO_ACT_ARCHIVE_B, CMD_SIMULATE);
     public static AppAction AC_BACKUP = new AppAction("app.backupaction", ArecaImages.ICO_ACT_ARCHIVE, ArecaImages.ICO_ACT_ARCHIVE_B, CMD_BACKUP);
+    public static AppAction AC_BACKUP_ALL = new AppAction("app.backupallaction", null, null, CMD_BACKUP_ALL);    
     public static AppAction AC_BUILD_BATCH = new AppAction("app.buildbatch", ArecaImages.ICO_FILTER, CMD_BUILD_BATCH);    
     public static AppAction AC_BACKUP_MANIFEST = new AppAction("app.backupwmaction", ArecaImages.ICO_ACT_ARCHIVE, ArecaImages.ICO_ACT_ARCHIVE_B, CMD_BACKUP_MANIFEST);
     public static AppAction AC_MERGE = new AppAction("app.mergearchivesaction", ArecaImages.ICO_ACT_COMPACT, ArecaImages.ICO_ACT_COMPACT_B, CMD_COMPACT);
@@ -79,14 +80,16 @@ public class AppActionReferenceHolder implements ActionConstants{
                 if (application.getCurrentObject() == null || Workspace.class.isAssignableFrom(application.getCurrentObject().getClass())) {
                     enableCommands(false);
                     AC_NEW_PROCESS.setEnabled(true);
+                    AC_BACKUP_ALL.setEnabled(true);
                 } else if (RecoveryProcess.class.isAssignableFrom(application.getCurrentObject().getClass())) {
                     boolean available = ! application.getCurrentProcess().isRunning();
                     
                     AC_BUILD_BATCH.setEnabled(true);
                     AC_EDIT_PROCESS.setEnabled(true);
                     AC_NEW_PROCESS.setEnabled(true);
-                    AC_NEW_TARGET.setEnabled(true);           
+                    AC_NEW_TARGET.setEnabled(true);  
                     
+                    AC_BACKUP_ALL.setEnabled(available);
                     AC_DEL_PROCESS.setEnabled(available);
                     AC_BACKUP.setEnabled(available);
                     
@@ -112,6 +115,7 @@ public class AppActionReferenceHolder implements ActionConstants{
                     
                     AC_SIMULATE.setEnabled(available);
                     AC_BACKUP.setEnabled(available);
+                    AC_BACKUP_ALL.setEnabled(available);
                     AC_BACKUP_MANIFEST.setEnabled(available);    
                     AC_INDICATORS.setEnabled(available);         
                     AC_MERGE.setEnabled(
@@ -147,6 +151,7 @@ public class AppActionReferenceHolder implements ActionConstants{
     private static void enableCommands(boolean enabled) {
         AC_SIMULATE.setEnabled(enabled);
         AC_BACKUP.setEnabled(enabled);
+        AC_BACKUP_ALL.setEnabled(enabled);
         AC_BUILD_BATCH.setEnabled(enabled);
         AC_BACKUP_MANIFEST.setEnabled(enabled);        
         AC_MERGE.setEnabled(enabled);

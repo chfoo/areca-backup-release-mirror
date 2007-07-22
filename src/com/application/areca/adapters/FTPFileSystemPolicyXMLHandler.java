@@ -10,7 +10,7 @@ import com.application.areca.plugins.FileSystemPolicyXMLHandler;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -40,6 +40,7 @@ implements FileSystemPolicyXMLHandler, XMLTags {
         Node portNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PORT);
         Node passivNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PASSIV);
         Node protocolNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PROTOCOL);
+        Node protectionNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PROTECTION);
         Node implicitNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_IMPLICIT);
         Node loginNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_LOGIN);
         Node passwordNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PASSWORD);
@@ -73,7 +74,13 @@ implements FileSystemPolicyXMLHandler, XMLTags {
         policy.setPassivMode(passivNode != null && passivNode.getNodeValue().equalsIgnoreCase("true"));
         if (protocolNode != null) {
             policy.setProtocol(protocolNode.getNodeValue());
-            policy.setImplicit(implicitNode != null && implicitNode.getNodeValue().equalsIgnoreCase("true"));            
+            policy.setImplicit(implicitNode != null && implicitNode.getNodeValue().equalsIgnoreCase("true"));    
+            
+            if (protectionNode != null) {
+                policy.setProtection(protectionNode.getNodeValue());
+            } else {
+                policy.setProtection("P");
+            }
         }
         policy.setLogin(loginNode.getNodeValue());
         policy.setPassword(passwordNode.getNodeValue());
@@ -110,6 +117,11 @@ implements FileSystemPolicyXMLHandler, XMLTags {
             sb.append(XML_MEDIUM_FTP_IMPLICIT);
             sb.append("=");
             sb.append(AbstractXMLWriter.encode("" + policy.isImplicit()));
+            
+            sb.append(" ");
+            sb.append(XML_MEDIUM_FTP_PROTECTION);
+            sb.append("=");
+            sb.append(AbstractXMLWriter.encode("" + policy.getProtection()));
         }
         
         sb.append(" ");

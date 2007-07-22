@@ -1,10 +1,12 @@
 package com.myJava.util.os;
 
 import java.lang.reflect.Method;
+import java.net.NetworkInterface;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -16,7 +18,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1628055869823963574
+ * <BR>Areca Build ID : -1700699344456460829
  */
  
  /*
@@ -54,6 +56,7 @@ public class OSTool {
     private static String JAVA_FILE_ENCODING;
     private static String IANA_FILE_ENCODING;
     private static String USER_HOME;
+    private static String USER_NAME;
     private static String TMP_DIR;
     
     static {
@@ -88,6 +91,7 @@ public class OSTool {
         
         TMP_DIR = System.getProperty("java.io.tmpdir");
         USER_HOME = System.getProperty("user.home");
+        USER_NAME = System.getProperty("user.name");
     }
     
     public static String getOSDescription() {
@@ -112,6 +116,10 @@ public class OSTool {
     
     public static String getUserDir() {
         return System.getProperty("user.dir");
+    }
+    
+    public static String getUserName() {
+        return USER_NAME;
     }
     
     public static String getTempDirectory() {
