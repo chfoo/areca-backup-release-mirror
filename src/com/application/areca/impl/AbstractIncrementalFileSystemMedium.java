@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.xml.utils.synthetic.reflection.EntryPoint;
+
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArecaTechnicalConfiguration;
@@ -47,6 +49,7 @@ import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemIterator;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.attributes.Attributes;
+import com.myJava.util.Utilitaire;
 import com.myJava.util.errors.ActionError;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.log.Logger;
@@ -62,7 +65,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -139,6 +142,7 @@ implements TargetActions {
     
     protected void copyAttributes(Object clone) {
         super.copyAttributes(clone);
+        
         AbstractIncrementalFileSystemMedium other = (AbstractIncrementalFileSystemMedium)clone;
         other.overwrite = this.overwrite;
         other.trackDirectories = this.trackDirectories;
@@ -227,11 +231,29 @@ implements TargetActions {
             File traceFile = new File(getDataDirectory(context.getCurrentArchiveFile()), getTraceFileName(false));
             File contentFile = new File(getDataDirectory(context.getCurrentArchiveFile()), getContentFileName(false));
            
-            context.setTraceAdapter(new ArchiveTraceAdapter(this, traceFile, this.trackDirectories));
+            context.setTraceAdapter(new ArchiveTraceAdapter(this, traceFile, this.trackDirectories, ((FileSystemRecoveryTarget)this.target).isTrackSymlinks()));
             context.getTraceAdapter().setTrackPermissions(this.trackPermissions);
             context.setContentAdapter(new ArchiveContentAdapter(contentFile));            
             
         } catch (Exception e) {
+            throw new ApplicationException(e);
+        }
+    }
+    
+    protected void recoverSymLink(FileSystemRecoveryEntry entry, File archive, File destination) throws ApplicationException {
+        try {
+            String fileName = entry.getName();
+            File tmp = new File(fileName);
+            File targetFile = new File(destination, FileSystemManager.getName(tmp));
+            if (! FileSystemManager.exists(FileSystemManager.getParentFile(targetFile))) {
+                tool.createDir(FileSystemManager.getParentFile(targetFile));
+            }
+            
+            String hash = ArchiveTraceCache.getInstance().getTrace(this, archive).getSymLinkHash(entry);
+            String path = ArchiveTrace.extractSymLinkPathFromTrace(hash);
+            
+            FileSystemManager.createSymbolicLink(targetFile, path);
+        } catch (IOException e) {
             throw new ApplicationException(e);
         }
     }
@@ -276,7 +298,7 @@ implements TargetActions {
     public void setTrackDirectories(boolean trackDirectories) {
         this.trackDirectories = trackDirectories;
     }
-    
+
     public boolean isTrackPermissions() {
         return trackPermissions;
     }
@@ -296,10 +318,14 @@ implements TargetActions {
             try {
                 this.registerGenericEntry(fEntry, context);
                 
-                if (FileSystemManager.isFile(fEntry.getFile())) {
-                    
+                if (
+                        FileSystemManager.isFile(fEntry.getFile()) && (
+                                (! FileSystemManager.isLink(fEntry.getFile()))
+                                || (! ((FileSystemRecoveryTarget)this.target).isTrackSymlinks())
+                        )
+                ) {
                     // The entry is stored if it has been modified
-                    if (this.checkModified(fEntry, context)) {
+                    if (this.checkFileModified(fEntry, context)) {
                         this.storeFileInArchive(fEntry.getFile(), fEntry.getName(), context);
                         this.registerStoredEntry(fEntry, context);
 
@@ -502,23 +528,49 @@ implements TargetActions {
     /**
      * Rétablit le contenu des archives dans le répertoire demandé, jusqu'à la date précisée.
      */
-    public void recover(Object destination, String[] filter, GregorianCalendar date, boolean recoverDeletedEntries, ProcessContext context) throws ApplicationException {      
+    public void recover(Object destination, String[] filter, GregorianCalendar date, boolean recoverDeletedEntries, ProcessContext context) 
+    throws ApplicationException {      
         ArchiveTrace trace = null;
         if (recoverDeletedEntries) {
-            trace = this.buildAggregatedTrace(date, true);
+            trace = this.buildAggregatedTrace(date);
         } else {
             trace = ArchiveTraceCache.getInstance().getTrace(this, getLastArchive(date));
         }
         
         recover(destination, filter, null, date, true, trace, context);
-        rebuidDirectoryStructure((File)destination, filter, trace);
+        rebuidDirectories((File)destination, filter, trace);
+        rebuildSymLinks((File)destination, filter, trace);
+    }
+    
+    private void rebuildSymLinks(File destination, String[] filters, ArchiveTrace trace) throws ApplicationException {
+        try {
+            if (((FileSystemRecoveryTarget)this.target).isTrackSymlinks()){
+                // Rebuild symbolic links
+                Iterator iter = trace.symLinkEntrySet().iterator();
+                while (iter.hasNext()) {
+                    Map.Entry entry = (Map.Entry)iter.next();
+                    File symLink = new File(destination, (String)entry.getKey());
+                    
+                    if (filters == null || Utilitaire.passFilter(FileSystemManager.getAbsolutePath(symLink), filters)) {
+                        File parent = symLink.getParentFile();
+                        if (! FileSystemManager.exists(parent)) {
+                            tool.createDir(parent);
+                        }
+                        String hash = (String)entry.getValue();
+                        FileSystemManager.createSymbolicLink(symLink, ArchiveTrace.extractSymLinkPathFromTrace(hash));
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new ApplicationException(e);
+        }
     }
     
     /**
      * Creates all missing directories from the directory list contained in the trace.
      * <BR>Allows to recover empty directories. 
      */
-    private void rebuidDirectoryStructure(File destination, String[] filters, ArchiveTrace trace) throws ApplicationException {
+    private void rebuidDirectories(File destination, String[] filters, ArchiveTrace trace) throws ApplicationException {
         try {
             if (filters != null) {
                 for (int i=0; i<filters.length; i++) {
@@ -824,6 +876,7 @@ implements TargetActions {
                         targetFile, 
                         trace,
                         applyAttributes,
+                        filters,
                         true,
                         context);
             }
@@ -847,6 +900,7 @@ implements TargetActions {
             File targetFile, 
             ArchiveTrace trace,
             boolean applyAttributes,
+            String[] filters,
             boolean cancelSensitive,
             ProcessContext context
     ) throws IOException, TaskCancelledException {      
@@ -854,7 +908,7 @@ implements TargetActions {
         // - Tous les fichiers n'apparaissant pas dans la trace
         // - Tous les répertoires vides
         // - MAIS attention : on ne supprime pas la trace.
-        Iterator iter = new FileSystemIterator(targetFile);
+        Iterator iter = new FileSystemIterator(targetFile, false);
         while (iter.hasNext()) {
             if (cancelSensitive) {
                 context.getTaskMonitor().checkTaskCancellation();  // Check for cancels only if we are cancel sensitive --> useful for "commit"
@@ -908,8 +962,8 @@ implements TargetActions {
     /**
      * Indique si l'entrée a été modifiée depuis la dernière exécution 
      */
-    protected boolean checkModified(FileSystemRecoveryEntry fEntry, ProcessContext context) {
-        return context.getPreviousTrace().hasBeenModified(fEntry);
+    protected boolean checkFileModified(FileSystemRecoveryEntry fEntry, ProcessContext context) throws IOException {
+        return context.getPreviousTrace().hasFileBeenModified(fEntry);
     }
     
     /**
@@ -947,7 +1001,7 @@ implements TargetActions {
         }
     }
     
-    private ArchiveTrace buildAggregatedTrace(GregorianCalendar dateLimit, boolean includeDirectories) throws ApplicationException {
+    private ArchiveTrace buildAggregatedTrace(GregorianCalendar dateLimit) throws ApplicationException {
         Logger.defaultLogger().info("Building aggregated archive trace ...");
         
         ArchiveTrace content = new ArchiveTrace();
@@ -956,7 +1010,7 @@ implements TargetActions {
             File archive = archives[i];
             Logger.defaultLogger().info("Merging archive trace (" + FileSystemManager.getAbsolutePath(archive) + ") ...");
             ArchiveTrace trace = ArchiveTraceCache.getInstance().getTrace(this, archive);
-            content.merge(trace, includeDirectories);
+            content.merge(trace);
         }
         
         Logger.defaultLogger().info("Aggregated archive trace built.");
@@ -964,13 +1018,14 @@ implements TargetActions {
     }
     
     public Set getLogicalView() throws ApplicationException {
-        ArchiveTrace mergedTrace = buildAggregatedTrace(null, true);
+        ArchiveTrace mergedTrace = buildAggregatedTrace(null);
         ArchiveTrace latestTrace = ArchiveTraceCache.getInstance().getTrace(this, this.getLastArchive(null));
         
         Map latestContent = new HashMap();
         if (latestTrace != null) {
             latestContent.putAll(latestTrace.getFileMap());
             latestContent.putAll(latestTrace.getDirectoryMap());
+            latestContent.putAll(latestTrace.getSymLinkMap());
         }
         
         return getEntrySetFromTrace(mergedTrace, latestContent);
@@ -986,12 +1041,17 @@ implements TargetActions {
             String entryPath = (String)entry.getKey();
             String entryTrace = (String)entry.getValue();
             
-            elements.add(new FileSystemRecoveryEntry(
-                    baseDirectory, 
-                    new File(baseDirectory, entryPath),
-                    referenceMap.containsKey(entryPath) ? RecoveryEntry.STATUS_STORED: RecoveryEntry.STATUS_NOT_STORED,
-                    ArchiveTrace.extractFileSizeFromTrace(entryTrace)
-            ));
+            try {                
+                elements.add(new FileSystemRecoveryEntry(
+                        baseDirectory, 
+                        new File(baseDirectory, entryPath),
+                        referenceMap.containsKey(entryPath) ? RecoveryEntry.STATUS_STORED: RecoveryEntry.STATUS_NOT_STORED,
+                        ArchiveTrace.extractFileSizeFromTrace(entryTrace)
+                ));
+            } catch (RuntimeException e) {
+                Logger.defaultLogger().error("Error reading archive trace : for file [" + entryPath + "], trace = [" + entryTrace + "]", e);
+                throw e;
+            }
         }
         
         iter = source.directoryEntrySet().iterator();
@@ -1004,6 +1064,26 @@ implements TargetActions {
                     new File(baseDirectory, entryPath),
                     referenceMap.containsKey(entryPath) ? RecoveryEntry.STATUS_STORED: RecoveryEntry.STATUS_NOT_STORED,
                     -1
+            ));
+        }
+        
+        iter = source.symLinkEntrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry entry = (Map.Entry)iter.next();
+            String entryPath = (String)entry.getKey();
+            String entryTrace = (String)entry.getValue();
+            
+            long size = -1;
+            if (ArchiveTrace.extractSymLinkFileFromTrace(entryTrace)) {
+                size = 0;
+            }
+            
+            elements.add(new FileSystemRecoveryEntry(
+                    baseDirectory, 
+                    new File(baseDirectory, entryPath),
+                    referenceMap.containsKey(entryPath) ? RecoveryEntry.STATUS_STORED: RecoveryEntry.STATUS_NOT_STORED,
+                    size,
+                    true
             ));
         }
    
@@ -1048,25 +1128,39 @@ implements TargetActions {
         
         ArchiveTrace trace = context.getPreviousTrace();
         
-        if (FileSystemManager.isFile(fEntry.getFile())) {
-            // Vérification que l'entrée sera stockée.
-            if (! trace.containsFile(fEntry)) {
-                fEntry.setStatus(EntryArchiveData.STATUS_CREATED);
-            } else if (trace.hasBeenModified(fEntry)) {
-                fEntry.setStatus(EntryArchiveData.STATUS_MODIFIED);
-            } else {
-                fEntry.setStatus(RecoveryEntry.STATUS_NOT_STORED);            
-            }
-            trace.removeFile(fEntry);
-        } else if (this.trackDirectories) {
-            if (! trace.containsDirectory(fEntry)) {
-                fEntry.setStatus(EntryArchiveData.STATUS_CREATED);
+        try {
+            if (((FileSystemRecoveryTarget)this.target).isTrackSymlinks() && FileSystemManager.isLink(fEntry.getFile())) {
+                // Vérification que l'entrée sera stockée.
+                if (! trace.containsSymLink(fEntry)) {
+                    fEntry.setStatus(EntryArchiveData.STATUS_CREATED);
+                } else if (trace.hasSymLinkBeenModified(fEntry)) {
+                    fEntry.setStatus(EntryArchiveData.STATUS_MODIFIED);
+                } else {
+                    fEntry.setStatus(RecoveryEntry.STATUS_NOT_STORED);            
+                }
+                trace.removeFile(fEntry);
+            } else if (FileSystemManager.isFile(fEntry.getFile())) {
+                // Vérification que l'entrée sera stockée.
+                if (! trace.containsFile(fEntry)) {
+                    fEntry.setStatus(EntryArchiveData.STATUS_CREATED);
+                } else if (trace.hasFileBeenModified(fEntry)) {
+                    fEntry.setStatus(EntryArchiveData.STATUS_MODIFIED);
+                } else {
+                    fEntry.setStatus(RecoveryEntry.STATUS_NOT_STORED);            
+                }
+                trace.removeFile(fEntry);
+            } else if (this.trackDirectories) {
+                if (! trace.containsDirectory(fEntry)) {
+                    fEntry.setStatus(EntryArchiveData.STATUS_CREATED);
+                } else {
+                    fEntry.setStatus(RecoveryEntry.STATUS_NOT_STORED);
+                }
+                trace.removeDirectory(fEntry);
             } else {
                 fEntry.setStatus(RecoveryEntry.STATUS_NOT_STORED);
             }
-            trace.removeDirectory(fEntry);
-        } else {
-            fEntry.setStatus(RecoveryEntry.STATUS_NOT_STORED);
+        } catch (IOException e) {
+            throw new ApplicationException(e);
         }
     }
     
@@ -1188,16 +1282,26 @@ implements TargetActions {
 			ArchiveContent content = ArchiveContentManager.getContentForArchive(this, archive);
 			ArchiveTrace trace = ArchiveTraceCache.getInstance().getTrace(this, archive);
 			
-			if (content.contains(entry)) {
-				ead.setStatus(EntryArchiveData.STATUS_CHANGED);
-			} else {
-				if (trace.containsFile(entry)) {
-					ead.setStatus(EntryArchiveData.STATUS_UNCHANGED);
-				} else {
-					ead.setStatus(EntryArchiveData.STATUS_NONEXISTANT);
-				}
-			}
-			
+            if (entry.isLink()) {
+                // LINK
+                if (trace.containsSymLink(entry)) {
+                    ead.setStatus(EntryArchiveData.STATUS_UNCHANGED);
+                } else {
+                    ead.setStatus(EntryArchiveData.STATUS_NONEXISTANT);
+                }
+            } else {
+                // STANDARD FILE / DIRECTORY
+    			if (content.contains(entry)) {
+    				ead.setStatus(EntryArchiveData.STATUS_CHANGED);
+    			} else {
+    				if (trace.containsFile(entry)) {
+    					ead.setStatus(EntryArchiveData.STATUS_UNCHANGED);
+    				} else {
+    					ead.setStatus(EntryArchiveData.STATUS_NONEXISTANT);
+    				}
+    			}
+            }
+            
 			return ead;
 		} catch (IOException e) {
 			throw new ApplicationException(e);

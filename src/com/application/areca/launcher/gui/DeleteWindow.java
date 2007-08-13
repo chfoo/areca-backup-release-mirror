@@ -3,7 +3,6 @@ package com.application.areca.launcher.gui;
 import java.io.File;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -13,7 +12,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
-import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.RecoveryProcess;
 import com.application.areca.ResourceManager;
 import com.application.areca.impl.AbstractFileSystemMedium;
@@ -26,7 +24,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*

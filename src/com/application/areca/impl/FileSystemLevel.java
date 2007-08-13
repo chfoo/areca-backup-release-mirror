@@ -9,7 +9,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -34,12 +34,19 @@ This file is part of Areca.
 public class FileSystemLevel {
     private File[] levelFiles;
     private int index;
+    private File baseDirectory;
+    private boolean haveFilesBeenStored = false;
+    private boolean hasBeenSent = false;
+    private FileSystemLevel parent;
     
-    public FileSystemLevel(File baseDirectory) throws ApplicationException {
+    public FileSystemLevel(File baseDirectory, FileSystemLevel parent) throws ApplicationException {
         if (! FileSystemManager.exists(baseDirectory)) {
             // On laisse volontairement se déclencher les NullPointerExceptions
             throw new ApplicationException("The requested directory (" + FileSystemManager.getAbsolutePath(baseDirectory) + ") doesn't exist.");
         }
+        
+        this.parent = parent;
+        this.baseDirectory = baseDirectory;
         
         if (FileSystemManager.isDirectory(baseDirectory)) {
             this.levelFiles = FileSystemManager.listFiles(baseDirectory);
@@ -51,11 +58,19 @@ public class FileSystemLevel {
         }
         this.index = 0;
     }
-    
+
+    public FileSystemLevel getParent() {
+        return parent;
+    }
+
     public boolean hasMoreElements() {
         return (this.index <= this.levelFiles.length-1);
     }
-    
+
+    public File getBaseDirectory() {
+        return baseDirectory;
+    }
+
     public File nextElement() {
         this.index++;
         return this.levelFiles[index-1];
@@ -64,7 +79,23 @@ public class FileSystemLevel {
     public double getProgress() {
         return (double)index / (double)(this.levelFiles.length == 0 ? 1 : this.levelFiles.length);
     }
-    
+
+    public boolean isHasBeenSent() {
+        return hasBeenSent;
+    }
+
+    public void setHasBeenSent(boolean hasBeenSent) {
+        this.hasBeenSent = hasBeenSent;
+    }
+
+    public boolean isHaveFilesBeenStored() {
+        return haveFilesBeenStored;
+    }
+
+    public void setHaveFilesBeenStored(boolean haveFilesBeenStored) {
+        this.haveFilesBeenStored = haveFilesBeenStored;
+    }
+
     public int getSize() {
         if (this.levelFiles == null) {
             return 0;

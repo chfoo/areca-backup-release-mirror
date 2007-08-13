@@ -8,13 +8,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import com.application.areca.AbstractRecoveryTarget;
-import com.application.areca.ArchiveFilter;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.LogHelper;
 import com.application.areca.RecoveryProcess;
 import com.application.areca.adapters.AdapterException;
 import com.application.areca.adapters.ProcessXMLReader;
 import com.application.areca.cache.CacheInitializer;
+import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.postprocess.PostProcessor;
 import com.application.areca.version.VersionInfos;
@@ -28,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -129,34 +129,42 @@ public class Workspace {
     }
     
     private void loadDirectory(String path) throws AdapterException {
-	    File f = new File(path);
-	    if (FileSystemManager.exists(f)) {
-	        Logger.defaultLogger().removeAllProcessors();
-	        FileLogProcessor proc = new FileLogProcessor(new File(FileSystemManager.getAbsolutePath(f) + "/log/", VersionInfos.APP_NAME.toLowerCase()));
-	        Logger.defaultLogger().addProcessor(proc);
+	    try {
+            File f = new File(path);
+            if (FileSystemManager.exists(f)) {
+                Logger.defaultLogger().removeAllProcessors();
+                FileLogProcessor proc = new FileLogProcessor(new File(FileSystemManager.getAbsolutePath(f) + "/log/", VersionInfos.APP_NAME.toLowerCase()));
+                Logger.defaultLogger().addProcessor(proc);
 
-            LogHelper.logStartupInformations();
-            LocalPreferences.instance().logProperties();
+                LogHelper.logStartupInformations();
+                LocalPreferences.instance().logProperties();
+                
+                File[] children = FileSystemManager.listFiles(f);
+                
+                for (int i=0; i<children.length; i++) {
+                    if (FileSystemManager.isFile(children[i]) && FileSystemManager.getName(children[i]).toLowerCase().endsWith(".xml")) {
+                        ProcessXMLReader adapter = new ProcessXMLReader(children[i]);
+                        adapter.setMissingDataListener(new MissingDataListener());
+                        RecoveryProcess process = adapter.load();
+                        this.addProcess(process);
+                        this.xmlFiles.put(process, children[i]);
+                    }
+                } 
+            }
             
-		    File[] children = FileSystemManager.listFiles(f);
-		    
-		    for (int i=0; i<children.length; i++) {
-		        if (FileSystemManager.isFile(children[i]) && FileSystemManager.getName(children[i]).toLowerCase().endsWith(".xml")) {
-	                ProcessXMLReader adapter = new ProcessXMLReader(children[i]);
-	                adapter.setMissingDataListener(new MissingDataListener());
-	                RecoveryProcess process = adapter.load();
-	                this.addProcess(process);
-	                this.xmlFiles.put(process, children[i]);
-		        }
-		    } 
-	    }
-	    
-	    Logger.defaultLogger().info("Path : [" + path + "] - " + this.processes.size() + " groups loaded.");
-	    
-	    // Une fois que le workspace est chargé, on lance la tâche de remplissage de cache
-	    if (ArecaTechnicalConfiguration.get().isCachePreload()) {
-	        CacheInitializer.populateCache(this);
-	    }
+            Logger.defaultLogger().info("Path : [" + path + "] - " + this.processes.size() + " groups loaded.");
+            
+            // Une fois que le workspace est chargé, on lance la tâche de remplissage de cache
+            if (ArecaTechnicalConfiguration.get().isCachePreload()) {
+                CacheInitializer.populateCache(this);
+            }
+        } catch (RuntimeException e) {
+            Logger.defaultLogger().error(e);
+            throw e;
+        } catch (AdapterException e) {
+            Logger.defaultLogger().error(e);
+            throw e;
+        }
     }  
     
     public ArchiveFilter[] buildFilterArray() {

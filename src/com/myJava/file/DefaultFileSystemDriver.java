@@ -20,7 +20,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -91,6 +91,10 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     public File getCanonicalFile(File file) throws IOException {
         return file.getCanonicalFile();
     }
+    
+    public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
+        return AttributesHelper.createSymbolicLink(symlink, realPath);
+    }
   
     public void unmount() throws IOException {
         this.flush();
@@ -145,35 +149,69 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public String[] list(File file, FilenameFilter filter) {
-        String[] files = file.list(filter);
-        normalize(files);
-        return files;
+        try {
+            String[] files = file.list(filter);
+            normalize(files);
+            return files;
+        } catch (RuntimeException e) {
+            if (file != null) {
+                Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
+            }
+            throw e;
+        }
     }
     
     public String[] list(File file) {
-        String[] files = file.list();
-        normalize(files);
-        return files;
+        try {
+            String[] files = file.list();
+            normalize(files);
+            return files;
+        } catch (RuntimeException e) {
+            if (file != null) {
+                Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
+            }
+            throw e;
+        }
     }
     
     public File[] listFiles(File file, FileFilter filter) {
-        return file.listFiles(filter);
+        try {
+            return file.listFiles(filter);
+        } catch (RuntimeException e) {
+            if (file != null) {
+                Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
+            }
+            throw e;
+        }
     }
     
     public File[] listFiles(File file, FilenameFilter filter) {
         try {
             return file.listFiles(filter);
         } catch (Exception e) {
-            Logger.defaultLogger().error(e);
+            if (file != null) {
+                Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
+            }
             return null;
         }
     }
     
     public File[] listFiles(File file) {
-        if (file.isFile()) {
-            return new File[0];
-        } else {
-            return file.listFiles();
+        try {
+            if (file.isFile()) {
+                return new File[0];
+            } else {
+                return file.listFiles();
+            }
+        } catch (NullPointerException e) {
+            // Seems to be a bug in open source VMs (GNU libgcj) with some characters (german "Umlaut"s for instance)
+            if (file != null) {
+                Logger.defaultLogger().error("Error during file list (for : " + file.getAbsolutePath() + "). It is probably due to the fact that you use an incompatible Java Runtime Environment. Note that Sun Microsystem's Runtime Environment is highly recommended.", e);
+            }
+            throw e;
+        } catch (RuntimeException e) {
+            Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
+            throw e;
         }
     }
     

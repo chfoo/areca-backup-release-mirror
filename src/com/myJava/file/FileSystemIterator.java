@@ -1,8 +1,11 @@
 package com.myJava.file;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Stack;
+
+import com.myJava.util.log.Logger;
 
 
 /**
@@ -12,7 +15,7 @@ import java.util.Stack;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -40,11 +43,13 @@ public class FileSystemIterator implements Iterator {
     protected FileSystemLevel currentLevel;
     protected File baseDirectory;
     protected Object nextCachedObject;
+    protected boolean followSymLinks;
     
-    public FileSystemIterator(File baseDirectory) {
+    public FileSystemIterator(File baseDirectory, boolean followSymLinks) {
         this.baseDirectory = baseDirectory;
         this.fileSystemLevels = new Stack();
-        this.currentLevel = new FileSystemLevel(baseDirectory);          
+        this.currentLevel = new FileSystemLevel(baseDirectory);        
+        this.followSymLinks = followSymLinks;
         fetchNext();        
     }
 
@@ -57,9 +62,14 @@ public class FileSystemIterator implements Iterator {
         if (currentLevel.hasMoreElements()) {
             File f = currentLevel.nextElement();
 
-            if (FileSystemManager.isDirectory(f)) {
-                this.fileSystemLevels.push(this.currentLevel);
-                this.currentLevel = new FileSystemLevel(f);
+            try {
+                if (FileSystemManager.isDirectory(f) && (followSymLinks || (! FileSystemManager.isLink(f)))) {
+                    this.fileSystemLevels.push(this.currentLevel);
+                    this.currentLevel = new FileSystemLevel(f);
+                }
+            } catch (IOException e) {
+                Logger.defaultLogger().error("Unreadable file : " + FileSystemManager.getAbsolutePath(f), e);
+                throw new IllegalArgumentException("Unreadable file : " + FileSystemManager.getAbsolutePath(f));
             }
             return f;  
 

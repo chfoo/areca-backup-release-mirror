@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.Logger;
@@ -15,7 +16,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -58,6 +59,17 @@ public class AttributesHelper {
             applyWindowsAttributes(f, p);
         } else {
             applyUnixAttributes(f, p);            
+        }
+    }
+    
+    /**
+     * Create a symbolic link
+     */
+    public static boolean createSymbolicLink(File symlink, String realPath) throws IOException {
+        if (OSTool.isSystemWindows()) {
+            return false;
+        } else {
+            return createUnixSymbolicLink(symlink, realPath);            
         }
     }
     
@@ -163,6 +175,14 @@ public class AttributesHelper {
         return p;
     }
     
+    /**
+     * Create a symbolic link
+     */
+    public static boolean createUnixSymbolicLink(File symlink, String realPath) throws IOException {
+        execute(new String[] {"ln", "-s", realPath, FileSystemManager.getAbsolutePath(symlink)});
+        return true;
+    }
+    
     private static int readrwx(char r, char w, char x) {
         int ret = 0;
         if (r != '-') {
@@ -251,61 +271,88 @@ public class AttributesHelper {
     private static void execute(String[] cmd) throws IOException {
         Runtime.getRuntime().exec(cmd);
     }
-    
-    public static void main(String[] args) {
-        /*
-    }
-        try {
-            */
-            //File f1 = new File("/home/olivier/Desktop/test");
-            //File f1 = new File("/home/olivier/WineCVS.sh");
-            //File f2 = new File("/home/olivier/Incoming");
-            
-            //Attributes p1 = AttributesHelper.readFileAttributes(f1);
-            //System.out.println(p1);
-            
-            File f = new File("/");
-            
-            System.out.println(f.lastModified());
-            
-            /*
-            Attributes p2 = AttributesHelper.readFileAttributes(f2);
-            
-            System.out.println("\nAVANT :");
-            System.out.println(f1.getAbsolutePath() + "              " + p1.toString());
-            System.out.println(f2.getAbsolutePath() + "              " + p2.toString());
 
-            applyFileAttributes(f1, p2);
+    public static void main(String[] args) {
+        try {
+            File f = new File("/home/olivier/Desktop/bañuelos");
             
-            Attributes p1bis = AttributesHelper.readFileAttributes(f1);
+            UnixAttributes p = new UnixAttributes();
+            BufferedReader reader = null;
+            BufferedReader errorReader = null;
+            Process process = null;
             
-            System.out.println("\nAPRES :");
-            System.out.println(f1.getAbsolutePath() + "              " + p1bis.toString());
-            System.out.println(f2.getAbsolutePath() + "              " + p2.toString());
-            
-            applyFileAttributes(f1, p1);
-            
-            Attributes p1ter = AttributesHelper.readFileAttributes(f1);
-            
-            System.out.println("\nRAZ :");
-            System.out.println(f1.getAbsolutePath() + "              " + p1ter.toString());
-            System.out.println(f2.getAbsolutePath() + "              " + p2.toString());
-            
-            String s1 = serialize(p1);
-            String s2 = serialize(p2);
-            
-            System.out.println("\nENCODAGE :");
-            System.out.println(f1.getAbsolutePath() + "              " + s1);
-            System.out.println(f2.getAbsolutePath() + "              " + s2);
-            
-            System.out.println("\nDECODAGE :");
-            System.out.println(f1.getAbsolutePath() + "              " + deserialize(s1).toString());
-            System.out.println(f2.getAbsolutePath() + "              " + deserialize(s2).toString());
-            */
-            /*
+            try {
+                //process = Runtime.getRuntime().exec(new String[] {"ls", "-ald1", FileSystemManager.getAbsolutePath(f)});
+                process = Runtime.getRuntime().exec("/home/olivier/Desktop/getattrs.sh");  
+                OutputStreamWriter w = new OutputStreamWriter(process.getOutputStream());
+                w.write(FileSystemManager.getAbsolutePath(f));
+                w.flush();
+                w.close();
+                process.waitFor();
+                reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String str = reader.readLine();
+
+                if (str == null) {
+                    errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                    String err = errorReader.readLine();
+                    throw new IOException("Error during file permission reading for file [" + FileSystemManager.getAbsolutePath(f) + "] : " + err); 
+                }
+                
+                // Permissions
+                int perm = 
+                    100 * readrwx(str.charAt(1), str.charAt(2), str.charAt(3))
+                    + 10 * readrwx(str.charAt(4), str.charAt(5), str.charAt(6))
+                    + readrwx(str.charAt(7), str.charAt(8), str.charAt(9));              
+                p.setPermissions(perm);
+                
+                // Size
+                int index = 10;
+                while (str.charAt(index) == ' ') {
+                    index++;
+                }
+                while (str.charAt(index) != ' ') {
+                    index++;
+                }
+                while (str.charAt(index) == ' ') {
+                    index++;
+                }
+                
+                // owner
+                int index2 = str.indexOf(" ", index);
+                p.setOwner(str.substring(index, index2));
+                
+                // owner group
+                int index3 = str.indexOf(" ", index2 + 1);
+                p.setOwnerGroup(str.substring(index2 + 1, index3).trim());
+            } catch (InterruptedException e) {
+                Logger.defaultLogger().error(e);
+                throw new IOException("Unable to read attributes for file : " + FileSystemManager.getAbsolutePath(f));
+            } finally {
+                // Explicitly close all streams
+                
+                // IN
+                if (reader != null) {
+                    reader.close();
+                } else if (process != null) {
+                    process.getInputStream().close();
+                }
+                
+                // ERROR
+                if (errorReader != null) {
+                    errorReader.close();
+                } else if (process != null) {
+                    process.getErrorStream().close();
+                }
+                
+                // OUT
+                if (process != null) {
+                    process.getOutputStream().close();
+                }
+            }
+
+            System.out.println(p.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        */
     }
 }

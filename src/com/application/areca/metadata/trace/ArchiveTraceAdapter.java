@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
 import com.application.areca.MemoryHelper;
 import com.application.areca.impl.FileSystemRecoveryEntry;
@@ -18,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -51,18 +52,19 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
      * Boolean that sets wether directories must be read or not
      */
     protected boolean trackDirectories;
-    
+    protected boolean trackSymlinks;
     protected boolean trackPermissions;
     
     protected ArchiveMedium medium;
     
     public ArchiveTraceAdapter(ArchiveMedium medium, File traceFile) throws IOException {
-        this(medium, traceFile, false);
+        this(medium, traceFile, false, false);
     }
     
-    public ArchiveTraceAdapter(ArchiveMedium medium, File traceFile, boolean trackDirectories) {
+    public ArchiveTraceAdapter(ArchiveMedium medium, File traceFile, boolean trackDirectories, boolean trackSymlinks) {
         this.medium = medium;
         this.trackDirectories = trackDirectories;
+        this.trackSymlinks = trackSymlinks;
         this.file = traceFile;
     }
    
@@ -73,7 +75,7 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
     public void writeEntry(FileSystemRecoveryEntry entry) throws IOException {
         initWriter();
         if (FileSystemManager.isFile(entry.getFile()) || trackDirectories) {
-            this.writer.write("\r\n" + ArchiveTrace.serialize(entry, trackPermissions));
+            this.writer.write("\r\n" + ArchiveTrace.serialize(entry, trackPermissions, trackSymlinks));
             this.written++;
         }
     }
@@ -83,13 +85,19 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
         Iterator iter = traceToWrite.fileEntrySet().iterator();
         while (iter.hasNext()) {
             Map.Entry entry = (Map.Entry)iter.next();
-            this.writer.write("\r\n" + traceToWrite.buildTraceFileString((String)entry.getKey()));
+            this.writer.write("\r\n" + traceToWrite.buildFileTraceFileString((String)entry.getKey()));
         }
         
         iter = traceToWrite.directoryEntrySet().iterator();
         while (iter.hasNext()) {
             Map.Entry entry = (Map.Entry)iter.next();
-            this.writer.write("\r\n" + traceToWrite.buildTraceFileString((String)entry.getKey()));
+            this.writer.write("\r\n" + traceToWrite.buildDirectoryTraceFileString((String)entry.getKey()));
+        }
+        
+        iter = traceToWrite.symLinkEntrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry entry = (Map.Entry)iter.next();
+            this.writer.write("\r\n" + traceToWrite.buildSymLinkTraceFileString((String)entry.getKey()));
         }
     }
     

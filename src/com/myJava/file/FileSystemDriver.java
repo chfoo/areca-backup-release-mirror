@@ -19,7 +19,7 @@ import com.myJava.file.attributes.Attributes;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -124,6 +124,11 @@ public interface FileSystemDriver {
      * Returns the file's attributes
      */
     public Attributes getAttributes(File f) throws IOException;
+    
+    /**
+     * Create a Symbolic link
+     */
+    public boolean createSymbolicLink(File symlink, String realPath) throws IOException;
     
     /**
      * Applies the attributes provided as argument 

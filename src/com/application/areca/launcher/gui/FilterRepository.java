@@ -4,8 +4,8 @@ import java.io.File;
 
 import org.eclipse.swt.widgets.Composite;
 
-import com.application.areca.ArchiveFilter;
 import com.application.areca.ResourceManager;
+import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.filter.FileDateArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
@@ -26,7 +26,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*

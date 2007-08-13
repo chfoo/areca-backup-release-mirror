@@ -8,7 +8,7 @@ import com.application.areca.context.ReportingConfiguration;
 /**
  * @author Stephane Brunel
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -44,6 +44,7 @@ public final class ArecaPreferences {
     private static final String TEXT_EDITOR = "editor.text";
     private static final String INFO_SYNTHETIC = "info.channel.synthetic";
     private static final String DATE_FORMAT = "date.format";
+    private static final String DISPLAY_JAVA_VENDOR_MESSAGE = "display.java.vendor.message";
 	
 	public static final int UNDEFINED = -1;
 	public static final int LAST_WORKSPACE_MODE = 0;
@@ -70,6 +71,11 @@ public final class ArecaPreferences {
 	    LocalPreferences.instance().set(ARCHIVE_STORAGE, dir);
 	    synchronizeClientConfigurations();
 	}
+    
+    public static void setDisplayJavaVendorMessage(boolean b) {
+        LocalPreferences.instance().set(DISPLAY_JAVA_VENDOR_MESSAGE, b);
+        synchronizeClientConfigurations();
+    }
 	
 	public static void setLastWorkspaceCopyLocation(String dir) {
 	    LocalPreferences.instance().set(LAST_WORKSPACE_COPY_LOCATION, dir);
@@ -109,6 +115,10 @@ public final class ArecaPreferences {
     
     public static boolean isInformationSynthetic() {
         return LocalPreferences.instance().getBoolean(INFO_SYNTHETIC, true);
+    }
+    
+    public static boolean isDisplayJavaVendorMessage() {
+        return LocalPreferences.instance().getBoolean(DISPLAY_JAVA_VENDOR_MESSAGE, true);
     }
 	
 	public static void setLastWorkspace(String lw) {

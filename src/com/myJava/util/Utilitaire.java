@@ -3,7 +3,7 @@
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -345,6 +345,42 @@ public abstract class Utilitaire {
             }
         }
         return new String(copy);
+    }
+    
+    /**
+     * Supprime les "/" en début et fin de nom de fichier
+     */
+    public static String trimSlashes(String orig) {
+        if (orig == null || orig.length() == 0) {
+            return orig;
+        } else if (orig.length() == 1) {
+            if (orig.charAt(0) == '/') {
+                return "";
+            } else {
+                return orig;
+            }
+        } else {
+            boolean t0 = orig.charAt(0) == '/';
+            boolean tn = orig.charAt(orig.length() - 1) == '/';
+            if (t0 && tn) {
+                return orig.substring(1, orig.length() - 1);
+            } else if (t0) {
+                return orig.substring(1);
+            } else if (tn) {
+                return orig.substring(0, orig.length() - 1);
+            } else {
+                return orig;
+            }
+        }
+    }
+    
+    public static boolean passFilter(String entry, String[] filter) {
+        for (int i=0; i<filter.length; i++) {
+            if (filter[i].length() == 0 || entry.equals(filter[i]) || entry.startsWith(filter[i] + "/")) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**

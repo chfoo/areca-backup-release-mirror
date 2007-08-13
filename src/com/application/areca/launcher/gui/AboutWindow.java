@@ -38,7 +38,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -108,25 +108,15 @@ extends AbstractWindow {
         itm.setControl(tab);
         Label icon = new Label(tab, SWT.NONE);
         icon.setImage(ArecaImages.ICO_BIG);
-        GridData dt = new GridData();
-        dt.horizontalAlignment = SWT.CENTER;
-        dt.verticalAlignment = SWT.TOP;
+        GridData dt = new GridData(SWT.CENTER, SWT.TOP, false, false);
         icon.setLayoutData(dt);
         
         Composite content = new Composite(tab, SWT.NONE);
-        GridData dt2 = new GridData();
-        dt2.grabExcessVerticalSpace = true;
-        dt2.grabExcessHorizontalSpace = true;
-        dt2.verticalAlignment = SWT.FILL;
-        dt2.horizontalAlignment = SWT.FILL;
+        GridData dt2 = new GridData(SWT.FILL, SWT.FILL, true, true);
         dt2.verticalSpan = 2;
         content.setLayoutData(dt2);
         
-        GridData dt3 = new GridData();
-        dt3.grabExcessVerticalSpace = true;
-        dt3.grabExcessHorizontalSpace = true;
-        dt3.verticalAlignment = SWT.BOTTOM;
-        dt3.horizontalAlignment = SWT.CENTER;
+        GridData dt3 = new GridData(SWT.CENTER, SWT.BOTTOM, false, true);
         Link lnk = new Link(tab, SWT.NONE);
         lnk.addListener (SWT.Selection, new Listener() {
             public void handleEvent(Event event) {

@@ -10,6 +10,8 @@ package com.myJava.file.archive.zip64;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.myJava.util.ToStringHelper;
+
 /**
  * This class is used to represent a ZIP file entry.
  *
@@ -23,7 +25,7 @@ import java.util.Date;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
 public
 class ZipEntry implements ZipConstants, Cloneable, Serializable {
@@ -40,6 +42,7 @@ class ZipEntry implements ZipConstants, Cloneable, Serializable {
     int version;	// version needed to extract
     long offset;	// offset of loc header
     boolean isZip64;
+    int volumeNumber;
 
     /**
      * Compression method for uncompressed entries.
@@ -90,6 +93,14 @@ class ZipEntry implements ZipConstants, Cloneable, Serializable {
 	method = e.method;
 	extra = e.extra;
 	comment = e.comment;
+    }
+
+    public int getVolumeNumber() {
+        return volumeNumber;
+    }
+
+    public void setVolumeNumber(int volumeNumber) {
+        this.volumeNumber = volumeNumber;
     }
 
     /**
@@ -242,7 +253,7 @@ class ZipEntry implements ZipConstants, Cloneable, Serializable {
      */
     public void setComment(String comment) {
 	if (comment != null && comment.length() > 0xffff/3 
-                    && Zip64OutputStream.getUTF8Length(comment) > 0xffff) {
+                    && ZipOutputStream.getUTF8Length(comment) > 0xffff) {
 	    throw new IllegalArgumentException("invalid entry comment length");
 	}
 	this.comment = comment;
@@ -270,7 +281,21 @@ class ZipEntry implements ZipConstants, Cloneable, Serializable {
      * Returns a string representation of the ZIP entry.
      */
     public String toString() {
-	return getName();
+        StringBuffer sb = ToStringHelper.init(this);
+        ToStringHelper.append("crc", this.crc, sb);
+        ToStringHelper.append("csize", this.csize, sb);
+        ToStringHelper.append("flag", this.flag, sb);
+        ToStringHelper.append("isZip64", this.isZip64, sb);
+        ToStringHelper.append("method", this.method, sb);
+        ToStringHelper.append("offset", this.offset, sb);
+        ToStringHelper.append("size", this.size, sb);
+        ToStringHelper.append("time", this.time, sb);
+        ToStringHelper.append("version", this.version, sb);
+        ToStringHelper.append("name", this.name, sb);        
+        ToStringHelper.append("extra", this.extra, sb);       
+        ToStringHelper.append("comment", this.comment, sb);       
+        ToStringHelper.append("volumeNumber", this.volumeNumber, sb);
+        return ToStringHelper.close(sb);
     }
 
     /*
@@ -320,4 +345,6 @@ class ZipEntry implements ZipConstants, Cloneable, Serializable {
 	    throw new InternalError();
 	}
     }
+    
+    
 }

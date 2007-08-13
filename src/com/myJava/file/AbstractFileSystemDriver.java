@@ -15,7 +15,7 @@ import com.myJava.file.attributes.Attributes;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -71,7 +71,11 @@ implements FileSystemDriver {
     public File getCanonicalFile(File file) throws IOException {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
     }
-    
+
+    public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
+        throw new UnsupportedOperationException("This method is not supported by this implementation");
+    }
+
     public String getCanonicalPath(File file) throws IOException {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
     }

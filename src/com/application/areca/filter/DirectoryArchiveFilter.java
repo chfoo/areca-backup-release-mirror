@@ -16,7 +16,7 @@ import com.myJava.util.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -39,7 +39,6 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class DirectoryArchiveFilter extends AbstractArchiveFilter {
-    
     private File directory;
     
     public DirectoryArchiveFilter() {
@@ -52,18 +51,26 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
         this.directory = new File(parameters);
     }
     
+    public boolean acceptIteration(RecoveryEntry entry) {
+        return acceptStorage(entry);
+    }
+    
     /**
-     * Cette condition ne s'applique que sur les répertoires (pour des raisons d'optimisation).
-     * Les fichiers retournent systématiquement "true"
      */
-    public boolean accept(RecoveryEntry entry) {
+    public boolean acceptStorage(RecoveryEntry entry) {
         FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;        
         if (fEntry == null) {
             return false;
         } else if (FileSystemManager.isFile(fEntry.getFile())) {
-            return true;
+            return contains(directory, fEntry.getFile()) ? ! exclude : exclude;
         } else {
-            return contains(directory, fEntry.getFile());
+            if (contains(directory, fEntry.getFile())) {
+                return ! exclude;
+            } else if (contains(fEntry.getFile(), directory)) {
+                return true; // Always accept parent directories (exclusion or not)
+            } else {
+                return exclude;
+            }
         }
     }
     
@@ -80,10 +87,10 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
     
     private boolean contains(File rootDirectory, File checked) {
         if (checked == null || rootDirectory == null) {
-            return exclude;
+            return false;
         } else {               
-            if (rootDirectory.equals(checked)) {
-                return ! exclude;
+            if (rootDirectory.getAbsolutePath().equals(checked.getAbsolutePath())) {
+                return true;
             } else {
                 return contains(rootDirectory, FileSystemManager.getParentFile(checked));
             }

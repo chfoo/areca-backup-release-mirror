@@ -23,7 +23,7 @@ package com.myJava.file.archive.zip64;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
 interface ZipConstants {
     /*
@@ -102,6 +102,15 @@ interface ZipConstants {
     static final int ZIP64XTRALENGTH = 2 + 2 + 8 + 8 + 8 + 4;
     static final int ZIP64ENDLENGTH = 4 + 8 + 2 + 2 + 4 + 4 + 8 + 8 + 8 + 8 + 0 - 12;    
     static final int ZIP64VERSION = 45;
+    
+    /*
+     * Others
+     */
+    static long MVSIG = 0x08074b50L;   // Multi-volumes archive signature
+    static final int ZIPVERSION = 20;
+    static final short SIZE_SHORT = 2;
+    static final short SIZE_INT = 4;
+    static final short SIZE_LONG = 8;
     
     static final long MAX_INT = 0xFFFFFFFF;
 }

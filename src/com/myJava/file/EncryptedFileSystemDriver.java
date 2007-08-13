@@ -20,6 +20,7 @@ import javax.crypto.NoSuchPaddingException;
 
 import com.myJava.encryption.EncryptionUtil;
 import com.myJava.file.attributes.Attributes;
+import com.myJava.file.hash.HashFileSystemDriver;
 import com.myJava.util.EqualsHelper;
 import com.myJava.util.HashHelper;
 import com.myJava.util.ToStringHelper;
@@ -31,7 +32,7 @@ import com.myJava.util.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*

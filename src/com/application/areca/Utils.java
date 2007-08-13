@@ -1,7 +1,6 @@
 package com.application.areca;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -9,18 +8,18 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.GregorianCalendar;
 
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.CalendarUtils;
+import com.myJava.util.log.Logger;
 
 /**
  * Utilitaires
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -55,7 +54,12 @@ public class Utils {
     
     public static void initDateFormat(String format) {
         if (format != null && format.trim().length() != 0) {
-            DF = new SimpleDateFormat(format);
+            try {
+                DF = new SimpleDateFormat(format);
+            } catch (Throwable e) {
+                Logger.defaultLogger().warn("The following error occured during date format initialization : " + e.getMessage() + ". A default date format will be used.");
+                DF = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
+            }
         } else {
             DF = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
         }
@@ -109,11 +113,15 @@ public class Utils {
         String sFileDir = FileSystemManager.getAbsolutePath(fileDir);
         
         int index = sBaseDir.length();
-        char chr = sFileDir.charAt(index);
-	    if (chr == '/') { // Filter fileSystem separatorChar and zip entry separatorChar
-            return sFileDir.substring(index + 1);            
+        if (index < sFileDir.length()) {
+            char chr = sFileDir.charAt(index);
+    	    if (chr == '/' || chr =='\\') { // Filter fileSystem separatorChar and zip entry separatorChar
+                return sFileDir.substring(index + 1);            
+            } else {
+                return sFileDir.substring(index);
+            }
         } else {
-            return sFileDir.substring(index);
+            return "";
         }
     }   
     

@@ -14,7 +14,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -63,6 +63,7 @@ public class ZipEntrySerializedCollection extends SerializedCollection {
         out.writeLong(e.size);
         out.writeLong(e.csize);
         out.writeLong(e.time);
+        out.writeInt(e.volumeNumber);
         out.writeLong(e.offset);
         out.writeBoolean(e.extra == null);
         if (e.extra != null) {
@@ -84,6 +85,7 @@ public class ZipEntrySerializedCollection extends SerializedCollection {
         e.size = in.readLong();
         e.csize = in.readLong();
         e.time = in.readLong();
+        e.volumeNumber = in.readInt();
         e.offset = in.readLong();
         boolean extraNull = in.readBoolean();
         if (! extraNull) {

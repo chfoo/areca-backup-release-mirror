@@ -5,7 +5,6 @@ import java.util.regex.Pattern;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.application.areca.impl.FileSystemRecoveryEntry;
-import com.myJava.file.FileSystemManager;
 import com.myJava.util.EqualsHelper;
 import com.myJava.util.HashHelper;
 import com.myJava.util.PublicClonable;
@@ -18,7 +17,7 @@ import com.myJava.util.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -62,27 +61,21 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
         setRegex(parameters);
     }
     
-    /**
-     * Cette condition ne s'applique que sur les fichiers.
-     * Les répertoires retournent systématiquement "true"
-     */
-    public boolean accept(RecoveryEntry entry) {
+    public boolean acceptIteration(RecoveryEntry entry) {
+        return true;
+    }
+    
+    public boolean acceptStorage(RecoveryEntry entry) {
         FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;        
         if (fEntry == null) {
             return false;
-        } else if (FileSystemManager.isDirectory(((FileSystemRecoveryEntry)entry).getFile())) {
-            return (! (exclude && pattern.matcher(getStringToMatch(fEntry)).find()));
         } else {
-            if (pattern.matcher(getStringToMatch(fEntry)).find()) {
+            if (pattern.matcher(fEntry.getName()).find()) {
             	return !exclude;
             } else {
             	return exclude;
             }
         }
-    }
-    
-    private String getStringToMatch(FileSystemRecoveryEntry en) {
-    	return FileSystemManager.getAbsolutePath(en.getFile()).substring(FileSystemManager.getAbsolutePath(en.getRootDirectory()).length()+1);
     }
     
     public PublicClonable duplicate() {

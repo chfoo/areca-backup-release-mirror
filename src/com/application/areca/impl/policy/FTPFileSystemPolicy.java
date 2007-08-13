@@ -21,7 +21,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -199,16 +199,20 @@ implements FileSystemPolicy {
         FTPProxy pxClone = px.cloneProxy();
         try {
             pxClone.acquireLock("outputStream");
+            Logger.defaultLogger().info("Writing file : " + testFile + " ...");
             OutputStream out = pxClone.getFileOutputStream(testFile);
             out.write(fileContent.getBytes());
-            
+            out.flush();
+
             // Concurrent instructions
             px.getRemoteFileInfos(testFile);
             px.getRemoteFileInfos(testFile + ".non_existing");
-            
+
             // Write addtional content
-            out.write(fileContent.getBytes());            
+            out.write(fileContent.getBytes());  
+            out.flush();
             out.close();
+            Logger.defaultLogger().info("File written.");
         } finally {
             pxClone.disconnect();
         }
@@ -227,7 +231,7 @@ implements FileSystemPolicy {
             reader.close();
             if (result == null || (! result.equals(fileContent + fileContent))) {
                 Logger.defaultLogger().error("Invalid FTP Server : Unable to read files : [" + result + "] was read instead of [" + fileContent + fileContent + "]", "FTPFileSystemPolicy.validate()");
-                throw new ApplicationException("Invalid FTP Server : Unable to read and validate created files.");
+                throw new ApplicationException("Invalid FTP Server : Unable to read or create files.");
             }
         } finally {
             pxClone.disconnect();

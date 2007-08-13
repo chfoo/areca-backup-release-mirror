@@ -19,7 +19,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -125,6 +125,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
                         new File(computeFinalArchivePath()),
                         ArchiveTraceCache.getInstance().getTrace(this, context.getFinalArchiveFile()),
                         false,
+                        null,
                         false,
                         context); // --> Call to "clean" in "cancel unsensitive" mode
             } catch (IOException e) {
@@ -170,15 +171,20 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
             
             FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)entryToRecover;
             File archive = this.getLastArchive(date);
-            File sourceFile = new File(archive, entry.getName());
             
-            if (FileSystemManager.exists(sourceFile)) {
-                AbstractFileSystemMedium.tool.copy(sourceFile, targetDirectory);
+            if (entry.isLink()) {
+                recoverSymLink(entry, archive, targetDirectory);
+            } else {
+                File sourceFile = new File(archive, entry.getName());
+                
+                if (FileSystemManager.exists(sourceFile)) {
+                    AbstractFileSystemMedium.tool.copy(sourceFile, targetDirectory);
+                }
+                
+                String hash = ArchiveTraceCache.getInstance().getTrace(this, archive).getFileHash(entry);
+                File targetFile = new File(targetDirectory, FileSystemManager.getName(sourceFile));
+                FileSystemManager.setLastModified(targetFile, ArchiveTrace.extractFileModificationDateFromTrace(hash));
             }
-            
-            String hash = ArchiveTraceCache.getInstance().getTrace(this, archive).getFileHash(entry);
-            File targetFile = new File(targetDirectory, FileSystemManager.getName(sourceFile));
-            FileSystemManager.setLastModified(targetFile, ArchiveTrace.extractFileModificationDateFromTrace(hash));
         } catch (IOException e) {
             throw new ApplicationException(e);
         }

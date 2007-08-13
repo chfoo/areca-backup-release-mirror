@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.application.areca.context.ProcessContext;
 import com.application.areca.context.ReportingConfiguration;
+import com.application.areca.filter.ArchiveFilter;
+import com.application.areca.filter.FilterGroup;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.postprocess.PostProcessorList;
@@ -18,7 +20,6 @@ import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
 import com.application.areca.version.VersionInfos;
 import com.myJava.util.CalendarUtils;
-import com.myJava.util.DuplicateHelper;
 import com.myJava.util.EqualsHelper;
 import com.myJava.util.HashHelper;
 import com.myJava.util.PublicClonable;
@@ -34,7 +35,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -59,8 +60,10 @@ This file is part of Areca.
 public abstract class AbstractRecoveryTarget 
 implements HistoryEntryTypes, PublicClonable, Identifiable {
     
+    private static final String K_FILTERED = "filtered entries";
+    
     protected ArchiveMedium medium;
-    protected List filters = new ArrayList();
+    protected FilterGroup filterGroup = new FilterGroup();
     protected int id; // Numeric unique id of the target within its process
     protected String uid; // Unique identifier
     protected String targetName; // Name of the target
@@ -80,7 +83,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         other.uid = generateNewUID();
         other.targetName = "Copy of " + targetName;
         other.comments = comments;
-        other.filters = DuplicateHelper.duplicate(filters);
+        other.filterGroup = (FilterGroup)this.filterGroup.duplicate();
         other.postProcessors = (PostProcessorList)postProcessors.duplicate();
         other.setMedium((ArchiveMedium)medium.duplicate(), true);
     }
@@ -95,6 +98,14 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
 
     public void setRunning(boolean running) {
         this.running = running;
+    }
+
+    public FilterGroup getFilterGroup() {
+        return filterGroup;
+    }
+
+    public void setFilterGroup(FilterGroup filterGroup) {
+        this.filterGroup = filterGroup;
     }
 
     public int getId() {
@@ -176,20 +187,12 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         this.medium.setTarget(this, revalidateMedium);
     }
     
-    public ArchiveFilter getFilterAt(int i) {
-        return (ArchiveFilter)this.filters.get(i);
-    }
-    
     public void addFilter(ArchiveFilter filter) {
-        this.filters.add(filter);
-    }
-    
-    public int getFilterCount() {
-        return this.filters.size();
+        this.filterGroup.addFilter(filter);
     }
     
     public Iterator getFilterIterator() {
-        return this.filters.iterator();
+        return this.filterGroup.getFilterIterator();
     } 
     
     public History getHistory() {
@@ -637,19 +640,18 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
      * @param entry
      * @return
      */
-    protected boolean acceptEntry(RecoveryEntry entry, ProcessContext context) {
-        Iterator iter = this.getFilterIterator();
-        while (iter.hasNext()) {
-            ArchiveFilter filter = (ArchiveFilter)iter.next();
-            if (! filter.accept(entry)) {
-                context.getReport().addFilteredEntry();
-                if (requiresFilteredEntriesListing() && filter.traceFilteredFiles()) {
-                    context.getReport().getFilteredEntriesData().addFilteredEntry(entry, filter);
-                }
-                return false;
+    protected boolean acceptEntry(RecoveryEntry entry, boolean storage, ProcessContext context) {
+        boolean accept = storage ? filterGroup.acceptStorage(entry) : filterGroup.acceptIteration(entry);
+        
+        if (! accept) {
+            context.getReport().addFilteredEntry();
+            if (requiresFilteredEntriesListing()) {
+                context.getReport().getFilteredEntriesData().addFilteredEntry(entry, K_FILTERED);
             }
+            return false;
+        } else {
+            return true;
         }
-        return true;
     }
     
     protected boolean requiresFilteredEntriesListing() {

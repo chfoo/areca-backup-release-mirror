@@ -24,7 +24,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -174,13 +174,14 @@ implements UserInformationChannel, Colors, Listener {
     }
 
     public void updateCurrentTask(final long taskIndex, final long taskCount, final String taskDescription) {
+        if (taskCount != 0) {
+            Logger.defaultLogger().info(taskDescription);
+        }
+        
         if (! synthetic) {
             SecuredRunner.execute(parent, new Runnable() {
                 public void run() {
                     lblMessage.setText(format(currentMessage, taskDescription));
-                    if (taskCount != 0) {
-                        Logger.defaultLogger().info(taskDescription);
-                    }
                 }
             });
         }

@@ -1,18 +1,12 @@
 package com.application.areca.filter;
 
-import com.application.areca.ArchiveFilter;
-import com.application.areca.RecoveryEntry;
-import com.myJava.util.EqualsHelper;
-import com.myJava.util.HashHelper;
-
-
 /**
  * Classe de base des filters.
  * Définit la notion de 'including'/'excluding'
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -54,41 +48,7 @@ public abstract class AbstractArchiveFilter implements ArchiveFilter {
         this.exclude = exclude;
     }
     
-    public abstract boolean accept(RecoveryEntry entry);
-    
     public boolean requiresParameters() {
         return true;
-    }
-
-    public boolean equals(Object obj) {
-        if (! EqualsHelper.checkClasses(this, obj)) {
-            return false;
-        } else {
-            AbstractArchiveFilter other = (AbstractArchiveFilter)obj;
-            return (
-                    EqualsHelper.equals(other.getStringParameters(), this.getStringParameters())
-                    && EqualsHelper.equals(other.isExclude(), this.isExclude())
-            );
-        }
-    }
-    
-    public int hashCode() {
-        int hash = HashHelper.initHash(this);
-        hash = HashHelper.hash(hash, this.exclude);
-        hash = HashHelper.hash(hash, this.getStringParameters());
-        return hash;
-    }
-    
-    public boolean traceFilteredFiles() {
-        return true;
-    }
-    
-    public int compareTo(Object o) {
-        if (o == null) {
-            return 1;
-        } else {
-            ArchiveFilter other = (ArchiveFilter)o;
-            return (this.getClass().getName() + this.getStringParameters()).compareTo(other.getClass().getName() + other.getStringParameters());
-        }
     }
 }

@@ -4,6 +4,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -12,6 +14,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
 import com.application.areca.AbstractRecoveryTarget;
@@ -19,7 +23,7 @@ import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.LocalPreferences;
-import com.application.areca.launcher.gui.composites.ArchiveListComposite;
+import com.application.areca.launcher.gui.composites.PhysicalViewComposite;
 import com.application.areca.launcher.gui.composites.HistoryComposite;
 import com.application.areca.launcher.gui.composites.IndicatorsComposite;
 import com.application.areca.launcher.gui.composites.LogComposite;
@@ -37,7 +41,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -82,6 +86,12 @@ public class MainWindow extends AbstractWindow {
         Application.getInstance().initMenus(shell);
 
         readShellPreferences(shell);
+        
+        shell.addListener(SWT.Show, new Listener() {
+            public void handleEvent(Event event) {
+                application.checkSystem();
+            }
+        });
     }
 
     protected Control createContents(Composite parent) {
@@ -120,7 +130,7 @@ public class MainWindow extends AbstractWindow {
 
         progressContainer = new ProgressComposite(tabs);
         
-        addFolderItem(RM.getLabel("mainpanel.physical.label"), ArecaImages.ICO_REF_TARGET, new ArchiveListComposite(tabs));
+        addFolderItem(RM.getLabel("mainpanel.physical.label"), ArecaImages.ICO_REF_TARGET, new PhysicalViewComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.logical.label"), ArecaImages.ICO_REF_TARGET, new LogicalViewComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.history.label"), ArecaImages.ICO_HISTORY, new HistoryComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.indicators.label"), ArecaImages.ICO_TARGET_NEW, new IndicatorsComposite(tabs));
@@ -144,6 +154,7 @@ public class MainWindow extends AbstractWindow {
     
     public void focusOnProgress() {
         this.tabs.setSelection(6);
+        this.application.getFolderMonitor().handleSelection(this.tabs.getItem(6));
     }
 
     public Composite getProgressContainer() {

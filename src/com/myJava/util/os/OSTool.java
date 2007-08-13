@@ -1,12 +1,10 @@
 package com.myJava.util.os;
 
 import java.lang.reflect.Method;
-import java.net.NetworkInterface;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -18,7 +16,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -215,7 +213,7 @@ public class OSTool {
     }
     
     public static String getVMDescription() {
-        return System.getProperty("java.runtime.name") + " - " + System.getProperty("java.runtime.version") + " - " + System.getProperty("java.specification.vendor");
+        return System.getProperty("java.runtime.name") + " - " + System.getProperty("java.runtime.version") + " - " + getJavaVendor();
     }
     
     public static boolean isJavaVersionGreaterThanOrEquals(int[] referenceVersion) {
@@ -228,6 +226,15 @@ public class OSTool {
             }
         }
         return (referenceVersion.length <= JAVA_VERSION.length);
+    }
+    
+    public static String getJavaVendor() {
+        String vd = System.getProperty("java.vm.vendor"); 
+        if (vd == null || vd.trim().length() == 0) {
+            vd = System.getProperty("java.vendor"); 
+        }
+        
+        return vd;
     }
     
     public static String formatJavaVersion(int[] version) {

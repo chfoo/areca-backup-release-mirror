@@ -1,5 +1,6 @@
-package com.application.areca;
+package com.application.areca.filter;
 
+import com.application.areca.RecoveryEntry;
 import com.myJava.util.PublicClonable;
 
 /**
@@ -7,7 +8,7 @@ import com.myJava.util.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -29,14 +30,22 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public interface ArchiveFilter extends Comparable, PublicClonable {
+public interface ArchiveFilter 
+extends PublicClonable {
 	
+    /**
+     * Indique si l'entrée doit être acceptée ou refusée
+     * @param entry
+     * @return
+     */
+    public boolean acceptIteration(RecoveryEntry entry);
+    
 	/**
 	 * Indique si l'entrée doit être acceptée ou refusée
 	 * @param entry
 	 * @return
 	 */
-    public boolean accept(RecoveryEntry entry);
+    public boolean acceptStorage(RecoveryEntry entry);
     
     /**
      * Indique si le filtre fonctionne en inclusion ou exclusion
@@ -64,6 +73,4 @@ public interface ArchiveFilter extends Comparable, PublicClonable {
      * Tells wether the filter needs to be parametrized or not 
      */
     public boolean requiresParameters();
-    
-    public boolean traceFilteredFiles();
 }

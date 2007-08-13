@@ -1,6 +1,7 @@
 package com.application.areca.launcher.gui.composites;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
@@ -27,6 +28,8 @@ import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
+import com.application.areca.impl.IncrementalDirectoryMedium;
+import com.application.areca.impl.IncrementalZipMedium;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
@@ -37,12 +40,13 @@ import com.application.areca.metadata.content.ArchiveContentManager;
 import com.application.areca.metadata.manifest.Manifest;
 import com.myJava.file.FileSystemDriver;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.FileTool;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -64,15 +68,17 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ArchiveListComposite 
+public class PhysicalViewComposite 
 extends Composite 
 implements SelectionListener, Refreshable { 
+    
+    private static final FileTool TOOL = new FileTool();
     
     private Table table;
     private TableViewer viewer;
     private Application application = Application.getInstance();
     
-    public ArchiveListComposite(final CTabFolder parent) {
+    public PhysicalViewComposite(final CTabFolder parent) {
         super(parent, SWT.NONE);
         setLayout(new FillLayout());
 
@@ -174,26 +180,34 @@ implements SelectionListener, Refreshable {
     private void initSize(TableItem item, int column, File archive, AbstractIncrementalFileSystemMedium medium) {
         if (FileSystemManager.isFile(archive)) {
             item.setForeground(column, Colors.C_BLACK);
-            //item.setFont(column, normal);
             item.setText(column, Utils.formatFileSize(FileSystemManager.length(archive)));
         } else if (FileSystemManager.getAccessEfficiency(archive) > FileSystemDriver.ACCESS_EFFICIENCY_POOR) {
-            try {
-                ArchiveContent ctn = ArchiveContentManager.getContentForArchive(medium, archive);
-                Iterator iter = ctn.getContent();
-                long size = 0;
-                while (iter.hasNext()) {
-                    RecoveryEntry entry = (RecoveryEntry)iter.next();
-                    size += entry.getSize();
+            if (medium instanceof IncrementalDirectoryMedium) {
+                try {
+                    ArchiveContent ctn = ArchiveContentManager.getContentForArchive(medium, archive);
+                    Iterator iter = ctn.getContent();
+                    long size = 0;
+                    while (iter.hasNext()) {
+                        RecoveryEntry entry = (RecoveryEntry)iter.next();
+                        size += entry.getSize();
+                    }
+                    item.setForeground(column, Colors.C_BLACK);
+                    item.setText(column, Utils.formatFileSize(size));
+                } catch (IOException e) {
+                    item.setText(column, e.getMessage());
                 }
+            } else if (medium instanceof IncrementalZipMedium) {
                 item.setForeground(column, Colors.C_BLACK);
-                //item.setFont(column, normal);
-                item.setText(column, Utils.formatFileSize(size));
-            } catch (IOException e) {
-                item.setText(column, e.getMessage());
+                try {
+                    item.setText(column, Utils.formatFileSize(TOOL.getSize(archive)));
+                } catch (FileNotFoundException e) {
+                    item.setText(column, Utils.formatFileSize(0));
+                }
+            } else {
+                throw new IllegalArgumentException("Unsupported medium implementation");
             }
         } else {
             item.setForeground(column, Colors.C_LIGHT_GRAY);
-            //item.setFont(column, italic);
             item.setText(column, ResourceManager.instance().getLabel("mainpanel.nosize.label"));
         }
     }

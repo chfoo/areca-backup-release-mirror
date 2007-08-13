@@ -18,7 +18,7 @@ import com.myJava.file.FileTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -46,6 +46,8 @@ public class AbstractMetadataAdapter {
     protected static final String VERSION_HEADER = "#### MDT_FORMAT_VERSION=";
     protected static final String VERSION_1 = VERSION_HEADER + "1"; // Initial metadata version : uses the default character encoding
     protected static final String VERSION_2 = VERSION_HEADER + "2"; // Latest metadata version : uses UTF-8 encoding
+    
+    private FileTool TOOL = new FileTool();
     
     /**
      * Optional object pool.
@@ -81,8 +83,7 @@ public class AbstractMetadataAdapter {
         if (outputStream == null) {
             File parent = FileSystemManager.getParentFile(file);
             if (! FileSystemManager.exists(parent)) {
-                FileTool tool = new FileTool();
-                tool.createDir(parent);
+                TOOL.createDir(parent);
             }
             
             if (isCompressed) {
@@ -124,6 +125,7 @@ public class AbstractMetadataAdapter {
         }
         
         if (! FileSystemManager.exists(file)) {
+            TOOL.createDir(FileSystemManager.getParentFile(file));
             FileSystemManager.createNewFile(file);
         }
     }

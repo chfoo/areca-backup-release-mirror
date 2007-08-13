@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -101,8 +101,9 @@ public abstract class AbstractMedium implements ArchiveMedium {
 	    				e.setStatus(EntryArchiveData.STATUS_FIRST_BACKUP);
 	    				list.add(e);
 	    			} else if (status == EntryArchiveData.STATUS_UNCHANGED) {
-	    				e.setStatus(EntryArchiveData.STATUS_MISSING);
-	    				list.add(e);
+                        // Special case : Symlink management
+                        e.setStatus(EntryArchiveData.STATUS_FIRST_BACKUP);
+                        list.add(e);
 	    			}
 	    		} else {
 	    			if (status == EntryArchiveData.STATUS_NONEXISTANT) {
@@ -118,7 +119,11 @@ public abstract class AbstractMedium implements ArchiveMedium {
 	    				}
 						list.add(e);
 	    			} else if (status == EntryArchiveData.STATUS_UNCHANGED) {
-	    				// no store
+                        if (prevStatus == EntryArchiveData.STATUS_NONEXISTANT) {
+                            // Special case : Symlink management
+                            e.setStatus(EntryArchiveData.STATUS_CREATED);
+                            list.add(e);
+                        }
 	    			}
 	    		}
     		}

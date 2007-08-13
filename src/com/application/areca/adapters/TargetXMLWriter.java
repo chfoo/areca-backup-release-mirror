@@ -2,20 +2,18 @@ package com.application.areca.adapters;
 
 import java.util.Iterator;
 
-import com.application.areca.ArchiveFilter;
+import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.filter.FileDateArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
 import com.application.areca.filter.FileSizeArchiveFilter;
+import com.application.areca.filter.FilterGroup;
 import com.application.areca.filter.LinkFilter;
 import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.filter.RegexArchiveFilter;
-import com.application.areca.impl.AbstractIncrementalArchiveMedium;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.impl.IncrementalDirectoryMedium;
-import com.application.areca.impl.IncrementalTGZMedium;
-import com.application.areca.impl.IncrementalZip64Medium;
 import com.application.areca.impl.IncrementalZipMedium;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
@@ -32,7 +30,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -85,6 +83,11 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(encode("" + tg.getUid()));
         
         sb.append(" ");
+        sb.append(XML_TARGET_FOLLOW_SYMLINKS);
+        sb.append("=");
+        sb.append(encode("" + ! tg.isTrackSymlinks()));
+        
+        sb.append(" ");
         sb.append(XML_TARGET_NAME);
         sb.append("=");
         sb.append(encode("" + tg.getTargetName()));
@@ -104,33 +107,15 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         // Support
         if (IncrementalDirectoryMedium.class.isAssignableFrom(tg.getMedium().getClass())) {
             serializeMedium((IncrementalDirectoryMedium)tg.getMedium());            
-        } else if (AbstractIncrementalArchiveMedium.class.isAssignableFrom(tg.getMedium().getClass())) {
-            serializeMedium((AbstractIncrementalArchiveMedium)tg.getMedium());
+        } else if (IncrementalZipMedium.class.isAssignableFrom(tg.getMedium().getClass())) {
+            serializeMedium((IncrementalZipMedium)tg.getMedium());
         }
        
         // Filtres
-        Iterator iter = tg.getFilterIterator();
-        while (iter.hasNext()) {
-            Object filter = iter.next();
-            if (DirectoryArchiveFilter.class.isAssignableFrom(filter.getClass())) {
-                serializeFilter((DirectoryArchiveFilter)filter);
-            } else if (FileExtensionArchiveFilter.class.isAssignableFrom(filter.getClass())) {
-                serializeFilter((FileExtensionArchiveFilter)filter);            
-            } else if (RegexArchiveFilter.class.isAssignableFrom(filter.getClass())) {
-                serializeFilter((RegexArchiveFilter)filter); 
-            } else if (FileSizeArchiveFilter.class.isAssignableFrom(filter.getClass())) {
-                serializeFilter((FileSizeArchiveFilter)filter); 
-            } else if (LinkFilter.class.isAssignableFrom(filter.getClass())) {
-                serializeFilter((LinkFilter)filter); 
-            } else if (LockedFileFilter.class.isAssignableFrom(filter.getClass())) {
-                serializeFilter((LockedFileFilter)filter); 
-            } else if (FileDateArchiveFilter.class.isAssignableFrom(filter.getClass())) {
-                serializeFilter((FileDateArchiveFilter)filter); 
-            }
-        }
+        serializeFilter(tg.getFilterGroup());
         
         // Postprocessors
-        iter = tg.getPostProcessors().iterator();
+        Iterator iter = tg.getPostProcessors().iterator();
         while (iter.hasNext()) {
             Object pp = iter.next();
             if (FileDumpPostProcessor.class.isAssignableFrom(pp.getClass())) {
@@ -148,7 +133,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XML_TARGET);
         sb.append(">");            
     }
-    
+
     protected void serializeProcessor(FileDumpPostProcessor pp) {
         sb.append("\n<");
         sb.append(XML_POSTPROCESSOR_DUMP);
@@ -227,6 +212,45 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("=");
         sb.append(encode(pp.getCommandParameters()));
         sb.append("/>");        
+    }
+    
+    protected void serializeFilter(FilterGroup filters) {
+        sb.append("\n<");
+        sb.append(XML_FILTER_GROUP);
+        sb.append(" ");
+        sb.append(XML_FILTER_EXCLUDE);
+        sb.append("=");
+        sb.append(encode("" + filters.isExclude()));
+        sb.append(" ");
+        sb.append(XML_FILTER_GROUP_OPERATOR);
+        sb.append("=");
+        sb.append(encode(filters.isAnd() ? XML_FILTER_GROUP_OPERATOR_AND : XML_FILTER_GROUP_OPERATOR_OR));
+        sb.append(" ");
+        sb.append(">");             
+        Iterator iter = filters.getFilterIterator();
+        while (iter.hasNext()) {
+            Object filter = iter.next();
+            if (DirectoryArchiveFilter.class.isAssignableFrom(filter.getClass())) {
+                serializeFilter((DirectoryArchiveFilter)filter);
+            } else if (FileExtensionArchiveFilter.class.isAssignableFrom(filter.getClass())) {
+                serializeFilter((FileExtensionArchiveFilter)filter);            
+            } else if (RegexArchiveFilter.class.isAssignableFrom(filter.getClass())) {
+                serializeFilter((RegexArchiveFilter)filter); 
+            } else if (FileSizeArchiveFilter.class.isAssignableFrom(filter.getClass())) {
+                serializeFilter((FileSizeArchiveFilter)filter); 
+            } else if (LinkFilter.class.isAssignableFrom(filter.getClass())) {
+                serializeFilter((LinkFilter)filter); 
+            } else if (LockedFileFilter.class.isAssignableFrom(filter.getClass())) {
+                serializeFilter((LockedFileFilter)filter); 
+            } else if (FileDateArchiveFilter.class.isAssignableFrom(filter.getClass())) {
+                serializeFilter((FileDateArchiveFilter)filter); 
+            } else if (FilterGroup.class.isAssignableFrom(filter.getClass())) {
+                serializeFilter((FilterGroup)filter); 
+            }
+        }
+        sb.append("\n</");
+        sb.append(XML_FILTER_GROUP);
+        sb.append(">");     
     }
     
     protected void serializeFilter(RegexArchiveFilter filter) {
@@ -312,22 +336,26 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("/>");        
     }
     
-    protected void serializeMedium(AbstractIncrementalArchiveMedium medium) {
+    protected void serializeMedium(IncrementalZipMedium medium) {
         sb.append("\n<");
         sb.append(XML_MEDIUM);
         sb.append(" ");
         sb.append(XML_MEDIUM_TYPE);
         sb.append("=");
-        if (IncrementalZipMedium.class.isAssignableFrom(medium.getClass())) {
-            sb.append(encode(XML_MEDIUM_TYPE_ZIP));
-        } else if (IncrementalZip64Medium.class.isAssignableFrom(medium.getClass())) {
+        if (medium.isUseZip64()) {
             sb.append(encode(XML_MEDIUM_TYPE_ZIP64));
-        } else if (IncrementalTGZMedium.class.isAssignableFrom(medium.getClass())) {
-            sb.append(encode(XML_MEDIUM_TYPE_TGZ));
         } else {
-            throw new IllegalArgumentException(medium.getClass().getName() + " implementation not supported");
+            sb.append(encode(XML_MEDIUM_TYPE_ZIP));
         }
         sb.append(" ");
+        
+        if (medium.isMultiVolumes()) {
+            sb.append(XML_MEDIUM_VOLUME_SIZE);
+            sb.append("=");
+            sb.append(encode("" + medium.getVolumeSize()));
+            sb.append(" ");            
+        }
+        
         this.serializeMediumGeneralData(medium);     
         sb.append("/>");   
     } 

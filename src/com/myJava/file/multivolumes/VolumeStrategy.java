@@ -1,19 +1,15 @@
-package com.application.areca.impl;
+package com.myJava.file.multivolumes;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import com.myJava.file.archive.ArchiveAdapter;
-import com.myJava.file.archive.zip64.Zip64ArchiveAdapter;
-import com.myJava.util.PublicClonable;
-
 /**
- * Zip64 storage medium
+ * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -35,23 +31,10 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class IncrementalZip64Medium extends AbstractIncrementalArchiveMedium {
-    
-    public PublicClonable duplicate() {
-        IncrementalZip64Medium other = new IncrementalZip64Medium();
-        copyAttributes(other);
-        return other;
-    }
-    
-    protected ArchiveAdapter getArchiveAdapter(OutputStream out) throws IOException {
-        return new Zip64ArchiveAdapter(out);
-    }
-    
-    protected ArchiveAdapter getArchiveAdapter(InputStream in, long length) throws IOException {
-        return new Zip64ArchiveAdapter(in, length); 
-    }
-    
-    protected String getArchiveExtension() {
-        return ".zip";
-    }
+public interface VolumeStrategy {
+    public OutputStream getNextOutputStream() throws IOException;
+    public InputStream getNextInputStream() throws IOException;    
+    public int getVolumesCount();
+    public int getCurrentVolumeNumber();
+    public void close() throws IOException;
 }

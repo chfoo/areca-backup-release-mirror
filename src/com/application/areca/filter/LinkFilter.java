@@ -15,7 +15,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -45,11 +45,15 @@ public class LinkFilter extends AbstractArchiveFilter {
     public void acceptParameters(String parameters) {
     }
     
+    public boolean acceptIteration(RecoveryEntry entry) {
+        return acceptStorage(entry);
+    }
+    
     /**
      * Cette condition ne s'applique que sur les répertoires (pour des raisons d'optimisation).
      * Les fichiers retournent systématiquement "true"
      */
-    public boolean accept(RecoveryEntry entry) {
+    public boolean acceptStorage(RecoveryEntry entry) {
         FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;        
         if (fEntry == null) {
             return false;
@@ -80,7 +84,7 @@ public class LinkFilter extends AbstractArchiveFilter {
     public boolean requiresParameters() {
         return false;
     }
-    
+
     public boolean equals(Object obj) {
         if (obj == null || (! (obj instanceof LinkFilter)) ) {
             return false;

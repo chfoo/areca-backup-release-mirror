@@ -14,6 +14,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -36,7 +38,7 @@ import com.myJava.file.FileNameUtil;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -69,6 +71,7 @@ implements MouseListener, Listener
     private RecoveryEntry[] entries;
     private boolean displayNonStoredItemsSize = false;
     private boolean logicalView = false;
+    private Font italic;
     
     public ArchiveExplorer(Composite parent) {
         super(parent, SWT.NONE);
@@ -141,6 +144,12 @@ implements MouseListener, Listener
         }
         
         String str = data.name;
+        
+        if (data.entry != null && data.entry.isLink()) {
+            // SymLinks
+            item.setFont(deriveItalicFont(item));
+        }
+        
         if (isDirectory(str)) {
             str = data.name.substring(0, data.name.length() - 1);
             if (str.length() == 0) {
@@ -152,11 +161,25 @@ implements MouseListener, Listener
         }
 
         item.setText(0, str);
-        if (data.status == RecoveryEntry.STATUS_NOT_STORED && (! displayNonStoredItemsSize)) {
+        if (
+                (
+                        data.status == RecoveryEntry.STATUS_NOT_STORED
+                        || (data.entry != null && data.entry.isLink())
+                ) && (! displayNonStoredItemsSize)
+        ) {
             item.setText(1, " ");
         } else {
             item.setText(1, Utils.formatFileSize(data.size));
         }
+    }
+    
+    private Font deriveItalicFont(TreeItem item) {
+        if (this.italic == null) {
+            FontData dt = item.getFont().getFontData()[0];
+            FontData dtItalic = new FontData(dt.name, dt.height, SWT.ITALIC);
+            return new Font(item.getDisplay(), new FontData[] {dtItalic});
+        } 
+        return italic;
     }
     
     private TreeItem addNode(String fullPath, short status, long size, RecoveryEntry entry, Hashtable table) {        

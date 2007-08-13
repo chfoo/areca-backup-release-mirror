@@ -1,21 +1,18 @@
 package com.application.areca.filter;
 
-import java.io.IOException;
-
 import com.application.areca.RecoveryEntry;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.EqualsHelper;
 import com.myJava.util.HashHelper;
 import com.myJava.util.PublicClonable;
-import com.myJava.util.log.Logger;
 
 /**
  * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -45,19 +42,21 @@ public class LockedFileFilter extends AbstractArchiveFilter {
     public void acceptParameters(String parameters) {
     }
     
+    public boolean acceptIteration(RecoveryEntry entry) {
+        return true;
+    }
+    
     /**
      * Cette condition ne s'applique que sur les répertoires (pour des raisons d'optimisation).
      * Les fichiers retournent systématiquement "true"
      */
-    public boolean accept(RecoveryEntry entry) {
+    public boolean acceptStorage(RecoveryEntry entry) {
         FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;      
-        
-        if (FileSystemManager.isDirectory(fEntry.getFile())) {
-            return true;
-        }
         
         if (fEntry == null) {
             return false;
+        } else if (FileSystemManager.isDirectory(fEntry.getFile())) {
+            return true;
         } else {
             if (FileSystemManager.isReadable(fEntry.getFile())) {
                 return exclude;

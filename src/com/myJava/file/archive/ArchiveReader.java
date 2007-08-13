@@ -7,11 +7,13 @@ import java.io.InputStream;
 
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.util.Utilitaire;
+import com.myJava.util.log.Logger;
 
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -61,7 +63,7 @@ public class ArchiveReader {
     public void injectIntoDirectory(File dir, String[] entriesToRecover) throws IOException {
         if (entriesToRecover != null) {
             for (int i=0; i<entriesToRecover.length; i++) {
-                entriesToRecover[i] = trimSlashes(entriesToRecover[i]);
+                entriesToRecover[i] = Utilitaire.trimSlashes(entriesToRecover[i]);
             }
         }
         
@@ -73,7 +75,7 @@ public class ArchiveReader {
             String fileName;
             while((fileName = adapter.getNextEntry()) != null) {
                 try {
-                    if (entriesToRecover == null || this.passFilter(fileName, entriesToRecover)) {
+                    if (entriesToRecover == null || Utilitaire.passFilter(Utilitaire.trimSlashes(fileName), entriesToRecover)) {
                         File target = new File(dir, fileName);
 
 	                    if (FileSystemManager.exists(target)) {
@@ -83,6 +85,12 @@ public class ArchiveReader {
 	                    tool.createDir(FileSystemManager.getParentFile(target));
 	                    tool.copy(adapter.getArchiveInputStream(), FileSystemManager.getFileOutputStream(target), false, true);    
                     }
+                } catch (IOException e) {
+                    Logger.defaultLogger().error(e);
+                    throw e;
+                } catch (RuntimeException e) {
+                    Logger.defaultLogger().error(e);
+                    throw e;
                 } finally {
                     adapter.closeEntry();
                 }
@@ -90,42 +98,7 @@ public class ArchiveReader {
         } finally {
             adapter.close();
         }
-    }   
-    
-    private String trimSlashes(String orig) {
-        if (orig == null || orig.length() == 0) {
-            return orig;
-        } else if (orig.length() == 1) {
-            if (orig.charAt(0) == '/') {
-                return "";
-            } else {
-                return orig;
-            }
-        } else {
-	        boolean t0 = orig.charAt(0) == '/';
-	        boolean tn = orig.charAt(orig.length() - 1) == '/';
-	        if (t0 && tn) {
-	            return orig.substring(1, orig.length() - 1);
-	        } else if (t0) {
-	            return orig.substring(1);
-	        } else if (tn) {
-	            return orig.substring(0, orig.length() - 1);
-	        } else {
-	            return orig;
-	        }
-        }
-    }
-    
-    private boolean passFilter(String entry, String[] filter) {
-        String test = trimSlashes(entry);
-        for (int i=0; i<filter.length; i++) {
-            
-            if (filter[i].length() == 0 || test.equals(filter[i]) || test.startsWith(filter[i] + "/")) {
-                return true;
-            }
-        }
-        return false;
-    }
+    } 
     
     public void close() throws IOException {
         adapter.close();

@@ -15,7 +15,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -52,10 +52,12 @@ public class VersionInfos {
     						+ OSTool.formatJavaVersion(OSTool.getJavaVersion()) 
     						+ ") does not meet this requirement.\n\nPlease go to http://java.sun.com/javase/downloads/ and get a newer version of Java.\n "; 
     
+    public static String VENDOR_MSG = "CAUTION : The Java Runtime Environment you are currently using has been released by '" + OSTool.getJavaVendor() + "'.\nIt seems that some open source Java Virtual Machines have problems dealing with some specific filenames characters (German 'Umlaut' for instance).\nIt is so HIGHLY advised to use Sun Microsystem's Java Runtime Environment to run Areca.\n(http://www.java.com/download/)";
+    
     static {
         
         // INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-        BUILD_ID = -1700699344456460829L;
+        BUILD_ID = -4899974077672581254L;
         
         // INIT VERSION DATA
         VERSIONS.add(new VersionData("1.0", new GregorianCalendar(2005, 4, 1), "Backup engine implementation."));
@@ -113,7 +115,8 @@ public class VersionInfos {
         VERSIONS.add(new VersionData("5.0.2", new GregorianCalendar(2007, 5, 5), "Bug fix : directories starting with '#' were not processed properly."));
         VERSIONS.add(new VersionData("5.1", new GregorianCalendar(2007, 5, 17), "Better multithreading management; User interface enhancements (Archive's files edition feature & improved target deletion)."));
         VERSIONS.add(new VersionData("5.2", new GregorianCalendar(2007, 5, 27), "Zip64 bug fix; Russian translation; Mail reports enhancements; Shell script dynamic parameters."));
-        VERSIONS.add(new VersionData("5.2.1", new GregorianCalendar(2007, 6, 22), "Permission management bug fix; Post-processors enhancements; Locked file filter enhancements; FTP enhancements."));        
+        VERSIONS.add(new VersionData("5.2.1", new GregorianCalendar(2007, 6, 22), "Permission management bug fix; Post-processors enhancements; Locked file filter enhancements; FTP enhancements."));
+        VERSIONS.add(new VersionData("5.3", new GregorianCalendar(2007, 7, 11), "Dutch and Italian translation; Zip split support; Symbolic links support."));        
 
         Iterator iter = VERSIONS.iterator();
         while (iter.hasNext()) {
@@ -128,6 +131,15 @@ public class VersionInfos {
 
     public static List getVersions() {
         return VERSIONS;
+    }
+    
+    /**
+     * Some open source VM implementations have problems dealing with some filenames characters
+     * (like german "Umlaut") ... so it is highly advised to use Sun Microsystem's VM implementation.
+     */
+    public static boolean checkJavaVendor() {
+        String vendor = OSTool.getJavaVendor();
+        return (vendor != null && vendor.toLowerCase().indexOf("free software foundation") == -1);
     }
     
     public static String formatVersionDate(GregorianCalendar date) {

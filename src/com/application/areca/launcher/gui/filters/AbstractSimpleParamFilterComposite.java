@@ -7,13 +7,13 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.ArchiveFilter;
+import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.launcher.gui.FilterEditionWindow;
 
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*

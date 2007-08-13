@@ -11,7 +11,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -38,6 +38,7 @@ public class FTPFileInputStream extends InputStream {
     private FTPProxy proxy;
     private InputStream in;
     private String ownerId;
+    private boolean closed;
 
     /**
      * @param proxy
@@ -48,16 +49,27 @@ public class FTPFileInputStream extends InputStream {
         this.proxy = proxy;
         this.in = in;
         this.ownerId = ownerId;
+        this.closed = false;
     }
 
     public int available() throws IOException {
-        return in.available();
+        if (in != null) {
+            return in.available();
+        } else {
+            return 0;
+        }
     }
 
     public void close() throws IOException {
         try {
+            if (closed) {
+                throw new IOException("Stream already closed.");
+            }
             proxy.debug("InputStream : close()");
-            in.close();
+            if (in != null) {
+                in.close();
+            }
+            this.closed = true;
         } catch (Exception e) {
             Logger.defaultLogger().error(e);
             throw new IOException(e.getMessage());
@@ -73,30 +85,54 @@ public class FTPFileInputStream extends InputStream {
     }
     
     public synchronized void mark(int readlimit) {
-        in.mark(readlimit);
+        if (in != null) {
+            in.mark(readlimit);   
+        }
     }
     
     public boolean markSupported() {
-        return in.markSupported();
+        if (in != null) {
+            return in.markSupported();
+        } else {
+            return false;
+        }
     }
     
     public int read() throws IOException {
-        return in.read();
+        if (in != null) {
+            return in.read();
+        } else {
+            return -1;
+        }
     }
     
     public int read(byte[] b, int off, int len) throws IOException {
-        return in.read(b, off, len);
+        if (in != null) {
+            return in.read(b, off, len);
+        } else {
+            return -1;
+        }
     }
     
     public int read(byte[] b) throws IOException {
-        return in.read(b);
+        if (in != null) {
+            return in.read(b);
+        } else {
+            return -1;
+        }
     }
     
     public synchronized void reset() throws IOException {
-        in.reset();
+        if (in != null) {
+            in.reset();
+        }
     }
     
     public long skip(long n) throws IOException {
-        return in.skip(n);
+        if (in != null) {
+            return in.skip(n);
+        } else {
+            return 0;
+        }
     }
 }

@@ -14,10 +14,14 @@ import com.myJava.file.attributes.AttributesHelper;
 import com.myJava.util.log.Logger;
 
 /**
+ * Trace format : 
+ * File :       <SIZE>#-#<LASTMODIF>#-#<ATTRIBUTES>(optional)
+ * Dir :                    !D!<LASTMODIF>#-#<ATTRIBUTES>(optional)
+ * Link :                  !S!<PATH> 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -61,12 +65,22 @@ public class ArchiveTrace {
      */
     private static final String DIRECTORY_MARKER = "!D!";
     
+    /**
+     * Symlink marker
+     */
+    private static final String SYMLINK_MARKER = "!S!";
+    
+    private static final char SL_DIR_PREFIX = 'd';
+    private static final char SL_FILE_PREFIX = 'f';
+    
     private Map files;
     private Map directories;
+    private Map symLinks;
     
     public ArchiveTrace() {
         files = new HashMap();
         directories = new HashMap();
+        symLinks = new HashMap();
     }
     
     /**
@@ -111,6 +125,14 @@ public class ArchiveTrace {
         }
     }
     
+    public static String extractSymLinkPathFromTrace(String trace) {
+        return trace.substring(1);
+    }
+    
+    public static boolean extractSymLinkFileFromTrace(String trace) {
+        return trace.charAt(0) == SL_FILE_PREFIX;
+    }
+    
     public static Attributes extractDirectoryAttributesFromTrace(String trace) {
         int idx1 = trace.indexOf(INTERNAL_SEP);
         if (idx1 < 0) {
@@ -128,6 +150,10 @@ public class ArchiveTrace {
         return this.directories.entrySet();
     }
     
+    public Set symLinkEntrySet() {
+        return this.symLinks.entrySet();
+    }
+    
     public Set fileKeySet() {
         return this.files.keySet();
     }
@@ -138,6 +164,10 @@ public class ArchiveTrace {
     
     public int directorySize() {
         return directories.size();
+    }
+    
+    public int symLinkSize() {
+        return symLinks.size();
     }
     
     public Set getDirectoryList() {
@@ -152,33 +182,42 @@ public class ArchiveTrace {
         return this.directories;
     }
     
-    public void merge(ArchiveTrace other, boolean mergeDirectories) {
+    public Map getSymLinkMap() {
+        return this.symLinks;
+    }
+    
+    public void merge(ArchiveTrace other) {
         this.files.putAll(other.files);
-        if (mergeDirectories) {
-            this.directories.putAll(other.directories);
-        }
+        this.directories.putAll(other.directories);
+        this.symLinks.putAll(other.symLinks);
     }
     
     /**
      * Builds the key + hash
      */
-    protected static String serialize(FileSystemRecoveryEntry fEntry, boolean trackPermissions) {
+    protected static String serialize(FileSystemRecoveryEntry fEntry, boolean trackPermissions, boolean trackSymlinks) {
         try {
+            StringBuffer sb = new StringBuffer();
             if (fEntry == null) {
                 return null;
-            } else if (FileSystemManager.isFile(fEntry.getFile())) {
-                StringBuffer sb = new StringBuffer()
+            } else if (trackSymlinks && FileSystemManager.isLink(fEntry.getFile())) {      
+                sb
+                .append(SYMLINK_MARKER)                
                 .append(fEntry.getName())
                 .append(TRACE_SEP)
-                .append(hash(fEntry));
+                .append(hash(fEntry, true));  
+            } else if (FileSystemManager.isFile(fEntry.getFile())) {
+                sb
+                .append(fEntry.getName())
+                .append(TRACE_SEP)
+                .append(hash(fEntry, false));
                 
                 if (trackPermissions) {
                     sb.append(INTERNAL_SEP)
                     .append(AttributesHelper.serialize(FileSystemManager.getAttributes(fEntry.getFile())));
                 }
-                return sb.toString();
             } else {
-                StringBuffer sb = new StringBuffer()
+                sb
                 .append(DIRECTORY_MARKER)
                 .append(fEntry.getName())
                 .append(TRACE_SEP)
@@ -188,8 +227,9 @@ public class ArchiveTrace {
                     sb.append(INTERNAL_SEP)
                     .append(AttributesHelper.serialize(FileSystemManager.getAttributes(fEntry.getFile())));
                 }
-                return sb.toString();
             }
+            
+            return sb.toString();
         } catch (IOException e) {
             Logger.defaultLogger().error(e);
             throw new IllegalArgumentException(fEntry.getName());
@@ -199,9 +239,17 @@ public class ArchiveTrace {
     /**
      * Builds the hash key
      */
-    protected static String hash(FileSystemRecoveryEntry fEntry) {
+    protected static String hash(FileSystemRecoveryEntry fEntry, boolean asLink) throws IOException {
         if (fEntry == null) {
             return null;
+        } else if (asLink) {
+            char prefix;
+            if (FileSystemManager.isFile(fEntry.getFile())) {
+                prefix = SL_FILE_PREFIX;
+            } else {
+                prefix = SL_DIR_PREFIX;
+            }
+            return prefix + FileSystemManager.getCanonicalPath(fEntry.getFile());
         } else if (FileSystemManager.isFile(fEntry.getFile())) {
             return new StringBuffer()
             .append(fEntry.getSize())
@@ -234,9 +282,14 @@ public class ArchiveTrace {
                     key.substring(ArchiveTrace.DIRECTORY_MARKER.length()),
                     hash,
                     pool);
+        } else if (str.startsWith(ArchiveTrace.SYMLINK_MARKER)) {
+            // CASE 2 : SYMLINK
+            registerSymLink(
+                    key.substring(ArchiveTrace.SYMLINK_MARKER.length()),
+                    hash,
+                    pool);
         } else {
-            // CASE 2 : FILE
-            
+            // CASE 3 : FILE
             // Backward compatibility (older versions store a trailing "/" for each row) 
             if (FileNameUtil.startsWithSeparator(str)) {
                 str= str.substring(1);
@@ -262,6 +315,14 @@ public class ArchiveTrace {
         this.directories.put(key, hash);
     }
     
+    private void registerSymLink(String key, String hash, ObjectPool pool) {
+        if (pool != null) {
+            key = (String)pool.intern(key);
+            hash = (String)pool.intern(hash);
+        }
+        this.symLinks.put(key, hash);
+    }
+    
     private long measureString(String s) {
         return s == null ? 0 : s.length();
     }
@@ -269,13 +330,33 @@ public class ArchiveTrace {
     /**
      * Retrieves the trace file content to be serialized
      */
-    protected String buildTraceFileString(String entryKey) {
+    protected String buildFileTraceFileString(String entryKey) {
         if (entryKey == null) {
             return null;
-        } else if (this.files.containsKey(entryKey)) {
-            return entryKey + TRACE_SEP + (String)this.files.get(entryKey);
         } else {
-            return DIRECTORY_MARKER + entryKey;
+            return entryKey + TRACE_SEP + (String)this.files.get(entryKey);
+        }
+    }  
+    
+    /**
+     * Retrieves the trace file content to be serialized
+     */
+    protected String buildDirectoryTraceFileString(String entryKey) {
+        if (entryKey == null) {
+            return null;
+        } else {
+            return DIRECTORY_MARKER + entryKey + TRACE_SEP + (String)this.directories.get(entryKey);
+        }
+    }  
+    
+    /**
+     * Retrieves the trace file content to be serialized
+     */
+    protected String buildSymLinkTraceFileString(String entryKey) {
+        if (entryKey == null) {
+            return null;
+        } else {
+            return SYMLINK_MARKER + entryKey + TRACE_SEP + (String)this.symLinks.get(entryKey);
         }
     }  
     
@@ -285,6 +366,10 @@ public class ArchiveTrace {
     
     public boolean containsDirectoryKey(String key) {
         return this.directories.containsKey(key);
+    }
+    
+    public boolean containsSymLinkKey(String key) {
+        return this.symLinks.containsKey(key);
     }
     
     public long getApproximateMemorySize() {
@@ -298,6 +383,10 @@ public class ArchiveTrace {
     
     public boolean containsDirectory(FileSystemRecoveryEntry fEntry) {
         return this.containsDirectoryKey(fEntry.getName());
+    }
+    
+    public boolean containsSymLink(FileSystemRecoveryEntry fEntry) {
+        return this.containsSymLinkKey(fEntry.getName());
     }
     
     public String getFileHash(FileSystemRecoveryEntry fEntry) {
@@ -316,6 +405,14 @@ public class ArchiveTrace {
         return (String)this.directories.get(entryName);        
     }
     
+    public String getSymLinkHash(FileSystemRecoveryEntry fEntry) {
+        return getSymLinkHash(fEntry.getName());        
+    }
+    
+    public String getSymLinkHash(String entryName) {
+        return (String)this.symLinks.get(entryName);        
+    }
+    
     public Object removeFile(FileSystemRecoveryEntry entry) {
         String key = entry.getName();
         String hash = (String)files.remove(key);
@@ -329,14 +426,27 @@ public class ArchiveTrace {
         return (String)directories.remove(key);
     }
     
+    public Object removeSymLink(FileSystemRecoveryEntry entry) {
+        String key = entry.getName();
+        return (String)symLinks.remove(key);
+    }
+    
     /**
      * Checks wether the entry has been modified
      */
-    public boolean hasBeenModified(FileSystemRecoveryEntry fEntry) {
+    public boolean hasFileBeenModified(FileSystemRecoveryEntry fEntry) throws IOException {
         return
         ! (
                 ((String)files.get(fEntry.getName()) + INTERNAL_SEP)
-                .startsWith(hash(fEntry) + INTERNAL_SEP)
+                .startsWith(hash(fEntry, false) + INTERNAL_SEP)
+        );
+    }
+    
+    public boolean hasSymLinkBeenModified(FileSystemRecoveryEntry fEntry) throws IOException {
+        return
+        ! (
+                ((String)symLinks.get(fEntry.getName()) + INTERNAL_SEP)
+                .startsWith(hash(fEntry, true) + INTERNAL_SEP)
         );
     }
     
@@ -345,6 +455,7 @@ public class ArchiveTrace {
         
         ret.files.putAll(this.files);
         ret.directories.putAll(this.directories);
+        ret.symLinks.putAll(this.symLinks);
         ret.approximateMemorySize = this.approximateMemorySize;
         
         return ret;

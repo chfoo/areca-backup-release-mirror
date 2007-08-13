@@ -1,18 +1,15 @@
 package com.myJava.file.archive;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import com.myJava.file.FileTool;
 
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -75,16 +72,5 @@ public abstract class AbstractArchiveAdapter implements ArchiveAdapter {
     
     public OutputStream getArchiveOutputStream() {
         return zout;
-    }
-    
-    protected void addMockEntry() throws IOException {
-        FileTool tool = new FileTool();
-        
-        // This weird code is necessary to avoid exceptions when closing empty archives.
-        // This case has to be managed by the caller.
-    	byte[] data = "empty".getBytes();
-		this.addEntry("myjava/it/is/empty/avoidclosebug", data.length);
-		tool.copy(new ByteArrayInputStream(data), this.getArchiveOutputStream(), true, false);
-        this.closeEntry();
     }
 }

@@ -11,7 +11,7 @@ import com.myJava.util.HashHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -39,13 +39,19 @@ public class FileSystemRecoveryEntry implements RecoveryEntry {
     private short status;
     private long size;
     private String name;
+    private boolean isLink;
     
-    public FileSystemRecoveryEntry(File rootDirectory, File file, short status, long size) {
+    public FileSystemRecoveryEntry(File rootDirectory, File file, short status, long size, boolean isLink) {
         this.rootDirectory = rootDirectory;            
         this.file = file;
         this.status = status;
         this.size = size;
+        this.isLink = isLink;
         this.name = Utils.extractShortFilePath(this.getFile(), this.getRootDirectory());
+    }
+    
+    public FileSystemRecoveryEntry(File rootDirectory, File file, short status, long size) {
+        this(rootDirectory, file, status, size, false);
     }
     
     public FileSystemRecoveryEntry(File rootDirectory, File file, short status) {
@@ -56,6 +62,14 @@ public class FileSystemRecoveryEntry implements RecoveryEntry {
     	this(rootDirectory, file, STATUS_NOT_STORED);
     }
     
+    public boolean isLink() {
+        return isLink;
+    }
+
+    public void setLink(boolean isLink) {
+        this.isLink = isLink;
+    }
+
     public long getSize() {
 		return size;
 	}

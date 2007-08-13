@@ -12,7 +12,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -84,6 +84,12 @@ public class Launcher {
                     VersionInfos.VERSION_MSG, VersionInfos.APP_NAME + " - Invalid Java Version", JOptionPane.ERROR_MESSAGE);
 
             System.exit(-1);
+        }
+        
+        if (! VersionInfos.checkJavaVendor()) {
+            System.out.println("----------------------------------------------------------------------------------");
+            System.out.println(VersionInfos.VENDOR_MSG);
+            System.out.println("----------------------------------------------------------------------------------");
         }
     }
 }

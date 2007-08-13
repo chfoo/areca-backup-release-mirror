@@ -17,7 +17,7 @@ import com.myJava.util.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -119,8 +119,11 @@ public class FileExtensionArchiveFilter extends AbstractArchiveFilter {
         return this.extensions.iterator();
     }
     
+    public boolean acceptIteration(RecoveryEntry entry) { 
+        return true;
+    }
     
-    public boolean accept(RecoveryEntry entry) {
+    public boolean acceptStorage(RecoveryEntry entry) {
         if (entry == null) {
             return false;
         } else {

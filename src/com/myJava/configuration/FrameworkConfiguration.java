@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -46,8 +46,11 @@ public class FrameworkConfiguration {
     private static String KEY_FTP_NOOP_DELAY = "ftp.noop.delay";    
     private static String KEY_FTP_CACHE_SIZE = "ftp.cache.size";    
     private static String KEY_FTP_USE_CACHE = "ftp.use.cache";
+    private static String KEY_HASH_CACHE_SIZE = "hash.cache.size";    
+    private static String KEY_HASH_USE_CACHE = "hash.use.cache";
     private static String KEY_OS_BROWSERS = "os.browsers";  
     private static String KEY_SSE_PROTOCOLS = "sse.protocols";  
+    private static String KEY_ZIP_BUFFER = "zip.buffer.size";  
     
     private static int DEF_FTP_MAX_PROXIES = 3;
     private static long DEF_FTP_NOOP_DELAY = 30000;    
@@ -56,8 +59,11 @@ public class FrameworkConfiguration {
     private static int DEF_FT_BUFFER_SIZE = 65536;
     private static int DEF_FTP_CACHE_SIZE = 100;    
     private static boolean DEF_FTP_USE_CACHE = true;    
+    private static int DEF_HASH_CACHE_SIZE = 200;    
+    private static boolean DEF_HASH_USE_CACHE = true;    
     private static String[] DEF_OS_BROWSERS = {"firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape"};
     private static String[] DEF_SSE_PROTOCOLS = {"TLS", "SSL"};  
+    private static int DEF_ZIP_BUFFER = 2048;
 
     private String strUrl = null;
     private Properties props = new Properties();
@@ -119,6 +125,14 @@ public class FrameworkConfiguration {
         return getProperty(KEY_FTP_USE_CACHE, DEF_FTP_USE_CACHE);
     }
     
+    public boolean isHashCacheMode() {
+        return getProperty(KEY_HASH_USE_CACHE, DEF_HASH_USE_CACHE);
+    }
+    
+    public int getHashCacheSize() {
+        return getProperty(KEY_HASH_CACHE_SIZE, DEF_HASH_CACHE_SIZE);
+    }
+    
     public long getFTPNoopDelay() {
         return getProperty(KEY_FTP_NOOP_DELAY, DEF_FTP_NOOP_DELAY);
     }
@@ -137,6 +151,10 @@ public class FrameworkConfiguration {
     
     public String[] getOSBrowsers() {
         return getProperty(KEY_OS_BROWSERS, DEF_OS_BROWSERS);
+    }
+    
+    public int getZipBufferSize() {
+        return getProperty(KEY_ZIP_BUFFER, DEF_ZIP_BUFFER);
     }
     
     public String[] getSSEProtocols() {

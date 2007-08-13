@@ -17,7 +17,7 @@ import com.myJava.util.HashHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -115,6 +115,10 @@ extends AbstractLinkableFileSystemDriver {
         return this.predecessor.isFile(file);
     }
     
+    public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
+        return this.predecessor.createSymbolicLink(symlink, realPath);
+    }
+
     public boolean isHidden(File file) {
         return this.predecessor.isHidden(file);
     }

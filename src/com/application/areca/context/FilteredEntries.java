@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.application.areca.ArchiveFilter;
 import com.application.areca.RecoveryEntry;
 
 /**
@@ -14,7 +13,7 @@ import com.application.areca.RecoveryEntry;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -37,25 +36,25 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class FilteredEntries {
-
+    
     private Map content = new HashMap();
     
     public FilteredEntries() {
     }
 
-    public void addFilteredEntry(RecoveryEntry entry, ArchiveFilter filter) {
-        this.getFilteredEntries(filter).add(entry);
+    public void addFilteredEntry(RecoveryEntry entry, Object key) {
+        this.getFilteredEntries(key).add(entry);
     }
     
-    public Iterator getFilterIterator() {
+    public Iterator getKeyIterator() {
         return content.keySet().iterator();
     }
     
-    public List getFilteredEntries(ArchiveFilter filter) {
-        List data = (List)this.content.get(filter);
+    public List getFilteredEntries(Object key) {
+        List data = (List)this.content.get(key);
         if (data == null) {
             data = new ArrayList();
-            content.put(filter, data);
+            content.put(key, data);
         }
         return data;
     }

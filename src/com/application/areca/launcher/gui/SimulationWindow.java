@@ -1,6 +1,11 @@
 package com.application.areca.launcher.gui;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -12,6 +17,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
@@ -20,6 +26,7 @@ import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.metadata.manifest.Manifest;
@@ -30,7 +37,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -65,6 +72,7 @@ implements Listener {
     protected Label lblModified;
     protected Label lblTotalSize;
     protected AbstractRecoveryTarget target;
+    protected Font italic;
     
     public SimulationWindow(RecoveryEntry[] entries, AbstractRecoveryTarget target) {
         super();
@@ -185,32 +193,58 @@ implements Listener {
         long nbDeleted = 0;
         
         for (int i=0; i<entries.length; i++) {
-            TableItem item = new TableItem(table, SWT.NONE);
+            try {
+                TableItem item = new TableItem(table, SWT.NONE);
+                item.setText(0, entries[i].getName());
+                item.setText(1, Utils.formatFileSize(entries[i].getSize()));
 
-            if (entries[i].getStatus() == EntryArchiveData.STATUS_CREATED) {
-                nbNew++;
-                totalSize += entries[i].getSize();
-                if (FileSystemManager.isFile(((FileSystemRecoveryEntry)entries[i]).getFile())) {
-                    item.setImage(0, ArecaImages.ICO_HISTO_NEW);
+                if (entries[i].getStatus() == EntryArchiveData.STATUS_CREATED) {
+                    nbNew++;
+                    File f = ((FileSystemRecoveryEntry)entries[i]).getFile();
+                    boolean link = ((FileSystemRecoveryTarget)this.target).isTrackSymlinks() && FileSystemManager.isLink(f);
+                    
+                    if (link) {
+                        // SymLinks
+                        item.setText(1, "");
+                        item.setFont(deriveItalicFont(item));
+                    }
+                    
+                    if (FileSystemManager.isFile(f)) {
+                        item.setImage(0, ArecaImages.ICO_HISTO_NEW);
+                        if (! link) {
+                            totalSize += entries[i].getSize();
+                        }
+                    } else {
+                        item.setImage(0, ArecaImages.ICO_HISTO_FOLDER_NEW);
+                    }
+                } else if (entries[i].getStatus() == EntryArchiveData.STATUS_DELETED) {
+                    nbDeleted++;     
+                    item.setImage(0, ArecaImages.ICO_HISTO_DELETE); 
                 } else {
-                    item.setImage(0, ArecaImages.ICO_HISTO_FOLDER_NEW);
-                }
-            } else if (entries[i].getStatus() == EntryArchiveData.STATUS_DELETED) {
-                nbDeleted++;     
-                item.setImage(0, ArecaImages.ICO_HISTO_DELETE); 
-            } else {
-                nbModified++;
-                totalSize += entries[i].getSize();
-                item.setImage(0, ArecaImages.ICO_HISTO_EDIT); 
-            }
+                    nbModified++;
+                    item.setImage(0, ArecaImages.ICO_HISTO_EDIT); 
 
-            item.setText(0, entries[i].getName());
-            item.setText(1, Utils.formatFileSize(entries[i].getSize()));
+                    if (! FileSystemManager.isLink(((FileSystemRecoveryEntry)entries[i]).getFile())) {
+                        totalSize += entries[i].getSize();
+                    }
+                }
+            } catch (IOException e) {
+                Logger.defaultLogger().error(e);
+            }
         }
         
         this.lblCreated.setText("" + nbNew);
         this.lblModified.setText("" + nbModified);
         this.lblTotalSize.setText(Utils.formatFileSize(totalSize));
+    }
+    
+    private Font deriveItalicFont(TableItem item) {
+        if (this.italic == null) {
+            FontData dt = item.getFont().getFontData()[0];
+            FontData dtItalic = new FontData(dt.name, dt.height, SWT.ITALIC);
+            return new Font(item.getDisplay(), new FontData[] {dtItalic});
+        } 
+        return italic;
     }
 
     public String getTitle() {

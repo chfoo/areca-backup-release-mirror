@@ -1,6 +1,7 @@
 package com.application.areca.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -23,7 +24,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -52,7 +53,12 @@ implements TargetActions {
     public static final String RECOVERY_LOCATION_SUFFIX = "recovered_data";
     
     protected File sourcePath;
-   
+
+    /**
+     * Tells wether symbolic are considered as normal files or as symbolic links
+     */
+    protected boolean trackSymlinks = false;
+    
     public PublicClonable duplicate() {
         FileSystemRecoveryTarget other = new FileSystemRecoveryTarget();
         copyAttributes(other);
@@ -63,6 +69,7 @@ implements TargetActions {
         FileSystemRecoveryTarget other = (FileSystemRecoveryTarget)clone;
         super.copyAttributes(other);
         other.sourcePath = sourcePath;
+        other.trackSymlinks = trackSymlinks;
     }
 
     public void setSourcePath(File sourcePath) {
@@ -80,7 +87,15 @@ implements TargetActions {
             return this.sourcePath;
         }
     }
-    
+
+    public boolean isTrackSymlinks() {
+        return trackSymlinks;
+    }
+
+    public void setTrackSymlinks(boolean trackSymlinks) {
+        this.trackSymlinks = trackSymlinks;
+    }
+
     public void commitBackup(ProcessContext context) throws ApplicationException {
         context.getManifest().addProperty("Unfiltered directories", "" + context.getReport().getUnfilteredDirectories());
         context.getManifest().addProperty("Unfiltered files", "" + context.getReport().getUnfilteredFiles());        
@@ -100,34 +115,70 @@ implements TargetActions {
         if (context.getCurrentLevel().hasMoreElements()) {
             File f = context.getCurrentLevel().nextElement();
             FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(this.getSourceDirectory(), f);
-            if (this.acceptEntry(entry, context)) {
-	            if (FileSystemManager.isDirectory(f)) {
-	                context.getFileSystemLevels().push(context.getCurrentLevel());
-	                context.setCurrentLevel(new FileSystemLevel(f));
-	                
-	                // Progress information
-                    context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(completionStep);
-	                
-	                // MAJ stats
-	                context.getReport().addDirectoryCount();
-	            } else {
-	                entry.setSize(FileSystemManager.length(f));
+
+            try {
+                if (
+                        FileSystemManager.isDirectory(f) && ((! trackSymlinks) || (! FileSystemManager.isLink(f)))
+                ) {
+                    // check if we can iterate on this directory
+                    if (this.acceptEntry(entry, false, context)) {
+                        context.getFileSystemLevels().push(context.getCurrentLevel());
+                        context.setCurrentLevel(new FileSystemLevel(f, context.getCurrentLevel()));
+                        
+                        // Progress information
+                        context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(completionStep);
+                        
+                        // stats update
+                        context.getReport().addDirectoryCount();
+                    } else {
+                        context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);
+                    }
+                    return this.nextElement(context);
+                } else {
+                    // Check if we can store the file
                     context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);
-	                context.getReport().addFileCount();
-	            }
-	            return entry;  
-            } else {
-                context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);                
-                return this.nextElement(context);
+                    if (this.acceptEntry(entry, true, context)) {
+                        entry.setSize(FileSystemManager.length(f));
+                        context.getReport().addFileCount();
+                        context.getCurrentLevel().setHaveFilesBeenStored(true);
+                        return entry;
+                    } else {            
+                        return this.nextElement(context);
+                    }
+                }
+            } catch (IOException e) {
+                throw new ApplicationException(e);
             }
         } else {
-            context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
+            FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(
+                    this.getSourceDirectory(), 
+                    context.getCurrentLevel().getBaseDirectory()
+            );
             
-            if (context.getFileSystemLevels().isEmpty()) {
-                return null;
+            // Check if we can store the directory
+            if (
+                    ( ! context.getCurrentLevel().isHasBeenSent())
+                    && entry.getName().length() != 0
+                    && (
+                            context.getCurrentLevel().isHaveFilesBeenStored()
+                            || this.acceptEntry(entry, true, context)
+                    )
+            ) {
+                context.getCurrentLevel().setHasBeenSent(true);
+                if (context.getCurrentLevel().getParent() != null) {
+                    context.getCurrentLevel().getParent().setHaveFilesBeenStored(true);
+                }
+
+                return entry;
             } else {
-                context.setCurrentLevel((FileSystemLevel)context.getFileSystemLevels().pop());
-                return this.nextElement(context);
+                context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
+                
+                if (context.getFileSystemLevels().isEmpty()) {
+                    return null;
+                } else {
+                    context.setCurrentLevel((FileSystemLevel)context.getFileSystemLevels().pop());
+                    return this.nextElement(context);
+                }
             }
         }
     }
@@ -150,7 +201,7 @@ implements TargetActions {
     
     private void initCurrentLevel(ProcessContext context) throws ApplicationException {
         context.getFileSystemLevels().clear();
-        context.setCurrentLevel(new FileSystemLevel(sourcePath)); 
+        context.setCurrentLevel(new FileSystemLevel(sourcePath, null)); 
     }
     
 

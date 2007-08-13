@@ -11,9 +11,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
-import com.application.areca.ArchiveFilter;
 import com.application.areca.Utils;
 import com.application.areca.context.ProcessReport;
+import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
@@ -23,7 +23,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -169,22 +169,18 @@ extends AbstractWindow {
     }
     
     private void initContent() {        
-        Iterator iter = report.getFilteredEntriesData().getFilterIterator();
+        Iterator iter = report.getFilteredEntriesData().getKeyIterator();
         while (iter.hasNext()) {
-            ArchiveFilter filter = (ArchiveFilter)iter.next();
-            TreeItem filterNode =new TreeItem(tree, SWT.NONE); 
-            filterNode.setData(filter);
-
-            if (filter.requiresParameters()) {
-                filterNode.setText(FilterRepository.getName(filter.getClass()) + " [" + filter.getStringParameters() + "]");
-            } else {
-                filterNode.setText(FilterRepository.getName(filter.getClass()));                    
-            }
-            filterNode.setImage(ArecaImages.ICO_FILTER);
+            Object key = iter.next();
             
-            Iterator entries = report.getFilteredEntriesData().getFilteredEntries(filter).iterator();
+            TreeItem keyNode =new TreeItem(tree, SWT.NONE); 
+            keyNode.setData(key);
+            keyNode.setText(RM.getLabel("report.filtered.label"));
+            keyNode.setImage(ArecaImages.ICO_FILTER);
+            
+            Iterator entries = report.getFilteredEntriesData().getFilteredEntries(key).iterator();
             while (entries.hasNext()) {
-                TreeItem item = new TreeItem(filterNode, SWT.NONE);
+                TreeItem item = new TreeItem(keyNode, SWT.NONE);
                 
                 FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)entries.next();
                 item.setText(entry.getName());

@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
 
-import com.application.areca.ArchiveFilter;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
-import com.myJava.util.Utilitaire;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
 
@@ -16,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -75,22 +73,13 @@ public class ProcessReportWriter {
         write("Unfiltered files : " + report.getUnfilteredFiles());
         write("Ignored files (not modified) : " + report.getIgnoredFiles());
         write("Saved files : " + report.getSavedFiles());
-        
         if (writeFilteredEntries && (! report.filteredEntriesData.isEmpty())) {
-	        writeSpace();
-	        write("Filtered entries (grouped by filter) :");
-	        Iterator iter = report.getFilteredEntriesData().getFilterIterator();
+            writeSeparator();
+            write("Filtered entries :");
+	        Iterator iter = report.getFilteredEntriesData().getKeyIterator();
 	        while (iter.hasNext()) {
-	            ArchiveFilter filter = (ArchiveFilter)iter.next();
-	            writeSeparator();
-	            String str ="Filter : " + Utilitaire.getClassName(filter.getClass().getName());
-	            if (filter.requiresParameters()) {
-	                str += " [" + filter.getStringParameters() + "]";
-	            }
-	            write(str);
-	            writeSpace();
-	            
-	            Iterator entries = report.getFilteredEntriesData().getFilteredEntries(filter).iterator();
+	            Object key = iter.next();	            
+	            Iterator entries = report.getFilteredEntriesData().getFilteredEntries(key).iterator();
 	            while (entries.hasNext()) {
 	                RecoveryEntry entry = (RecoveryEntry)entries.next();
 	                write(entry.getName());

@@ -3,14 +3,14 @@ package com.application.areca.launcher.gui.filters;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.ArchiveFilter;
+import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.launcher.gui.FilterEditionWindow;
 import com.application.areca.launcher.gui.FilterRepository;
 
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*

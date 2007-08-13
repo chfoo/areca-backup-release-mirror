@@ -62,7 +62,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -153,9 +153,7 @@ implements ActionConstants, Window.IExceptionHandler {
         display = Display.getCurrent();
 
         CURSOR_WAIT = new Cursor(display, SWT.CURSOR_WAIT);
-
         AppActionReferenceHolder.refresh();
-
         mainWindow.show();
     }
 
@@ -168,6 +166,16 @@ implements ActionConstants, Window.IExceptionHandler {
         this.workspaceContextMenu = MenuBuilder.buildWorkspaceContextMenu(shell);
         this.logContextMenu = MenuBuilder.buildLogContextMenu(shell);
         this.historyContextMenu = MenuBuilder.buildHistoryContextMenu(shell);
+    }
+    
+    public void checkSystem() {
+        if (! VersionInfos.checkJavaVendor()) {
+            Logger.defaultLogger().warn(VersionInfos.VENDOR_MSG);
+            
+            if (ArecaPreferences.isDisplayJavaVendorMessage()) {
+                this.showVendorDialog();
+            }
+        }
     }
 
     public Menu getArchiveContextMenu() {
@@ -756,6 +764,11 @@ implements ActionConstants, Window.IExceptionHandler {
                 isCompact);
         showDialog(frm);
     }
+    
+    public void showVendorDialog() {
+        JavaVendorWindow frm = new JavaVendorWindow();
+        showDialog(frm);
+    }
 
     public void showHelpFrame() {
         try {
@@ -795,7 +808,8 @@ implements ActionConstants, Window.IExceptionHandler {
 
                 showErrorDialog(
                         msg,
-                        ResourceManager.instance().getLabel("error.dialog.title"));
+                        ResourceManager.instance().getLabel("error.dialog.title"),
+                        false);
             }
         });
     }
@@ -853,8 +867,13 @@ implements ActionConstants, Window.IExceptionHandler {
 
     public void setCurrentEntry(RecoveryEntry currentEntry) {
         this.currentEntry = currentEntry;
+        AppActionReferenceHolder.refresh();
     }
-    
+
+    public RecoveryEntry getCurrentEntry() {
+        return currentEntry;
+    }
+
     public String[] getCurrentFilter() {
         return currentFilter;
     }
@@ -933,23 +952,26 @@ implements ActionConstants, Window.IExceptionHandler {
 
     public void showInformationDialog(
             String message,
-            String title
+            String title,
+            boolean longMessage
     ) {
-        showDialog(message, title, SWT.OK, SWT.ICON_INFORMATION);
+        showDialog(message, title, SWT.OK, SWT.ICON_INFORMATION, longMessage);
     }
 
     public void showWarningDialog(
             String message,
-            String title
+            String title,
+            boolean longMessage
     ) {
-        showDialog(message, title, SWT.OK, SWT.ICON_WARNING);
+        showDialog(message, title, SWT.OK, SWT.ICON_WARNING, longMessage);
     }
 
     public void showErrorDialog(
             String message,
-            String title
+            String title,
+            boolean longMessage
     ) {
-        showDialog(message, title, SWT.OK, SWT.ICON_ERROR);
+        showDialog(message, title, SWT.OK, SWT.ICON_ERROR, longMessage);
     }
 
     public int showConfirmDialog(
@@ -974,13 +996,19 @@ implements ActionConstants, Window.IExceptionHandler {
             String message,
             String title,
             int buttons,
-            int type
+            int type,
+            boolean longMessage
     ) {
         if (mainWindow != null) {
-            MessageBox msg = new MessageBox(this.mainWindow.getShell(), SWT.OK | type);
-            msg.setText(title);
-            msg.setMessage(message);
-            return msg.open();
+            if (longMessage) {
+                LongMessageWindow msg = new LongMessageWindow(title, message, type);
+                return msg.open();
+            } else {
+                MessageBox msg = new MessageBox(this.mainWindow.getShell(), SWT.OK | type);
+                msg.setText(title);
+                msg.setMessage(message);
+                return msg.open();
+            }
         } else {
             return SWT.OK;
         }

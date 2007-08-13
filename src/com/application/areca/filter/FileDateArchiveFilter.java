@@ -17,7 +17,7 @@ import com.myJava.util.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -88,14 +88,15 @@ public class FileDateArchiveFilter extends AbstractArchiveFilter {
         return prefix + CalendarUtils.getDateToString(c).replace('_', ' ');
     }
     
-    /**
-     * Directories always return "true"
-     */
-    public boolean accept(RecoveryEntry entry) {
+    public boolean acceptIteration(RecoveryEntry entry) {
+        return true;
+    }
+    
+    public boolean acceptStorage(RecoveryEntry entry) {
         FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;        
         if (fEntry == null) {
             return false;
-        } else if (FileSystemManager.isFile(fEntry.getFile())) {         
+        } else {         
             boolean value;
             if (FileSystemManager.lastModified(fEntry.getFile()) > minDate) {
                 value = greaterThan;
@@ -108,8 +109,6 @@ public class FileDateArchiveFilter extends AbstractArchiveFilter {
             } else {
                 return value;
             }
-        } else {
-            return true;
         }
     }
     

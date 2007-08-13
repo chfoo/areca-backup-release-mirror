@@ -29,7 +29,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -315,13 +315,13 @@ extends AbstractWindow {
             policy.validate(true);
             SecuredRunner.execute(new Runnable() {
                 public void run() {
-                    application.showInformationDialog(RM.getLabel("ftpedition.test.success"), RM.getLabel("ftpedition.test.title"));
+                    application.showInformationDialog(RM.getLabel("ftpedition.test.success"), RM.getLabel("ftpedition.test.title"), false);
                 }
             });
         } catch (final Throwable e) {
             SecuredRunner.execute(new Runnable() {
                 public void run() {
-                    application.showWarningDialog(RM.getLabel("ftpedition.test.failure", new Object[] {e.getMessage()}), RM.getLabel("ftpedition.test.title"));
+                    application.showWarningDialog(RM.getLabel("ftpedition.test.failure", new Object[] {e.getMessage()}), RM.getLabel("ftpedition.test.title"), false);
                 }
             });
         } finally {

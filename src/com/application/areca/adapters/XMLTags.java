@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -40,8 +40,13 @@ public interface XMLTags {
     public static final String XML_TARGET_ID = "id";
     public static final String XML_TARGET_UID = "uid";    
     public static final String XML_TARGET_NAME = "name";    
+    public static final String XML_TARGET_FOLLOW_SYMLINKS = "follow_symlinks";    
     public static final String XML_TARGET_DESCRIPTION = "description";    
     
+    public static final String XML_FILTER_GROUP = "filter_group";  
+    public static final String XML_FILTER_GROUP_OPERATOR = "operator";
+    public static final String XML_FILTER_GROUP_OPERATOR_AND = "and";
+    public static final String XML_FILTER_GROUP_OPERATOR_OR = "or";
     public static final String XML_FILTER_DIRECTORY = "directory_filter";
     public static final String XML_FILTER_REGEX = "regex_filter";
     public static final String XML_FILTER_FILESIZE = "size_filter";
@@ -64,6 +69,7 @@ public interface XMLTags {
     public static final String XML_MEDIUM_ENCRYPTIONALGO = "encryption_algo";
     public static final String XML_MEDIUM_TRACK_DIRS = "track_directories";
     public static final String XML_MEDIUM_TRACK_PERMS = "track_permissions";    
+    public static final String XML_MEDIUM_VOLUME_SIZE = "volume_size";    
     public static final String XML_MEDIUM_TYPE = "type";
     public static final String XML_MEDIUM_TYPE_ZIP = "zip";
     public static final String XML_MEDIUM_TYPE_ZIP64 = "zip64";

@@ -1,4 +1,4 @@
-package com.myJava.file;
+package com.myJava.file.hash;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
@@ -10,6 +10,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
+import com.myJava.configuration.FrameworkConfiguration;
+import com.myJava.file.AbstractLinkableFileSystemDriver;
+import com.myJava.file.DefaultFileSystemDriver;
+import com.myJava.file.FileSystemManager;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.util.EqualsHelper;
 import com.myJava.util.HashHelper;
@@ -29,7 +33,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -53,12 +57,13 @@ This file is part of Areca.
  */
 public class HashFileSystemDriver 
 extends AbstractLinkableFileSystemDriver {
-    
+
     /**
      * Suffix which is used for companion files
      */
     private static final String DECODED_SUFF = "_.hash.decoded";
 
+    protected HashCache cache = new HashCache();
     protected File directoryRoot;
 
     /**
@@ -71,22 +76,22 @@ extends AbstractLinkableFileSystemDriver {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
-    
+
     /**
      * Return the root of the Driver
      */
     public File getDirectoryRoot() {
         return directoryRoot;
     }
-    
+
     public boolean canRead(File file) {
         return this.predecessor.canRead(this.encodeFileName(file));
     }
-    
+
     public boolean canWrite(File file) {
         return this.predecessor.canWrite(this.encodeFileName(file));
     }
-    
+
     public boolean createNewFile(File file) throws IOException {
         File encoded = this.encodeFileName(file);
         boolean ok = this.predecessor.createNewFile(encoded);
@@ -97,68 +102,68 @@ extends AbstractLinkableFileSystemDriver {
             return false;
         }
     }
-    
+
     public boolean delete(File file) {
         if (file == null) {
             return true;
         }
         File encoded = this.encodeFileName(file);
-        
+
         return this.predecessor.delete(encoded) && this.predecessor.delete(this.getDecodingFile(encoded));
     }
-    
+
     public boolean exists(File file) {
         return this.predecessor.exists(this.encodeFileName(file));
     }
-    
+
     public File getAbsoluteFile(File file) {
         return this.predecessor.getAbsoluteFile(file);
     }
-    
+
     public String getAbsolutePath(File file) {
         return this.predecessor.getAbsolutePath(file);
     }
-    
+
     public File getCanonicalFile(File file) throws IOException {
         return this.predecessor.getCanonicalFile(file);
     }
-    
+
     public String getCanonicalPath(File file) throws IOException {
         return this.predecessor.getCanonicalPath(file);
     }
-    
+
     public String getName(File file) {
         return this.predecessor.getName(file);
     }
-    
+
     public String getParent(File file) {
         return this.predecessor.getParent(file);
     }
-    
+
     public File getParentFile(File file) {
         return this.predecessor.getParentFile(file);
     }
-    
+
     public String getPath(File file) {
         return this.predecessor.getPath(file);
     }
-    
+
     public boolean isAbsolute(File file) {
         return this.predecessor.isAbsolute(this.encodeFileName(file));
     }
-    
+
     public boolean isDirectory(File file) {
         return this.predecessor.isDirectory(this.encodeFileName(file));
     }
-    
+
     public boolean isFile(File file) {
         return this.predecessor.isFile(this.encodeFileName(file));
     }
-    
+
     public boolean isHidden(File file) {
         return this.predecessor.isHidden(this.encodeFileName(file));
     }
-    
+
     public long lastModified(File file) {
         return this.predecessor.lastModified(this.encodeFileName(file));
     }
@@ -166,45 +171,45 @@ extends AbstractLinkableFileSystemDriver {
     public Attributes getAttributes(File f) throws IOException {
         return this.predecessor.getAttributes(this.encodeFileName(f));
     }
-    
+
     public long length(File file) {
         return this.predecessor.length(this.encodeFileName(file));
     }
-    
+
     public void deleteOnExit(File f) {
         predecessor.deleteOnExit(this.encodeFileName(f));
         predecessor.deleteOnExit(this.getDecodingFile(f));        
     }
-    
+
     public String[] list(File file, FilenameFilter filter) {
         File[] files = this.listFiles(file, filter);
         if (files == null) {
             return null;
         }
-        
+
         String[] ret = new String[files.length];
-        
+
         for (int i=0; i<files.length; i++) {
             ret[i] = normalize(files[i].getAbsolutePath());
         }
-        
+
         return ret;
     }
-    
+
     public String[] list(File file) {
         File[] files = this.listFiles(file);
         if (files == null) {
             return null;
         }
         String[] ret = new String[files.length];
-        
+
         for (int i=0; i<files.length; i++) {
             ret[i] = normalize(files[i].getAbsolutePath());
         }
-        
+
         return ret;
     }
-    
+
     public File[] listFiles(File file, FileFilter filter) {
         File[] files = this.predecessor.listFiles(this.encodeFileName(file), new FileFilterAdapter(filter, this));
         if (files == null) {
@@ -213,10 +218,10 @@ extends AbstractLinkableFileSystemDriver {
         for (int i=0; i<files.length; i++) {
             files[i] = this.decodeFileName(files[i]);
         }
-        
+
         return files;
     }
-    
+
     public File[] listFiles(File file, FilenameFilter filter) {
         File[] files = this.predecessor.listFiles(this.encodeFileName(file), new FilenameFilterAdapter(filter, this));
         if (files == null) {
@@ -225,23 +230,23 @@ extends AbstractLinkableFileSystemDriver {
         for (int i=0; i<files.length; i++) {
             files[i] = this.decodeFileName(files[i]);
         }
-        
+
         return files;
     }
-    
+
     public File[] listFiles(File file) {
         File[] files = this.predecessor.listFiles(this.encodeFileName(file), new FileFilterAdapter(this));
         if (files == null) {
             return null;
         }
-        
+
         for (int i=0; i<files.length; i++) {
             files[i] = this.decodeFileName(files[i]);
         }
-        
+
         return files;
     }
-    
+
     public boolean mkdir(File file) {
         try {
             if (file == null) {
@@ -262,12 +267,12 @@ extends AbstractLinkableFileSystemDriver {
             throw new IllegalArgumentException("IllegalArgumentException : " + e.getMessage());
         }
     }
-    
+
     public boolean renameTo(File source, File dest) {
         File encodedSource = this.encodeFileName(source);
         File encodedDest = this.encodeFileName(dest);
         File decodingSource = this.getDecodingFile(encodedSource);
-        
+
         boolean ok = this.predecessor.delete(decodingSource);
         if (ok) {
             if (this.predecessor.renameTo(encodedSource, encodedDest)) {
@@ -289,7 +294,7 @@ extends AbstractLinkableFileSystemDriver {
             return false;
         }
     }
-    
+
     public boolean setLastModified(File file, long time) {
         return this.predecessor.setLastModified(this.encodeFileName(file), time);
     }
@@ -297,41 +302,41 @@ extends AbstractLinkableFileSystemDriver {
     public void applyAttributes(Attributes p, File f) throws IOException {
         this.predecessor.applyAttributes(p, this.encodeFileName(f));
     }
-    
+
     public boolean setReadOnly(File file) {
         return this.predecessor.setReadOnly(this.encodeFileName(file));
     }
-    
+
     public InputStream getFileInputStream(File file) throws IOException {
         File target = this.encodeFileName(file);
         return predecessor.getFileInputStream(target);
     }
-    
+
     public OutputStream getCachedFileOutputStream(File file) throws IOException {
         File target = this.encodeFileName(file);
         this.createDecodingFile(target, predecessor.getName(file)); // Really create the decoding file to ensure that hash collisions will be detected
         return predecessor.getCachedFileOutputStream(target);
     }    
-    
+
     public OutputStream getFileOutputStream(File file) throws IOException {
         File target = this.encodeFileName(file);
         this.createDecodingFile(target, predecessor.getName(file));
         return predecessor.getFileOutputStream(target);
     }    
-    
+
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException {       
         File target = this.encodeFileName(file);
         this.createDecodingFile(target, predecessor.getName(file));
         return predecessor.getFileOutputStream(target, append); 
     }    
-    
+
     /**
      * No direct file access is supported !
      */
     public boolean directFileAccessSupported() {
         return false;
     }
-    
+
     /**
      * Hash the fileName
      */
@@ -348,7 +353,7 @@ extends AbstractLinkableFileSystemDriver {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
-    
+
     /**
      * Reads the companion file to decode the hashed name
      */
@@ -364,22 +369,22 @@ extends AbstractLinkableFileSystemDriver {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
-    
+
     /**
      * Hash the fileName :
      * - 2 first chars of the original name
      * - length (hexadecimal) of  the original name
      * - Java hashCode (see String class) of the original name
      */
-    protected String encodeFileName(File encodedParent, String shortName) {
+    protected String encodeFileName(File encodedParent, String shortName) throws HashCollisionException {
         if (shortName == null) {
             return null;
         }
-        
+
         if (shortName.length() == 0) {
             return "";
         }
-        
+
         int hash = shortName.hashCode();
         StringBuffer sb = new StringBuffer();
         sb.append(shortName.charAt(0));
@@ -388,70 +393,81 @@ extends AbstractLinkableFileSystemDriver {
         }
         sb.append(Integer.toHexString(shortName.length()));
         sb.append(Integer.toHexString(hash));
-        
+
         // Validate the encoded name against the potentially existing files with same hashCode
         return validateEncodedName(encodedParent, shortName, sb.toString());
     }
-    
-    private String validateEncodedName(File encodedParent, String decodedName, String encodedName) {
+
+    private String validateEncodedName(File encodedParent, String decodedName, String encodedName) throws HashCollisionException {        
         // Check wether the hash has been used
         File decoding = new File(encodedParent, encodedName + DECODED_SUFF);
-        if (predecessor.exists(decoding)) {
-            BufferedReader reader = null;
-            try {
-                reader = new BufferedReader(new InputStreamReader(predecessor.getFileInputStream(decoding)));
-                String existingDecoded = reader.readLine();
-                
-                if (existingDecoded != null && !(existingDecoded.equals(decodedName))) {
-                    throw new HashCollisionException("HashCollision for file : [" + decodedName + "] : encodedName = [" + encodedName + "] was already used in parent directory : [" + encodedParent.getAbsolutePath() + "] for file [" + existingDecoded + "]");
-                }
-            } catch (FileNotFoundException e) {
-                throw new IllegalArgumentException("FileNotFoundException : " + e.getMessage());
-            } catch (IOException e) {
-                throw new IllegalArgumentException("IOException : " + e.getClass().getName() + " : " + e.getMessage());
-            } finally {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e1) {
-                        throw new IllegalArgumentException("IOException : " + e1.getMessage());
+
+        String fullName = this.cache.getFullName(predecessor.getAbsolutePath(decoding));
+        if (fullName == null) {
+            if (predecessor.exists(decoding)) {
+                BufferedReader reader = null;
+                try {
+                    reader = new BufferedReader(new InputStreamReader(predecessor.getFileInputStream(decoding)));
+                    fullName = reader.readLine();
+                    this.cache.registerFullName(predecessor.getAbsolutePath(decoding), fullName);
+                } catch (FileNotFoundException e) {
+                    throw new IllegalArgumentException("FileNotFoundException : " + e.getMessage());
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("IOException : " + e.getClass().getName() + " : " + e.getMessage());
+                } finally {
+                    if (reader != null) {
+                        try {
+                            reader.close();
+                        } catch (IOException e1) {
+                            throw new IllegalArgumentException("IOException : " + e1.getMessage());
+                        }
                     }
                 }
             }
         }
-        
+
+        if (fullName != null && !(fullName.equals(decodedName))) {
+            throw new HashCollisionException("HashCollision for file : [" + decodedName + "] : encodedName = [" + encodedName + "] was already used in parent directory : [" + encodedParent.getAbsolutePath() + "] for file [" + fullName + "]");
+        }
+
         return encodedName; // The encoded name has not already been used for a different file --> OK
     }
-    
+
     /**
      * Reads the companion file to decode the hashed name
      */
     protected String decodeFileName(File parent, String shortName) {
         File decoding = new File(parent, shortName + DECODED_SUFF);
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(predecessor.getFileInputStream(decoding)));
-            String content = reader.readLine();
 
-            return content;
-        } catch (FileNotFoundException e) {
-            Logger.defaultLogger().error(e);
-            throw new IllegalArgumentException("FileNotFoundException : " + e.getMessage());
-        } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            throw new IllegalArgumentException("IOException : " + e.getMessage());
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    Logger.defaultLogger().error(e);
-                    throw new IllegalArgumentException("IOException : " + e.getMessage());
+        String fullName = this.cache.getFullName(predecessor.getAbsolutePath(decoding));
+        if (fullName == null) {
+            BufferedReader reader = null;
+            try {
+                reader = new BufferedReader(new InputStreamReader(predecessor.getFileInputStream(decoding)));
+                fullName = reader.readLine();
+                this.cache.registerFullName(predecessor.getAbsolutePath(decoding), fullName);
+                return fullName;
+            } catch (FileNotFoundException e) {
+                Logger.defaultLogger().error(e);
+                throw new IllegalArgumentException("FileNotFoundException : " + e.getMessage());
+            } catch (IOException e) {
+                Logger.defaultLogger().error(e);
+                throw new IllegalArgumentException("IOException : " + e.getMessage());
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        Logger.defaultLogger().error(e);
+                        throw new IllegalArgumentException("IOException : " + e.getMessage());
+                    }
                 }
             }
         }
+        
+        return fullName;
     }
-    
+
     /**
      * Computes the companion file's name.
      */
@@ -460,10 +476,10 @@ extends AbstractLinkableFileSystemDriver {
             return null;
         }
         File parent = predecessor.getParentFile(file);
-        
+
         return new File(parent, predecessor.getName(file) + DECODED_SUFF);
     }
-    
+
     /**
      * Creates the companion file, which stores the real name of the file/directory.
      */
@@ -473,41 +489,42 @@ extends AbstractLinkableFileSystemDriver {
             File decoding = this.getDecodingFile(encoded);
             writer = new OutputStreamWriter(predecessor.getFileOutputStream(decoding));
             writer.write(decodedName);
+            this.cache.registerFullName(FileSystemManager.getAbsolutePath(decoding), decodedName);
         } finally {
             if (writer != null) {
                 writer.close();
             }
         }
     }
-    
+
     /**
      * Checks wether the file is a "companion" file (which must be ignored by file listing methods)
      */
     protected boolean isDecodingFile(File f) {
         return isDecodingFile(predecessor.getName(f));
     }
-    
+
     /**
      * Checks wether the file is a "companion" file (which must be ignored by file listing methods)
      */
     protected boolean isDecodingFile(String f) {
         return f.endsWith(DECODED_SUFF);
     }    
-    
+
     public int hashCode() {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, this.directoryRoot);
         h = HashHelper.hash(h, this.predecessor);
-        
+
         return h;
     }
-    
+
     public boolean equals(Object o) {
         if (o == null) {
             return false;
         } else if (o instanceof HashFileSystemDriver) {
             HashFileSystemDriver other = (HashFileSystemDriver)o;
-            
+
             return (
                     EqualsHelper.equals(other.directoryRoot, this.directoryRoot) 
                     && EqualsHelper.equals(other.predecessor, this.predecessor) 
@@ -516,15 +533,15 @@ extends AbstractLinkableFileSystemDriver {
             return false;
         }
     }
-    
+
     protected static class FilenameFilterAdapter implements FilenameFilter {
         protected FilenameFilter filter;
         protected HashFileSystemDriver driver;
-        
+
         public FilenameFilterAdapter(
                 FilenameFilter wrappedFilter,
                 HashFileSystemDriver driver) {
-            
+
             this.filter = wrappedFilter;
             this.driver = driver;
         }
@@ -535,27 +552,27 @@ extends AbstractLinkableFileSystemDriver {
             } else {
                 File targetDirectory = driver.decodeFileName(dir);
                 String targetName = driver.decodeFileName(dir, name);
-                
+
                 return filter.accept(targetDirectory, targetName);
             }
         }
     }
-    
+
     protected static class FileFilterAdapter implements FileFilter {
         protected FileFilter filter;
         protected HashFileSystemDriver driver;
-        
+
         public FileFilterAdapter(
                 FileFilter wrappedFilter,
                 HashFileSystemDriver driver) {
-            
+
             this.filter = wrappedFilter;
             this.driver = driver;
         }
-        
+
         public FileFilterAdapter(
                 HashFileSystemDriver driver) {
-            
+
             this.filter = null;
             this.driver = driver;
         }
@@ -565,8 +582,8 @@ extends AbstractLinkableFileSystemDriver {
                 return false;
             } else {
                 if (filter != null) {
-		            File target = driver.decodeFileName(file);
-		            return filter.accept(target);
+                    File target = driver.decodeFileName(file);
+                    return filter.accept(target);
                 } else {
                     return true;
                 }
@@ -582,15 +599,15 @@ extends AbstractLinkableFileSystemDriver {
         File enc = d.encodeFileName(f);
         System.out.println(enc);
     }
-    
-    
+
+
     public String toString() {
         StringBuffer sb = ToStringHelper.init(this);
         ToStringHelper.append("ROOT", this.directoryRoot, sb);
         ToStringHelper.append("PREDECESSOR", this.predecessor, sb);
         return ToStringHelper.close(sb);
     }
-    
+
     public boolean isContentSensitive() {
         return true;
     }

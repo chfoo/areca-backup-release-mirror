@@ -8,21 +8,20 @@ import org.w3c.dom.NodeList;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
-import com.application.areca.ArchiveFilter;
 import com.application.areca.ArchiveMedium;
 import com.application.areca.RecoveryProcess;
+import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.filter.FileDateArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
 import com.application.areca.filter.FileSizeArchiveFilter;
+import com.application.areca.filter.FilterGroup;
 import com.application.areca.filter.LinkFilter;
 import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.filter.RegexArchiveFilter;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.impl.IncrementalDirectoryMedium;
-import com.application.areca.impl.IncrementalTGZMedium;
-import com.application.areca.impl.IncrementalZip64Medium;
 import com.application.areca.impl.IncrementalZipMedium;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
@@ -39,7 +38,7 @@ import com.application.areca.postprocess.ShellScriptPostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -79,7 +78,7 @@ public class TargetXMLReader implements XMLTags {
         Node baseDir = targetNode.getAttributes().getNamedItem(XML_TARGET_BASEDIR);
         Node id = targetNode.getAttributes().getNamedItem(XML_TARGET_ID);
         Node uid = targetNode.getAttributes().getNamedItem(XML_TARGET_UID);        
-        Node name = targetNode.getAttributes().getNamedItem(XML_TARGET_NAME);        
+        Node name = targetNode.getAttributes().getNamedItem(XML_TARGET_NAME);     
         
         if (id == null) {
             throw new AdapterException("Target ID not found : your target must have a '" + XML_TARGET_ID + "' attribute.");
@@ -107,11 +106,20 @@ public class TargetXMLReader implements XMLTags {
         Node commentsNode = targetNode.getAttributes().getNamedItem(XML_TARGET_DESCRIPTION);
         if (commentsNode != null) {
             target.setComments(commentsNode.getNodeValue());
-        }            
+        }  
+
+        Node followSymLinksNode = targetNode.getAttributes().getNamedItem(XML_TARGET_FOLLOW_SYMLINKS);  
+        if (followSymLinksNode != null) {
+            target.setTrackSymlinks(! Boolean.valueOf(followSymLinksNode.getNodeValue()).booleanValue());
+        } else {
+            target.setTrackSymlinks(false);
+        }
         
         NodeList children = targetNode.getChildNodes();
         for (int i=0; i<children.getLength(); i++) {
             String child = children.item(i).getNodeName();
+            
+            // ===== BACKWARD COMPATIBILITY =====
             if (child.equalsIgnoreCase(XML_FILTER_DIRECTORY)) {
                 target.addFilter(this.readDirectoryArchiveFilter(children.item(i)));
             } else if (child.equalsIgnoreCase(XML_FILTER_FILEEXTENSION)) {
@@ -126,6 +134,10 @@ public class TargetXMLReader implements XMLTags {
                 target.addFilter(this.readLockedFileFilter(children.item(i)));                  
             } else if (child.equalsIgnoreCase(XML_FILTER_FILEDATE)) {
                 target.addFilter(this.readFileDateArchiveFilter(children.item(i)));  
+            // ===== EOF BACKWARD COMPATIBILITY =====
+
+            } else if (child.equalsIgnoreCase(XML_FILTER_GROUP)) {
+                target.setFilterGroup(this.readFilterGroup(children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_MEDIUM)) {
                 target.setMedium(this.readMedium(children.item(i), target), false);      
                 target.getMedium().install();
@@ -142,7 +154,7 @@ public class TargetXMLReader implements XMLTags {
         
         return target;
     }
-    
+   
     protected PostProcessor readDumpProcessor(Node node, AbstractRecoveryTarget target) throws AdapterException {
         Node paramNode = node.getAttributes().getNamedItem(XML_PP_DUMP_DIRECTORY);
         if (paramNode == null) {
@@ -266,12 +278,16 @@ public class TargetXMLReader implements XMLTags {
 
         AbstractIncrementalFileSystemMedium medium;
         
-        if (typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_ZIP)) {
-            medium = new IncrementalZipMedium();                    
-        } else if (typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_ZIP64)) {
-            medium = new IncrementalZip64Medium();        
-        } else if (typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_TGZ)) {
-            medium = new IncrementalTGZMedium();                        
+        if (typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_ZIP) || typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_ZIP64)) {
+            medium = new IncrementalZipMedium();       
+            ((IncrementalZipMedium)medium).setUseZip64(typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_ZIP64));
+            
+            Node volumeSizeNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_VOLUME_SIZE);
+            if (volumeSizeNode != null) {
+                long volumeSize = Long.parseLong(volumeSizeNode.getNodeValue());
+                ((IncrementalZipMedium)medium).setVolumeSize(volumeSize);
+                ((IncrementalZipMedium)medium).setMultiVolumes(true);
+            }
         } else if (typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_DIR)) {
             medium = new IncrementalDirectoryMedium();                
         }  else {
@@ -338,6 +354,43 @@ public class TargetXMLReader implements XMLTags {
         encrArgs.setEncryptionKey(encryptionKey);
         
         return encrArgs;
+    }
+    
+    protected FilterGroup readFilterGroup(Node filterNode) throws AdapterException {  
+        FilterGroup grp = new FilterGroup();
+        initFilter(grp, filterNode, null);
+
+        // Operator
+        Node operatorNode = filterNode.getAttributes().getNamedItem(XML_FILTER_GROUP_OPERATOR);
+        boolean isAnd = (operatorNode == null || operatorNode.getNodeValue().equalsIgnoreCase(XML_FILTER_GROUP_OPERATOR_AND));
+        grp.setAnd(isAnd);
+                
+        // Components
+        NodeList children = filterNode.getChildNodes();
+        for (int i=0; i<children.getLength(); i++) {
+            String child = children.item(i).getNodeName();
+            
+            // BACKWARD COMPATIBILITY
+            if (child.equalsIgnoreCase(XML_FILTER_DIRECTORY)) {
+                grp.addFilter(this.readDirectoryArchiveFilter(children.item(i)));
+            } else if (child.equalsIgnoreCase(XML_FILTER_FILEEXTENSION)) {
+                grp.addFilter(this.readFileExtensionArchiveFilter(children.item(i)));   
+            } else if (child.equalsIgnoreCase(XML_FILTER_REGEX)) {
+                grp.addFilter(this.readRegexArchiveFilter(children.item(i)));  
+            } else if (child.equalsIgnoreCase(XML_FILTER_FILESIZE)) {
+                grp.addFilter(this.readFileSizeArchiveFilter(children.item(i)));  
+            } else if (child.equalsIgnoreCase(XML_FILTER_LINK)) {
+                grp.addFilter(this.readLinkFilter(children.item(i)));  
+            } else if (child.equalsIgnoreCase(XML_FILTER_LOCKED)) {
+                grp.addFilter(this.readLockedFileFilter(children.item(i)));                  
+            } else if (child.equalsIgnoreCase(XML_FILTER_FILEDATE)) {
+                grp.addFilter(this.readFileDateArchiveFilter(children.item(i)));  
+            } else if (child.equalsIgnoreCase(XML_FILTER_GROUP)) {
+                grp.addFilter(this.readFilterGroup(children.item(i)));  
+            }
+        }        
+        
+        return grp;
     }
     
     protected FileDateArchiveFilter readFileDateArchiveFilter(Node filterNode) throws AdapterException {
@@ -410,8 +463,8 @@ public class TargetXMLReader implements XMLTags {
     protected void initFilter(ArchiveFilter filter, Node filterNode, Node paramNode) {
         Node excludeNode = filterNode.getAttributes().getNamedItem(XML_FILTER_EXCLUDE);
         boolean isExclude = (excludeNode != null && excludeNode.getNodeValue().equalsIgnoreCase("true"));
-        
         filter.setExclude(isExclude);
+
         if (paramNode != null) {
             filter.acceptParameters(paramNode.getNodeValue());
         }

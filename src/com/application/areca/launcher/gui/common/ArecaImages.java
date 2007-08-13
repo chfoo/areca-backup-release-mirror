@@ -6,13 +6,12 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.OSTool;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -79,16 +78,17 @@ public class ArecaImages {
     public static Image ICO_ARCHIVE_DETAIL = loadImage("db_status.png");       
     public static Image ICO_ACT_CANCEL = ICO_ACT_DELETE;
     
+    // FILESYSTEM
+    public static Image ICO_FS_FILE = loadImage("binary.png");
+    public static Image ICO_FS_FOLDER = ICO_REF_PROCESS;
+    public static Image ICO_FILTER = loadImage("run.png");
+    
     // Historique
     public static Image ICO_HISTO_NEW = ICO_TARGET_NEW;
     public static Image ICO_HISTO_FOLDER_NEW = ICO_REF_PROCESS;
     public static Image ICO_HISTO_EDIT = ICO_TARGET_EDIT;
     public static Image ICO_HISTO_DELETE = loadImage("delete.png");
     
-    // FILESYSTEM
-    public static Image ICO_FS_FILE = loadImage("binary.png");
-    public static Image ICO_FS_FOLDER = ICO_REF_PROCESS;
-    public static Image ICO_FILTER = loadImage("run.png");
     
     private static Image loadImage(String strUrl) {
         try {

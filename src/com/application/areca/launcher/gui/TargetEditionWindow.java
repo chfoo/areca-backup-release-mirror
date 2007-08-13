@@ -28,10 +28,10 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.AbstractRecoveryTarget;
-import com.application.areca.ArchiveFilter;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.filter.AbstractArchiveFilter;
+import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
 import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.impl.AbstractFileSystemMedium;
@@ -39,8 +39,6 @@ import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.EncryptionConfiguration;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.impl.IncrementalDirectoryMedium;
-import com.application.areca.impl.IncrementalTGZMedium;
-import com.application.areca.impl.IncrementalZip64Medium;
 import com.application.areca.impl.IncrementalZipMedium;
 import com.application.areca.impl.policy.DefaultFileSystemPolicy;
 import com.application.areca.impl.policy.EncryptionPolicy;
@@ -58,12 +56,13 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.history.History;
 import com.myJava.util.log.Logger;
+import com.myJava.util.os.OSTool;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -1700699344456460829
+ * <BR>Areca Build ID : -4899974077672581254
  */
  
  /*
@@ -115,6 +114,7 @@ extends AbstractWindow {
     protected Group grpCompression;
     protected Group grpEncryption;
     protected Group grpFileManagement;
+    protected Group grpMultiVolumes;
     protected Button rdDir;
     protected Button rdZip;
     protected Button rdZip64;
@@ -122,10 +122,15 @@ extends AbstractWindow {
     protected Button chkTrackDirectories;
     protected Button chkTrackPermissions;
     protected Button chkEncrypted;
+    protected Button chkMultiVolumes;
+    protected Button chkFollowLinks;
     protected Button chkIncremental;
     protected Text txtEncryptionKey;
+    protected Text txtMultiVolumes;
     protected Combo cboEncryptionAlgorithm;
     protected Label lblEncryptionKey;
+    protected Label lblMultiVolumes;
+    protected Label lblMultiVolumesUnit;
     protected Label lblEncryptionAlgorithm;
     
     protected Table tblFilters;
@@ -211,6 +216,18 @@ extends AbstractWindow {
         txtTargetName = new Text(grpTargetName, SWT.BORDER);
         txtTargetName.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         monitorControl(txtTargetName);
+        
+        // DESC
+        Group grpDesc = new Group(composite, SWT.NONE);
+        grpDesc.setText(RM.getLabel("targetedition.descriptionfield.label"));
+        grpDesc.setLayout(new GridLayout(1, false));
+        grpDesc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+        txtDesc = new Text(grpDesc, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+        monitorControl(txtDesc);
+        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
+        dt.widthHint = 500;
+        dt.heightHint = 50;
+        txtDesc.setLayoutData(dt);
         
         // SOURCE
         Group grpBaseDir = new Group(composite, SWT.NONE);
@@ -320,47 +337,53 @@ extends AbstractWindow {
         txtTargetName.forceFocus();
     }
 
+    private void enableSplitting(boolean enable) {
+        this.chkMultiVolumes.setEnabled(enable);
+        if (! enable) {
+            this.chkMultiVolumes.setSelection(false);
+        }
+        this.resetMVData();
+    }
+    
     private void initAdvancedTab(Composite composite) {
         composite.setLayout(initLayout(2));
-
-        // DESC
-        Group grpDesc = new Group(composite, SWT.NONE);
-        grpDesc.setText(RM.getLabel("targetedition.descriptionfield.label"));
-        grpDesc.setLayout(new GridLayout(1, false));
-        grpDesc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
-        txtDesc = new Text(grpDesc, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-        monitorControl(txtDesc);
-        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
-        dt.widthHint = 500;
-        dt.heightHint = 50;
-        txtDesc.setLayoutData(dt);
         
         // COMPRESSION
         grpCompression = new Group(composite, SWT.NONE);
         grpCompression.setText(RM.getLabel("targetedition.compression.label"));
         RowLayout lytCompression = new RowLayout(SWT.VERTICAL);
         grpCompression.setLayout(lytCompression);
-        grpCompression.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        grpCompression.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
         
         rdDir = new Button(grpCompression, SWT.RADIO);
         monitorControl(rdDir);
         rdDir.setText(RM.getLabel("targetedition.compression.none"));
         rdDir.setToolTipText(RM.getLabel("targetedition.compression.none.tt"));
+        rdDir.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event) {
+                enableSplitting(false);
+            }
+        });
         
         rdZip = new Button(grpCompression, SWT.RADIO);
         monitorControl(rdZip);
         rdZip.setText(RM.getLabel("targetedition.compression.zip"));
         rdZip.setToolTipText(RM.getLabel("targetedition.compression.zip.tt"));
-        
-        //rdTgz = new Button(grpCompression, SWT.RADIO);
-        //monitorControl(rdTgz);
-        //rdTgz.setText(RM.getLabel("targetedition.compression.tgz"));
-        //rdTgz.setToolTipText(RM.getLabel("targetedition.compression.tgz.tt"));
+        rdZip.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event) {
+                enableSplitting(true);
+            }
+        });
         
         rdZip64 = new Button(grpCompression, SWT.RADIO);
         monitorControl(rdZip64);
         rdZip64.setText(RM.getLabel("targetedition.compression.zip64"));
         rdZip64.setToolTipText(RM.getLabel("targetedition.compression.zip64.tt"));
+        rdZip64.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event) {
+                enableSplitting(true);
+            }
+        });
         
         // FILE MANAGEMENT
         grpFileManagement = new Group(composite, SWT.NONE);
@@ -383,6 +406,40 @@ extends AbstractWindow {
         monitorControl(chkTrackPermissions);
         chkTrackPermissions.setText(RM.getLabel("targetedition.trackperms.label"));
         chkTrackPermissions.setToolTipText(RM.getLabel("targetedition.trackperms.tooltip"));
+        
+        chkFollowLinks = new Button(grpFileManagement, SWT.CHECK);
+        monitorControl(chkFollowLinks);
+        chkFollowLinks.setText(RM.getLabel("targetedition.followlinks.label"));
+        chkFollowLinks.setToolTipText(RM.getLabel("targetedition.followlinks.tooltip"));
+        if (OSTool.isSystemWindows()) {
+            chkFollowLinks.setVisible(false);
+        }
+        
+        // MULTI VOLUMES
+        grpMultiVolumes = new Group(composite, SWT.NONE);
+        grpMultiVolumes.setText(RM.getLabel("targetedition.mv.label"));
+        grpMultiVolumes.setLayout(new GridLayout(4, false));
+        grpMultiVolumes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        
+        chkMultiVolumes = new Button(grpMultiVolumes, SWT.CHECK);
+        chkMultiVolumes.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+        chkMultiVolumes.setText(RM.getLabel("targetedition.mv.label"));
+        chkMultiVolumes.setToolTipText(RM.getLabel("targetedition.mv.tooltip"));
+        monitorControl(chkMultiVolumes);
+        chkMultiVolumes.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event) {
+                resetMVData();
+            }
+        });
+        
+        lblMultiVolumes = new Label(grpMultiVolumes, SWT.NONE);
+        lblMultiVolumes.setText(RM.getLabel("targetedition.mv.size.label"));
+        txtMultiVolumes = new Text(grpMultiVolumes, SWT.BORDER);
+        monitorControl(txtMultiVolumes);
+        txtMultiVolumes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        lblMultiVolumesUnit = new Label(grpMultiVolumes, SWT.NONE);
+        lblMultiVolumesUnit.setText(RM.getLabel("targetedition.mv.unit.label"));
+        //lblMultiVolumesUnit.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
         
         // ENCRYPTION
         grpEncryption = new Group(composite, SWT.NONE);
@@ -607,13 +664,14 @@ extends AbstractWindow {
             chkIncremental.setSelection(! fMedium.isOverwrite());
             chkTrackDirectories.setSelection(fMedium.isTrackDirectories());
             chkTrackPermissions.setSelection(fMedium.isTrackPermissions());
+            chkFollowLinks.setSelection( ! ((FileSystemRecoveryTarget)target).isTrackSymlinks());
             
             if (IncrementalZipMedium.class.isAssignableFrom(fMedium.getClass())) {
-                rdZip.setSelection(true);
-            } else if (IncrementalZip64Medium.class.isAssignableFrom(fMedium.getClass())) {
-                rdZip64.setSelection(true);
-            } else if (IncrementalTGZMedium.class.isAssignableFrom(fMedium.getClass())) {
-                //rdTgz.setSelection(true);
+                if (((IncrementalZipMedium)fMedium).isUseZip64()) {
+                    rdZip64.setSelection(true);
+                } else {
+                    rdZip.setSelection(true);
+                }
             } else {
                 rdDir.setSelection(true);
             }
@@ -638,6 +696,12 @@ extends AbstractWindow {
                 this.currentPolicy = clone;
             }
 
+            boolean mv = fMedium instanceof IncrementalZipMedium && ((IncrementalZipMedium)fMedium).isMultiVolumes();
+            chkMultiVolumes.setSelection(mv);
+            if (mv) {
+                txtMultiVolumes.setText("" + ((IncrementalZipMedium)fMedium).getVolumeSize());
+            }
+            
             chkEncrypted.setSelection(fMedium.getEncryptionPolicy().isEncrypted());
             if (fMedium.getEncryptionPolicy().isEncrypted()) {
                 txtEncryptionKey.setText(fMedium.getEncryptionPolicy().getEncryptionKey());
@@ -685,6 +749,11 @@ extends AbstractWindow {
             rdZip.setSelection(true);
             rdFile.setSelection(true);
             chkIncremental.setSelection(true);
+            chkTrackDirectories.setSelection(true);
+            chkTrackPermissions.setSelection(true);
+            if (OSTool.isSystemWindows()) {
+                this.chkFollowLinks.setSelection(true);
+            }
             processSelection(PLUGIN_HD, ArecaPreferences.getDefaultArchiveStorage());
             
             // Default filters
@@ -699,6 +768,8 @@ extends AbstractWindow {
         }
         
         this.resetEcryptionKey();
+        this.resetMVData();
+        enableSplitting(! (rdDir.getSelection()));
         
         // FREEZE
         if (isFrozen(true)) {
@@ -716,20 +787,25 @@ extends AbstractWindow {
 
             grpCompression.setEnabled(false);
             grpEncryption.setEnabled(false);
+            grpMultiVolumes.setEnabled(false);
             grpFileManagement.setEnabled(false);
             
             rdDir.setEnabled(false);
             rdZip.setEnabled(false);
             rdZip64.setEnabled(false);
-            //rdTgz.setEnabled(false);
             chkEncrypted.setEnabled(false);
+            chkMultiVolumes.setEnabled(false);
             chkIncremental.setEnabled(false);
             cboEncryptionAlgorithm.setEnabled(false);
             lblEncryptionAlgorithm.setEnabled(false);
             lblEncryptionKey.setEnabled(false);
             txtEncryptionKey.setEnabled(false);
+            txtMultiVolumes.setEnabled(false);
+            lblMultiVolumes.setEnabled(false);
+            lblMultiVolumesUnit.setEnabled(false);
             chkTrackDirectories.setEnabled(false);
             chkTrackPermissions.setEnabled(false);
+            chkFollowLinks.setEnabled(false);
         }    
 
         if (backwardCompatibilityError) {
@@ -846,6 +922,25 @@ extends AbstractWindow {
             }
         }
         
+        // MULTI-VOLUMES
+        this.resetErrorState(txtMultiVolumes);
+        if (this.chkMultiVolumes.getSelection()) {
+            if (
+                this.txtMultiVolumes.getText() == null 
+                || this.txtMultiVolumes.getText().length() == 0    
+            ) {
+                this.setInError(txtMultiVolumes);
+                return false;
+            } else {
+                try {
+                    Long.parseLong(this.txtMultiVolumes.getText());
+                } catch (NumberFormatException e) {
+                    this.setInError(txtMultiVolumes);
+                    return false;
+                }
+            }
+        }
+
         // CRYPTAGE
         this.resetErrorState(cboEncryptionAlgorithm);
         if (
@@ -869,23 +964,41 @@ extends AbstractWindow {
         return true;        
     }
     
+    private void resetMVData() {
+        if (this.chkMultiVolumes.getSelection()) {
+            this.txtMultiVolumes.setEditable(true);
+            this.txtMultiVolumes.setEnabled(true);
+            
+            this.lblMultiVolumes.setEnabled(true);
+            this.lblMultiVolumesUnit.setEnabled(true);
+        } else {
+            this.txtMultiVolumes.setEditable(false);
+            this.txtMultiVolumes.setBackground(null);
+            this.txtMultiVolumes.setEnabled(false);
+            if (txtMultiVolumes.getText() != null && txtMultiVolumes.getText().length() != 0) {
+                this.txtMultiVolumes.setText("");
+            }
+            this.lblMultiVolumes.setEnabled(false);
+            this.lblMultiVolumesUnit.setEnabled(false);
+        }
+    }
+    
     private void resetEcryptionKey() {
         if (this.chkEncrypted.getSelection()) {
             this.txtEncryptionKey.setEditable(true);
+            this.txtEncryptionKey.setEnabled(true);
             this.cboEncryptionAlgorithm.setEnabled(true);
-            
             this.lblEncryptionAlgorithm.setEnabled(true);
             this.lblEncryptionKey.setEnabled(true);
         } else {
             this.txtEncryptionKey.setEditable(false);
+            this.txtEncryptionKey.setEnabled(false);
             this.txtEncryptionKey.setBackground(null);
             if (txtEncryptionKey.getText() != null && txtEncryptionKey.getText().length() != 0) {
                 this.txtEncryptionKey.setText("");
             }
-            
             this.cboEncryptionAlgorithm.setEnabled(false);
             this.cboEncryptionAlgorithm.setBackground(null);
-            
             this.lblEncryptionAlgorithm.setEnabled(false);
             this.lblEncryptionKey.setEnabled(false);
         }
@@ -955,6 +1068,7 @@ extends AbstractWindow {
             
             newTarget.setComments(this.txtDesc.getText());
             newTarget.setTargetName(txtTargetName.getText());
+            newTarget.setTrackSymlinks( ! this.chkFollowLinks.getSelection());
             
             if (isFrozen(false)) {
                 newTarget.setMedium(target.getMedium(), false);
@@ -998,12 +1112,14 @@ extends AbstractWindow {
                 
                 if (this.rdDir.getSelection()) {
                     medium = new IncrementalDirectoryMedium();                    
-                } else if (this.rdZip.getSelection()) {
-                    medium = new IncrementalZipMedium();                        
-                } else if (this.rdZip64.getSelection()) {
-                    medium = new IncrementalZip64Medium();                        
-                //} else if (this.rdTgz.getSelection()) {
-                //    medium = new IncrementalTGZMedium();
+                } else if (this.rdZip.getSelection() || this.rdZip64.getSelection()) {
+                    medium = new IncrementalZipMedium();         
+                    ((IncrementalZipMedium)medium).setUseZip64(this.rdZip64.getSelection());
+
+                    ((IncrementalZipMedium)medium).setMultiVolumes(this.chkMultiVolumes.getSelection());
+                    if (this.chkMultiVolumes.getSelection()) {
+                        ((IncrementalZipMedium)medium).setVolumeSize(Long.parseLong(txtMultiVolumes.getText()));
+                    }
                 }
                 ((AbstractIncrementalFileSystemMedium)medium).setFileSystemPolicy(storagePolicy);
                 ((AbstractIncrementalFileSystemMedium)medium).setEncryptionPolicy(encrArgs);
