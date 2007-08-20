@@ -10,7 +10,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -44,7 +44,7 @@ public class FTPFileOutputStream extends OutputStream {
      * @param proxy
      * @param in
      */
-    public FTPFileOutputStream(FTPProxy proxy, OutputStream out, String ownerId, String fileName) {
+    public FTPFileOutputStream(FTPProxy proxy, OutputStream out, String ownerId, String fileName) throws FTPConnectionException {
         super();
         this.proxy = proxy;
         this.out = out;

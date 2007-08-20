@@ -2,6 +2,11 @@ package com.application.areca.adapters;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -38,7 +43,7 @@ import com.application.areca.postprocess.ShellScriptPostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -75,7 +80,6 @@ public class TargetXMLReader implements XMLTags {
     }
     
     public FileSystemRecoveryTarget readTarget() throws IOException, AdapterException, ApplicationException {
-        Node baseDir = targetNode.getAttributes().getNamedItem(XML_TARGET_BASEDIR);
         Node id = targetNode.getAttributes().getNamedItem(XML_TARGET_ID);
         Node uid = targetNode.getAttributes().getNamedItem(XML_TARGET_UID);        
         Node name = targetNode.getAttributes().getNamedItem(XML_TARGET_NAME);     
@@ -84,21 +88,25 @@ public class TargetXMLReader implements XMLTags {
             throw new AdapterException("Target ID not found : your target must have a '" + XML_TARGET_ID + "' attribute.");
         }   
         
-        if (baseDir == null) {
-            throw new AdapterException("Target source directory not found : your target must have a '" + XML_TARGET_BASEDIR + "' attribute.");
-        }      
-        
         String strUid = null;
         if (uid != null) {
             strUid = uid.getNodeValue();
         }
         
         FileSystemRecoveryTarget target = new FileSystemRecoveryTarget();
-        target.setSourcePath(new File(baseDir.getNodeValue()));
         target.setId(Integer.parseInt(id.getNodeValue()));
         target.setUid(strUid);
         target.setProcess(process);
-
+        
+        // BACKWARD COMPATIBILITY
+        Node baseDir = targetNode.getAttributes().getNamedItem(XML_TARGET_BASEDIR);
+        if (baseDir != null) {
+            HashSet src = new HashSet();
+            src.add(new File(baseDir.getNodeValue()));
+            target.setSources(src);
+        }      
+        // EOF BACKWARD COMPATIBILITY
+        
         if (name != null) {
             target.setTargetName(name.getNodeValue());
         }
@@ -114,6 +122,8 @@ public class TargetXMLReader implements XMLTags {
         } else {
             target.setTrackSymlinks(false);
         }
+        
+        HashSet sources = new HashSet();
         
         NodeList children = targetNode.getChildNodes();
         for (int i=0; i<children.getLength(); i++) {
@@ -149,10 +159,27 @@ public class TargetXMLReader implements XMLTags {
                 target.getPostProcessors().addPostProcessor(this.readShellProcessor(children.item(i), target));                
             } else if (child.equalsIgnoreCase(XML_POSTPROCESSOR_MERGE)) {
                 target.getPostProcessors().addPostProcessor(this.readMergeProcessor(children.item(i), target));                
+            } else if (child.equalsIgnoreCase(XML_SOURCE)) {
+                readSource(sources, children.item(i));
             }
         }
         
+        if (sources.size() > 0 && baseDir != null) {
+            throw new AdapterException("The '" + XML_TARGET_BASEDIR + "' attribute is deprecated. It shall not be used anymore. Use '" + XML_SOURCE + "' elements instead.");
+        } else if (baseDir == null) {
+            target.setSources(sources);
+        }
+        
         return target;
+    }
+    
+    protected void readSource(Set sources, Node node) throws AdapterException {
+        Node pathNode = node.getAttributes().getNamedItem(XML_SOURCE_PATH);
+        if (pathNode == null) {
+            throw new AdapterException("A '" + XML_SOURCE_PATH + "' attribute must be set.");
+        } else {
+            sources.add(new File(pathNode.getNodeValue()));
+        }
     }
    
     protected PostProcessor readDumpProcessor(Node node, AbstractRecoveryTarget target) throws AdapterException {
@@ -287,6 +314,16 @@ public class TargetXMLReader implements XMLTags {
                 long volumeSize = Long.parseLong(volumeSizeNode.getNodeValue());
                 ((IncrementalZipMedium)medium).setVolumeSize(volumeSize);
                 ((IncrementalZipMedium)medium).setMultiVolumes(true);
+            }
+            
+            Node commentNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ZIP_COMMENT);
+            if (commentNode != null) {
+                ((IncrementalZipMedium)medium).setComment(commentNode.getNodeValue());
+            }
+            
+            Node charsetNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ZIP_CHARSET);
+            if (charsetNode != null) {
+                ((IncrementalZipMedium)medium).setCharset(Charset.forName(charsetNode.getNodeValue()));
             }
         } else if (typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_DIR)) {
             medium = new IncrementalDirectoryMedium();                

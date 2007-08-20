@@ -1,5 +1,6 @@
 package com.application.areca.adapters;
 
+import java.io.File;
 import java.util.Iterator;
 
 import com.application.areca.filter.ArchiveFilter;
@@ -30,7 +31,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -90,12 +91,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_TARGET_NAME);
         sb.append("=");
-        sb.append(encode("" + tg.getTargetName()));
-        
-        sb.append(" ");
-        sb.append(XML_TARGET_BASEDIR);
-        sb.append("=");
-        sb.append(encode(FileSystemManager.getAbsolutePath(tg.getSourcePath())));        
+        sb.append(encode("" + tg.getTargetName()));     
         
         sb.append(" ");
         sb.append(XML_TARGET_DESCRIPTION);
@@ -103,6 +99,13 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(encode(tg.getComments()));     
         
         sb.append(">");   
+        
+        // Sources
+        Iterator sources = tg.getSources().iterator();
+        while (sources.hasNext()) {
+            File source = (File)sources.next();
+            serializeSource(source);
+        }
         
         // Support
         if (IncrementalDirectoryMedium.class.isAssignableFrom(tg.getMedium().getClass())) {
@@ -132,6 +135,16 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("\n</");
         sb.append(XML_TARGET);
         sb.append(">");            
+    }
+    
+    protected void serializeSource(File source) {
+        sb.append("\n<");
+        sb.append(XML_SOURCE);
+        sb.append(" ");
+        sb.append(XML_SOURCE_PATH);
+        sb.append("=");
+        sb.append(encode(FileSystemManager.getAbsolutePath(source)));
+        sb.append("/>");     
     }
 
     protected void serializeProcessor(FileDumpPostProcessor pp) {
@@ -353,6 +366,20 @@ public class TargetXMLWriter extends AbstractXMLWriter {
             sb.append(XML_MEDIUM_VOLUME_SIZE);
             sb.append("=");
             sb.append(encode("" + medium.getVolumeSize()));
+            sb.append(" ");            
+        }
+        
+        if (medium.getComment() != null) {
+            sb.append(XML_MEDIUM_ZIP_COMMENT);
+            sb.append("=");
+            sb.append(encode(medium.getComment()));
+            sb.append(" ");            
+        }
+        
+        if (medium.getCharset() != null) {
+            sb.append(XML_MEDIUM_ZIP_CHARSET);
+            sb.append("=");
+            sb.append(encode(medium.getCharset().name()));
             sb.append(" ");            
         }
         

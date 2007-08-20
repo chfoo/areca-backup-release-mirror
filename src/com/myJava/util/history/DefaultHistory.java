@@ -27,7 +27,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -57,7 +57,7 @@ public class DefaultHistory implements History {
     protected File file;
     protected HashMap content;
     protected GregorianCalendar lastActionDate = null;
-    protected FileTool tool = new FileTool();
+    protected FileTool tool = FileTool.getInstance();
     
     public DefaultHistory(File file) throws IOException {
         this.file = file;
@@ -98,7 +98,7 @@ public class DefaultHistory implements History {
      */
     public synchronized void flush() throws IOException {       
         if (file != null) {
-            FileTool tool = new FileTool();
+            FileTool tool = FileTool.getInstance();
             if (! FileSystemManager.exists(FileSystemManager.getParentFile(file))) {
                 tool.createDir(FileSystemManager.getParentFile(file));
             }

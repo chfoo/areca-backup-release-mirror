@@ -1,4 +1,6 @@
 package com.myJava.file;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -8,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.file.attributes.AttributesHelper;
 import com.myJava.util.HashHelper;
@@ -20,7 +23,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -43,7 +46,10 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
-
+    
+    protected static boolean USE_BUFFER = FrameworkConfiguration.getInstance().useFileSystemBuffer();
+    protected static int BUFFER_SIZE = FrameworkConfiguration.getInstance().getFileSystemBufferSize();
+    
     public boolean canRead(File file) {
         return file.canRead();
     }
@@ -240,7 +246,11 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public InputStream getFileInputStream(File file) throws IOException {
-        return new FileInputStream(file);
+        if (USE_BUFFER) {
+            return new BufferedInputStream(new FileInputStream(file), BUFFER_SIZE);
+        } else {
+            return new FileInputStream(file);
+        }
     }
 
     public OutputStream getCachedFileOutputStream(File file) throws IOException {
@@ -248,11 +258,19 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public OutputStream getFileOutputStream(File file) throws IOException {
-        return new FileOutputStream(file);
+        if (USE_BUFFER) {
+            return new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
+        } else {
+            return new FileOutputStream(file);
+        }
     }
     
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
-        return new FileOutputStream(file, append);
+        if (USE_BUFFER) {
+            return new BufferedOutputStream(new FileOutputStream(file, append), BUFFER_SIZE);
+        } else {
+            return new FileOutputStream(file, append);
+        }
     }
     
     public Attributes getAttributes(File f) throws IOException {

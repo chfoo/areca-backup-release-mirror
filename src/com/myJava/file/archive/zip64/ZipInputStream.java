@@ -7,15 +7,20 @@
 
 package com.myJava.file.archive.zip64;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PushbackInputStream;
+import java.nio.charset.Charset;
 import java.util.zip.CRC32;
 import java.util.zip.Inflater;
 import java.util.zip.ZipException;
 
 import com.myJava.configuration.FrameworkConfiguration;
+import com.myJava.util.log.Logger;
 
 /**
  * This class implements an input stream filter for reading files in the
@@ -38,7 +43,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
 public class ZipInputStream 
 extends InflaterInputStream 
@@ -50,7 +55,8 @@ implements ZipConstants {
     private CRC32 crc = new CRC32();
     private byte[] tmpbuf = new byte[ZIP_BUFFER_SIZE];
     private byte[] b = new byte[512];
-
+    private Charset charset = Charset.forName(DEFAULT_CHARSET);
+    
     private static final int DEFLATED = ZipEntry.DEFLATED;
 
     private boolean closed = false;
@@ -95,6 +101,16 @@ implements ZipConstants {
             return 0;
         } else {
             return 1;
+        }
+    }
+
+    public Charset getCharset() {
+        return charset;
+    }
+
+    public void setCharset(Charset charset) {
+        if (charset != null) {
+            this.charset = charset;
         }
     }
 
@@ -177,7 +193,7 @@ implements ZipConstants {
             b = new byte[blen];
         } 
         readFully(b, 0, len);
-        ZipEntry e = createZipEntry(getUTF8String(b, 0, len));
+        ZipEntry e = createZipEntry(decode(b, 0, len));
         // now get the remaining fields for the entry
         e.version = get16(tmpbuf, LOCVER);
         e.flag = get16(tmpbuf, LOCFLG);
@@ -201,7 +217,31 @@ implements ZipConstants {
         }
         return e;
     }
+    
+    private String decode(byte[] b, int off, int len) {
+        byte[] bytes = new byte[len];
+        for (int i=0; i<len; i++) {
+            bytes[i] = b[i+off];
+        }
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(bais, charset));
+        String ret;
+        try {
+            ret = reader.readLine();
+        } catch (IOException e) {
+            Logger.defaultLogger().error(e);
+            throw new IllegalArgumentException(e.getMessage());
+        } finally {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                Logger.defaultLogger().error(e);
+            }
+        }
+        return ret;
+    }
 
+    /*
     private static String getUTF8String(byte[] b, int off, int len) {
         // First, count the number of characters in the sequence
         int count = 0;
@@ -263,6 +303,7 @@ implements ZipConstants {
         }
         return new String(cs, 0, count);
     }
+    */
 
     protected ZipEntry createZipEntry(String name) {
         return new ZipEntry(name);

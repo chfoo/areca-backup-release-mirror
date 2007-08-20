@@ -12,7 +12,7 @@ import com.application.areca.AbstractRecoveryTarget;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -83,6 +83,16 @@ public class ProcessReport {
     protected FilteredEntries filteredEntriesData;
 
     protected AbstractRecoveryTarget target;
+    
+    /**
+     * Start date used to compute the data flow
+     */
+    protected long dataFlowStart = 0;
+    
+    /**
+     * Written bytes
+     */
+    protected long written = 0;
 
     /**
      * Tells wether the process is being validated
@@ -126,6 +136,19 @@ public class ProcessReport {
     
     public int getIgnoredFiles() {
         return ignoredFiles;
+    }
+    
+    public void startDataFlowTimer() {
+        dataFlowStart = System.currentTimeMillis();
+    }
+    
+    public void addWritten(long w) {
+        written += w;
+    }
+    
+    public long getDataFlowInKBPerSecond() {
+        long currentTime = System.currentTimeMillis() + 1;
+        return (long)(1000.0 / 1024.0 * written / (currentTime - this.dataFlowStart));
     }
     
     public int getProcessedEntries() {

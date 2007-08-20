@@ -22,7 +22,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -79,9 +79,9 @@ public class DirectoryFilterComposite extends AbstractStringParamFilterComposite
     public String getDefaultParameters() {
         if (
                 window.getCurrentTarget() != null
-                &&  window.getCurrentTarget().getSourcePath() != null
+                &&  window.getCurrentTarget().getSourcesRoot() != null
         ) {
-            return FileSystemManager.getAbsolutePath(window.getCurrentTarget().getSourcePath());
+            return window.getCurrentTarget().getSourcesRoot();
         } else {
             return super.getDefaultParameters();
         }

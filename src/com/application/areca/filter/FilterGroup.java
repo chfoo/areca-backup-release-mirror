@@ -1,12 +1,10 @@
 package com.application.areca.filter;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import com.application.areca.RecoveryEntry;
-import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.myJava.util.EqualsHelper;
 import com.myJava.util.HashHelper;
 import com.myJava.util.PublicClonable;
@@ -15,7 +13,7 @@ import com.myJava.util.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -123,6 +121,10 @@ public class FilterGroup implements ArchiveFilter {
             }
         }
         return isExclude ? ! matchFilter : matchFilter;
+    }
+    
+    public void remove(ArchiveFilter filter) {
+        this.filters.remove(filter);
     }
 
     public boolean equals(Object obj) {

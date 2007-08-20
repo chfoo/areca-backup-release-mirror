@@ -18,7 +18,7 @@ import com.myJava.file.FileTool;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -60,7 +60,7 @@ public class ProcessXMLWriter extends AbstractXMLWriter {
     
     public void serializeProcess(RecoveryProcess process, File targetFile) throws ApplicationException {
         try {
-            FileTool tool = new FileTool();
+            FileTool tool = FileTool.getInstance();
             
             if (FileSystemManager.exists(targetFile)) {
                 if (! FileSystemManager.delete(targetFile)) {

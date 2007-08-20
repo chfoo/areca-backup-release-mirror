@@ -13,13 +13,14 @@ import java.util.GregorianCalendar;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.log.Logger;
+import com.myJava.util.os.OSTool;
 
 /**
  * Utilitaires
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -91,6 +92,18 @@ public class Utils {
         return languages;
     }
     
+    public static String getTranslationsAsString() {
+        StringBuffer sb = new StringBuffer();
+        String[] lges = Utils.getTranslations();
+        for (int i=0; i<lges.length; i++) {
+            if (i != 0) {
+                sb.append(", ");
+            }
+            sb.append(lges[i]);
+        }
+        return sb.toString();
+    }
+    
     /**
      * Intègre la date courante au nom de fichier 
      */
@@ -109,17 +122,28 @@ public class Utils {
      * Retourne le chemin relatif de l'entry par rapport à sa racine. 
      */
     public static String extractShortFilePath(File fileDir, File baseDir) {
-        String sBaseDir = FileSystemManager.getAbsolutePath(baseDir);
+        return extractShortFilePath(fileDir, FileSystemManager.getAbsolutePath(baseDir));
+    }
+    
+    public static String extractShortFilePath(File fileDir, String sBaseDir) {
         String sFileDir = FileSystemManager.getAbsolutePath(fileDir);
-        
         int index = sBaseDir.length();
-        if (index < sFileDir.length()) {
-            char chr = sFileDir.charAt(index);
-    	    if (chr == '/' || chr =='\\') { // Filter fileSystem separatorChar and zip entry separatorChar
-                return sFileDir.substring(index + 1);            
-            } else {
-                return sFileDir.substring(index);
+        
+        if (    
+                index == 0 
+                && sFileDir.length() > 2 
+                && sFileDir.charAt(0) != '/'
+                && sFileDir.charAt(0) != '\\'
+                && sFileDir.charAt(1) == ':' 
+                && (sFileDir.charAt(2) == '/' || sFileDir.charAt(2) == '\\')
+        ) {
+            return sFileDir.charAt(0) + sFileDir.substring(2);
+        } else if (index < sFileDir.length()) {
+            while(sFileDir.charAt(index) == '/' || sFileDir.charAt(index) == '\\') {
+                index++;
             }
+
+            return sFileDir.substring(index);
         } else {
             return "";
         }

@@ -4,8 +4,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.ShellEvent;
-import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -23,11 +21,11 @@ import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.LocalPreferences;
-import com.application.areca.launcher.gui.composites.PhysicalViewComposite;
 import com.application.areca.launcher.gui.composites.HistoryComposite;
 import com.application.areca.launcher.gui.composites.IndicatorsComposite;
 import com.application.areca.launcher.gui.composites.LogComposite;
 import com.application.areca.launcher.gui.composites.LogicalViewComposite;
+import com.application.areca.launcher.gui.composites.PhysicalViewComposite;
 import com.application.areca.launcher.gui.composites.ProgressComposite;
 import com.application.areca.launcher.gui.composites.PropertiesComposite;
 import com.application.areca.launcher.gui.composites.SearchComposite;
@@ -41,7 +39,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -71,6 +69,10 @@ public class MainWindow extends AbstractWindow {
     private SashForm leftSash;
     private SashForm mainSash;
     private Composite progressContainer;
+    private int returnTabIndex = 0;
+    
+    private static final int TAB_PHYSICAL = 0;
+    private static final int TAB_PROGRESS = 6;
 
     /**
      * @param display
@@ -138,9 +140,8 @@ public class MainWindow extends AbstractWindow {
         addFolderItem(RM.getLabel("mainpanel.log.label"), ArecaImages.ICO_TARGET_NEW, new LogComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.progress.label"), ArecaImages.ICO_TARGET_NEW, progressContainer);
 
-        tabs.setSelection(0);
-        application.getFolderMonitor().handleSelection(tabs.getItem(0));
-
+        tabs.setSelection(TAB_PHYSICAL);
+        application.getFolderMonitor().handleSelection(tabs.getItem(TAB_PHYSICAL));
         mainSash.setWeights(new int[] {30, 70});
 
         // Force colors loading
@@ -153,8 +154,19 @@ public class MainWindow extends AbstractWindow {
     }
     
     public void focusOnProgress() {
-        this.tabs.setSelection(6);
-        this.application.getFolderMonitor().handleSelection(this.tabs.getItem(6));
+        int tab = this.application.getFolderMonitor().getCurrentSelection();
+        if (tab != TAB_PROGRESS) {
+            this.returnTabIndex = tab;
+        }
+        this.tabs.setSelection(TAB_PROGRESS);
+        this.application.getFolderMonitor().handleSelection(this.tabs.getItem(TAB_PROGRESS));
+    }
+    
+    public void goBackToLastTab() {
+        if (this.application.getFolderMonitor().getCurrentSelection() == TAB_PROGRESS) {
+            this.tabs.setSelection(this.returnTabIndex);
+            this.application.getFolderMonitor().handleSelection(this.tabs.getItem(this.returnTabIndex));
+        }
     }
 
     public Composite getProgressContainer() {

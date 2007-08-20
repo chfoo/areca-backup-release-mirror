@@ -11,6 +11,7 @@ import com.application.areca.RecoveryEntry;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.metadata.trace.ArchiveTrace;
 import com.myJava.file.FileNameUtil;
+import com.myJava.util.os.OSTool;
 
 /**
  * Class defining the physical content of an archive.
@@ -18,7 +19,7 @@ import com.myJava.file.FileNameUtil;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -49,14 +50,10 @@ public class ArchiveContent {
     
     private Set content = new HashSet();;
 
-    private File defaultRootDirectory;
+    private String defaultRootDirectory;
     
     public ArchiveContent() {
-        this(new File("/"));
-    }
-    
-    public ArchiveContent(File defaultRootDirectory) {
-        this.defaultRootDirectory = defaultRootDirectory;
+        this.defaultRootDirectory = OSTool.getTempDirectory();
     }
 
     public Iterator getContent() {

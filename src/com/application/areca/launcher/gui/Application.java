@@ -62,7 +62,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -140,7 +140,7 @@ implements ActionConstants, Window.IExceptionHandler {
     
     private Set channels = new HashSet();
 
-    private FileTool fileTool = new FileTool();
+    private FileTool fileTool = FileTool.getInstance();
 
     public Cursor CURSOR_WAIT;
 
@@ -929,6 +929,13 @@ implements ActionConstants, Window.IExceptionHandler {
     }
     public void setWorkspace(Workspace workspace, boolean refreshInterface) {
         this.workspace = workspace;
+        
+        this.currentEntry = null;
+        this.currentFilter = null;
+        this.currentFromDate = null;
+        this.currentHistoryDate = null;
+        this.currentObject = null;
+        this.currentToDate = null;
 
         // Refresh the gui
         if (refreshInterface) {

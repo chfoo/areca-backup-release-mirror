@@ -15,7 +15,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -73,7 +73,7 @@ public class ArchiveContentManager {
     
     private static ArchiveContent backwardCompatibleGetContent(IncrementalDirectoryMedium medium, File archive) throws IOException {
         ArchiveContent content = new ArchiveContent();
-        addStoredDirectoryToSet(content, archive, archive);
+        addStoredDirectoryToSet(content, archive, FileSystemManager.getAbsolutePath(archive));
         return content;
     }
     
@@ -84,7 +84,7 @@ public class ArchiveContentManager {
         throw new UnsupportedOperationException("This version of Areca is not compatible with archives that have been created with versions anterior to v3.5. Use Areca v4.2.3 to read them.");
     }
 
-	private static void addStoredDirectoryToSet(ArchiveContent content, File directory, File root) throws IOException {
+	private static void addStoredDirectoryToSet(ArchiveContent content, File directory, String root) throws IOException {
 		File[] files = FileSystemManager.listFiles(directory);
 		for (int i=0; i<files.length; i++) {
 			if (FileSystemManager.isFile(files[i])) {

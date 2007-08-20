@@ -7,8 +7,11 @@
 
 package com.myJava.file.archive.zip64;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -37,7 +40,7 @@ import com.myJava.util.log.Logger;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
 public class ZipOutputStream 
 extends DeflaterOutputStream 
@@ -71,6 +74,8 @@ implements ZipConstants {
     private boolean finished = false;
     private boolean opened = false;
     private boolean closed = false;
+    
+    private Charset charset = Charset.forName(DEFAULT_CHARSET);
     
     private void ensureOpen() throws IOException {
         if (closed) {
@@ -119,7 +124,7 @@ implements ZipConstants {
     
     public void setComment(String comment) {
         if (comment != null && comment.length() > 0xffff/3 
-                && getUTF8Length(comment) > 0xffff) {
+                && encode(comment).length > 0xffff) {
             throw new IllegalArgumentException("ZIP file comment too long.");
         }
         this.comment = comment;
@@ -135,6 +140,16 @@ implements ZipConstants {
 
     public void setLevel(int level) {
         def.setLevel(level);
+    }
+
+    public Charset getCharset() {
+        return charset;
+    }
+
+    public void setCharset(Charset charset) {
+        if (charset != null) {
+            this.charset = charset;
+        }
     }
 
     public void putNextEntry(ZipEntry e) throws IOException {
@@ -190,7 +205,6 @@ implements ZipConstants {
             crc.reset();
             entry = null;
             entries.add(e);
-            //System.out.println("Entry " + e.toString() + " added.");
         }
     }
     
@@ -279,7 +293,7 @@ implements ZipConstants {
     }
     
     private void writeLOC(ZipEntry e) throws IOException {
-        byte[] nameBytes = getUTF8Bytes(e.getName());
+        byte[] nameBytes = encode(e.getName());
         int size = SIZE_LOC + nameBytes.length;
         long mark = ensureCapacity(size);
         
@@ -324,10 +338,10 @@ implements ZipConstants {
     }
     
     private void writeCEN(ZipEntry e) throws IOException {
-        byte[] nameBytes = getUTF8Bytes(e.getName());
+        byte[] nameBytes = encode(e.getName());
         byte[] commentBytes;
         if (e.getComment() != null) {
-            commentBytes = getUTF8Bytes(e.getComment());
+            commentBytes = encode(e.getComment());
         } else {
             commentBytes = null;
         }
@@ -421,7 +435,7 @@ implements ZipConstants {
     private void writeEND(long off, long cenSize) throws IOException {
         byte[] commentBytes = null;
         if (comment != null) {      // zip file comment
-            commentBytes = getUTF8Bytes(comment);
+            commentBytes = encode(comment);
         }
 
         int size = SIZE_END + (commentBytes == null ? 0 : commentBytes.length) + (useZip64 ? SIZE_Z64_END : 0);
@@ -495,50 +509,25 @@ implements ZipConstants {
         totalWritten += len;
     }
     
-    static int getUTF8Length(String s) {
-        int count = 0;
-        for (int i = 0; i < s.length(); i++) {
-            char ch = s.charAt(i); 
-            if (ch <= 0x7f) {
-                count++;
-            } else if (ch <= 0x7ff) {
-                count += 2;
-            } else {
-                count += 3;
+    protected byte[] encode(String s) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        OutputStreamWriter writer = null;
+        try {
+            writer = new OutputStreamWriter(baos, this.charset);
+            writer.write(s);
+            writer.flush();
+        } catch (IOException e) {
+            Logger.defaultLogger().error(e);
+            throw new IllegalArgumentException(e.getMessage());
+        } finally {
+            try {
+                if (writer != null) {
+                    writer.close();
+                }
+            } catch (IOException e) {
+                Logger.defaultLogger().error(e);
             }
         }
-        return count;
-    }
-    
-    private static byte[] getUTF8Bytes(String s) {
-        char[] c = s.toCharArray();
-        int len = c.length;
-        int count = 0;
-        for (int i = 0; i < len; i++) {
-            int ch = c[i];
-            if (ch <= 0x7f) {
-                count++;
-            } else if (ch <= 0x7ff) {
-                count += 2;
-            } else {
-                count += 3;
-            }
-        }
-        byte[] b = new byte[count];
-        int off = 0;
-        for (int i = 0; i < len; i++) {
-            int ch = c[i];
-            if (ch <= 0x7f) {
-                b[off++] = (byte)ch;
-            } else if (ch <= 0x7ff) {
-                b[off++] = (byte)((ch >> 6) | 0xc0);
-                b[off++] = (byte)((ch & 0x3f) | 0x80);
-            } else {
-                b[off++] = (byte)((ch >> 12) | 0xe0);
-                b[off++] = (byte)(((ch >> 6) & 0x3f) | 0x80);
-                b[off++] = (byte)((ch & 0x3f) | 0x80);
-            }
-        }
-        return b;
+      return baos.toByteArray();
     }
 }

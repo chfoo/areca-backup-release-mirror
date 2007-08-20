@@ -44,7 +44,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -92,7 +92,7 @@ implements TargetActions, IndicatorTypes {
     /**
      * Filetool utilisé pour les manipulations sur fichiers
      */
-    protected static final FileTool tool = new FileTool();    
+    protected static final FileTool tool = FileTool.getInstance();
 
     /**
      * Encryption arguments
@@ -165,7 +165,7 @@ implements TargetActions, IndicatorTypes {
         File storage = FileSystemManager.getParentFile(new File(this.getBaseArchivePath()));
         Logger.defaultLogger().info("Deleting repository : " + FileSystemManager.getAbsolutePath(storage) + " ...");
         try {
-            FileTool tool = new FileTool();
+            FileTool tool = FileTool.getInstance();
             tool.delete(storage, true);
             Logger.defaultLogger().info(FileSystemManager.getAbsolutePath(storage) + " deleted.");
         } catch (Exception e) {
@@ -223,20 +223,17 @@ implements TargetActions, IndicatorTypes {
         }
         
         File basePath = new File(fileSystemPolicy.getBaseArchivePath());
-        if (action != ACTION_DESCRIBE) {
-            // The backup directory must exist
-            /*
-	        if (! FileSystemManager.exists(FileSystemManager.getParentFile(basePath))) {
-	            result.addError(new ActionError(Errors.ERR_C_BASEARCHIVEPATH, Errors.ERR_M_BASEARCHIVEPATH));
-	        }
-	        */
-	        
+        if (action != ACTION_DESCRIBE) {       
 	        // The backup directory mustn't be included in the base directory
-	        File baseDir = ((FileSystemRecoveryTarget)this.getTarget()).getSourcePath();
 	        File backupDir = FileSystemManager.getParentFile(basePath);
-	        if (AbstractFileSystemMedium.tool.isParentOf(baseDir, backupDir)) {
-	            result.addError(new ActionError(Errors.ERR_C_INCLUSION, Errors.ERR_M_INCLUSION));	            
-	        }
+            
+            Iterator iter = ((FileSystemRecoveryTarget)this.getTarget()).sources.iterator();
+            while (iter.hasNext()) {
+                File src = (File)iter.next();
+                if (AbstractFileSystemMedium.tool.isParentOf(src, backupDir)) {
+                    result.addError(new ActionError(Errors.ERR_C_INCLUSION, Errors.ERR_M_INCLUSION));               
+                }
+            }
         }
         
         return result;

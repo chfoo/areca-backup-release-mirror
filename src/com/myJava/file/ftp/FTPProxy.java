@@ -27,7 +27,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -327,18 +327,13 @@ public class FTPProxy {
                 }
             }
         } catch (UnknownHostException e) {
-            destroyClient(e);
-            Logger.defaultLogger().error(e);
+            resetClient(e);
             throw new FTPConnectionException("Unknown FTP server : " + this.remoteServer);
         } catch (SocketException e) {
-            destroyClient(e);
-            Logger.defaultLogger().error(e);
-            this.disconnect();
+            resetClient(e);
             throw new FTPConnectionException("Error during FTP connection : " + e.getMessage());
         } catch (IOException e) {
-            destroyClient(e);
-            Logger.defaultLogger().error(e);
-            this.disconnect();
+            resetClient(e);
             throw new FTPConnectionException("Error during FTP connection : " + e.getMessage());
         } finally {
             clearCache();
@@ -409,8 +404,7 @@ public class FTPProxy {
             out.close();
             return true;
         } catch (IOException e) {
-            destroyClient(e);
-            Logger.defaultLogger().error(e);
+            resetClient(e);
             return false;
         } finally {
             removeCachedFileInfos(remoteFile);
@@ -437,8 +431,7 @@ public class FTPProxy {
                 return true;
             }
         } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            destroyClient(e);
+            resetClient(e);
             throw new FTPConnectionException(e.getMessage());
         } finally {
             removeCachedFileInfos(remoteFileOrDir);
@@ -457,8 +450,7 @@ public class FTPProxy {
             debug("mkdir : mkdir", remoteFile);
             return client.makeDirectory(f.getName());
         } catch (IOException e) {
-            destroyClient(e);
-            Logger.defaultLogger().error(e);
+            resetClient(e);
             throw new FTPConnectionException(e.getMessage());
         } finally {
             removeCachedFileInfos(remoteFile);
@@ -474,8 +466,7 @@ public class FTPProxy {
             client.sendNoOp();
             this.updateOpTime();
         } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            destroyClient(e);
+            resetClient(e);
             throw new FTPConnectionException(e.getMessage());
         }
     }
@@ -490,8 +481,7 @@ public class FTPProxy {
             this.updateOpTime();
             return result;
         } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            destroyClient(e);
+            resetClient(e);
             throw new FTPConnectionException(e.getMessage());
         } finally {
             resetWorkingDirectory();
@@ -519,11 +509,19 @@ public class FTPProxy {
         try {
             debug("getFileInputStream : retrieveFileStream", file);
             InputStream result = client.retrieveFileStream(file);
+            
+            if (result == null) {
+                Logger.defaultLogger().error("Error trying to get an inputstream on " + file + " : got FTP return message : " + client.getReplyString(), "FTPProxy.getFileOutputStream()");
+                throw new FTPConnectionException("Unable to read file : No response from FTP server.");
+            }
+            
             this.updateOpTime();
             return new FTPFileInputStream(this, result, ownerId);
+        } catch (FTPConnectionException e) {
+            resetClient(e);
+            throw e;
         } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            destroyClient(e);
+            resetClient(e);
             throw new FTPConnectionException(e.getMessage());
         }
     }
@@ -544,11 +542,19 @@ public class FTPProxy {
                 debug("getFileOutputStream : storeFileStream", file);
                 result = client.storeFileStream(file);                
             }
+            
+            if (result == null) {
+                Logger.defaultLogger().error("Error trying to get an outputstream on " + file + " : got FTP return message : " + client.getReplyString(), "FTPProxy.getFileOutputStream()");
+                throw new FTPConnectionException("Unable to write file : No response from FTP server.");
+            }
+            
             this.updateOpTime();
             return new FTPFileOutputStream(this, result, ownerId, file);
+        } catch (FTPConnectionException e) {
+            resetClient(e);
+            throw e;
         } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            destroyClient(e);
+            resetClient(e);
             throw new FTPConnectionException(e.getMessage());
         }  finally {
             removeCachedFileInfos(file);
@@ -578,8 +584,7 @@ public class FTPProxy {
                 return new FictiveFile[0];
             }
         } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            destroyClient(e);
+            resetClient(e);
             throw new FTPConnectionException(e.getMessage());
         }  
     }		
@@ -643,12 +648,10 @@ public class FTPProxy {
             registerFileInfo(remoteFile, info);
             return info;
         } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            destroyClient(e);
+            resetClient(e);
             throw new FTPConnectionException(e.getMessage());
         } catch (Throwable e) {
-            destroyClient(e);
-            Logger.defaultLogger().error(e);
+            resetClient(e);
             return null;
         }
     }
@@ -692,19 +695,18 @@ public class FTPProxy {
                 file.init(0, false, false, 0);
             }
         } catch (FTPConnectionException e) {
-            Logger.defaultLogger().error(e);
-            destroyClient(e);
+            resetClient(e);
             throw new UnexpectedConnectionException(e);
         }
     }   
     
-    private void destroyClient(Throwable e) {
-        debug("Destroying client because of exception", e);
-        Logger.defaultLogger().warn("Destroying client because of exception", e, "FTPProxy.destroyClient()");
+    private void resetClient(Throwable e) {
+        debug("Destroying client because of exception.", e);
+        Logger.defaultLogger().error("FTP client reset because of the following error.", e, "FTPProxy.resetClient()");
         try {
             this.disconnect();
         } catch (Throwable ex) {
-            Logger.defaultLogger().warn("Error caucht while trying to disconnect from", ex, "FTPProxy.destroyClient()");
+            Logger.defaultLogger().warn("Error caucht while trying to disconnect from FTP server.", ex, "FTPProxy.resetClient()");
         }
         this.client = null;
         clearCache();

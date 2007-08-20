@@ -14,7 +14,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -40,6 +40,7 @@ public class LogHelper {
     private static String SEPARATOR = "----------------------------------------";
     
     public static void logStartupInformations() {
+
         Logger.defaultLogger().info(SEPARATOR);
         log("System informations :");
         log("Version : " + VersionInfos.getLastVersion().getVersionId());
@@ -50,6 +51,7 @@ public class LogHelper {
         log("File encoding : " + OSTool.getIANAFileEncoding());
         log("Language : " + OSTool.getUserLanguage());
         log("Framework overriden properties : " + FrameworkConfiguration.getInstance().toString());
+        log("Available translations : " + Utils.getTranslationsAsString());
         Logger.defaultLogger().info(SEPARATOR);
     }
     

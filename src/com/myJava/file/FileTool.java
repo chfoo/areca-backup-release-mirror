@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -47,11 +47,17 @@ This file is part of Areca.
 public class FileTool {
     
     private static final long DEFAULT_DELETION_DELAY = FrameworkConfiguration.getInstance().getFileToolDelay();
-    private static final int BUFFER_SIZE = FrameworkConfiguration.getInstance().getFileToolBufferSize();
+    private static final int BUFFER_SIZE = 200000; //FrameworkConfiguration.getInstance().getFileToolBufferSize();
     private static final int DELETION_GC_FREQUENCY = (int)(2000 / DEFAULT_DELETION_DELAY);
     private static final int DELETION_MAX_ATTEMPTS = 1000;
     
-    public FileTool() {
+    private static FileTool instance = new FileTool();
+    
+    public static FileTool getInstance() {
+        return instance;
+    }
+    
+    private FileTool() {
     }
     
     /**
@@ -121,6 +127,7 @@ public class FileTool {
      * <BR>closeStream détermine si le flux de sortie sera fermé après la copie ou non
      */
     public void copy(InputStream inStream, OutputStream outStream, boolean closeInputStream, boolean closeOutputStream) throws IOException  {
+
         try {
             byte[] in = new byte[BUFFER_SIZE];
             int nbRead;

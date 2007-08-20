@@ -10,6 +10,7 @@ import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.filter.FileDateArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
 import com.application.areca.filter.FileSizeArchiveFilter;
+import com.application.areca.filter.FilterGroup;
 import com.application.areca.filter.LinkFilter;
 import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.filter.RegexArchiveFilter;
@@ -18,6 +19,7 @@ import com.application.areca.launcher.gui.filters.DirectoryFilterComposite;
 import com.application.areca.launcher.gui.filters.FileDateFilterComposite;
 import com.application.areca.launcher.gui.filters.FileExtensionFilterComposite;
 import com.application.areca.launcher.gui.filters.FileSizeFilterComposite;
+import com.application.areca.launcher.gui.filters.FilterGroupComposite;
 import com.application.areca.launcher.gui.filters.RegexFilterComposite;
 import com.myJava.file.FileSystemManager;
 
@@ -26,7 +28,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -94,6 +96,8 @@ public class FilterRepository {
             pnl = new FileSizeFilterComposite(composite, filter, frm);
         } else if (index == 4){
             pnl = new FileDateFilterComposite(composite, filter, frm);
+        } else if (index == 7) {
+            pnl = new FilterGroupComposite(composite, filter, frm);
         }
         
         return pnl;
@@ -115,6 +119,8 @@ public class FilterRepository {
             filter = new LinkFilter();
         } else if (filterIndex== 6){
             filter = new LockedFileFilter();
+        } else if (filterIndex == 7) {
+            filter = new FilterGroup();
         }
         
         return filter;
@@ -135,7 +141,9 @@ public class FilterRepository {
             return 5;               
         } else if (LockedFileFilter.class.isAssignableFrom(currentFilter)) {
             return 6;               
-        }    
+        } else if (FilterGroup.class.isAssignableFrom(currentFilter)) {
+            return 7;
+        }
         return 0;
     }
     
@@ -159,8 +167,10 @@ public class FilterRepository {
             return RM.getLabel("filteredition.link.label");      
         } else if (LockedFileFilter.class.isAssignableFrom(filter)) {
             return RM.getLabel("filteredition.lockedfile.label");                      
-        } else {
+        } else if (FileExtensionArchiveFilter.class.isAssignableFrom(filter)) {
             return RM.getLabel("filteredition.fileext.label");          
-        }        
+        } else {
+            return "...";
+        }
     }
 }

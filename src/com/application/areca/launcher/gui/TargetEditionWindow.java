@@ -1,16 +1,34 @@
 package com.application.areca.launcher.gui;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.swing.text.TableView;
+
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -26,13 +44,16 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
+import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
-import com.application.areca.filter.AbstractArchiveFilter;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
+import com.application.areca.filter.FilterGroup;
 import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.impl.AbstractFileSystemMedium;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
@@ -42,7 +63,6 @@ import com.application.areca.impl.IncrementalDirectoryMedium;
 import com.application.areca.impl.IncrementalZipMedium;
 import com.application.areca.impl.policy.DefaultFileSystemPolicy;
 import com.application.areca.impl.policy.EncryptionPolicy;
-import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
@@ -54,6 +74,7 @@ import com.application.areca.plugins.StorageSelectionHelper;
 import com.application.areca.postprocess.PostProcessor;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.util.history.History;
 import com.myJava.util.log.Logger;
 import com.myJava.util.os.OSTool;
@@ -62,7 +83,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -99,7 +120,6 @@ extends AbstractWindow {
     protected Button btnSave;
     
     protected Text txtTargetName;
-    protected Text txtBaseDir;
     protected Text txtDesc;
     
     protected Text txtMediumPath;
@@ -114,11 +134,10 @@ extends AbstractWindow {
     protected Group grpCompression;
     protected Group grpEncryption;
     protected Group grpFileManagement;
-    protected Group grpMultiVolumes;
+    protected Group grpZipOptions;
     protected Button rdDir;
     protected Button rdZip;
     protected Button rdZip64;
-    //protected Button rdTgz;
     protected Button chkTrackDirectories;
     protected Button chkTrackPermissions;
     protected Button chkEncrypted;
@@ -129,19 +148,28 @@ extends AbstractWindow {
     protected Text txtMultiVolumes;
     protected Combo cboEncryptionAlgorithm;
     protected Label lblEncryptionKey;
-    protected Label lblMultiVolumes;
     protected Label lblMultiVolumesUnit;
     protected Label lblEncryptionAlgorithm;
+    protected Label lblZipComment;
+    protected Text txtZipComment;
+    protected Label lblEncoding;
+    protected Combo cboEncoding;
     
-    protected Table tblFilters;
+    protected Tree treFilters;
     protected Button btnAddFilter;
     protected Button btnRemoveFilter;
     protected Button btnModifyFilter;
+    protected FilterGroup mdlFilters;
  
     protected Table tblProc;  
     protected Button btnAddProc;
     protected Button btnRemoveProc;
     protected Button btnModifyProc;
+    
+    protected Table tblSources;  
+    protected Button btnAddSource;
+    protected Button btnRemoveSource;
+    protected Button btnModifySource;
     
     public TargetEditionWindow(AbstractRecoveryTarget target) {
         super();
@@ -166,6 +194,7 @@ extends AbstractWindow {
             tabs.setLayoutData(dt1);
 
             initGeneralTab(initTab(tabs, RM.getLabel("targetedition.maingroup.title")));
+            initSourcesTab(initTab(tabs, RM.getLabel("targetedition.sourcesgroup.title")));
             initAdvancedTab(initTab(tabs, RM.getLabel("targetedition.advancedgroup.title")));
             initFiltersTab(initTab(tabs, RM.getLabel("targetedition.filtersgroup.title")));
             initProcessorsTab(initTab(tabs, RM.getLabel("targetedition.postprocessing.title")));
@@ -225,37 +254,9 @@ extends AbstractWindow {
         txtDesc = new Text(grpDesc, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
         monitorControl(txtDesc);
         GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
-        dt.widthHint = 500;
-        dt.heightHint = 50;
+        dt.widthHint = AbstractWindow.computeWidth(500);
+        dt.heightHint = AbstractWindow.computeHeight(50);
         txtDesc.setLayoutData(dt);
-        
-        // SOURCE
-        Group grpBaseDir = new Group(composite, SWT.NONE);
-        grpBaseDir.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
-        grpBaseDir.setText(RM.getLabel("targetedition.sourcedirfield.label"));
-        grpBaseDir.setToolTipText(RM.getLabel("targetedition.sourcedirfield.tooltip"));
-        GridLayout lytBaseDir = new GridLayout(2, false);
-        grpBaseDir.setLayout(lytBaseDir);
-        txtBaseDir = new Text(grpBaseDir, SWT.BORDER);
-        txtBaseDir.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        monitorControl(txtBaseDir);
-        
-        Button btnBaseDir = new Button(grpBaseDir, SWT.PUSH);
-        btnBaseDir.setText(RM.getLabel("common.browseaction.label"));
-        btnBaseDir.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event event) {
-                String dir = txtBaseDir.getText();
-                if (Utils.isEmpty(dir)) {
-                    dir = LocalPreferences.instance().get("target.lastsourcedir");
-                }
-                
-                String path = Application.getInstance().showDirectoryDialog(dir, TargetEditionWindow.this);
-                if (path != null) {
-                    LocalPreferences.instance().set("target.lastsourcedir", path);
-                    txtBaseDir.setText(path);
-                }
-            }
-        });
         
         // PATH (FILE)
         Group grpPath = new Group(composite, SWT.NONE);
@@ -336,12 +337,92 @@ extends AbstractWindow {
         
         txtTargetName.forceFocus();
     }
+    
+    private void initSourcesTab(Composite composite) {
+        composite.setLayout(initLayout(4));
+        
+        TableViewer viewer = new TableViewer(composite, SWT.BORDER | SWT.SINGLE);
+        tblSources = viewer.getTable();
+        tblSources.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
+        
+        TableColumn col1 = new TableColumn(tblSources, SWT.NONE);
+        col1.setText(RM.getLabel("targetedition.sourcedirfield.label"));
+        col1.setWidth(400);
+        col1.setMoveable(true);
+        
+        tblSources.setHeaderVisible(true);
+        tblSources.setLinesVisible(AbstractWindow.getTableLinesVisible());
+ 
+        viewer.addDoubleClickListener(new IDoubleClickListener() {
+            public void doubleClick(DoubleClickEvent event) {
+                editCurrentSource();
+            }
+        });
+        
+        btnAddSource = new Button(composite, SWT.PUSH);
+        btnAddSource.setText(RM.getLabel("targetedition.addprocaction.label"));
+        btnAddSource.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event) {
+                File newFile = showSourceEditionFrame(null);
+                if (newFile != null) {
+                    addSource(newFile);
+                    registerUpdate();                
+                }
+            }
+        });
+        
+        btnModifySource = new Button(composite, SWT.PUSH);
+        btnModifySource.setText(RM.getLabel("targetedition.editprocaction.label"));
+        btnModifySource.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event) {
+                editCurrentSource();
+            }
+        });
+        
+        btnRemoveSource = new Button(composite, SWT.PUSH);
+        btnRemoveSource.setText(RM.getLabel("targetedition.removeprocaction.label"));
+        btnRemoveSource.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event) {
+                if (tblSources.getSelectionIndex() != -1) {
+                    int result = application.showConfirmDialog(
+                            RM.getLabel("targetedition.removesourceaction.confirm.message"),
+                            RM.getLabel("targetedition.confirmremovesource.title"));
+                    
+                    if (result == SWT.YES) {
+                        tblSources.remove(tblSources.getSelectionIndex());
+                        registerUpdate();                  
+                    }
+                }
+            }
+        });
+        
+        tblSources.addSelectionListener(new SelectionListener() {
+            public void widgetDefaultSelected(SelectionEvent e) {
+            }
+            public void widgetSelected(SelectionEvent e) {
+                updateSourceListState();
+            }
+        });
+    }
+    
+    private void editCurrentSource() {
+        if (tblSources.getSelectionIndex() != -1) {
+            TableItem item = tblSources.getItem(tblSources.getSelectionIndex());
+            File source = (File)item.getData();
+            updateSource(item, showSourceEditionFrame(source));
+            registerUpdate();  
+        }
+    }
 
-    private void enableSplitting(boolean enable) {
+    private void enableZipOptions(boolean enable) {
         this.chkMultiVolumes.setEnabled(enable);
         if (! enable) {
             this.chkMultiVolumes.setSelection(false);
         }
+        this.lblZipComment.setEnabled(enable);
+        this.txtZipComment.setEnabled(enable);
+        this.lblEncoding.setEnabled(enable);
+        this.cboEncoding.setEnabled(enable);
         this.resetMVData();
     }
     
@@ -361,7 +442,7 @@ extends AbstractWindow {
         rdDir.setToolTipText(RM.getLabel("targetedition.compression.none.tt"));
         rdDir.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
-                enableSplitting(false);
+                enableZipOptions(false);
             }
         });
         
@@ -371,7 +452,7 @@ extends AbstractWindow {
         rdZip.setToolTipText(RM.getLabel("targetedition.compression.zip.tt"));
         rdZip.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
-                enableSplitting(true);
+                enableZipOptions(true);
             }
         });
         
@@ -381,7 +462,7 @@ extends AbstractWindow {
         rdZip64.setToolTipText(RM.getLabel("targetedition.compression.zip64.tt"));
         rdZip64.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
-                enableSplitting(true);
+                enableZipOptions(true);
             }
         });
         
@@ -415,14 +496,34 @@ extends AbstractWindow {
             chkFollowLinks.setVisible(false);
         }
         
-        // MULTI VOLUMES
-        grpMultiVolumes = new Group(composite, SWT.NONE);
-        grpMultiVolumes.setText(RM.getLabel("targetedition.mv.label"));
-        grpMultiVolumes.setLayout(new GridLayout(4, false));
-        grpMultiVolumes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        // ZIP OPTIONS
+        grpZipOptions = new Group(composite, SWT.NONE);
+        grpZipOptions.setText(RM.getLabel("targetedition.zipoptions.label"));
+        grpZipOptions.setLayout(new GridLayout(3, false));
+        grpZipOptions.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+
+        lblZipComment = new Label(grpZipOptions, SWT.NONE);
+        lblZipComment.setText(RM.getLabel("targetedition.zipcomment.label"));
+        lblZipComment.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+        txtZipComment =  new Text(grpZipOptions, SWT.BORDER);
+        monitorControl(txtZipComment);
+        GridData dtComment = new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1);
+        txtZipComment.setLayoutData(dtComment);
         
-        chkMultiVolumes = new Button(grpMultiVolumes, SWT.CHECK);
-        chkMultiVolumes.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+        lblEncoding = new Label(grpZipOptions, SWT.NONE);
+        lblEncoding.setText(RM.getLabel("targetedition.encoding.label") + "            ");
+        lblEncoding.setToolTipText(RM.getLabel("targetedition.encoding.tt"));
+        cboEncoding = new Combo(grpZipOptions, SWT.READ_ONLY);
+        cboEncoding.setToolTipText(RM.getLabel("targetedition.encoding.tt"));
+        for (int i=0; i<OSTool.getCharsets().length; i++) {
+            cboEncoding.add(OSTool.getCharsets()[i].name());
+        }
+        monitorControl(cboEncoding);
+        cboEncoding.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+        new Label(grpZipOptions, SWT.NONE);
+        
+        chkMultiVolumes = new Button(grpZipOptions, SWT.CHECK);
+        chkMultiVolumes.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
         chkMultiVolumes.setText(RM.getLabel("targetedition.mv.label"));
         chkMultiVolumes.setToolTipText(RM.getLabel("targetedition.mv.tooltip"));
         monitorControl(chkMultiVolumes);
@@ -432,14 +533,14 @@ extends AbstractWindow {
             }
         });
         
-        lblMultiVolumes = new Label(grpMultiVolumes, SWT.NONE);
-        lblMultiVolumes.setText(RM.getLabel("targetedition.mv.size.label"));
-        txtMultiVolumes = new Text(grpMultiVolumes, SWT.BORDER);
+        txtMultiVolumes = new Text(grpZipOptions, SWT.BORDER);
+        txtMultiVolumes.setToolTipText(RM.getLabel("targetedition.mv.size.tt"));
         monitorControl(txtMultiVolumes);
-        txtMultiVolumes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        lblMultiVolumesUnit = new Label(grpMultiVolumes, SWT.NONE);
+        GridData dtMV = new GridData(SWT.FILL, SWT.CENTER, false, false);
+        txtMultiVolumes.setLayoutData(dtMV);
+        lblMultiVolumesUnit = new Label(grpZipOptions, SWT.NONE);
         lblMultiVolumesUnit.setText(RM.getLabel("targetedition.mv.unit.label"));
-        //lblMultiVolumesUnit.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+        lblMultiVolumesUnit.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
         
         // ENCRYPTION
         grpEncryption = new Group(composite, SWT.NONE);
@@ -480,38 +581,117 @@ extends AbstractWindow {
         txtEncryptionKey.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     }
     
+    private TreeItem transfered;
+    
     private void initFiltersTab(Composite composite) {
         composite.setLayout(initLayout(4));
         
-        tblFilters = new Table(composite, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
-        tblFilters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
+        TreeViewer viewer = new TreeViewer(composite, SWT.BORDER | SWT.SINGLE);
+        treFilters = viewer.getTree();
+        treFilters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
         
-        TableColumn col1 = new TableColumn(tblFilters, SWT.NONE);
+        TreeColumn col1 = new TreeColumn(treFilters, SWT.NONE);
         col1.setText(RM.getLabel("targetedition.filterstable.type.label"));
-        col1.setWidth(100);
+        col1.setWidth(200);
         col1.setMoveable(true);
         
-        TableColumn col2 = new TableColumn(tblFilters, SWT.NONE);
+        TreeColumn col2 = new TreeColumn(treFilters, SWT.NONE);
         col2.setText(RM.getLabel("targetedition.filterstable.parameters.label"));
-        col2.setWidth(300);
+        col2.setWidth(200);
         col2.setMoveable(true);
         
-        TableColumn col3 = new TableColumn(tblFilters, SWT.NONE);
+        TreeColumn col3 = new TreeColumn(treFilters, SWT.NONE);
         col3.setText(RM.getLabel("targetedition.filterstable.mode.label"));
         col3.setWidth(100);
         col3.setMoveable(true);
         
-        tblFilters.setHeaderVisible(true);
-        tblFilters.setLinesVisible(AbstractWindow.getTableLinesVisible());
+        treFilters.setHeaderVisible(true);
+        treFilters.setLinesVisible(AbstractWindow.getTableLinesVisible());
+
+        viewer.addDoubleClickListener(new IDoubleClickListener() {
+            public void doubleClick(DoubleClickEvent event) {
+                editCurrentFilter();
+            }
+        });
+        
+        Transfer[] types = new Transfer[] { TextTransfer.getInstance() };
+        final int operation = DND.DROP_MOVE;
+
+        final DragSource source = new DragSource(treFilters, operation);
+        source.setTransfer(types);
+        source.addDragListener(
+            new DragSourceAdapter() {
+                public void dragStart(DragSourceEvent event) {   
+                    TreeItem[] selection = treFilters.getSelection();
+                    if (selection.length > 0 && selection[0].getParentItem() != null) {
+                        event.doit = true;
+                        transfered = selection[0];
+                    } else {
+                        event.doit = false;
+                    }
+                };
+                public void dragSetData(DragSourceEvent event) {
+                    event.data = "dummy data";
+                }
+            }
+        );
+
+        DropTarget target = new DropTarget(treFilters, operation);
+        target.setTransfer(types);
+        target.addDropListener(new DropTargetAdapter() {
+            public void dragEnter(DropTargetEvent event) {
+                event.detail = DND.DROP_NONE;
+                event.feedback = DND.FEEDBACK_NONE;
+            }
+
+            public void dragOver(DropTargetEvent event) {
+                event.feedback = DND.FEEDBACK_EXPAND | DND.FEEDBACK_SCROLL;
+
+                TreeItem selected = getSelected(event);
+                if (selected != null && (selected.getData() instanceof FilterGroup) && (! contains(transfered, selected))) {
+                    event.feedback |= DND.FEEDBACK_SELECT;
+                    event.detail = operation;
+                } else {
+                    event.feedback |= DND.FEEDBACK_NONE;
+                    event.detail = DND.DROP_NONE;
+                }
+            }
+
+            public void drop(DropTargetEvent event) {
+                TreeItem targetItem = getSelected(event);
+                if (targetItem != null) {
+                    FilterGroup target = (FilterGroup)targetItem.getData();
+                    ArchiveFilter filter = (ArchiveFilter)transfered.getData();
+                    FilterGroup parent = (FilterGroup)transfered.getParentItem().getData();
+                    
+                    parent.remove(filter);
+                    target.addFilter(filter);
+
+                    updateFilterData(null);
+                    expandAll(treFilters.getItem(0));
+                }
+            }
+        });
         
         btnAddFilter = new Button(composite, SWT.PUSH);
         btnAddFilter.setText(RM.getLabel("targetedition.addfilteraction.label"));
         btnAddFilter.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
-                ArchiveFilter newFilter = showFilterEditionFrame(null);
-                if (newFilter != null) {
-                    addFilter(newFilter);
-                    registerUpdate();                
+                if (treFilters.getSelectionCount() != 0) {
+                    TreeItem parentItem = treFilters.getSelection()[0];
+                    ArchiveFilter parent = (ArchiveFilter)parentItem.getData();
+                    
+                    if (parent instanceof FilterGroup) {
+                        ArchiveFilter newFilter = showFilterEditionFrame(null);
+                        
+                        if (newFilter != null) {
+                            ((FilterGroup)parent).addFilter(newFilter);
+                            
+                            addFilter(parentItem, newFilter);
+                            expandAll(treFilters.getItem(0));
+                            registerUpdate();  
+                        }
+                    }
                 }
             }
         });
@@ -520,12 +700,7 @@ extends AbstractWindow {
         btnModifyFilter.setText(RM.getLabel("targetedition.editfilteraction.label"));
         btnModifyFilter.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
-                if (tblFilters.getSelectionIndex() != -1) {
-                    TableItem item = tblFilters.getItem(tblFilters.getSelectionIndex());
-                    ArchiveFilter filter = (ArchiveFilter)item.getData();
-                    showFilterEditionFrame(filter);
-                    updateFilter(item, filter);
-                }
+                editCurrentFilter();
             }
         });
         
@@ -533,20 +708,30 @@ extends AbstractWindow {
         btnRemoveFilter.setText(RM.getLabel("targetedition.removefilteraction.label"));
         btnRemoveFilter.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
-                if (tblFilters.getSelectionIndex() != -1) {
-                    int result = application.showConfirmDialog(
-                            RM.getLabel("targetedition.removefilteraction.confirm.message"),
-                            RM.getLabel("targetedition.removefilteraction.confirm.title"));
+                if (treFilters.getSelectionCount() != 0) {
+                    TreeItem item = treFilters.getSelection()[0];
+                    TreeItem parentItem = item.getParentItem();
                     
-                    if (result == SWT.YES) {
-                        tblFilters.remove(tblFilters.getSelectionIndex());
-                        registerUpdate();                  
+                    if (parentItem != null) {
+                        int result = application.showConfirmDialog(
+                                RM.getLabel("targetedition.removefilteraction.confirm.message"),
+                                RM.getLabel("targetedition.removefilteraction.confirm.title"));
+
+                        if (result == SWT.YES) {
+                            FilterGroup fg = (FilterGroup)parentItem.getData();
+                            ArchiveFilter filter = (ArchiveFilter)item.getData();
+                            fg.remove(filter);
+
+                            updateFilterData(parentItem);
+                            expandAll(treFilters.getItem(0));
+                            registerUpdate();   
+                        }                  
                     }
                 }
             }
         });
         
-        tblFilters.addSelectionListener(new SelectionListener() {
+        treFilters.addSelectionListener(new SelectionListener() {
             public void widgetDefaultSelected(SelectionEvent e) {
             }
             public void widgetSelected(SelectionEvent e) {
@@ -554,11 +739,54 @@ extends AbstractWindow {
             }
         });
     }
+    
+    private void editCurrentFilter() {
+        if (treFilters.getSelectionCount() != 0) {
+            TreeItem item = treFilters.getSelection()[0];
+            ArchiveFilter filter = (ArchiveFilter)item.getData();
+            showFilterEditionFrame(filter);
+
+            updateFilterData(item.getParentItem());
+            expandAll(treFilters.getItem(0));
+            registerUpdate();  
+        }
+    }
+    
+    private TreeItem getSelected(DropTargetEvent event) {
+        try {
+            TreeItem selected = (TreeItem)event.item;
+            if (! OSTool.isSystemWindows()) {
+                // There is a bug in SWT under Linux :
+                // If the Tree has been configured to display column headers ("setHeaderVisible(true)"), 
+                // the "item" attribute of the DropTargetEvent references the TreeItem UNDER the actually selected item !
+                // That's why we must "play" with the item's coordinates :(
+                int x = selected.getBounds().x + 2;
+                int y = selected.getBounds().y - selected.getBounds().height + 2;
+                
+                selected = treFilters.getItem(new Point(x, y));
+            }
+            return selected;
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+    
+    private static boolean contains(TreeItem parent, TreeItem child) {
+        TreeItem item = child;
+        while (item != null) {
+            if (item.getData().equals(parent.getData())) {
+                return true;
+            }
+            item = item.getParentItem();
+        }
+        return false;
+    }
 
     private void initProcessorsTab(Composite composite) {
         composite.setLayout(initLayout(4));
         
-        tblProc = new Table(composite, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
+        TableViewer viewer = new TableViewer(composite, SWT.BORDER | SWT.SINGLE);
+        tblProc = viewer.getTable();
         tblProc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
         
         TableColumn col1 = new TableColumn(tblProc, SWT.NONE);
@@ -574,6 +802,12 @@ extends AbstractWindow {
         tblProc.setHeaderVisible(true);
         tblProc.setLinesVisible(AbstractWindow.getTableLinesVisible());
  
+        viewer.addDoubleClickListener(new IDoubleClickListener() {
+            public void doubleClick(DoubleClickEvent event) {
+                editCurrentProcessor();
+            }
+        });
+        
         btnAddProc = new Button(composite, SWT.PUSH);
         btnAddProc.setText(RM.getLabel("targetedition.addprocaction.label"));
         btnAddProc.addListener(SWT.Selection, new Listener(){
@@ -590,12 +824,7 @@ extends AbstractWindow {
         btnModifyProc.setText(RM.getLabel("targetedition.editprocaction.label"));
         btnModifyProc.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
-                if (tblProc.getSelectionIndex() != -1) {
-                    TableItem item = tblProc.getItem(tblProc.getSelectionIndex());
-                    PostProcessor proc = (PostProcessor)item.getData();
-                    showProcEditionFrame(proc);
-                    updateProcessor(item, proc);
-                }
+                editCurrentProcessor();
             }
         });
         
@@ -624,6 +853,16 @@ extends AbstractWindow {
             }
         });
     }
+    
+    private void editCurrentProcessor() {
+        if (tblProc.getSelectionIndex() != -1) {
+            TableItem item = tblProc.getItem(tblProc.getSelectionIndex());
+            PostProcessor proc = (PostProcessor)item.getData();
+            showProcEditionFrame(proc);
+            updateProcessor(item, proc);
+            registerUpdate();    
+        }
+    }
 
     protected void registerUpdate() {
         super.registerUpdate();
@@ -633,9 +872,17 @@ extends AbstractWindow {
     }
     
     protected void updateFilterListState() {
-        int index = this.tblFilters.getSelectionIndex();
-        this.btnRemoveFilter.setEnabled(index != -1);
-        this.btnModifyFilter.setEnabled(index != -1);     
+        boolean selected = (this.treFilters.getSelectionCount() > 0);
+        
+        this.btnRemoveFilter.setEnabled(selected && this.treFilters.getSelection()[0].getParentItem() != null);
+        this.btnModifyFilter.setEnabled(selected);        
+        this.btnAddFilter.setEnabled(selected && this.treFilters.getSelection()[0].getData() instanceof FilterGroup);
+    }
+    
+    protected void updateSourceListState() {
+        int index =  this.tblSources.getSelectionIndex();
+        this.btnRemoveSource.setEnabled(index != -1);
+        this.btnModifySource.setEnabled(index != -1);       
     }
     
     protected void updateProcListState() {
@@ -656,7 +903,6 @@ extends AbstractWindow {
         // INIT VALUES
         if (target != null) {
             txtTargetName.setText(target.getTargetName());
-            txtBaseDir.setText(FileSystemManager.getAbsolutePath(((FileSystemRecoveryTarget)target).getSourcePath()));
             txtDesc.setText(target.getComments());
             
             AbstractIncrementalFileSystemMedium fMedium = (AbstractIncrementalFileSystemMedium)target.getMedium();
@@ -696,10 +942,18 @@ extends AbstractWindow {
                 this.currentPolicy = clone;
             }
 
-            boolean mv = fMedium instanceof IncrementalZipMedium && ((IncrementalZipMedium)fMedium).isMultiVolumes();
-            chkMultiVolumes.setSelection(mv);
-            if (mv) {
-                txtMultiVolumes.setText("" + ((IncrementalZipMedium)fMedium).getVolumeSize());
+            if (fMedium instanceof IncrementalZipMedium) {
+                IncrementalZipMedium zMedium = (IncrementalZipMedium)fMedium;
+                if (zMedium.isMultiVolumes()) {
+                    chkMultiVolumes.setSelection(true);
+                    txtMultiVolumes.setText("" + zMedium.getVolumeSize());
+                }
+                
+                if (zMedium.getComment() != null) {
+                    txtZipComment.setText(zMedium.getComment());
+                }
+                
+                selectEncoding(zMedium.getCharset() != null ? zMedium.getCharset().name() : ZipConstants.DEFAULT_CHARSET);
             }
             
             chkEncrypted.setSelection(fMedium.getEncryptionPolicy().isEncrypted());
@@ -718,21 +972,20 @@ extends AbstractWindow {
                     cboEncryptionAlgorithm.deselectAll();
                 }
             }
+            
+            // INIT SOURCES
+            Iterator sources = ((FileSystemRecoveryTarget)target).getSources().iterator();
+            while (sources.hasNext()) {
+                addSource((File)sources.next());
+            }
 
             // INIT FILTERS
-            Iterator filters = target.getFilterIterator();
-            int index = this.tblFilters.getSelectionIndex();
-            while (filters.hasNext()) {
-                ArchiveFilter filter = (ArchiveFilter)filters.next();
-                addFilter(filter);
-            } 
-            if (index != -1) {
-                this.tblFilters.setSelection(index);
-            }
+            this.mdlFilters = (FilterGroup)target.getFilterGroup().duplicate();
+            addFilter(null, this.mdlFilters);
 
             // INIT PROCS
             Iterator processors = target.getPostProcessors().iterator();
-            index = this.tblProc.getSelectionIndex();
+            int index = this.tblProc.getSelectionIndex();
             while (processors.hasNext()) {
                 PostProcessor proc = (PostProcessor)processors.next();
 
@@ -744,32 +997,40 @@ extends AbstractWindow {
             if (index != -1) {
                 this.tblProc.setSelection(index);
             }     
-        } else {
+        } else {     
             // Default settings
             rdZip.setSelection(true);
             rdFile.setSelection(true);
             chkIncremental.setSelection(true);
             chkTrackDirectories.setSelection(true);
             chkTrackPermissions.setSelection(true);
+            selectEncoding(ZipConstants.DEFAULT_CHARSET);
             if (OSTool.isSystemWindows()) {
                 this.chkFollowLinks.setSelection(true);
             }
             processSelection(PLUGIN_HD, ArecaPreferences.getDefaultArchiveStorage());
             
             // Default filters
+            this.mdlFilters = new FilterGroup();
+            mdlFilters.setAnd(true);
+            mdlFilters.setExclude(false);
+            
             FileExtensionArchiveFilter filter1 = new FileExtensionArchiveFilter();
             filter1.acceptParameters("*.tmp, *.temp");
             filter1.setExclude(true);
-            addFilter(filter1);
+            mdlFilters.addFilter(filter1);
             
             LockedFileFilter filter2 = new LockedFileFilter();
             filter2.setExclude(true);
-            addFilter(filter2);
+            mdlFilters.addFilter(filter2);
+            
+            addFilter(null, mdlFilters);
         }
         
+        expandAll(treFilters.getItem(0));
         this.resetEcryptionKey();
         this.resetMVData();
-        enableSplitting(! (rdDir.getSelection()));
+        enableZipOptions(! (rdDir.getSelection()));
         
         // FREEZE
         if (isFrozen(true)) {
@@ -787,7 +1048,7 @@ extends AbstractWindow {
 
             grpCompression.setEnabled(false);
             grpEncryption.setEnabled(false);
-            grpMultiVolumes.setEnabled(false);
+            grpZipOptions.setEnabled(false);
             grpFileManagement.setEnabled(false);
             
             rdDir.setEnabled(false);
@@ -801,15 +1062,29 @@ extends AbstractWindow {
             lblEncryptionKey.setEnabled(false);
             txtEncryptionKey.setEnabled(false);
             txtMultiVolumes.setEnabled(false);
-            lblMultiVolumes.setEnabled(false);
             lblMultiVolumesUnit.setEnabled(false);
             chkTrackDirectories.setEnabled(false);
             chkTrackPermissions.setEnabled(false);
             chkFollowLinks.setEnabled(false);
+            lblZipComment.setEnabled(false);
+            txtZipComment.setEnabled(false);
+            lblEncoding.setEnabled(false);
+            cboEncoding.setEnabled(false);
         }    
 
         if (backwardCompatibilityError) {
             throw new IllegalArgumentException(RM.getLabel("targetedition.backwardcompatibility"));
+        }
+    }
+    
+    private void selectEncoding(String encoding) {
+        if (encoding != null) {
+            for (int i=0; i<cboEncoding.getItemCount(); i++) {
+                if (cboEncoding.getItem(i).equals(encoding)) {
+                    cboEncoding.select(i);
+                    break;
+                }
+            }
         }
     }
     
@@ -827,19 +1102,77 @@ extends AbstractWindow {
         return prc;
     }
     
-    private void addFilter(ArchiveFilter filter) {
-        TableItem item = new TableItem(tblFilters, SWT.NONE);
-        updateFilter(item, filter);
+    private File showSourceEditionFrame(File source) {
+        SourceEditionWindow frm = new SourceEditionWindow(source, (FileSystemRecoveryTarget)this.getTarget());
+        showDialog(frm);
+        return frm.getSource();
     }
     
-    private void updateFilter(TableItem item, ArchiveFilter filter) {
-        String filterExclude = RM.getLabel(
-                ((AbstractArchiveFilter)filter).isExclude() ? "filteredition.exclusion.label" : "filteredition.inclusion.label"
+    private void addFilter(TreeItem parent, ArchiveFilter filter) {
+        TreeItem item;
+        if (parent == null) {
+            item = new TreeItem(treFilters, SWT.NONE);
+        } else {
+            item = new TreeItem(parent, SWT.NONE);
+        }
+        item.setData(filter);
+
+        updateFilterData(item);
+    }
+    
+    private void updateFilterData(TreeItem item) {
+        if (item == null) {
+            item = treFilters.getItem(0);
+        }
+        
+        boolean isFirst = (
+                item.getParentItem() == null 
+                || item.getParentItem().getItemCount() == 0 
+                || item.getParentItem().getItem(0).getData().equals(item.getData())
         );
-        item.setText(0, FilterRepository.getName(filter.getClass()));
+                
+        item.removeAll();
+        
+        ArchiveFilter filter = (ArchiveFilter)item.getData();
+        TreeItem parent = item.getParentItem();
+        
+        String prefix = "";
+        if (! isFirst) {
+                prefix = (RM.getLabel(((FilterGroup)parent.getData()).isAnd() ? "common.operator.and" : "common.operator.or") + " ");
+        }
+        
+        String filterExclude = RM.getLabel(
+                filter.isExclude() ? "filteredition.exclusion.label" : "filteredition.inclusion.label"
+        );
+        item.setText(0, prefix + FilterRepository.getName(filter.getClass()));
         item.setText(1, filter.getStringParameters() == null ? "" : filter.getStringParameters());
         item.setText(2, filterExclude);
-        item.setData(filter);
+        
+        if (filter instanceof FilterGroup) {
+            Iterator iter = ((FilterGroup)filter).getFilterIterator();
+            while (iter.hasNext()) {
+                ArchiveFilter child = (ArchiveFilter)iter.next();
+                addFilter(item, child);
+            }
+        }
+    }
+    
+    private static void expandAll(TreeItem item) {
+        item.setExpanded(true);
+        TreeItem[] children = item.getItems();
+        for (int i=0; i<children.length; i++) {
+            expandAll(children[i]);
+        }
+    }
+
+    private void addSource(File source) {
+        TableItem item = new TableItem(tblSources, SWT.NONE);
+        updateSource(item, source);
+    }
+    
+    private void updateSource(TableItem item, File source) {
+        item.setText(0, FileSystemManager.getAbsolutePath(source));
+        item.setData(source);
     }
     
     private void addProcessor(PostProcessor proc) {
@@ -860,7 +1193,6 @@ extends AbstractWindow {
         Iterator iter = this.strRadio.keySet().iterator();
         while (iter.hasNext()) {
             String id = (String)iter.next();
-            Button rd = (Button)strRadio.get(id);
             Button btn = (Button)strButton.get(id);
             Text txt = (Text)strText.get(id);
             
@@ -886,19 +1218,7 @@ extends AbstractWindow {
             return false;
         }  
         
-        // - REPERTOIRE SOURCE + valider qu'il existe
-        this.resetErrorState(txtBaseDir);
-        if (this.txtBaseDir.getText() == null || this.txtBaseDir.getText().length() == 0) {
-            this.setInError(txtBaseDir);
-            return false;
-        } else {
-            if (! FileSystemManager.exists(new File(txtBaseDir.getText()))) {
-                this.setInError(txtBaseDir);
-                return false;
-            }
-        }
-        
-        // - EMPLACEMENT medium + valider qu'il n'est pas un sous répertoire du répertoire source
+        // - EMPLACEMENT medium + valider qu'il n'est pas un sous répertoire des répertoires sources
         Text txt = (Text)this.strText.get(this.currentFileSystemPolicyId);
         Button rd = (Button)this.strRadio.get(this.currentFileSystemPolicyId);
         this.resetErrorState(txt);
@@ -908,12 +1228,15 @@ extends AbstractWindow {
                     this.setInError(txtMediumPath);
                     return false;
                 } else {
-                    File baseDir = new File(this.txtBaseDir.getText());
-                    File backupDir = new File(this.txtMediumPath.getText());
-                    FileTool tool = new FileTool();
-                    if (tool.isParentOf(baseDir, backupDir)) {
-                        this.setInError(txtMediumPath);
-                        return false;           
+                    for (int i=0; i<this.tblSources.getItemCount(); i++) {
+                        File src  =(File)this.tblSources.getItem(i).getData();
+                        
+                        File backupDir = new File(this.txtMediumPath.getText());
+                        FileTool tool = FileTool.getInstance();
+                        if (tool.isParentOf(src, backupDir)) {
+                            this.setInError(txtMediumPath);
+                            return false;           
+                        }
                     }
                 }  
             } else if (currentPolicy == null) {
@@ -968,8 +1291,6 @@ extends AbstractWindow {
         if (this.chkMultiVolumes.getSelection()) {
             this.txtMultiVolumes.setEditable(true);
             this.txtMultiVolumes.setEnabled(true);
-            
-            this.lblMultiVolumes.setEnabled(true);
             this.lblMultiVolumesUnit.setEnabled(true);
         } else {
             this.txtMultiVolumes.setEditable(false);
@@ -978,7 +1299,6 @@ extends AbstractWindow {
             if (txtMultiVolumes.getText() != null && txtMultiVolumes.getText().length() != 0) {
                 this.txtMultiVolumes.setText("");
             }
-            this.lblMultiVolumes.setEnabled(false);
             this.lblMultiVolumesUnit.setEnabled(false);
         }
     }
@@ -1045,7 +1365,6 @@ extends AbstractWindow {
         try {
             FileSystemRecoveryTarget newTarget = new FileSystemRecoveryTarget();
             newTarget.setProcess(application.getCurrentProcess());
-            newTarget.setSourcePath(new File(this.txtBaseDir.getText()));
 
             String archivePrefix; // Necessary for backward compatibility
             String storageSubDirectory; // Necessary for backward compatibility
@@ -1069,6 +1388,13 @@ extends AbstractWindow {
             newTarget.setComments(this.txtDesc.getText());
             newTarget.setTargetName(txtTargetName.getText());
             newTarget.setTrackSymlinks( ! this.chkFollowLinks.getSelection());
+            
+            // Sources
+            HashSet sources = new HashSet();
+            for (int i=0; i<this.tblSources.getItemCount(); i++) {
+                sources.add((File)this.tblSources.getItem(i).getData());
+            }
+            newTarget.setSources(sources);
             
             if (isFrozen(false)) {
                 newTarget.setMedium(target.getMedium(), false);
@@ -1113,13 +1439,16 @@ extends AbstractWindow {
                 if (this.rdDir.getSelection()) {
                     medium = new IncrementalDirectoryMedium();                    
                 } else if (this.rdZip.getSelection() || this.rdZip64.getSelection()) {
-                    medium = new IncrementalZipMedium();         
-                    ((IncrementalZipMedium)medium).setUseZip64(this.rdZip64.getSelection());
+                    medium = new IncrementalZipMedium();
+                    IncrementalZipMedium zMedium = (IncrementalZipMedium)medium;
+                    zMedium.setUseZip64(this.rdZip64.getSelection());
 
-                    ((IncrementalZipMedium)medium).setMultiVolumes(this.chkMultiVolumes.getSelection());
+                    zMedium.setMultiVolumes(this.chkMultiVolumes.getSelection());
                     if (this.chkMultiVolumes.getSelection()) {
-                        ((IncrementalZipMedium)medium).setVolumeSize(Long.parseLong(txtMultiVolumes.getText()));
+                        zMedium.setVolumeSize(Long.parseLong(txtMultiVolumes.getText()));
                     }
+                    zMedium.setComment(this.txtZipComment.getText());
+                    zMedium.setCharset(Charset.forName(cboEncoding.getItem(cboEncoding.getSelectionIndex())));
                 }
                 ((AbstractIncrementalFileSystemMedium)medium).setFileSystemPolicy(storagePolicy);
                 ((AbstractIncrementalFileSystemMedium)medium).setEncryptionPolicy(encrArgs);
@@ -1139,10 +1468,7 @@ extends AbstractWindow {
                     }
                 }
             }
-            
-            for (int i=0; i<this.tblFilters.getItemCount(); i++) {
-                newTarget.addFilter((ArchiveFilter)this.tblFilters.getItem(i).getData());
-            }
+            newTarget.setFilterGroup(this.mdlFilters);
             
             for (int i=0; i<this.tblProc.getItemCount(); i++) {
                 newTarget.getPostProcessors().addPostProcessor((PostProcessor)this.tblProc.getItem(i).getData());
@@ -1160,14 +1486,6 @@ extends AbstractWindow {
 
     protected void updateState(boolean rulesSatisfied) {
         btnSave.setEnabled(rulesSatisfied);
-    }
-    
-    private FTPFileSystemPolicy showFTPEditionFrame(FTPFileSystemPolicy policy) {
-        FTPEditionWindow frm = new FTPEditionWindow(policy);
-        showDialog(frm);
-        
-        FTPFileSystemPolicy ft = frm.getCurrentPolicy();
-        return ft;
     }
     
     private void showDialog(AbstractWindow window) {

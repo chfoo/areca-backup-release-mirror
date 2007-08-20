@@ -4,13 +4,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.myJava.configuration.FrameworkConfiguration;
+
 
 /**
  * Classe permettant de gérer la log applicative
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -49,10 +51,9 @@ public final class Logger {
 
     /**
      * Constructeur.
-     * <BR>LogLevel par défaut = 6
      */
     public Logger() {
-        this.setLogLevel(6);
+        this.setLogLevel(FrameworkConfiguration.getInstance().getLogLevel());
         this.addProcessor(new ConsoleLogProcessor());
     }
     
@@ -229,5 +230,9 @@ public final class Logger {
      */
     public void info(String message) {
         log(6, message, "");
+    }
+    
+    public void fine(String message) {
+        log(8, message, "");
     }
 }

@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.util.log.Logger;
 
@@ -29,7 +30,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -54,7 +55,7 @@ This file is part of Areca.
 public class FileSystemManager {
 
     protected static FileSystemManager instance = new FileSystemManager();
-
+    
     /**
      * Drivers indexés par point de montage
      */

@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.xml.utils.synthetic.reflection.EntryPoint;
-
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArecaTechnicalConfiguration;
@@ -65,7 +63,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -91,6 +89,8 @@ public abstract class AbstractIncrementalFileSystemMedium
 extends AbstractFileSystemMedium 
 implements TargetActions {
 
+    protected static final boolean DEBUG_MODE = ((ArecaTechnicalConfiguration)ArecaTechnicalConfiguration.getInstance()).isBackupDebug();
+    
     /**
      * Nom du fichier de trace.
      */
@@ -326,11 +326,18 @@ implements TargetActions {
                 ) {
                     // The entry is stored if it has been modified
                     if (this.checkFileModified(fEntry, context)) {
+                        if (DEBUG_MODE) {
+                            Logger.defaultLogger().fine("[" + FileSystemManager.getAbsolutePath(fEntry.getFile()) + "] : Backup in progress ...");
+                        }
                         this.storeFileInArchive(fEntry.getFile(), fEntry.getName(), context);
+                        context.getReport().addWritten(FileSystemManager.length(fEntry.getFile()));
                         this.registerStoredEntry(fEntry, context);
 
                         context.getReport().addSavedFile();
                     } else {
+                        if (DEBUG_MODE) {
+                            Logger.defaultLogger().fine("[" + FileSystemManager.getAbsolutePath(fEntry.getFile()) + "] : Unchanged.");
+                        }
                         context.getReport().addIgnoredFile();
                     }
                 }
@@ -1034,7 +1041,7 @@ implements TargetActions {
     private Set getEntrySetFromTrace(ArchiveTrace source, Map referenceMap) {
         Set elements = new HashSet();
         Iterator iter = source.fileEntrySet().iterator();
-        File baseDirectory = ((FileSystemRecoveryTarget)this.getTarget()).getSourceDirectory();
+        String baseDirectory = this.fileSystemPolicy.getBaseArchivePath();
         while (iter.hasNext()) {
             Map.Entry entry = (Map.Entry)iter.next();
             
@@ -1179,7 +1186,7 @@ implements TargetActions {
                 String hash = (String)entry.getValue();
                 
                 long size = ArchiveTrace.extractFileSizeFromTrace(hash); 
-                ret.add(new FileSystemRecoveryEntry(new File(fileSystemPolicy.getBaseArchivePath()), new File(fileSystemPolicy.getBaseArchivePath(), path), EntryArchiveData.STATUS_DELETED, size));
+                ret.add(new FileSystemRecoveryEntry(fileSystemPolicy.getBaseArchivePath(), new File(fileSystemPolicy.getBaseArchivePath(), path), EntryArchiveData.STATUS_DELETED, size));
             }
             
             // Directories
@@ -1187,7 +1194,7 @@ implements TargetActions {
             while (iter.hasNext()) {
                 Map.Entry entry = (Map.Entry)iter.next();
                 String path = (String)entry.getKey();               
-                ret.add(new FileSystemRecoveryEntry(new File(fileSystemPolicy.getBaseArchivePath()), new File(fileSystemPolicy.getBaseArchivePath(), path), EntryArchiveData.STATUS_DELETED, 0));
+                ret.add(new FileSystemRecoveryEntry(fileSystemPolicy.getBaseArchivePath(), new File(fileSystemPolicy.getBaseArchivePath(), path), EntryArchiveData.STATUS_DELETED, 0));
             }            
             
             return ret;
@@ -1332,7 +1339,7 @@ implements TargetActions {
         
         ArchiveTrace trace = ArchiveTraceCache.getInstance().getTrace(this, archive);
         Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, archive);
-        File root = ((FileSystemRecoveryTarget)this.getTarget()).getSourceDirectory();
+        String root = ((FileSystemRecoveryTarget)this.getTarget()).getSourceDirectory();
         Iterator iter = trace.fileKeySet().iterator();
         while (iter.hasNext()) {
             String name = (String)iter.next();

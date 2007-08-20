@@ -46,7 +46,7 @@ import com.myJava.file.FileTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -72,7 +72,7 @@ public class PhysicalViewComposite
 extends Composite 
 implements SelectionListener, Refreshable { 
     
-    private static final FileTool TOOL = new FileTool();
+    private static final FileTool TOOL = FileTool.getInstance();
     
     private Table table;
     private TableViewer viewer;

@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -44,7 +44,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ManifestManager {
-    private static FileTool tool = new FileTool();
+    private static FileTool tool = FileTool.getInstance();
     public static String ENCODING = "UTF-8";
     
     public static Manifest readManifestForArchive(AbstractFileSystemMedium medium, File archive) throws ApplicationException {

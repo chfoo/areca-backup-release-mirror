@@ -12,7 +12,7 @@ import com.myJava.util.Utilitaire;
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -41,7 +41,7 @@ public class ArchiveWriter {
     private long entries = 0;
     
     public ArchiveWriter(ArchiveAdapter adapter) throws IOException {
-        this.tool = new FileTool();  
+        this.tool = FileTool.getInstance();  
         this.adapter = adapter;
     }
 

@@ -1,5 +1,7 @@
 package com.myJava.file.ftp;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
@@ -38,7 +40,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -62,6 +64,8 @@ This file is part of Areca.
  */
 public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     
+    protected static boolean USE_BUFFER = FrameworkConfiguration.getInstance().useFileSystemBuffer();
+    protected static int BUFFER_SIZE = FrameworkConfiguration.getInstance().getFileSystemBufferSize();
     public static int MAX_PROXIES = FrameworkConfiguration.getInstance().getMaxFTPProxies();
     
     private FTPProxy ftpProxy;
@@ -245,7 +249,13 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     public InputStream getFileInputStream(File file) throws IOException {
         String owner = this.buildNewOwnerId("getFileInputStream");
         FTPProxy proxy = this.getAvailableProxy(owner);
-        return proxy.getFileInputStream(this.translateToRemote(file));
+        InputStream raw = proxy.getFileInputStream(this.translateToRemote(file));
+        
+        if (USE_BUFFER) {
+            return new BufferedInputStream(raw, BUFFER_SIZE);
+        } else {
+            return raw;
+        }
     }
     
     public synchronized OutputStream getCachedFileOutputStream(File file) throws IOException {
@@ -253,19 +263,37 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
         File localFile = new File(System.getProperty("user.home"), "java_ftp_driver_local_file" + rnd + ".tmp");
         FileSystemManager.deleteOnExit(localFile);
         this.localFiles.put(translateToRemote(file), localFile);
-        return FileSystemManager.getFileOutputStream(localFile);
+        OutputStream raw = FileSystemManager.getFileOutputStream(localFile);
+        
+        if (USE_BUFFER) {
+            return new BufferedOutputStream(raw, BUFFER_SIZE);
+        } else {
+            return raw;
+        }
     }
     
     public OutputStream getFileOutputStream(File file) throws IOException {
         String owner = this.buildNewOwnerId("getFileOutputStream");
         FTPProxy proxy = this.getAvailableProxy(owner);
-        return proxy.getFileOutputStream(this.translateToRemote(file));
+        OutputStream raw = proxy.getFileOutputStream(this.translateToRemote(file));
+        
+        if (USE_BUFFER) {
+            return new BufferedOutputStream(raw, BUFFER_SIZE);
+        } else {
+            return raw;
+        }
     }
     
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
         String owner = this.buildNewOwnerId("getFileOutputStream");
         FTPProxy proxy = this.getAvailableProxy(owner);
-        return proxy.getFileOutputStream(this.translateToRemote(file), append);
+        OutputStream raw = proxy.getFileOutputStream(this.translateToRemote(file), append);
+        
+        if (USE_BUFFER) {
+            return new BufferedOutputStream(raw, BUFFER_SIZE);
+        } else {
+            return raw;
+        }
     }
     
     public File[] listFiles(File file) {
@@ -425,7 +453,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     public synchronized void flush() throws IOException {
         Logger.defaultLogger().info("Flushing cached data : " + this.localFiles.size() + " files ...");
         Iterator iter = this.localFiles.entrySet().iterator();
-        FileTool ft = new FileTool();
+        FileTool ft = FileTool.getInstance();
         try {
 	        while (iter.hasNext()) {
 	            Map.Entry entry = (Map.Entry)iter.next();
@@ -506,7 +534,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
         String testFile = "/home/olivier/Desktop/test.txt";
                 
         // Tests
-        FileTool tool = new FileTool();
+        FileTool tool = FileTool.getInstance();
         
         // 1 : list 
         System.out.println("START : ");

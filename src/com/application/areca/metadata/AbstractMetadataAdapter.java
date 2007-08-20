@@ -18,7 +18,7 @@ import com.myJava.file.FileTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -47,7 +47,7 @@ public class AbstractMetadataAdapter {
     protected static final String VERSION_1 = VERSION_HEADER + "1"; // Initial metadata version : uses the default character encoding
     protected static final String VERSION_2 = VERSION_HEADER + "2"; // Latest metadata version : uses UTF-8 encoding
     
-    private FileTool TOOL = new FileTool();
+    private FileTool TOOL = FileTool.getInstance();
     
     /**
      * Optional object pool.
@@ -139,7 +139,7 @@ public class AbstractMetadataAdapter {
     }
     
     protected String resolveEncoding() throws IOException {
-        FileTool tool = new FileTool();
+        FileTool tool = FileTool.getInstance();
         String firstLine = tool.getFirstRow(getInputStream(), DATA_CHARSET);
         if (firstLine != null && firstLine.startsWith(VERSION_2)) {
             return DATA_CHARSET; // Version2 <=> UTF-8

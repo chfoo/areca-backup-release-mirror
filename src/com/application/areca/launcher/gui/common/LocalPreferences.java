@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -146,5 +146,9 @@ public class LocalPreferences {
     
     public void logProperties() {
         LogHelper.logProperties("User preferences :", this.preferences);
+    }
+
+    public Properties getPreferences() {
+        return preferences;
     }
 }

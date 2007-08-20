@@ -27,7 +27,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -246,10 +246,15 @@ public class Launcher implements CommandConstants {
      */
     private static void processRecover(UserCommand command, RecoveryProcess process, ProcessContext context) throws Exception {
         AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
+        
+        String destination = command.getOption(OPTION_DESTINATION);
+        if (destination != null && (destination.endsWith("/") || destination.endsWith("\\"))) {
+            destination = destination.substring(0, destination.length() - 1);
+        }
         process.processRecoverOnTarget(
                 target,
                 null,
-                command.getOption(OPTION_DESTINATION),
+                destination,
                 CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null),
                 false, 
                 context

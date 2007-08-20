@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -107,7 +107,7 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
      * <BR>-Value = FilePath TRACE_SEP FileSize - FileModificationDate
      */    
     public ArchiveTrace readTrace() throws IOException {
-        FileTool tool = new FileTool();
+        FileTool tool = FileTool.getInstance();
         String encoding = resolveEncoding();
         String[] traceContent = tool.getInputStreamRows(this.getInputStream(), encoding, true);
         // Check memory usage

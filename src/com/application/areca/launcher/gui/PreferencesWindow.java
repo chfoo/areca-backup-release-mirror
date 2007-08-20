@@ -1,7 +1,5 @@
 package com.application.areca.launcher.gui;
 
-import java.net.URL;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -20,13 +18,12 @@ import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
-import com.myJava.file.FileTool;
 
 /**
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -61,6 +58,7 @@ extends AbstractWindow {
     private Button displayReport;
     private Text editor;
     private Text dateFormat;
+    private Button btnSave;
 
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
@@ -101,6 +99,7 @@ extends AbstractWindow {
         GridData saveData = new GridData(SWT.FILL, SWT.FILL, true, false);
         SavePanel pnlSave = new SavePanel(this);
         pnlSave.buildComposite(composite).setLayoutData(saveData);
+        btnSave = pnlSave.getBtnSave();
         
         composite.pack();
         return composite;
@@ -230,12 +229,19 @@ extends AbstractWindow {
     }
 
     protected boolean checkBusinessRules() {
+        resetErrorState(langCombo);
+        if (langCombo.getSelectionIndex() == -1) {
+            setInError(langCombo);
+            return false;
+        }
         return true;
     }
 
     protected void saveChanges() {       
-        String lang = (String)langCombo.getItem(langCombo.getSelectionIndex());
-        ArecaPreferences.setLang(lang);
+        if (langCombo.getSelectionIndex() != -1) {
+            String lang = (String)langCombo.getItem(langCombo.getSelectionIndex());
+            ArecaPreferences.setLang(lang);
+        }
         ArecaPreferences.setStartupMode(openLastWorkspace.getSelection() ? ArecaPreferences.LAST_WORKSPACE_MODE : ArecaPreferences.DEFAULT_WORKSPACE_MODE);
         ArecaPreferences.setDefaultWorkspace(defaultWorkspace.getText());
         ArecaPreferences.setDefaultArchiveStorage(defaultArchiveStorage.getText());
@@ -249,5 +255,6 @@ extends AbstractWindow {
     }
 
     protected void updateState(boolean rulesSatisfied) {
+        btnSave.setEnabled(rulesSatisfied);
     }
 }

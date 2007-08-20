@@ -25,7 +25,7 @@ import com.myJava.util.ToStringHelper;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
 public
 class ZipEntry implements ZipConstants, Cloneable, Serializable {
@@ -246,16 +246,8 @@ class ZipEntry implements ZipConstants, Cloneable, Serializable {
 
     /**
      * Sets the optional comment string for the entry.
-     * @param comment the comment string
-     * @exception IllegalArgumentException if the length of the specified
-     *		  comment string is greater than 0xFFFF bytes
-     * @see #getComment()
      */
     public void setComment(String comment) {
-	if (comment != null && comment.length() > 0xffff/3 
-                    && ZipOutputStream.getUTF8Length(comment) > 0xffff) {
-	    throw new IllegalArgumentException("invalid entry comment length");
-	}
 	this.comment = comment;
     }
 

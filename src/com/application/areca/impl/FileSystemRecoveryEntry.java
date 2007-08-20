@@ -11,7 +11,7 @@ import com.myJava.util.HashHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -35,30 +35,30 @@ This file is part of Areca.
  */
 public class FileSystemRecoveryEntry implements RecoveryEntry {
     private File file;
-    private File rootDirectory;
+    private String rootDirectory;
     private short status;
     private long size;
     private String name;
     private boolean isLink;
     
-    public FileSystemRecoveryEntry(File rootDirectory, File file, short status, long size, boolean isLink) {
+    public FileSystemRecoveryEntry(String rootDirectory, File file, short status, long size, boolean isLink) {
         this.rootDirectory = rootDirectory;            
         this.file = file;
         this.status = status;
         this.size = size;
         this.isLink = isLink;
-        this.name = Utils.extractShortFilePath(this.getFile(), this.getRootDirectory());
+        this.name = Utils.extractShortFilePath(this.getFile(), this.rootDirectory);
     }
     
-    public FileSystemRecoveryEntry(File rootDirectory, File file, short status, long size) {
+    public FileSystemRecoveryEntry(String rootDirectory, File file, short status, long size) {
         this(rootDirectory, file, status, size, false);
     }
     
-    public FileSystemRecoveryEntry(File rootDirectory, File file, short status) {
+    public FileSystemRecoveryEntry(String rootDirectory, File file, short status) {
     	this(rootDirectory, file, status, 0);
     }
     
-    public FileSystemRecoveryEntry(File rootDirectory, File file) {
+    public FileSystemRecoveryEntry(String rootDirectory, File file) {
     	this(rootDirectory, file, STATUS_NOT_STORED);
     }
     
@@ -88,10 +88,6 @@ public class FileSystemRecoveryEntry implements RecoveryEntry {
 
 	public File getFile() {
         return this.file;
-    }
-    
-    public File getRootDirectory() {
-        return this.rootDirectory;
     }
     
     public String toString() {

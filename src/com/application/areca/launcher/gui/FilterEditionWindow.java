@@ -23,7 +23,7 @@ import com.application.areca.launcher.gui.filters.AbstractFilterComposite;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -80,6 +80,7 @@ extends AbstractWindow {
         cboFilterType.add(RM.getLabel("filteredition.filedatefilter.label"));  
         cboFilterType.add(RM.getLabel("filteredition.linkfilter.label"));       
         cboFilterType.add(RM.getLabel("filteredition.lockedfilefilter.label"));   
+        cboFilterType.add(RM.getLabel("filteredition.filtergroup.label"));   
         GridData dt = new GridData(SWT.FILL, SWT.CENTER, true, false);
         dt.widthHint = AbstractWindow.computeWidth(400);
         cboFilterType.setLayoutData(dt);

@@ -13,7 +13,7 @@ import com.myJava.util.log.Logger;
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -42,7 +42,7 @@ public class ArchiveReader {
     
     public ArchiveReader(ArchiveAdapter adapter) throws IOException, FileNotFoundException {      
         this.adapter = adapter;
-        this.tool = new FileTool();
+        this.tool = FileTool.getInstance();
     }
 
     public InputStream getInputStream(String entry) throws IOException {

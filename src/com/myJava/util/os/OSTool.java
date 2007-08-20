@@ -5,7 +5,10 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.myJava.configuration.FrameworkConfiguration;
@@ -16,7 +19,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -57,6 +60,8 @@ public class OSTool {
     private static String USER_NAME;
     private static String TMP_DIR;
     
+    private static Charset[] CHARSETS;
+    
     static {
         JAVA_FILE_ENCODING = System.getProperty("file.encoding");
         Charset cs = Charset.forName(JAVA_FILE_ENCODING);
@@ -90,6 +95,19 @@ public class OSTool {
         TMP_DIR = System.getProperty("java.io.tmpdir");
         USER_HOME = System.getProperty("user.home");
         USER_NAME = System.getProperty("user.name");
+        
+        Map map = Charset.availableCharsets();
+        Iterator iter = map.values().iterator();
+        CHARSETS = new Charset[map.size()];
+        for (int i=0; iter.hasNext(); i++) {
+            Charset charset = (Charset)iter.next();
+            CHARSETS[i] = charset;
+        }
+        Arrays.sort(CHARSETS);
+    }
+    
+    public static Charset[] getCharsets() {
+        return CHARSETS;
     }
     
     public static String getOSDescription() {

@@ -11,7 +11,7 @@ import com.application.areca.launcher.gui.Application;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -56,6 +56,9 @@ extends RefreshManager {
         }
 
         this.registerRefreshable(getRefreshable(item));
+        
+        // Register tab index
+        item.setData(new Integer(this.monitors.size() - 1));
     }
     
     public void handleSelection(CTabItem item) {
@@ -65,6 +68,14 @@ extends RefreshManager {
 
         selected = item; 
         getFocus(getRefreshable(selected));
+    }
+    
+    public int getCurrentSelection() {
+        if (selected == null) {
+            return 0;
+        } else {
+            return ((Integer)selected.getData()).intValue();
+        }
     }
 
     public Refreshable getRefreshable(CTabItem item) {

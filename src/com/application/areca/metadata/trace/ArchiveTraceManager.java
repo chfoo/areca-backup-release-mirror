@@ -16,7 +16,7 @@ import com.myJava.file.FileTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -39,7 +39,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ArchiveTraceManager {
-    protected static FileTool tool = new FileTool();
+    protected static FileTool tool = FileTool.getInstance();
 
     public static ArchiveTrace readTraceForArchive(AbstractIncrementalFileSystemMedium medium, File archive, ObjectPool pool) throws IOException {
         if (! medium.checkArchiveCompatibility(archive)) {

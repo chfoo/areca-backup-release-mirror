@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.GregorianCalendar;
 
 import com.application.areca.ApplicationException;
@@ -20,14 +21,13 @@ import com.myJava.file.archive.zip64.ZipArchiveAdapter;
 import com.myJava.file.archive.zip64.ZipVolumeStrategy;
 import com.myJava.file.multivolumes.VolumeStrategy;
 import com.myJava.util.PublicClonable;
-import com.myJava.util.log.Logger;
 
 /**
  * Incremental storage support which uses an archive to store the data.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -53,6 +53,8 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 
     private static String MV_ARCHIVE_NAME = "archive";
     private boolean multiVolumes = false;
+    private String comment;
+    private Charset charset;
     
     /**
      * Volume Size (MB)
@@ -107,29 +109,60 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
             */
         }
     }
-    
+
+    public String getComment() {
+        return comment;
+    }
+
+    public Charset getCharset() {
+        return charset;
+    }
+
+    public void setCharset(Charset charset) {
+        this.charset = charset;
+    }
+
+    public void setComment(String comment) {
+        if (comment != null && comment.trim().length() == 0) {
+            this.comment = null;
+        } else {
+            this.comment = comment;
+        }
+    }
+
     /**
      * Builds an ArchiveAdapter for the file passed as argument. 
      */
     protected ArchiveAdapter buildArchiveAdapter(File f, boolean write) throws IOException {      
+        ArchiveAdapter adapter = null;
         if (write) {
             if (multiVolumes) {
-                return new ZipArchiveAdapter(buildVolumeStrategy(f, write), volumeSize * 1024 * 1024, useZip64);   
+                adapter = new ZipArchiveAdapter(buildVolumeStrategy(f, write), volumeSize * 1024 * 1024, useZip64);   
             } else {
                 AbstractFileSystemMedium.tool.createDir(FileSystemManager.getParentFile(f));
-                return new ZipArchiveAdapter(FileSystemManager.getFileOutputStream(f), useZip64);   
+                adapter =  new ZipArchiveAdapter(FileSystemManager.getFileOutputStream(f), useZip64);   
             }
+            if (comment != null) {
+                adapter.setArchiveComment(comment);
+            }
+            
+            return adapter;
         } else {
             if (multiVolumes) {
-                return new ZipArchiveAdapter(buildVolumeStrategy(f, write), 1);   
+                adapter = new ZipArchiveAdapter(buildVolumeStrategy(f, write), 1);   
             } else {
                 long length = 0;
                 if (FileSystemManager.exists(f)) {
                     length = FileSystemManager.length(f);
                 }
-                return new ZipArchiveAdapter(FileSystemManager.getFileInputStream(f), length);    
+                adapter = new ZipArchiveAdapter(FileSystemManager.getFileInputStream(f), length);    
             }        
         }
+        
+        if (charset != null) {
+            adapter.setCharset(charset);
+        }
+        return adapter;
     }
     
     private VolumeStrategy buildVolumeStrategy(File f, boolean write) throws IOException {       
@@ -230,7 +263,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
         }
         
         File archive = this.getLastArchive(date);
-        FileTool tool = new FileTool();
+        FileTool tool = FileTool.getInstance();
         
         try {
             FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)entryToRecover;

@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -127,7 +127,7 @@ public class VolumeOutputStream extends OutputStream {
 
     public static void main(String[] args) {
         try {
-            FileTool tool = new FileTool();
+            FileTool tool = FileTool.getInstance();
             File parent = new File("/home/olivier/Desktop/toto");
             File outF = new File(parent, "out");
             File inF = new File(parent, "in");      

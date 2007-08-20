@@ -24,7 +24,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -169,6 +169,9 @@ implements UserInformationChannel, Colors, Listener {
                 dispose();
                 parent.layout();
                 running = false;
+                
+                // send a message to the progress tab
+                ((ProgressComposite)parent).taskFinished();
             }
         });
     }

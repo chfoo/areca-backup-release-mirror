@@ -24,8 +24,11 @@ import org.eclipse.swt.widgets.Text;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.MemoryHelper;
 import com.application.areca.ResourceManager;
+import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
+import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.version.VersionInfos;
@@ -38,7 +41,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -174,7 +177,7 @@ extends AbstractWindow {
         try {
             URL url = ClassLoader.getSystemClassLoader().getResource("license.txt");
             InputStream in = url.openStream();
-            FileTool tool = new FileTool();
+            FileTool tool = FileTool.getInstance();
             content.setText(tool.getInputStreamContent(in, true));
         } catch (IOException e) {
             application.handleException("Error reading license file", e);
@@ -197,6 +200,9 @@ extends AbstractWindow {
         
         prps.putAll(ArecaTechnicalConfiguration.get().getProperties());
         
+        // User preferences
+        prps.putAll(LocalPreferences.instance().getPreferences());
+        
         // Plugins
         Iterator iter = StoragePluginRegistry.getInstance().getAll().iterator();
         String plugins = "";
@@ -209,6 +215,19 @@ extends AbstractWindow {
         }
         prps.put("areca.plugins", plugins);
         
+        // Translations
+        prps.put("areca.available.translations", Utils.getTranslationsAsString());        
+        
+        // Encodings
+        StringBuffer css = new StringBuffer();
+        for (int i=0; i<OSTool.getCharsets().length; i++) {
+            if (i != 0) {
+                css.append(", ");
+            }
+            css.append(OSTool.getCharsets()[i].name());
+        }
+        prps.put("supported.charsets", css.toString());
+        
         String[] keys = (String[])prps.keySet().toArray(new String[0]);
         Arrays.sort(keys);
         StringBuffer sb = new StringBuffer();
@@ -217,6 +236,7 @@ extends AbstractWindow {
             String value = prps.getProperty(key).replace('\n', ' ').replace('\r', ' ');
             sb.append(key).append(" : ").append(value).append("\n");
         }
+        
         content.setText(sb.toString());
     }
     

@@ -35,7 +35,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -253,6 +253,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                 // Lance le backup ...
                 context.getInfoChannel().print("Backup in progress ...");
                 context.getTaskMonitor().checkTaskCancellation();
+                context.getReport().startDataFlowTimer();
                 this.open(manifest, context);
 
                 try {
@@ -281,6 +282,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                     entry = this.nextElement(context); 
                 }
                 this.commitBackup(context);
+                Logger.defaultLogger().info("Average data output : " + Utils.formatLong(context.getReport().getDataFlowInKBPerSecond()) + " kb/second.");
             } catch (Exception e) {
                 Logger.defaultLogger().error(e);
                 this.rollbackBackup(context);

@@ -3,12 +3,13 @@ package com.myJava.file.archive;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -65,4 +66,14 @@ public interface ArchiveAdapter {
      * Closes the current entry 
      */
     public void closeEntry() throws IOException;
+    
+    /**
+     *Sets the archive comment
+     */
+    public void setArchiveComment(String comment);
+    
+    /**
+     * Sets the charset used to encode filenames
+     */
+    public void setCharset(Charset charset);
 }

@@ -17,7 +17,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -81,6 +81,11 @@ public class ProcessContext {
      * Manifest
      */
     protected Manifest manifest;
+    
+    /**
+     * Nr of sources to store
+     */
+    protected int rootCount;
     
     /**
      * Report being built during the process
@@ -192,5 +197,13 @@ public class ProcessContext {
     
     public TaskMonitor getTaskMonitor() {
         return infoChannel.getTaskMonitor();
+    }
+
+    public int getRootCount() {
+        return rootCount;
+    }
+
+    public void setRootCount(int rootCount) {
+        this.rootCount = rootCount;
     }
 }

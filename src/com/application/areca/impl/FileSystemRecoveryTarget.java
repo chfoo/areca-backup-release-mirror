@@ -2,8 +2,13 @@ package com.application.areca.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
@@ -14,6 +19,8 @@ import com.application.areca.TargetActions;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.metadata.manifest.Manifest;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.FileTool;
+import com.myJava.util.DuplicateHelper;
 import com.myJava.util.PublicClonable;
 import com.myJava.util.errors.ActionError;
 import com.myJava.util.errors.ActionReport;
@@ -24,7 +31,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -52,8 +59,9 @@ implements TargetActions {
 
     public static final String RECOVERY_LOCATION_SUFFIX = "recovered_data";
     
-    protected File sourcePath;
-
+    protected String sourcesRoot = "";
+    protected Set sources;
+    
     /**
      * Tells wether symbolic are considered as normal files or as symbolic links
      */
@@ -68,23 +76,109 @@ implements TargetActions {
     protected void copyAttributes(Object clone) {
         FileSystemRecoveryTarget other = (FileSystemRecoveryTarget)clone;
         super.copyAttributes(other);
-        other.sourcePath = sourcePath;
+        other.sourcesRoot = sourcesRoot;
         other.trackSymlinks = trackSymlinks;
+        other.sources = DuplicateHelper.duplicate(sources, false);
     }
 
-    public void setSourcePath(File sourcePath) {
-        this.sourcePath = sourcePath;
+    public void setSources(Set sources) {
+        this.sources = sources;
+        deduplicate(this.sources);
+        this.computeSourceRoot();
     }
     
-    public File getSourcePath() {
-        return this.sourcePath;
+    /**
+     * Removes duplicate sources
+     */
+    private static void deduplicate(Set sources) {
+        HashSet toRemove = new HashSet();
+        FileTool tool = FileTool.getInstance();
+        
+        Iterator iter1 = sources.iterator();
+        while (iter1.hasNext()) {
+            File tested = (File)iter1.next();
+            
+            Iterator iter2 = sources.iterator();
+            while (iter2.hasNext()) {
+                File potentialParent = (File)iter2.next();
+                
+                if (potentialParent != tested) {  // Yes, it's an instance check
+                    if (tool.isParentOf(potentialParent, tested)) {
+                        toRemove.add(tested);
+                    }
+                }
+            }
+        }
+        
+        sources.removeAll(toRemove);
     }
-    
-    public File getSourceDirectory() {
-        if (FileSystemManager.isFile(this.sourcePath)) {
-            return FileSystemManager.getParentFile(this.sourcePath);
+
+    public Set getSources() {
+        return sources;
+    }
+
+    private void computeSourceRoot() {
+        List paths = new ArrayList();
+        int min = Integer.MAX_VALUE;
+        if (sources.size() > 0) {
+            Iterator iter = this.sources.iterator();
+            while (iter.hasNext()) {
+                File source = (File)iter.next();
+                ArrayList path = new ArrayList();
+                computeParents(source, path);
+                paths.add(path);
+                if (path.size() < min) {
+                    min = path.size();
+                }
+            }
+            
+            int divergenceIndex = -1;
+            for (int token=0; token<min && divergenceIndex == -1; token++) {
+                File current = (File)((List)paths.get(0)).get(token);
+                String currentStr = FileSystemManager.getAbsolutePath(current);
+                for (int s=1; s<this.sources.size() && divergenceIndex == -1; s++) {
+                    File other = (File)((List)paths.get(s)).get(token);
+                    if (! currentStr.equals(FileSystemManager.getAbsolutePath(other))) {
+                        divergenceIndex = token;
+                    }
+                }
+            }
+            
+            if (divergenceIndex == 0) {
+                sourcesRoot = "";
+            } else if (divergenceIndex == -1) {
+                sourcesRoot = FileSystemManager.getAbsolutePath((File)this.sources.iterator().next());
+            } else {
+                sourcesRoot = FileSystemManager.getAbsolutePath((File)((List)paths.get(0)).get(divergenceIndex - 1));
+            }
         } else {
-            return this.sourcePath;
+            sourcesRoot = "";
+        }
+    }
+    
+    private static void computeParents(File f, List l) {
+        l.add(0, f);
+        File parent = FileSystemManager.getParentFile(f);
+        if (parent != null) {
+            computeParents(parent, l);
+        }
+    }
+    
+    public String getSourcesRoot() {
+        return this.sourcesRoot;
+    }
+    
+    public String getSourceDirectory() {
+        if (sourcesRoot.length() == 0) {
+            return sourcesRoot;
+        } else {
+            File f = new File(sourcesRoot);
+            
+            if (FileSystemManager.isFile(f)) {
+                return FileSystemManager.getAbsolutePath(FileSystemManager.getParentFile(f));
+            } else {
+                return this.sourcesRoot;
+            }
         }
     }
 
@@ -100,7 +194,7 @@ implements TargetActions {
         context.getManifest().addProperty("Unfiltered directories", "" + context.getReport().getUnfilteredDirectories());
         context.getManifest().addProperty("Unfiltered files", "" + context.getReport().getUnfilteredFiles());        
         context.getManifest().addProperty("Scanned entries (files or directories)", "" + (context.getReport().getUnfilteredFiles() + context.getReport().getUnfilteredDirectories() + context.getReport().getFilteredEntries()));        
-        context.getManifest().addProperty("Source path", FileSystemManager.getAbsolutePath(this.sourcePath));
+        context.getManifest().addProperty("Source path", this.sourcesRoot);
         
         super.commitBackup(context);
     }
@@ -111,11 +205,15 @@ implements TargetActions {
      * Cet élément est filtré par appel aux filtres.
      */
     public RecoveryEntry nextElement(ProcessContext context) throws ApplicationException {
-        double completionStep = 0.98 / (context.getCurrentLevel().getSize() == 0 ? 1 : context.getCurrentLevel().getSize());
         if (context.getCurrentLevel().hasMoreElements()) {
             File f = context.getCurrentLevel().nextElement();
             FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(this.getSourceDirectory(), f);
 
+            double completionStep = 0.98 / (context.getCurrentLevel().getSize() == 0 ? 1 : context.getCurrentLevel().getSize());
+            if (context.getCurrentLevel().getParent() == null) {
+                completionStep /= Math.max(context.getRootCount(), 1);
+            }
+            
             try {
                 if (
                         FileSystemManager.isDirectory(f) && ((! trackSymlinks) || (! FileSystemManager.isLink(f)))
@@ -127,6 +225,7 @@ implements TargetActions {
                         
                         // Progress information
                         context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(completionStep);
+                        Logger.defaultLogger().fine("Processing " + FileSystemManager.getAbsolutePath(f));
                         
                         // stats update
                         context.getReport().addDirectoryCount();
@@ -158,6 +257,7 @@ implements TargetActions {
             // Check if we can store the directory
             if (
                     ( ! context.getCurrentLevel().isHasBeenSent())
+                    && (! FileSystemManager.isFile(context.getCurrentLevel().getBaseDirectory()))
                     && entry.getName().length() != 0
                     && (
                             context.getCurrentLevel().isHaveFilesBeenStored()
@@ -170,12 +270,14 @@ implements TargetActions {
                 }
 
                 return entry;
-            } else {
-                context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
-                
+            } else {               
                 if (context.getFileSystemLevels().isEmpty()) {
+                    context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
                     return null;
                 } else {
+                    if (context.getCurrentLevel().getParent() != null) {
+                        context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
+                    }
                     context.setCurrentLevel((FileSystemLevel)context.getFileSystemLevels().pop());
                     return this.nextElement(context);
                 }
@@ -188,25 +290,35 @@ implements TargetActions {
         if (tName == null) {
             tName = "Target " + this.getId();
         }
-        return tName + " - FileSystem (" + FileSystemManager.getAbsolutePath(this.sourcePath) + ")";
+        return tName + (this.sourcesRoot.length() != 0 ? " - FileSystem (" + this.sourcesRoot + ")" : "");
     }
     
     public void open(Manifest manifest, ProcessContext context) throws ApplicationException {
-        Logger.defaultLogger().info("Opening Target ...");
-        LogHelper.logFileInformations("Source path : ", this.sourcePath);
+        Logger.defaultLogger().info("Initializing backup context ...");
+        Logger.defaultLogger().info("Global source root : " + this.sourcesRoot);
         
         super.open(manifest, context);
         initCurrentLevel(context);
+        Logger.defaultLogger().info("Backup context initialized.");
     }   
     
     private void initCurrentLevel(ProcessContext context) throws ApplicationException {
         context.getFileSystemLevels().clear();
-        context.setCurrentLevel(new FileSystemLevel(sourcePath, null)); 
+        Iterator iter = this.sources.iterator();
+        while (iter.hasNext()) {
+            File source = (File)iter.next();
+            Logger.defaultLogger().info("Registering source directory : " + FileSystemManager.getAbsolutePath(source));
+            context.getFileSystemLevels().push(new FileSystemLevel(source, null));
+        }
+        context.setRootCount(this.sources.size());
+        context.setCurrentLevel((FileSystemLevel)context.getFileSystemLevels().pop()); 
     }
     
 
     public synchronized RecoveryEntry[] processSimulateImpl(ProcessContext context, boolean returnDetailedResults) throws ApplicationException {
+        Logger.defaultLogger().info("Initializing simulation context ...");
         this.initCurrentLevel(context);
+        Logger.defaultLogger().info("Simulation context initialized.");
         return super.processSimulateImpl(context, returnDetailedResults);
     }
     
@@ -244,7 +356,7 @@ implements TargetActions {
      * @see AbstractRecoveryTarget#getSpecificTargetDescription()
      */
     protected String getSpecificTargetDescription() {
-        return "Target - FileSystem (" + FileSystemManager.getAbsolutePath(this.sourcePath) + ")";
+        return "Target" + (this.sourcesRoot.length() != 0 ? " - FileSystem (" + this.sourcesRoot + ")" : "");
     }
 
     /**
@@ -255,11 +367,14 @@ implements TargetActions {
         // Validation
         ActionReport result = super.checkTargetState(action);
         
-        File f = sourcePath;
         if (action != ACTION_RECOVER && action != ACTION_COMPACT_OR_DELETE) {
-	        if (! FileSystemManager.exists(f)) {
-	            result.addError(new ActionError(Errors.ERR_C_BASETARGETPATH, Errors.ERR_M_BASETARGETPATH));
-	        }
+            Iterator iter = this.sources.iterator();
+            while (iter.hasNext()) {
+                File src = (File)iter.next();
+                if (! FileSystemManager.exists(src)) {
+                    result.addError(new ActionError(Errors.ERR_C_BASETARGETPATH, Errors.ERR_M_BASETARGETPATH + " (" + FileSystemManager.getAbsolutePath(src) + ")"));
+                }
+            }
         }
         
         return result;

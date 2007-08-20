@@ -20,7 +20,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -105,7 +105,7 @@ extends Composite {
             if (tg.getComments() != null) {
                 this.addProperty(RM.getLabel("property.description.label"), tg.getComments());
             }  
-            this.addProperty(RM.getLabel("property.source.label"), FileSystemManager.getAbsolutePath(tg.getSourcePath()));
+            this.addProperty(RM.getLabel("property.source.label"), tg.getSourcesRoot());
 
             if (tg.getMedium() != null && tg.getMedium() instanceof AbstractIncrementalFileSystemMedium) {
                 AbstractIncrementalFileSystemMedium medium = (AbstractIncrementalFileSystemMedium)tg.getMedium();

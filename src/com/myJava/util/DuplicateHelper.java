@@ -2,12 +2,13 @@ package com.myJava.util;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -40,6 +41,10 @@ public class DuplicateHelper {
     }
 
     public static List duplicate(List l) {
+        return duplicate (l, true);
+    }
+    
+    public static List duplicate(List l, boolean deepCloning) {
         if (l == null) {
             return null;
         } else {
@@ -47,7 +52,38 @@ public class DuplicateHelper {
                 List list = (List)l.getClass().newInstance();
                 Iterator iter = l.iterator();
                 while (iter.hasNext()) {
-                    list.add(duplicate(iter.next()));
+                    if (deepCloning) {
+                        list.add(duplicate(iter.next()));
+                    } else {
+                        list.add(iter.next());                        
+                    }
+                }
+                return list;
+            } catch (InstantiationException e) {
+                throw new IllegalArgumentException(e.getMessage());
+            } catch (IllegalAccessException e) {
+                throw new IllegalArgumentException(e.getMessage());
+            }
+        }
+    }
+    
+    public static Set duplicate(Set l) {
+        return duplicate (l, true);
+    }
+    
+    public static Set duplicate(Set l, boolean deepCloning) {
+        if (l == null) {
+            return null;
+        } else {
+            try {
+                Set list = (Set)l.getClass().newInstance();
+                Iterator iter = l.iterator();
+                while (iter.hasNext()) {
+                    if (deepCloning) {
+                        list.add(duplicate(iter.next()));
+                    } else {
+                        list.add(iter.next());                        
+                    }
                 }
                 return list;
             } catch (InstantiationException e) {

@@ -20,7 +20,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -94,7 +94,7 @@ public class FileDumpPostProcessor extends AbstractPostProcessor {
             try {
                 ProcessReport report = context.getReport();
                 if (! FileSystemManager.exists(destinationFolder)) {
-                    FileTool tool = new FileTool();
+                    FileTool tool = FileTool.getInstance();
                     tool.createDir(destinationFolder);
                 }
                 File destination = new File(destinationFolder, TagHelper.replaceParamValues(reportName, context));

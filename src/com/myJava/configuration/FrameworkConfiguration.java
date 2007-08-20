@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -4899974077672581254
+ * <BR>Areca Build ID : 4438212685798161280
  */
  
  /*
@@ -50,7 +50,10 @@ public class FrameworkConfiguration {
     private static String KEY_HASH_USE_CACHE = "hash.use.cache";
     private static String KEY_OS_BROWSERS = "os.browsers";  
     private static String KEY_SSE_PROTOCOLS = "sse.protocols";  
-    private static String KEY_ZIP_BUFFER = "zip.buffer.size";  
+    private static String KEY_ZIP_BUFFER = "zip.buffer.size"; 
+    private static String KEY_LOG_LEVEL = "log.level";
+    private static String KEY_FS_USE_BUFFER = "fs.use.buffer";   
+    private static String KEY_FS_BUFFER_SIZE = "fs.buffer.size";   
     
     private static int DEF_FTP_MAX_PROXIES = 3;
     private static long DEF_FTP_NOOP_DELAY = 30000;    
@@ -64,6 +67,9 @@ public class FrameworkConfiguration {
     private static String[] DEF_OS_BROWSERS = {"firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape"};
     private static String[] DEF_SSE_PROTOCOLS = {"TLS", "SSL"};  
     private static int DEF_ZIP_BUFFER = 2048;
+    private static int DEF_LOG_LEVEL = 8;
+    private static boolean DEF_FS_USE_BUFFER = true;   
+    private static int DEF_FS_BUFFER_SIZE = 65536;   
 
     private String strUrl = null;
     private Properties props = new Properties();
@@ -141,6 +147,10 @@ public class FrameworkConfiguration {
         return getProperty(KEY_FTP_CACHE_SIZE, DEF_FTP_CACHE_SIZE);
     }
     
+    public int getLogLevel() {
+        return getProperty(KEY_LOG_LEVEL, DEF_LOG_LEVEL);
+    }
+    
     public int getMaxFTPProxies() {
         return getProperty(KEY_FTP_MAX_PROXIES, DEF_FTP_MAX_PROXIES);
     }
@@ -155,6 +165,14 @@ public class FrameworkConfiguration {
     
     public int getZipBufferSize() {
         return getProperty(KEY_ZIP_BUFFER, DEF_ZIP_BUFFER);
+    }
+    
+    public boolean useFileSystemBuffer() {
+        return getProperty(KEY_FS_USE_BUFFER, DEF_FS_USE_BUFFER);
+    }
+    
+    public int getFileSystemBufferSize() {
+        return getProperty(KEY_FS_BUFFER_SIZE, DEF_FS_BUFFER_SIZE);
     }
     
     public String[] getSSEProtocols() {
