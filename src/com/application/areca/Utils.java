@@ -13,14 +13,13 @@ import java.util.GregorianCalendar;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.OSTool;
 
 /**
  * Utilitaires
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*

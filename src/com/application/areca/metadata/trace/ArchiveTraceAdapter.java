@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
 import com.application.areca.MemoryHelper;
 import com.application.areca.impl.FileSystemRecoveryEntry;
@@ -19,7 +18,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*

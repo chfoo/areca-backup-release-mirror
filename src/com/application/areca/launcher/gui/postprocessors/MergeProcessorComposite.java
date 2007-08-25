@@ -3,6 +3,7 @@ package com.application.areca.launcher.gui.postprocessors;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -16,7 +17,7 @@ import com.myJava.util.CommonRules;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -41,6 +42,7 @@ This file is part of Areca.
 public class MergeProcessorComposite extends AbstractProcessorComposite {
 
     private Text txtDelay;
+    private Button btnKeepDeletedEntries;
     
     public MergeProcessorComposite(Composite composite, PostProcessor proc, ProcessorEditionWindow window) {
         super(composite, proc, window);
@@ -50,19 +52,26 @@ public class MergeProcessorComposite extends AbstractProcessorComposite {
         lbl.setText(RM.getLabel("procedition.delay.label"));
         
         txtDelay = new Text(this, SWT.BORDER);
-        GridData dt = new GridData(SWT.FILL, SWT.TOP, true, false);
-        txtDelay.setLayoutData(dt);
+        txtDelay.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         window.monitorControl(txtDelay);
+        
+        btnKeepDeletedEntries = new Button(this, SWT.CHECK);
+        btnKeepDeletedEntries.setText(RM.getLabel("archivedetail.keepdeletedentries.label"));
+        btnKeepDeletedEntries.setToolTipText(RM.getLabel("archivedetail.keepdeletedentries.tt"));
+        btnKeepDeletedEntries.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+        window.monitorControl(btnKeepDeletedEntries);
         
         if (proc != null) {
             MergePostProcessor fProc = (MergePostProcessor)proc;
             txtDelay.setText("" + fProc.getDelay());
+            btnKeepDeletedEntries.setSelection(fProc.isKeepDeletedEntries());
         }
     }
 
     public void initProcessor(PostProcessor proc) {
         MergePostProcessor fProc = (MergePostProcessor)proc;
         fProc.setDelay(Integer.parseInt(txtDelay.getText()));
+        fProc.setKeepDeletedEntries(btnKeepDeletedEntries.getSelection());
     }
     
     public boolean validateParams() {

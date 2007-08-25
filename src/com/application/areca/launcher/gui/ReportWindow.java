@@ -13,7 +13,6 @@ import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.Utils;
 import com.application.areca.context.ProcessReport;
-import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
@@ -23,7 +22,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*

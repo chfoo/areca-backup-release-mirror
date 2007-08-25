@@ -3,9 +3,7 @@ package com.application.areca.adapters;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.w3c.dom.Node;
@@ -43,7 +41,7 @@ import com.application.areca.postprocess.ShellScriptPostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -231,8 +229,17 @@ public class TargetXMLReader implements XMLTags {
         if (paramNode == null) {
             throw new AdapterException("Merge delay not found for merge processor. A '" + XML_PP_MERGE_DELAY + "' attribute must be set.");
         }          
+        Node keepNode = node.getAttributes().getNamedItem(XML_PP_MERGE_KEEP_DELETED);
+        
         MergePostProcessor pp = new MergePostProcessor();
         pp.setDelay(Integer.parseInt(paramNode.getNodeValue()));
+        
+        if (keepNode != null) {
+            pp.setKeepDeletedEntries(Boolean.valueOf(keepNode.getNodeValue()).booleanValue());
+        } else {
+            pp.setKeepDeletedEntries(false);
+        }
+        
         return pp;
     }
     

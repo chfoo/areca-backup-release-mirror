@@ -18,7 +18,7 @@ import com.myJava.util.history.History;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -61,6 +61,7 @@ public interface ArchiveMedium extends PublicClonable {
     public void compact(
             GregorianCalendar fromDate, 
             GregorianCalendar toDate, 
+            boolean keepDeletedEntries,
             Manifest manifest,
             ProcessContext context
     ) throws ApplicationException;

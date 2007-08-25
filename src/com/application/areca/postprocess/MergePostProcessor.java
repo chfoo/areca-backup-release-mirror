@@ -12,7 +12,7 @@ import com.myJava.util.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -37,6 +37,7 @@ This file is part of Areca.
 public class MergePostProcessor extends AbstractPostProcessor {
 
     private int delay = 0;
+    private boolean keepDeletedEntries = false;
 
     /**
      * @param target
@@ -48,14 +49,22 @@ public class MergePostProcessor extends AbstractPostProcessor {
     public int getDelay() {
         return delay;
     }
-    
+
+    public boolean isKeepDeletedEntries() {
+        return keepDeletedEntries;
+    }
+
+    public void setKeepDeletedEntries(boolean keepDeletedEntries) {
+        this.keepDeletedEntries = keepDeletedEntries;
+    }
+
     public void setDelay(int delay) {
         this.delay = delay;
     }
     
     public void run(ProcessContext context) throws ApplicationException {
         AbstractRecoveryTarget target = context.getReport().getTarget();
-        target.getProcess().processCompactOnTargetImpl(target, delay, new ProcessContext(target, context.getInfoChannel()));
+        target.getProcess().processCompactOnTargetImpl(target, delay, keepDeletedEntries, new ProcessContext(target, context.getInfoChannel()));
     }
     
     public boolean requiresFilteredEntriesListing() {
@@ -69,6 +78,7 @@ public class MergePostProcessor extends AbstractPostProcessor {
     public PublicClonable duplicate() {
         MergePostProcessor pro = new MergePostProcessor();
         pro.delay = this.delay;
+        pro.keepDeletedEntries = this.keepDeletedEntries;
         return pro;
     }
 
@@ -83,13 +93,16 @@ public class MergePostProcessor extends AbstractPostProcessor {
             return false;
         } else {
             MergePostProcessor other = (MergePostProcessor)obj;
-            return EqualsHelper.equals(this.delay, other.delay);
+            return 
+                EqualsHelper.equals(this.delay, other.delay)
+                && EqualsHelper.equals(this.keepDeletedEntries, other.keepDeletedEntries);
         }
     }
     
     public int hashCode() {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, this.delay);
+        h = HashHelper.hash(h, this.keepDeletedEntries);
         return h;
     }
 }

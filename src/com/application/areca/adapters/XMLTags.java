@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -106,4 +106,5 @@ public interface XMLTags {
     public static final String XML_PP_SHELL_SCRIPT = "script";
     public static final String XML_PP_SHELL_PARAMS = "parameters";    
     public static final String XML_PP_MERGE_DELAY = "delay";    
+    public static final String XML_PP_MERGE_KEEP_DELETED = "keep_deleted";    
 }

@@ -35,7 +35,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -282,6 +282,8 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                     entry = this.nextElement(context); 
                 }
                 this.commitBackup(context);
+                context.getReport().stopDataFlowTimer();
+                Logger.defaultLogger().info(Utils.formatLong(context.getReport().getWrittenInKB()) + " kb stored in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
                 Logger.defaultLogger().info("Average data output : " + Utils.formatLong(context.getReport().getDataFlowInKBPerSecond()) + " kb/second.");
             } catch (Exception e) {
                 Logger.defaultLogger().error(e);
@@ -425,18 +427,18 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     /**
      * Merges the archive which are older than "delay" days.
      */
-    public void processCompact(int delay, ProcessContext context) throws ApplicationException {
+    public void processCompact(int delay, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
         GregorianCalendar mergeDate = new GregorianCalendar();
         mergeDate.add(Calendar.DATE, -1 * delay);
         
-        processCompact(null, mergeDate, null, context);
+        processCompact(null, mergeDate, keepDeletedEntries, null, context);
     }
     
     /**
      * Lance la fusion sur la target
      */
-    public void processCompact(String date, ProcessContext context) throws ApplicationException {
-        processCompact(null, CalendarUtils.resolveDate(date, null), null, context);
+    public void processCompact(String date, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
+        processCompact(null, CalendarUtils.resolveDate(date, null), keepDeletedEntries, null, context);
     }
     
     /**
@@ -445,6 +447,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     public void processCompact(
             GregorianCalendar fromDate, 
             GregorianCalendar toDate, 
+            boolean keepDeletedEntries,
             Manifest manifest,
             ProcessContext context
     ) throws ApplicationException {
@@ -461,7 +464,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     		} catch (IOException e) {
     			throw new ApplicationException(e);
     		}        
-    		this.medium.compact(fromDate, toDate, manifest, context);
+    		this.medium.compact(fromDate, toDate, keepDeletedEntries, manifest, context);
     		this.commitCompact(context);
     	} catch (Exception e) {
     	    Logger.defaultLogger().error(e);

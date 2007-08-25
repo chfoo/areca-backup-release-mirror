@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -73,18 +73,18 @@ public class ProcessReportWriter {
         write("Unfiltered files : " + report.getUnfilteredFiles());
         write("Ignored files (not modified) : " + report.getIgnoredFiles());
         write("Saved files : " + report.getSavedFiles());
-        if (writeFilteredEntries && (! report.filteredEntriesData.isEmpty())) {
+        if (writeFilteredEntries && report.filteredEntriesData != null && (! report.filteredEntriesData.isEmpty())) {
             writeSeparator();
             write("Filtered entries :");
-	        Iterator iter = report.getFilteredEntriesData().getKeyIterator();
-	        while (iter.hasNext()) {
-	            Object key = iter.next();	            
-	            Iterator entries = report.getFilteredEntriesData().getFilteredEntries(key).iterator();
-	            while (entries.hasNext()) {
-	                RecoveryEntry entry = (RecoveryEntry)entries.next();
-	                write(entry.getName());
-	            }
-	        }
+            Iterator iter = report.getFilteredEntriesData().getKeyIterator();
+            while (iter.hasNext()) {
+                Object key = iter.next();               
+                Iterator entries = report.getFilteredEntriesData().getFilteredEntries(key).iterator();
+                while (entries.hasNext()) {
+                    RecoveryEntry entry = (RecoveryEntry)entries.next();
+                    write(entry.getName());
+                }
+            }
         }
         writeSeparator();
     }
@@ -104,11 +104,7 @@ public class ProcessReportWriter {
         write("_________________________________________________");
         write(" ");
     }
-    
-    private void writeSpace() throws IOException {
-        write(" ");
-    }
-    
+
     public void close() throws IOException {
         this.writer.close();
     }

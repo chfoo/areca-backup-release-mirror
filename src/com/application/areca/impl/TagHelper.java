@@ -16,7 +16,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -47,6 +47,10 @@ public class TagHelper {
     public static final String PARAM_USER_NAME = "%USER_NAME%";
     public static final String PARAM_DATE = "%DATE%";
     public static final String PARAM_TIME = "%TIME%";
+    
+    public static String replaceTag(String value, String oldTag, String newTag) {
+        return Utilitaire.replace(value, oldTag, newTag);
+    }
     
     public static String replaceParamValues(String param, ProcessContext context) {
         if (param == null) {

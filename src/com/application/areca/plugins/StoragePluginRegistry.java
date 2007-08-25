@@ -14,13 +14,12 @@ import com.application.areca.ApplicationException;
 import com.application.areca.Utils;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.OSTool;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*

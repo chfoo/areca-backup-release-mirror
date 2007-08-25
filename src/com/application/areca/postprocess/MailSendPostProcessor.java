@@ -35,7 +35,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -166,6 +166,7 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
         if ((! context.getReport().isCommited()) || (! this.onlyIfError)) {
             PrintStream str = null;
             ByteArrayOutputStream baos = null;
+            Logger.defaultLogger().info("Sending a mail report to : " + this.recipients + " using SMTP server : " + this.smtpServer);
             try {
                 String subject = TagHelper.replaceParamValues(this.title, context);
                 String content = getReportAsText(context.getReport());

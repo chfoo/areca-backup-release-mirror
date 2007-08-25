@@ -15,7 +15,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -57,7 +57,7 @@ public class VersionInfos {
     static {
         
         // INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-        BUILD_ID = 4438212685798161280L;
+        BUILD_ID = -3366468978279844961L;
         
         // INIT VERSION DATA
         VERSIONS.add(new VersionData("1.0", new GregorianCalendar(2005, 4, 1), "Backup engine implementation."));
@@ -92,7 +92,7 @@ public class VersionInfos {
         VERSIONS.add(new VersionData("3.2.5", new GregorianCalendar(2006, 7, 24), "Command line interface bug fix."));
         VERSIONS.add(new VersionData("3.2.6", new GregorianCalendar(2006, 7, 28), "Command line interface improvements - Backup pre-check improvements."));
         VERSIONS.add(new VersionData("3.2.7", new GregorianCalendar(2006, 7, 30), "Backup simulation bug fix."));
-        VERSIONS.add(new VersionData("3.3", new GregorianCalendar(2006, 8, 7), "Internationalization, UTF8 support and various improvements."));
+        VERSIONS.add(new VersionData("3.3", new GregorianCalendar(2006, 8, 7), "Internationalization (by Stephane Brunel), UTF8 support and various improvements."));
         VERSIONS.add(new VersionData("3.3.1", new GregorianCalendar(2006, 8, 9), "Internationalization bug fix."));
         VERSIONS.add(new VersionData("3.4", new GregorianCalendar(2006, 8, 12), "Empty directory tracking; Archive mediums refactoring; File size & date filters."));
         VERSIONS.add(new VersionData("3.5", new GregorianCalendar(2006, 9, 10), "New file filters; Major archive medium refactoring."));
@@ -118,6 +118,7 @@ public class VersionInfos {
         VERSIONS.add(new VersionData("5.2.1", new GregorianCalendar(2007, 6, 22), "Permission management bug fix; Post-processors enhancements; Locked file filter enhancements; FTP enhancements."));
         VERSIONS.add(new VersionData("5.3", new GregorianCalendar(2007, 7, 11), "Dutch and Italian translation; Zip split support; Symbolic links support."));
         VERSIONS.add(new VersionData("5.3.1", new GregorianCalendar(2007, 7, 19), "Faster file copy; Zip options enhancements; Filters enhancements; Multiple source directories support."));
+        VERSIONS.add(new VersionData("5.3.2", new GregorianCalendar(2007, 7, 24), "External decryption tool (by Ludovic Quesnelle); New archive merge option."));        
 
         Iterator iter = VERSIONS.iterator();
         while (iter.hasNext()) {

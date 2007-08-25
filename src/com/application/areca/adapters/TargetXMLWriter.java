@@ -31,7 +31,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -176,6 +176,10 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XML_PP_MERGE_DELAY);
         sb.append("=");
         sb.append(encode("" + pp.getDelay()));
+        sb.append(" ");
+        sb.append(XML_PP_MERGE_KEEP_DELETED);
+        sb.append("=");
+        sb.append(encode("" + pp.isKeepDeletedEntries()));
         sb.append("/>");        
     }
     

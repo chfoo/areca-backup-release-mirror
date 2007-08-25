@@ -2,7 +2,6 @@ package com.myJava.file;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +16,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.util.log.Logger;
 
@@ -30,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*

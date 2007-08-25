@@ -1,12 +1,10 @@
 package com.application.areca.launcher;
 
 /**
- * 
- * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -28,17 +26,17 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public interface CommandConstants {
-   
-    public static final String COMMAND_BACKUP = "backup";
-    public static final String COMMAND_RECOVER = "recover";
-    public static final String COMMAND_COMPACT = "merge";
-    public static final String COMMAND_DESCRIBE = "describe";
-    public static final String COMMAND_DELETE = "delete";       
+public interface CommandConstants {   
+    public static UserCommand COMMAND_BACKUP = new UserCommand("backup");
+    public static UserCommand COMMAND_RECOVER = new UserCommand("recover");
+    public static UserCommand COMMAND_COMPACT = new UserCommand("merge");
+    public static UserCommand COMMAND_DESCRIBE = new UserCommand("describe");
+    public static UserCommand COMMAND_DELETE = new UserCommand("delete");       
     
-    public static final String OPTION_CONFIG = "-config";
-    public static final String OPTION_DESTINATION = "-destination";
-    public static final String OPTION_TARGET = "-target";
-    public static final String OPTION_DELAY = "-delay";    
-    public static final String OPTION_DATE = "-date";    
+    public static UserOption OPTION_CONFIG = new UserOption("-config", 2);
+    public static UserOption OPTION_DESTINATION = new UserOption("-destination", 2);
+    public static UserOption OPTION_TARGET = new UserOption("-target", 2);
+    public static UserOption OPTION_DELAY = new UserOption("-delay", 2);
+    public static UserOption OPTION_DATE = new UserOption("-date", 2);    
+    public static UserOption OPTION_KEEP_DELETED_ENTRIES = new UserOption("-k", 1);    
 }

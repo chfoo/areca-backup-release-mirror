@@ -1,6 +1,7 @@
 package com.application.areca.postprocess;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import com.application.areca.ApplicationException;
@@ -20,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -91,16 +92,26 @@ public class FileDumpPostProcessor extends AbstractPostProcessor {
     public void run(ProcessContext context) throws ApplicationException {
         if ((! context.getReport().isCommited()) || (! this.onlyIfError)) {
             ProcessReportWriter writer = null;
+            File destination = new File(
+                    destinationFolder, 
+                    TagHelper.replaceParamValues(
+                            TagHelper.replaceTag(reportName, TagHelper.PARAM_ARCHIVE, TagHelper.PARAM_ARCHIVE_NAME), // The %ARCHIVE% tag cannot be used here !
+                            context
+                    )
+            );
+            Logger.defaultLogger().info("Writing backup report on : " + FileSystemManager.getAbsolutePath(destination));
+            
             try {
                 ProcessReport report = context.getReport();
                 if (! FileSystemManager.exists(destinationFolder)) {
                     FileTool tool = FileTool.getInstance();
                     tool.createDir(destinationFolder);
                 }
-                File destination = new File(destinationFolder, TagHelper.replaceParamValues(reportName, context));
-
                 writer = new ProcessReportWriter(FileSystemManager.getWriter(destination), listFiltered);
                 writer.writeReport(report);
+            } catch (FileNotFoundException e) {
+                Logger.defaultLogger().error("The report filename is incorrect : " + FileSystemManager.getAbsolutePath(destination), e);            
+                throw new IllegalArgumentException("The report filename is incorrect : " + FileSystemManager.getAbsolutePath(destination));
             } catch (IOException e) {
                 Logger.defaultLogger().error("Exception caught during report generation", e);            
                 throw new ApplicationException("Exception caught during report generation", e);

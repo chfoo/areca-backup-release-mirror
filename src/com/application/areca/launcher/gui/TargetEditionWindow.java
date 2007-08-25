@@ -8,8 +8,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.swing.text.TableView;
-
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TableViewer;
@@ -83,7 +81,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -1448,7 +1446,10 @@ extends AbstractWindow {
                         zMedium.setVolumeSize(Long.parseLong(txtMultiVolumes.getText()));
                     }
                     zMedium.setComment(this.txtZipComment.getText());
-                    zMedium.setCharset(Charset.forName(cboEncoding.getItem(cboEncoding.getSelectionIndex())));
+                    
+                    if (cboEncoding.getSelectionIndex() != -1) {
+                        zMedium.setCharset(Charset.forName(cboEncoding.getItem(cboEncoding.getSelectionIndex())));
+                    }
                 }
                 ((AbstractIncrementalFileSystemMedium)medium).setFileSystemPolicy(storagePolicy);
                 ((AbstractIncrementalFileSystemMedium)medium).setEncryptionPolicy(encrArgs);

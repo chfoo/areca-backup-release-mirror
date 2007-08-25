@@ -13,7 +13,7 @@ import com.application.areca.adapters.ProcessXMLReader;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.launcher.CommandConstants;
 import com.application.areca.launcher.InvalidCommandException;
-import com.application.areca.launcher.UserCommand;
+import com.application.areca.launcher.UserCommandLine;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.CalendarUtils;
@@ -27,7 +27,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -60,9 +60,9 @@ public class Launcher implements CommandConstants {
     public static void main(String[] args) {
         checkJavaVersion();
         ArecaTechnicalConfiguration.initialize();
-        UserCommand command = null;
+        UserCommandLine command = null;
         try {
-            command = new UserCommand(args);
+            command = new UserCommandLine(args);
             command.parse();
             
             // On logge dans le répertoire du fichier de config
@@ -92,15 +92,15 @@ public class Launcher implements CommandConstants {
             }
             ProcessContext context = new ProcessContext(target, channel);
             
-            if (command.getCommand().equalsIgnoreCase(COMMAND_COMPACT)) {
+            if (command.getCommand().equalsIgnoreCase(COMMAND_COMPACT.getName())) {
                 processCompact(command, process, context);
-            } else if (command.getCommand().equalsIgnoreCase(COMMAND_RECOVER)) {
+            } else if (command.getCommand().equalsIgnoreCase(COMMAND_RECOVER.getName())) {
                 processRecover(command, process, context);
-            } else if (command.getCommand().equalsIgnoreCase(COMMAND_BACKUP)) {
+            } else if (command.getCommand().equalsIgnoreCase(COMMAND_BACKUP.getName())) {
                 processBackup(command, process, context);
-            } else if (command.getCommand().equalsIgnoreCase(COMMAND_DESCRIBE)) {
+            } else if (command.getCommand().equalsIgnoreCase(COMMAND_DESCRIBE.getName())) {
                 processDescribe(command, process, context);
-            } else if (command.getCommand().equalsIgnoreCase(COMMAND_DELETE)) {
+            } else if (command.getCommand().equalsIgnoreCase(COMMAND_DELETE.getName())) {
                 processDelete(command, process, context);
             }
             
@@ -115,7 +115,7 @@ public class Launcher implements CommandConstants {
             channel.print("Commands : describe / backup / merge / delete / recover");
             channel.print("Options (describe): -config (your xml config file)");
             channel.print("Options (backup)  : -config (your xml config file) [-target (specific target)]");
-            channel.print("Options (merge) : -config (your xml config file) -target (specific target) [-date (recovery date : YYYY-MM-DD) / -delay (nr of days)]");
+            channel.print("Options (merge) : -config (your xml config file) -target (specific target)  [-k] [-date (recovery date : YYYY-MM-DD) / -delay (nr of days)]");
             channel.print("Options (delete) : -config (your xml config file) -target (specific target) [-date (recovery date : YYYY-MM-DD) / -delay (nr of days)]");
             channel.print("Options (recover) : -config (your xml config file) -target (specific target) -destination (destination folder) [-date (recovery date : YYYY-MM-DD)]");
             channel.print(SEPARATOR);
@@ -130,7 +130,9 @@ public class Launcher implements CommandConstants {
     private static void handleError(Throwable e) {
         channel.print(SEPARATOR);
         channel.print("An error occured during the process : " + e.getMessage());
-        channel.print("Please refer to the log file : " + ((FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class)).getCurrentLogFile());
+        if (((FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class)) != null) {
+            channel.print("Please refer to the log file : " + ((FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class)).getCurrentLogFile());
+        }
         channel.print(SEPARATOR);
         
         // On logge tout systématiquement.
@@ -143,7 +145,7 @@ public class Launcher implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processBackup(UserCommand command, final RecoveryProcess process, final ProcessContext context) throws Exception {
+    private static void processBackup(UserCommandLine command, final RecoveryProcess process, final ProcessContext context) throws Exception {
         if (command.hasOption(OPTION_TARGET)) {
             AbstractRecoveryTarget target = getTarget(process, command.getOption(OPTION_TARGET));
             process.processBackupOnTarget(
@@ -190,14 +192,21 @@ public class Launcher implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processCompact(UserCommand command, RecoveryProcess process, ProcessContext context) throws Exception {
+    private static void processCompact(UserCommandLine command, RecoveryProcess process, ProcessContext context) throws Exception {
         String strDelay = command.getOption(OPTION_DELAY);
         AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
+        
+        boolean keepDeletedEntries = (
+                command.getOption(OPTION_KEEP_DELETED_ENTRIES) != null
+                && command.getOption(OPTION_KEEP_DELETED_ENTRIES).trim().length() != 0
+        );
+        
         if (strDelay != null) {
             // A delay (in days) is provided
             process.processCompactOnTarget(
                     target,
                     Integer.parseInt(strDelay),
+                    keepDeletedEntries,
                     context
             );
         } else {
@@ -206,6 +215,7 @@ public class Launcher implements CommandConstants {
                     target,
                     null,
                     CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null),
+                    keepDeletedEntries,
                     null,
                     context
             );
@@ -218,7 +228,7 @@ public class Launcher implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processDelete(UserCommand command, RecoveryProcess process, ProcessContext context) throws Exception {
+    private static void processDelete(UserCommandLine command, RecoveryProcess process, ProcessContext context) throws Exception {
         String strDelay = command.getOption(OPTION_DELAY);
         AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         if (strDelay != null) {
@@ -244,7 +254,7 @@ public class Launcher implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processRecover(UserCommand command, RecoveryProcess process, ProcessContext context) throws Exception {
+    private static void processRecover(UserCommandLine command, RecoveryProcess process, ProcessContext context) throws Exception {
         AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         
         String destination = command.getOption(OPTION_DESTINATION);
@@ -267,7 +277,7 @@ public class Launcher implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processDescribe(UserCommand command, RecoveryProcess process, ProcessContext context) throws Exception {
+    private static void processDescribe(UserCommandLine command, RecoveryProcess process, ProcessContext context) throws Exception {
         channel.print(process.getDescription());
     }
     

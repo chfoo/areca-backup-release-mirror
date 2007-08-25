@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * @author Stephane BRUNEL
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*

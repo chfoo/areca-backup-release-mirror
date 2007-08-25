@@ -6,7 +6,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -39,6 +39,7 @@ extends FrameworkConfiguration {
     private static String KEY_CACHE_PRELOAD = "cache.preload";
     private static String KEY_XML_BACKUP = "xml.config.backup";
     private static String KEY_BACKUP_DEBUG_MODE = "backup.debug";
+    private static String KEY_REPOSITORYACCESS_DEBUG = "repository.access.debug";
     
     private static boolean DEF_SMTP_DEBUG = false;
     private static long DEF_MEMORY_BASE_KB = 20 * 1024;
@@ -47,6 +48,7 @@ extends FrameworkConfiguration {
     private static boolean DEF_CACHE_PRELOAD = false;
     private static boolean DEF_XML_BACKUP = true;
     private static boolean DEF_BACKUP_DEBUG_MODE = false;
+    private static boolean DEF_REPOSITORYACCESS_DEBUG = false;
     
     public ArecaTechnicalConfiguration() {
         super();
@@ -67,6 +69,10 @@ extends FrameworkConfiguration {
     
     public boolean isSMTPDebugMode() {
         return getProperty(KEY_SMTP_DEBUG, DEF_SMTP_DEBUG);
+    }
+    
+    public boolean isRepositoryAccessDebugMode() {
+        return getProperty(KEY_REPOSITORYACCESS_DEBUG, DEF_REPOSITORYACCESS_DEBUG);
     }
     
     public long getMemoryBaseKb() {

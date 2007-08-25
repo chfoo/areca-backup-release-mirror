@@ -4,7 +4,7 @@ package com.myJava.util.log;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -33,13 +33,13 @@ implements LogProcessor {
     }
     
     public void log(int level, String message, Throwable e, String source) {
-        
         // Log complète :
         String logCt = LogHelper.format(level, message, source);
         
         // Ecriture de la log.
-        System.out.println(logCt + " - ");
-        if (e != null) {                    
+        System.out.println(logCt);
+        if (e != null) {      
+            System.out.println("");
             e.printStackTrace();
         }
     }

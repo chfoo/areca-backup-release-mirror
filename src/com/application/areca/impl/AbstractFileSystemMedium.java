@@ -11,6 +11,7 @@ import java.util.Set;
 import com.application.areca.AbstractMedium;
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
+import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.EntryArchiveData;
 import com.application.areca.Errors;
 import com.application.areca.LogHelper;
@@ -32,6 +33,8 @@ import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemDriver;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.event.EventFileSystemDriver;
+import com.myJava.file.event.LoggerFileSystemDriverListener;
 import com.myJava.util.ToStringHelper;
 import com.myJava.util.errors.ActionError;
 import com.myJava.util.errors.ActionReport;
@@ -44,7 +47,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -70,6 +73,8 @@ public abstract class AbstractFileSystemMedium
 extends AbstractMedium 
 implements TargetActions, IndicatorTypes {
 
+    private static final boolean REPOSITORY_ACCESS_DEBUG = ((ArecaTechnicalConfiguration)ArecaTechnicalConfiguration.getInstance()).isRepositoryAccessDebugMode();
+    
 	protected static final String TMP_ARCHIVE_SUFFIX = ".not_commited";
 
     /**
@@ -104,17 +109,24 @@ implements TargetActions, IndicatorTypes {
     public void install() throws ApplicationException {
         super.install();
         
-        FileSystemDriver baseDriver = this.fileSystemPolicy.initFileSystemDriver();
-        FileSystemDriver encryptedDriver = this.encryptionPolicy.initFileSystemDriver(fileSystemPolicy.getBaseArchivePath(), baseDriver);
-        
         File storageDir = new File(fileSystemPolicy.getBaseArchivePath()).getParentFile();
+        
+        FileSystemDriver baseDriver = this.fileSystemPolicy.initFileSystemDriver();
+        FileSystemDriver encryptedDriver = this.encryptionPolicy.initFileSystemDriver(storageDir, baseDriver);
         
         try {
             try {
+                if (REPOSITORY_ACCESS_DEBUG) {
+                    baseDriver = new EventFileSystemDriver(baseDriver, new LoggerFileSystemDriverListener());
+                }
                 FileSystemManager.getInstance().registerDriver(storageDir.getParentFile(), baseDriver);
             } catch (Exception e) {
                 // Non-fatal error but DANGEROUS : It is highly advised to store archives in subdirectories - not at the root
                 Logger.defaultLogger().warn("Error trying to register a driver at [" + storageDir + "]'s parent directory. It is probably because you tried to store archives at the root directory (/ or c:\\). It is HIGHLY advised to use subdirectories.", e, "Driver initialization");
+            }
+            
+            if (REPOSITORY_ACCESS_DEBUG) {
+                encryptedDriver = new EventFileSystemDriver(encryptedDriver, new LoggerFileSystemDriverListener());
             }
             FileSystemManager.getInstance().registerDriver(storageDir, encryptedDriver);
         } catch (DriverAlreadySetException e) {

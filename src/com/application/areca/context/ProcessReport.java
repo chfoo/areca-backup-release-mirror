@@ -12,7 +12,7 @@ import com.application.areca.AbstractRecoveryTarget;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -90,6 +90,11 @@ public class ProcessReport {
     protected long dataFlowStart = 0;
     
     /**
+     * Stop date used to compute the data flow
+     */
+    protected long dataFlowStop = 0;
+    
+    /**
      * Written bytes
      */
     protected long written = 0;
@@ -142,13 +147,24 @@ public class ProcessReport {
         dataFlowStart = System.currentTimeMillis();
     }
     
+    public void stopDataFlowTimer() {
+        dataFlowStop = System.currentTimeMillis() + 1;
+    }
+    
     public void addWritten(long w) {
         written += w;
     }
     
+    public long getDataFlowTimeInSecond() {
+        return (long)((dataFlowStop - dataFlowStart)/1000.0);
+    }
+    
+    public long getWrittenInKB() {
+        return (long)(written / 1024.0);
+    }
+    
     public long getDataFlowInKBPerSecond() {
-        long currentTime = System.currentTimeMillis() + 1;
-        return (long)(1000.0 / 1024.0 * written / (currentTime - this.dataFlowStart));
+        return (long)(1000.0 / 1024.0 * written / (dataFlowStop - dataFlowStart));
     }
     
     public int getProcessedEntries() {

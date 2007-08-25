@@ -18,7 +18,7 @@ import com.myJava.util.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -55,17 +55,15 @@ public class EncryptionPolicy implements PublicClonable {
     protected boolean isEncrypted = false;
     
     
-    public FileSystemDriver initFileSystemDriver(String basePath, FileSystemDriver predecessor) throws ApplicationException {                 
-        if (this.isEncrypted()) {
-            File storageDir = new File(basePath).getParentFile();
-            
+    public FileSystemDriver initFileSystemDriver(File basePath, FileSystemDriver predecessor) throws ApplicationException {                 
+        if (this.isEncrypted()) {         
             // Génération de la clef + paramètres
             EncryptionConfiguration params = EncryptionConfiguration.getParameters(this.getEncryptionAlgorithm());
             Key key = new SecretKeySpec(getNormalizedEncryptionKey(this.getEncryptionKey(), params), params.getAlgorithm());
             
             // Initialisation du driver
             AbstractLinkableFileSystemDriver driver = new EncryptedFileSystemDriver(
-                    storageDir,
+                    basePath,
                     params.getTransformation(),
                     params.getIV(), 
                     key

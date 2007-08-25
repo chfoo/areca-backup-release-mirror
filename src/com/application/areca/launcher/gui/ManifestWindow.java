@@ -3,6 +3,7 @@ package com.application.areca.launcher.gui;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -17,7 +18,7 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -48,6 +49,7 @@ extends AbstractWindow {
     
     protected Text txtTitle;
     protected Text txtDescription;
+    protected Button btnKeepDeletedEntries;
     
     public ManifestWindow(Manifest manifest, AbstractRecoveryTarget target, boolean mergeMode) {
         super();
@@ -71,6 +73,7 @@ extends AbstractWindow {
         ldTitle.horizontalAlignment = SWT.FILL;
         txtTitle.setLayoutData(ldTitle);
         monitorControl(txtTitle);
+        
         Label lblDescription = new Label(composite, SWT.NONE);
         lblDescription.setText(RM.getLabel("archivedetail.descriptionfield.label"));
         
@@ -80,6 +83,16 @@ extends AbstractWindow {
         ldDescription.heightHint = computeHeight(100);
         txtDescription.setLayoutData(ldDescription);
         monitorControl(txtDescription);
+        
+        if (mergeMode) {
+            new Label(composite, SWT.NONE);
+            btnKeepDeletedEntries = new Button(composite, SWT.CHECK);
+            btnKeepDeletedEntries.setSelection(false);
+            btnKeepDeletedEntries.setText(RM.getLabel("archivedetail.keepdeletedentries.label"));
+            btnKeepDeletedEntries.setToolTipText(RM.getLabel("archivedetail.keepdeletedentries.tt"));
+            btnKeepDeletedEntries.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+            monitorControl(btnKeepDeletedEntries);
+        }
         
         String saveLabel;
         if (mergeMode) {
@@ -121,7 +134,7 @@ extends AbstractWindow {
         this.manifest.setTitle(this.txtTitle.getText());        
         
         if (mergeMode) {
-            this.application.launchCompactOnTarget(this.manifest);
+            this.application.launchCompactOnTarget(btnKeepDeletedEntries.getSelection(), this.manifest);
         } else {
             this.application.launchBackupOnTarget(target, this.manifest);            
         }

@@ -63,7 +63,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -535,11 +535,16 @@ implements TargetActions {
     /**
      * Rétablit le contenu des archives dans le répertoire demandé, jusqu'à la date précisée.
      */
-    public void recover(Object destination, String[] filter, GregorianCalendar date, boolean recoverDeletedEntries, ProcessContext context) 
+    public void recover(
+            Object destination, 
+            String[] filter, 
+            GregorianCalendar date, 
+            boolean recoverDeletedEntries, 
+            ProcessContext context) 
     throws ApplicationException {      
         ArchiveTrace trace = null;
         if (recoverDeletedEntries) {
-            trace = this.buildAggregatedTrace(date);
+            trace = this.buildAggregatedTrace(null, date);
         } else {
             trace = ArchiveTraceCache.getInstance().getTrace(this, getLastArchive(date));
         }
@@ -669,6 +674,7 @@ implements TargetActions {
     public void compact(
             GregorianCalendar fromDate, 
             GregorianCalendar toDate, 
+            boolean keepDeletedFiles,
             Manifest mfToInsert,
             ProcessContext context        
     ) throws ApplicationException {
@@ -681,7 +687,10 @@ implements TargetActions {
             }
             
             if (! overwrite) { // No "compact" if "overwrite" = true
-                Logger.defaultLogger().info("Starting merge from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate));
+                Logger.defaultLogger().info(
+                        "Starting merge from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate)
+                         + ". 'keep' option set to '" + keepDeletedFiles + "'."
+                );
                 
                 // Init des archives
                 context.setCurrentArchiveFile(new File(computeArchivePath(toDate) + TMP_ARCHIVE_SUFFIX));
@@ -693,8 +702,23 @@ implements TargetActions {
                 // Restauration dans ce répertoire
                 File tmpDestination = new File(FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()) + TMP_COMPACT_LOCATION_SUFFIX);
                 context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8);
-                ArchiveTrace trace = ArchiveTraceCache.getInstance().getTrace(this, getLastArchive(toDate));
-                context.getReport().setRecoveredFiles(recover(tmpDestination, null, fromDate, toDate, false, trace, context));
+
+                ArchiveTrace trace;
+                if (keepDeletedFiles) {
+                    trace = this.buildAggregatedTrace(fromDate, toDate);
+                } else {
+                    trace = ArchiveTraceCache.getInstance().getTrace(this, getLastArchive(toDate));
+                }
+
+                context.getReport().setRecoveredFiles(recover(
+                        tmpDestination, 
+                        null, 
+                        fromDate, 
+                        toDate, 
+                        false, 
+                        keepDeletedFiles ? null : trace, 
+                        context
+                ));
                 context.getInfoChannel().print("Recovery completed - Merged archive creation ...");     
                 context.getInfoChannel().updateCurrentTask(0, 0, FileSystemManager.getPath(context.getCurrentArchiveFile()));
                 
@@ -879,13 +903,15 @@ implements TargetActions {
                 context.getTaskMonitor().checkTaskCancellation();
                 
                 // Deuxième étape : on nettoie le répertoire cible.
-                this.applyTrace(
-                        targetFile, 
-                        trace,
-                        applyAttributes,
-                        filters,
-                        true,
-                        context);
+                if (trace != null) {
+                    this.applyTrace(
+                            targetFile, 
+                            trace,
+                            applyAttributes,
+                            filters,
+                            true,
+                            context);
+                }
             }
             
             // On retourne pour info la liste des fichiers restaurés
@@ -1008,11 +1034,16 @@ implements TargetActions {
         }
     }
     
-    private ArchiveTrace buildAggregatedTrace(GregorianCalendar dateLimit) throws ApplicationException {
+    private ArchiveTrace buildAggregatedTrace(GregorianCalendar fromDate, GregorianCalendar toDate) throws ApplicationException {
         Logger.defaultLogger().info("Building aggregated archive trace ...");
         
+        if (fromDate != null) {
+            fromDate = (GregorianCalendar)fromDate.clone();
+            fromDate.add(GregorianCalendar.MILLISECOND, -1);
+        }
+        
         ArchiveTrace content = new ArchiveTrace();
-        File[] archives = this.listArchives(null, dateLimit);
+        File[] archives = this.listArchives(fromDate, toDate);
         for (int i=0; i<archives.length; i++) {
             File archive = archives[i];
             Logger.defaultLogger().info("Merging archive trace (" + FileSystemManager.getAbsolutePath(archive) + ") ...");
@@ -1025,7 +1056,7 @@ implements TargetActions {
     }
     
     public Set getLogicalView() throws ApplicationException {
-        ArchiveTrace mergedTrace = buildAggregatedTrace(null);
+        ArchiveTrace mergedTrace = buildAggregatedTrace(null, null);
         ArchiveTrace latestTrace = ArchiveTraceCache.getInstance().getTrace(this, this.getLastArchive(null));
         
         Map latestContent = new HashMap();

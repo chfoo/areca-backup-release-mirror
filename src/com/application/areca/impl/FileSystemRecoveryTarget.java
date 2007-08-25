@@ -13,7 +13,6 @@ import java.util.Set;
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.Errors;
-import com.application.areca.LogHelper;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.TargetActions;
 import com.application.areca.context.ProcessContext;
@@ -31,7 +30,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*

@@ -27,7 +27,6 @@ import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
@@ -41,7 +40,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4438212685798161280
+ * <BR>Areca Build ID : -3366468978279844961
  */
  
  /*
@@ -138,22 +137,31 @@ extends AbstractWindow {
 
     private void initAboutContent(Composite composite) {
         Text content = configurePanel(composite, SWT.WRAP);
-        content.setText(
+        String txt =
                 VersionInfos.APP_NAME + " - " + RM.getLabel("about.appdescription.label") +
-                "\n" + RM.getLabel("about.version.label") + " " + VersionInfos.getLastVersion().getVersionId() + " - " + VersionInfos.formatVersionDate(VersionInfos.getLastVersion().getVersionDate()) + "." +
-                "\n\n" + RM.getLabel("about.copyright.label")
-        );
-
+                "\n" + RM.getLabel("about.version.label") + " " + VersionInfos.getLastVersion().getVersionId() + " - " + VersionInfos.formatVersionDate(VersionInfos.getLastVersion().getVersionDate()) +
+                "\n\n" + RM.getLabel("about.copyright.label");
+        
+        content.setText(txt);
         content.forceFocus();
     }
     
     private void initCreditsContent(Composite composite) {
         Text content = configurePanel(composite, SWT.WRAP);
-        String txtCredits = RM.getLabel("about.credits.label");
-        if (OSTool.isSystemWindows() ) {
-            txtCredits += "\n\n" + CREDITS_TXT_WIN;
-        }               
-        content.setText(txtCredits);
+        String txt =  RM.getLabel("about.translators");
+        
+        String contribs = RM.getLabel("about.contributors");
+        if (contribs != null && contribs.trim().length() != 0) {
+            txt += "\n\n" + contribs;
+        }
+        
+        txt += "\n\n" + RM.getLabel("about.credits.label");
+        
+        if (OSTool.isSystemWindows()) {
+            txt += "\n\n" + CREDITS_TXT_WIN;
+        }
+        
+        content.setText(txt);
     }
     
     private void initHistoryContent(Composite composite) {
