@@ -12,7 +12,9 @@ import java.io.OutputStreamWriter;
 
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.AbstractLinkableFileSystemDriver;
+import com.myJava.file.DefaultFileFilter;
 import com.myJava.file.DefaultFileSystemDriver;
+import com.myJava.file.FileInformations;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.util.EqualsHelper;
@@ -33,7 +35,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -166,6 +168,10 @@ extends AbstractLinkableFileSystemDriver {
 
     public long lastModified(File file) {
         return this.predecessor.lastModified(this.encodeFileName(file));
+    }
+
+    public FileInformations getInformations(File file) {
+        return this.predecessor.getInformations(this.encodeFileName(file));
     }
 
     public Attributes getAttributes(File f) throws IOException {
@@ -406,8 +412,10 @@ extends AbstractLinkableFileSystemDriver {
         if (fullName == null) {
             if (predecessor.exists(decoding)) {
                 BufferedReader reader = null;
+                InputStream in = null;
                 try {
-                    reader = new BufferedReader(new InputStreamReader(predecessor.getFileInputStream(decoding)));
+                    in = predecessor.getFileInputStream(decoding);
+                    reader = new BufferedReader(new InputStreamReader(in));
                     fullName = reader.readLine();
                     this.cache.registerFullName(predecessor.getAbsolutePath(decoding), fullName);
                 } catch (FileNotFoundException e) {
@@ -415,12 +423,14 @@ extends AbstractLinkableFileSystemDriver {
                 } catch (IOException e) {
                     throw new IllegalArgumentException("IOException : " + e.getClass().getName() + " : " + e.getMessage());
                 } finally {
-                    if (reader != null) {
-                        try {
+                    try {
+                        if (reader != null) {
                             reader.close();
-                        } catch (IOException e1) {
-                            throw new IllegalArgumentException("IOException : " + e1.getMessage());
+                        } else if (in != null) {
+                            in.close();
                         }
+                    } catch (IOException e1) {
+                        throw new IllegalArgumentException("IOException : " + e1.getMessage());
                     }
                 }
             }
@@ -442,8 +452,10 @@ extends AbstractLinkableFileSystemDriver {
         String fullName = this.cache.getFullName(predecessor.getAbsolutePath(decoding));
         if (fullName == null) {
             BufferedReader reader = null;
+            InputStream in = null;
             try {
-                reader = new BufferedReader(new InputStreamReader(predecessor.getFileInputStream(decoding)));
+                in = predecessor.getFileInputStream(decoding);
+                reader = new BufferedReader(new InputStreamReader(in));
                 fullName = reader.readLine();
                 this.cache.registerFullName(predecessor.getAbsolutePath(decoding), fullName);
                 return fullName;
@@ -454,13 +466,15 @@ extends AbstractLinkableFileSystemDriver {
                 Logger.defaultLogger().error(e);
                 throw new IllegalArgumentException("IOException : " + e.getMessage());
             } finally {
-                if (reader != null) {
-                    try {
+                try {
+                    if (reader != null) {
                         reader.close();
-                    } catch (IOException e) {
-                        Logger.defaultLogger().error(e);
-                        throw new IllegalArgumentException("IOException : " + e.getMessage());
+                    } else if (in != null) {
+                        in.close();
                     }
+                } catch (IOException e) {
+                    Logger.defaultLogger().error(e);
+                    throw new IllegalArgumentException("IOException : " + e.getMessage());
                 }
             }
         }
@@ -556,6 +570,33 @@ extends AbstractLinkableFileSystemDriver {
                 return filter.accept(targetDirectory, targetName);
             }
         }
+        
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            } else if (! (obj instanceof FilenameFilterAdapter)) {
+                return false;
+            } else {
+                FilenameFilterAdapter other = (FilenameFilterAdapter)obj;
+                return 
+                    EqualsHelper.equals(this.filter, other.filter)
+                    && EqualsHelper.equals(this.driver, other.driver);
+            }
+        }
+
+        public int hashCode() {
+            int h = HashHelper.initHash(this);
+            h = HashHelper.hash(h, filter);
+            h = HashHelper.hash(h, driver);
+            return h;
+        }
+
+        public String toString() {
+            StringBuffer sb = ToStringHelper.init(this);
+            ToStringHelper.append("Filter", this.filter, sb);
+            ToStringHelper.append("Driver", this.driver, sb);
+            return ToStringHelper.close(sb);
+        }
     }
 
     protected static class FileFilterAdapter implements FileFilter {
@@ -589,17 +630,34 @@ extends AbstractLinkableFileSystemDriver {
                 }
             }
         }
-    }
+        
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            } else if (! (obj instanceof FileFilterAdapter)) {
+                return false;
+            } else {
+                FileFilterAdapter other = (FileFilterAdapter)obj;
+                return 
+                    EqualsHelper.equals(this.filter, other.filter)
+                    && EqualsHelper.equals(this.driver, other.driver);
+            }
+        }
 
-    public static void main(String[] args) {
-        HashFileSystemDriver d = new HashFileSystemDriver(new File("/home/olivier"));
-        d.setPredecessor(new DefaultFileSystemDriver());
-        File f = new File("/home/olivier/toooooo4oooooooooffffffffffffffffffffffffddddddddddddddddddddddddvvvvvvvvvvvvvvcccccccccccccccoooooooooooooooooooooooooooooooooooooooooooootttttttttttttttttttttttttttrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrgggggggggggggggggggggggggggggggggggggggggggto/titi/tutu");
-        System.out.println(f.getAbsolutePath().length());
-        File enc = d.encodeFileName(f);
-        System.out.println(enc);
-    }
+        public int hashCode() {
+            int h = HashHelper.initHash(this);
+            h = HashHelper.hash(h, filter);
+            h = HashHelper.hash(h, driver);
+            return h;
+        }
 
+        public String toString() {
+            StringBuffer sb = ToStringHelper.init(this);
+            ToStringHelper.append("Filter", this.filter, sb);
+            ToStringHelper.append("Driver", this.driver, sb);
+            return ToStringHelper.close(sb);
+        }
+    }
 
     public String toString() {
         StringBuffer sb = ToStringHelper.init(this);

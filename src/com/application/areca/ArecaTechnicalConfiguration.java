@@ -6,7 +6,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -29,7 +29,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ArecaTechnicalConfiguration 
-extends FrameworkConfiguration {
+extends FrameworkConfiguration {   
     private static String URI = "fwk.properties";
     
     private static String KEY_SMTP_DEBUG = "smtp.debug";
@@ -40,6 +40,10 @@ extends FrameworkConfiguration {
     private static String KEY_XML_BACKUP = "xml.config.backup";
     private static String KEY_BACKUP_DEBUG_MODE = "backup.debug";
     private static String KEY_REPOSITORYACCESS_DEBUG = "repository.access.debug";
+    private static String KEY_REPOSITORYACCESS_HD_CACHE = "repository.access.hd.cache";
+    private static String KEY_REPOSITORYACCESS_FTP_CACHE = "repository.access.ftp.cache";
+    private static String KEY_REPOSITORYACCESS_HD_CACHE_DEPTH = "repository.access.hd.cache.depth";
+    private static String KEY_REPOSITORYACCESS_FTP_CACHE_DEPTH = "repository.access.ftp.cache.depth";
     
     private static boolean DEF_SMTP_DEBUG = false;
     private static long DEF_MEMORY_BASE_KB = 20 * 1024;
@@ -49,6 +53,10 @@ extends FrameworkConfiguration {
     private static boolean DEF_XML_BACKUP = true;
     private static boolean DEF_BACKUP_DEBUG_MODE = false;
     private static boolean DEF_REPOSITORYACCESS_DEBUG = false;
+    private static boolean DEF_REPOSITORYACCESS_HD_CACHE = false; // Not stable yet
+    private static boolean DEF_REPOSITORYACCESS_FTP_CACHE = false; // Not stable yet
+    private static int DEF_REPOSITORYACCESS_HD_CACHE_DEPTH = 2;
+    private static int DEF_REPOSITORYACCESS_FTP_CACHE_DEPTH = 2;
     
     public ArecaTechnicalConfiguration() {
         super();
@@ -73,6 +81,22 @@ extends FrameworkConfiguration {
     
     public boolean isRepositoryAccessDebugMode() {
         return getProperty(KEY_REPOSITORYACCESS_DEBUG, DEF_REPOSITORYACCESS_DEBUG);
+    }
+    
+    public boolean isRepositoryHDCache() {
+        return getProperty(KEY_REPOSITORYACCESS_HD_CACHE, DEF_REPOSITORYACCESS_HD_CACHE);
+    }
+    
+    public boolean isRepositoryFTPCache() {
+        return getProperty(KEY_REPOSITORYACCESS_FTP_CACHE, DEF_REPOSITORYACCESS_FTP_CACHE);
+    }
+    
+    public int getRepositoryHDCacheDepth() {
+        return getProperty(KEY_REPOSITORYACCESS_HD_CACHE_DEPTH, DEF_REPOSITORYACCESS_HD_CACHE_DEPTH);
+    }
+    
+    public int getRepositoryFTPCacheDepth() {
+        return getProperty(KEY_REPOSITORYACCESS_FTP_CACHE_DEPTH, DEF_REPOSITORYACCESS_FTP_CACHE_DEPTH);
     }
     
     public long getMemoryBaseKb() {

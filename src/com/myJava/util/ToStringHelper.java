@@ -1,11 +1,15 @@
 package com.myJava.util;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
 /**
  * Helper for "toString" methods
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -48,6 +52,47 @@ public class ToStringHelper {
     public static void append(String name, String s, StringBuffer sb) {
         preAppend(name, sb);
         normalize(s, sb);
+        postAppend(sb);
+    }
+    
+    public static void append(String name, Set s, StringBuffer sb) {
+        if (s == null) {
+            appendNull(name, sb);
+        } else {
+            append(name, s.iterator(), sb);
+        }
+    }
+    
+    public static void append(String name, List l, StringBuffer sb) {
+        if (l == null) {
+            appendNull(name, sb);
+        } else {
+            append(name, l.iterator(), sb);
+        }
+    }
+    
+    private static void appendNull(String name, StringBuffer sb) {
+        preAppend(name, sb);
+        normalize(null, sb);
+        postAppend(sb);
+    }
+    
+    private static void append(String name, Iterator iter, StringBuffer sb) {
+        preAppend(name, sb);
+        if (iter == null) {
+            normalize(iter, sb);
+        } else {
+            sb.append("{");
+            boolean first = true;
+            while (iter.hasNext()) {
+                if (! first) {
+                    sb.append(", ");
+                }
+                first = false;
+                normalize(iter.next(), sb);   
+            }
+            sb.append("}");
+        }
         postAppend(sb);
     }
     

@@ -6,13 +6,17 @@ import java.util.Set;
 
 import javax.swing.filechooser.FileFilter;
 
+import com.myJava.util.EqualsHelper;
+import com.myJava.util.HashHelper;
+import com.myJava.util.ToStringHelper;
+
 /**
  * FileFilter par défaut : filtre les fichiers par extension.
  * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -77,5 +81,29 @@ public class DefaultFileFilter extends FileFilter {
             };
         }
         return null;
+    }
+
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (! (obj instanceof DefaultFileFilter)) {
+            return false;
+        } else {
+            DefaultFileFilter other = (DefaultFileFilter)obj;
+            return EqualsHelper.equals(this.filters, other.filters);
+        }
+    }
+
+    public int hashCode() {
+        int h = HashHelper.initHash(this);
+        h = HashHelper.hash(h, filters);
+        return h;
+    }
+
+    public String toString() {
+        StringBuffer sb = ToStringHelper.init(this);
+        ToStringHelper.append("Description", this.description, sb);
+        ToStringHelper.append("Filters", this.filters, sb);
+        return ToStringHelper.close(sb);
     }
 }

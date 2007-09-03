@@ -11,13 +11,14 @@ import java.util.zip.GZIPOutputStream;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.util.EqualsHelper;
 import com.myJava.util.HashHelper;
+import com.myJava.util.ToStringHelper;
 
 /**
  * Driver "chainable" apportant des fonctionnalités de compression.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -74,7 +75,11 @@ extends AbstractLinkableFileSystemDriver {
     public File getAbsoluteFile(File file) {
         return this.predecessor.getAbsoluteFile(file);
     }
-    
+
+    public FileInformations getInformations(File file) {
+        return this.predecessor.getInformations(file);
+    }
+
     public String getAbsolutePath(File file) {
         return this.predecessor.getAbsolutePath(file);
     }
@@ -221,6 +226,12 @@ extends AbstractLinkableFileSystemDriver {
         } else {
             return false;
         }
+    }
+    
+    public String toString() {
+        StringBuffer sb = ToStringHelper.init(this);
+        ToStringHelper.append("Predecessor", this.predecessor, sb);
+        return ToStringHelper.close(sb);
     }
 
     public boolean directFileAccessSupported() {

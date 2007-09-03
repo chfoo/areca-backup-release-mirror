@@ -2,14 +2,13 @@ package com.myJava.file.event;
 
 import java.io.File;
 
-import com.myJava.file.FileSystemDriver;
 import com.myJava.util.ToStringHelper;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -38,13 +37,13 @@ public class FileSystemDriverEvent {
     private Object[] arguments;
     private long start = System.currentTimeMillis();
     private long end = 0;
-    private FileSystemDriver predecessor;
+    private EventFileSystemDriver driver;
 
-    public FileSystemDriverEvent(String method, File file, FileSystemDriver predecessor) {
+    public FileSystemDriverEvent(String method, File file, EventFileSystemDriver driver) {
         super();
         this.method = method;
         this.file = file;
-        this.predecessor = predecessor;
+        this.driver = driver;
     }
 
     public Object[] getArguments() {
@@ -84,8 +83,9 @@ public class FileSystemDriverEvent {
     
     public String toString() {
         StringBuffer sb = ToStringHelper.init(this);
+        ToStringHelper.append("Driver ID", this.driver.getIdentifier(), sb);
         ToStringHelper.append("Method", method, sb);
-        ToStringHelper.append("File", predecessor.getAbsolutePath(file), sb);
+        ToStringHelper.append("File", driver.getPredecessor().getAbsolutePath(file), sb);
         if (this.arguments != null) {
             for (int i=0; i<arguments.length; i++) {
                 ToStringHelper.append("Argument" + i, arguments[i], sb);

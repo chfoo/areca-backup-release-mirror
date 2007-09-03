@@ -8,7 +8,7 @@ import java.io.InputStream;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -43,9 +43,9 @@ extends InputStream {
         this.file = file;
         this.driver = driver;
     }
-
+    
     public int available() throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("available", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("available", file);
         driver.throwStartEvent(event);
         int ret = in.available();
         driver.throwStopEvent(event);
@@ -53,21 +53,21 @@ extends InputStream {
     }
     
     public void close() throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("close", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("close", file);
         driver.throwStartEvent(event);
         in.close();
         driver.throwStopEvent(event);
     }
     
     public void mark(int readlimit) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("mark", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("mark", file);
         driver.throwStartEvent(event);
         in.mark(readlimit);
         driver.throwStopEvent(event);
     }
     
     public boolean markSupported() {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("markSupported", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("markSupported", file);
         driver.throwStartEvent(event);
         boolean ret = in.markSupported();
         driver.throwStopEvent(event);
@@ -75,7 +75,7 @@ extends InputStream {
     }
     
     public int read() throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("read", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("read", file);
         driver.throwStartEvent(event);
         int ret = in.read();
         driver.throwStopEvent(event);
@@ -83,7 +83,7 @@ extends InputStream {
     }
     
     public int read(byte[] b, int off, int len) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("read", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("read", file);
         event.setArgument(new Integer(len));
         driver.throwStartEvent(event);
         int ret =  in.read(b, off, len);
@@ -92,7 +92,7 @@ extends InputStream {
     }
     
     public int read(byte[] b) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("read", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("read", file);
         event.setArgument(new Integer(b.length));
         driver.throwStartEvent(event);
         int ret = in.read(b);
@@ -101,14 +101,14 @@ extends InputStream {
     }
     
     public void reset() throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("reset", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("reset", file);
         driver.throwStartEvent(event);
         in.reset();
         driver.throwStopEvent(event);
     }
     
     public long skip(long n) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("skip", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("skip", file);
         event.setArgument(new Long(n));
         driver.throwStartEvent(event);
         long ret = in.skip(n);

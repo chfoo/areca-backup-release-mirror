@@ -19,7 +19,7 @@ import com.myJava.file.attributes.Attributes;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -151,4 +151,9 @@ public interface FileSystemDriver {
      * <BR>In other words, if the driver has a chance to fail during initialization if files pre-exist on its storage location
      */
     public boolean isContentSensitive();
+    
+    /**
+     * Returns a global set of file informations (length, lastmodified, ...)
+     */
+    public FileInformations getInformations(File file);
 }

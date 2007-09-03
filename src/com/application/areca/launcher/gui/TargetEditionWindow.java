@@ -81,7 +81,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -1001,7 +1001,7 @@ extends AbstractWindow {
             rdFile.setSelection(true);
             chkIncremental.setSelection(true);
             chkTrackDirectories.setSelection(true);
-            chkTrackPermissions.setSelection(true);
+            //chkTrackPermissions.setSelection(true);
             selectEncoding(ZipConstants.DEFAULT_CHARSET);
             if (OSTool.isSystemWindows()) {
                 this.chkFollowLinks.setSelection(true);

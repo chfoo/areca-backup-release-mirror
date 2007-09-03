@@ -18,7 +18,7 @@ import com.myJava.util.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -131,8 +131,10 @@ public class EncryptionPolicy implements PublicClonable {
     public String toString() {
         StringBuffer sb = ToStringHelper.init(this);
         ToStringHelper.append("IsEncrypted", this.isEncrypted, sb);
-        ToStringHelper.append("Algorithm", this.encryptionAlgorithm, sb);
-        ToStringHelper.append("Key", this.encryptionKey, sb);
+        if (isEncrypted) {
+            ToStringHelper.append("Algorithm", this.encryptionAlgorithm, sb);
+            ToStringHelper.append("Key", this.encryptionKey, sb);
+        }
         return ToStringHelper.close(sb);
     }
 }

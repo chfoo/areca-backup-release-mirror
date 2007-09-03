@@ -9,16 +9,22 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import com.myJava.encryption.EncryptionUtil;
 import com.myJava.file.AbstractLinkableFileSystemDriver;
+import com.myJava.file.EncryptedFileSystemDriver;
+import com.myJava.file.FileInformations;
 import com.myJava.file.FileSystemDriver;
 import com.myJava.file.LinkableFileSystemDriver;
 import com.myJava.file.attributes.Attributes;
+import com.myJava.util.EqualsHelper;
+import com.myJava.util.HashHelper;
+import com.myJava.util.ToStringHelper;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -45,15 +51,21 @@ extends AbstractLinkableFileSystemDriver
 implements LinkableFileSystemDriver {
 
     private ArrayList listeners = new ArrayList();
+    private String identifier;
     
-    public EventFileSystemDriver(FileSystemDriver predecessor) {
+    public EventFileSystemDriver(FileSystemDriver predecessor, String identifier) {
         super();
+        this.identifier = identifier;
         this.setPredecessor(predecessor);
     }
     
-    public EventFileSystemDriver(FileSystemDriver predecessor, FileSystemDriverListener listener) {
-        this(predecessor);
+    public EventFileSystemDriver(FileSystemDriver predecessor, String identifier, FileSystemDriverListener listener) {
+        this(predecessor, identifier);
         addListener(listener);
+    }
+
+    public String getIdentifier() {
+        return identifier;
     }
 
     public void addListener(FileSystemDriverListener listener) {
@@ -83,9 +95,13 @@ implements LinkableFileSystemDriver {
             }
         }
     }
+    
+    protected FileSystemDriverEvent buildEvent(String event, File f) {
+        return new FileSystemDriverEvent(event, f, this);
+    }
 
     public void applyAttributes(Attributes p, File f) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("applyAttributes", f, predecessor);
+        FileSystemDriverEvent event = buildEvent("applyAttributes", f);
         event.setArgument(p);
         throwStartEvent(event);
         predecessor.applyAttributes(p, f);
@@ -93,7 +109,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean canRead(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("canRead", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("canRead", file);
         throwStartEvent(event);
         boolean res = predecessor.canRead(file);
         throwStopEvent(event);
@@ -101,15 +117,23 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean canWrite(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("canWrite", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("canWrite", file);
         throwStartEvent(event);
         boolean res =  predecessor.canWrite(file);
         throwStopEvent(event);
         return res;
     }
 
+    public FileInformations getInformations(File file) {
+        FileSystemDriverEvent event = buildEvent("getInformations", file);
+        throwStartEvent(event);
+        FileInformations res =  predecessor.getInformations(file);
+        throwStopEvent(event);
+        return res;
+    }
+
     public boolean createNewFile(File file) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("createNewFile", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("createNewFile", file);
         throwStartEvent(event);
         boolean res =  predecessor.createNewFile(file);
         throwStopEvent(event);
@@ -117,7 +141,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("createSymbolicLink", symlink, predecessor);
+        FileSystemDriverEvent event = buildEvent("createSymbolicLink", symlink);
         event.setArgument(realPath);
         throwStartEvent(event);
         boolean res =  predecessor.createSymbolicLink(symlink, realPath);
@@ -126,7 +150,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean delete(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("delete", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("delete", file);
         throwStartEvent(event);
         boolean res =  predecessor.delete(file);
         throwStopEvent(event);
@@ -134,7 +158,7 @@ implements LinkableFileSystemDriver {
     }
 
     public void deleteOnExit(File f) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("deleteOnExit", f, predecessor);
+        FileSystemDriverEvent event = buildEvent("deleteOnExit", f);
         throwStartEvent(event);
         predecessor.deleteOnExit(f);
         throwStopEvent(event);
@@ -145,7 +169,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean exists(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("exists", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("exists", file);
         throwStartEvent(event);
         boolean res =  predecessor.exists(file);
         throwStopEvent(event);
@@ -157,7 +181,7 @@ implements LinkableFileSystemDriver {
     }
 
     public File getAbsoluteFile(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getAbsoluteFile", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("getAbsoluteFile", file);
         throwStartEvent(event);
         File res = predecessor.getAbsoluteFile(file);
         throwStopEvent(event);
@@ -165,7 +189,7 @@ implements LinkableFileSystemDriver {
     }
 
     public String getAbsolutePath(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getAbsolutePath", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("getAbsolutePath", file);
         throwStartEvent(event);
         String res = predecessor.getAbsolutePath(file);
         throwStopEvent(event);
@@ -177,7 +201,7 @@ implements LinkableFileSystemDriver {
     }
 
     public Attributes getAttributes(File f) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getAttributes", f, predecessor);
+        FileSystemDriverEvent event = buildEvent("getAttributes", f);
         throwStartEvent(event);
         Attributes res = predecessor.getAttributes(f);
         throwStopEvent(event);
@@ -185,7 +209,7 @@ implements LinkableFileSystemDriver {
     }
 
     public OutputStream getCachedFileOutputStream(File file) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getCachedFileOutputStream", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("getCachedFileOutputStream", file);
         throwStartEvent(event);
         OutputStream res = new EventOutputStream(
                 predecessor.getCachedFileOutputStream(file),
@@ -197,7 +221,7 @@ implements LinkableFileSystemDriver {
     }
 
     public File getCanonicalFile(File file) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getCanonicalFile", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("getCanonicalFile", file);
         throwStartEvent(event);
         File res = predecessor.getCanonicalFile(file);
         throwStopEvent(event);
@@ -205,7 +229,7 @@ implements LinkableFileSystemDriver {
     }
 
     public String getCanonicalPath(File file) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getCanonicalPath", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("getCanonicalPath", file);
         throwStartEvent(event);
         String res = predecessor.getCanonicalPath(file);
         throwStopEvent(event);
@@ -213,7 +237,7 @@ implements LinkableFileSystemDriver {
     }
 
     public InputStream getFileInputStream(File file) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getFileInputStream", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("getFileInputStream", file);
         throwStartEvent(event);
         InputStream res = new EventInputStream(
                 predecessor.getFileInputStream(file),
@@ -225,7 +249,7 @@ implements LinkableFileSystemDriver {
     }
 
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getFileOutputStream", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("getFileOutputStream", file);
         event.setArgument(new Boolean(append));
         throwStartEvent(event);
         OutputStream res = new EventOutputStream(
@@ -238,7 +262,7 @@ implements LinkableFileSystemDriver {
     }
 
     public OutputStream getFileOutputStream(File file) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getFileOutputStream", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("getFileOutputStream", file);
         throwStartEvent(event);
         OutputStream res = new EventOutputStream(
                 predecessor.getFileOutputStream(file),
@@ -250,7 +274,7 @@ implements LinkableFileSystemDriver {
     }
 
     public String getName(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getName", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("getName", file);
         throwStartEvent(event);
         String res = predecessor.getName(file);
         throwStopEvent(event);
@@ -258,7 +282,7 @@ implements LinkableFileSystemDriver {
     }
 
     public String getParent(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getParent", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("getParent", file);
         throwStartEvent(event);
         String res = predecessor.getParent(file);
         throwStopEvent(event);
@@ -266,7 +290,7 @@ implements LinkableFileSystemDriver {
     }
 
     public File getParentFile(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getParentFile", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("getParentFile", file);
         throwStartEvent(event);
         File res = predecessor.getParentFile(file);
         throwStopEvent(event);
@@ -274,7 +298,7 @@ implements LinkableFileSystemDriver {
     }
 
     public String getPath(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("getPath", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("getPath", file);
         throwStartEvent(event);
         String res = predecessor.getPath(file);
         throwStopEvent(event);
@@ -282,7 +306,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean isAbsolute(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("isAbsolute", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("isAbsolute", file);
         throwStartEvent(event);
         boolean res = predecessor.isAbsolute(file);
         throwStopEvent(event);
@@ -294,7 +318,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean isDirectory(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("isDirectory", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("isDirectory", file);
         throwStartEvent(event);
         boolean res = predecessor.isDirectory(file);
         throwStopEvent(event);
@@ -302,7 +326,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean isFile(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("isFile", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("isFile", file);
         throwStartEvent(event);
         boolean res = predecessor.isFile(file);
         throwStopEvent(event);
@@ -310,7 +334,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean isHidden(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("isHidden", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("isHidden", file);
         throwStartEvent(event);
         boolean res = predecessor.isHidden(file);
         throwStopEvent(event);
@@ -318,7 +342,7 @@ implements LinkableFileSystemDriver {
     }
 
     public long lastModified(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("lastModified", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("lastModified", file);
         throwStartEvent(event);
         long res = predecessor.lastModified(file);
         throwStopEvent(event);
@@ -326,7 +350,7 @@ implements LinkableFileSystemDriver {
     }
 
     public long length(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("length", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("length", file);
         throwStartEvent(event);
         long res = predecessor.length(file);
         throwStopEvent(event);
@@ -334,7 +358,7 @@ implements LinkableFileSystemDriver {
     }
 
     public String[] list(File file, FilenameFilter filter) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("list", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("list", file);
         event.setArgument(filter);
         throwStartEvent(event);
         String[] res = predecessor.list(file, filter);
@@ -343,7 +367,7 @@ implements LinkableFileSystemDriver {
     }
 
     public String[] list(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("list", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("list", file);
         throwStartEvent(event);
         String[] res = predecessor.list(file);
         throwStopEvent(event);
@@ -351,7 +375,7 @@ implements LinkableFileSystemDriver {
     }
 
     public File[] listFiles(File file, FileFilter filter) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("listFiles", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("listFiles", file);
         event.setArgument(filter);
         throwStartEvent(event);
         File[] res = predecessor.listFiles(file, filter);
@@ -360,7 +384,7 @@ implements LinkableFileSystemDriver {
     }
 
     public File[] listFiles(File file, FilenameFilter filter) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("listFiles", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("listFiles", file);
         event.setArgument(filter);
         throwStartEvent(event);
         File[] res = predecessor.listFiles(file, filter);
@@ -369,7 +393,7 @@ implements LinkableFileSystemDriver {
     }
 
     public File[] listFiles(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("listFiles", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("listFiles", file);
         throwStartEvent(event);
         File[] res = predecessor.listFiles(file);
         throwStopEvent(event);
@@ -377,7 +401,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean mkdir(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("mkdir", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("mkdir", file);
         throwStartEvent(event);
         boolean res = predecessor.mkdir(file);
         throwStopEvent(event);
@@ -385,7 +409,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean mkdirs(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("mkdirs", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("mkdirs", file);
         throwStartEvent(event);
         boolean res = predecessor.mkdirs(file);
         throwStopEvent(event);
@@ -393,7 +417,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean renameTo(File source, File dest) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("renameTo", source, predecessor);
+        FileSystemDriverEvent event = buildEvent("renameTo", source);
         event.setArgument(dest);
         throwStartEvent(event);
         boolean res = predecessor.renameTo(source, dest);
@@ -402,7 +426,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean setLastModified(File file, long time) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("setLastModified", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("setLastModified", file);
         event.setArgument(new Long(time));
         throwStartEvent(event);
         boolean res = predecessor.setLastModified(file, time);
@@ -411,7 +435,7 @@ implements LinkableFileSystemDriver {
     }
 
     public boolean setReadOnly(File file) {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("setReadOnly", file, predecessor);
+        FileSystemDriverEvent event = buildEvent("setReadOnly", file);
         throwStartEvent(event);
         boolean res = predecessor.setReadOnly(file);
         throwStopEvent(event);
@@ -424,5 +448,34 @@ implements LinkableFileSystemDriver {
 
     public void unmount() throws IOException {
         predecessor.unmount();
+    }
+    
+    public int hashCode() {
+        int h = HashHelper.initHash(this);
+        h = HashHelper.hash(h, this.identifier);
+        h = HashHelper.hash(h, this.predecessor);
+        return h;
+    }
+    
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o instanceof EventFileSystemDriver) {
+            EventFileSystemDriver other = (EventFileSystemDriver)o;
+            
+            return (
+                    EqualsHelper.equals(other.identifier, this.identifier) 
+                    && EqualsHelper.equals(other.predecessor, this.predecessor) 
+            );
+        } else {
+            return false;
+        }
+    }
+    
+    public String toString() {
+        StringBuffer sb = ToStringHelper.init(this);
+        ToStringHelper.append("Identifier", this.identifier, sb);
+        ToStringHelper.append("Predecessor", this.predecessor, sb);
+        return ToStringHelper.close(sb);
     }
 }

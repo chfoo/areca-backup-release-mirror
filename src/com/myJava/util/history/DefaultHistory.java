@@ -3,6 +3,7 @@ package com.myJava.util.history;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -27,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -155,8 +156,10 @@ public class DefaultHistory implements History {
         this.content = new HashMap();
         if (this.file != null && FileSystemManager.exists(this.file)) {
             BufferedReader reader = null;
+            InputStream in = null;
             try {
-                reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(FileSystemManager.getFileInputStream(file))));
+                in = FileSystemManager.getFileInputStream(file);
+                reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(in)));
                 String strDate;
                 String strContent;
                 int type;
@@ -198,6 +201,8 @@ public class DefaultHistory implements History {
             } finally {
                 if (reader != null) {
                     reader.close();
+                } else if (in != null) {
+                    in.close();
                 }
             }
         }

@@ -8,6 +8,8 @@ import com.application.areca.ApplicationException;
 import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.metadata.manifest.Manifest;
+import com.myJava.util.EqualsHelper;
+import com.myJava.util.HashHelper;
 import com.myJava.util.log.Logger;
 
 /**
@@ -19,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -80,5 +82,27 @@ public class ArchiveNameFilter implements FilenameFilter {
             Logger.defaultLogger().error(e);
             return false;
         }
+    }
+
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (! (obj instanceof ArchiveNameFilter)) {
+            return false;
+        } else {
+            ArchiveNameFilter other = (ArchiveNameFilter)obj;
+            return
+                EqualsHelper.equals(other.fromDate, this.fromDate)
+                && EqualsHelper.equals(other.toDate, this.toDate)
+                && EqualsHelper.equals(other.medium, this.medium);
+        }
+    }
+
+    public int hashCode() {
+        int h = HashHelper.initHash(this);
+        h = HashHelper.hash(h, this.fromDate);
+        h = HashHelper.hash(h, this.toDate);
+        h = HashHelper.hash(h, this.medium);
+        return h;
     }
 }

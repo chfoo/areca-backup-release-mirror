@@ -4,9 +4,11 @@ import java.io.File;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
+import com.application.areca.ArecaTechnicalConfiguration;
 import com.myJava.file.DefaultFileSystemDriver;
 import com.myJava.file.FileSystemDriver;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.cache.CachedFileSystemDriver;
 import com.myJava.util.PublicClonable;
 import com.myJava.util.ToStringHelper;
 import com.myJava.util.log.Logger;
@@ -15,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -40,6 +42,8 @@ This file is part of Areca.
 public class DefaultFileSystemPolicy 
 extends AbstractFileSystemPolicy
 implements FileSystemPolicy {
+    private static final boolean CACHE = ArecaTechnicalConfiguration.get().isRepositoryHDCache();
+    private static final int CACHE_DEPTH = ArecaTechnicalConfiguration.get().getRepositoryHDCacheDepth();
     
     public static final String STORAGE_DIRECTORY_PREFIX = "storage_";
     public static final String DEFAULT_ARCHIVE_NAME = "bck";
@@ -54,7 +58,13 @@ implements FileSystemPolicy {
     }
 
     public FileSystemDriver initFileSystemDriver() throws ApplicationException {
-        return new DefaultFileSystemDriver();
+        FileSystemDriver base = new DefaultFileSystemDriver();
+        if (CACHE) {
+            File storageDir = FileSystemManager.getParentFile(new File(getBaseArchivePath()));
+            return new CachedFileSystemDriver(base, FileSystemManager.getParentFile(storageDir), CACHE_DEPTH);
+        } else {
+            return base;
+        }
     }
     
     public String getBaseArchivePath() {

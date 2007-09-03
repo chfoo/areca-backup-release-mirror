@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -340,7 +340,11 @@ public class FileTool {
             reader = new BufferedReader(new InputStreamReader(stream, encoding));
             line = reader.readLine();
         } finally {
-            reader.close();
+            if (reader != null) {
+                reader.close();
+            } else if (stream != null) {
+                stream.close();
+            }
         }
         return line;
     }

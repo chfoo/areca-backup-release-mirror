@@ -1,12 +1,15 @@
 package com.myJava.file.event;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -30,10 +33,31 @@ This file is part of Areca.
  */
 public class LoggerFileSystemDriverListener implements FileSystemDriverListener {
 
+    private Set filteredMethods = new HashSet();
+    
+    public LoggerFileSystemDriverListener() {
+        filteredMethods.add("getAbsolutePath");
+        filteredMethods.add("getAbsoluteFile");
+        filteredMethods.add("getPath");
+        filteredMethods.add("getParent");
+        filteredMethods.add("getParentFile");
+        filteredMethods.add("getName");
+    }
+
     public void methodStarted(FileSystemDriverEvent event) {
     }
 
+    public Set getFilteredMethods() {
+        return filteredMethods;
+    }
+
+    public void setFilteredMethods(Set filteredMethods) {
+        this.filteredMethods = filteredMethods;
+    }
+
     public void methodEnded(FileSystemDriverEvent event) {
-        Logger.defaultLogger().info("Method event received : " + event.toString());
+        if (! filteredMethods.contains(event.getMethod())) {
+            Logger.defaultLogger().info("Method event received : " + event.toString());
+        }
     }
 }

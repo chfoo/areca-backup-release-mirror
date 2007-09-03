@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -54,6 +54,7 @@ public class FrameworkConfiguration {
     private static String KEY_LOG_LEVEL = "log.level";
     private static String KEY_FS_USE_BUFFER = "fs.use.buffer";   
     private static String KEY_FS_BUFFER_SIZE = "fs.buffer.size";   
+    private static String KEY_FS_CACHE_DEBUG = "fs.cache.debug";    
     
     private static int DEF_FTP_MAX_PROXIES = 3;
     private static long DEF_FTP_NOOP_DELAY = 30000;    
@@ -70,6 +71,7 @@ public class FrameworkConfiguration {
     private static int DEF_LOG_LEVEL = 8;
     private static boolean DEF_FS_USE_BUFFER = true;   
     private static int DEF_FS_BUFFER_SIZE = 65536;   
+    private static boolean DEF_FS_CACHE_DEBUG = false; 
 
     private String strUrl = null;
     private Properties props = new Properties();
@@ -129,6 +131,10 @@ public class FrameworkConfiguration {
     
     public boolean isFTPCacheMode() {
         return getProperty(KEY_FTP_USE_CACHE, DEF_FTP_USE_CACHE);
+    }
+    
+    public boolean isFSCacheDebug() {
+        return getProperty(KEY_FS_CACHE_DEBUG, DEF_FS_CACHE_DEBUG);
     }
     
     public boolean isHashCacheMode() {

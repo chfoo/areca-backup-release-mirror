@@ -27,7 +27,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -238,11 +238,15 @@ public class FTPProxy {
     }
     
     private boolean changeWorkingDirectory(String inst, String dir) throws IOException {
-        if (!CACHE_ENABLED || dir == null || ! (dir.equals(workingDirectory))) {
-            this.workingDirectory = dir;
-            
-            debug(inst + " : changeWorkingDirectory", dir);
-            return client.changeWorkingDirectory(dir);
+        if ((!CACHE_ENABLED) || dir == null || (! (dir.equals(workingDirectory)))) {           
+            boolean res = client.changeWorkingDirectory(dir);
+            if (res) {
+                this.workingDirectory = dir;
+                debug(inst + " : changeWorkingDirectory - OK", dir);
+            } else {
+                debug(inst + " : changeWorkingDirectory - NOK !", dir);
+            }
+            return res;
         } else {
             debug(inst + " : working directory already set to ", dir);
             return true;
@@ -425,6 +429,7 @@ public class FTPProxy {
 	                return client.deleteFile(remoteFileOrDir);
 	            } else {                
 	                debug("delete : rmDir", remoteFileOrDir);
+                    resetWorkingDirectory();
 	                return FTPReply.isPositiveCompletion(client.rmd(remoteFileOrDir));
 	            }
             } else {
@@ -432,10 +437,13 @@ public class FTPProxy {
             }
         } catch (IOException e) {
             resetClient(e);
+            resetWorkingDirectory();
             throw new FTPConnectionException(e.getMessage());
+        } catch (RuntimeException e) {
+            resetWorkingDirectory();
+            throw e;
         } finally {
             removeCachedFileInfos(remoteFileOrDir);
-            resetWorkingDirectory();
         }
     }
     
@@ -511,7 +519,7 @@ public class FTPProxy {
             InputStream result = client.retrieveFileStream(file);
             
             if (result == null) {
-                Logger.defaultLogger().error("Error trying to get an inputstream on " + file + " : got FTP return message : " + client.getReplyString(), "FTPProxy.getFileOutputStream()");
+                Logger.defaultLogger().error("Error trying to get an inputstream on " + file + " : got FTP return message : " + client.getReplyString(), "FTPProxy.getFileInputStream()");
                 throw new FTPConnectionException("Unable to read file : No response from FTP server.");
             }
             
@@ -672,7 +680,7 @@ public class FTPProxy {
             if (blocking) {
                 throw new FTPConnectionException("Error trying to complete pending FTP instructions - got the following response from server : " + formatFTPReplyString(this.client.getReplyString()));
             } else {
-                Logger.defaultLogger().warn("Closing inputstream : got the following response from server : " + formatFTPReplyString(this.client.getReplyString()));                
+                Logger.defaultLogger().warn("Closing inputstream : " + formatFTPReplyString(this.client.getReplyString()));                
             }
         }
         
@@ -696,7 +704,7 @@ public class FTPProxy {
             }
         } catch (FTPConnectionException e) {
             resetClient(e);
-            throw new UnexpectedConnectionException(e);
+            throw new IllegalStateException(e.getMessage());
         }
     }   
     

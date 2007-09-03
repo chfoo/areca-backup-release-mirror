@@ -1,7 +1,9 @@
 package com.myJava.util;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 
@@ -9,7 +11,7 @@ import java.util.List;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -50,6 +52,18 @@ public class HashHelper {
 	public static int hash(int result, int argument) {
 		return hash(result, (long)argument);
 	}
+    
+    public static int hash(int result, int[] argument) {
+        if (argument == null) {
+            return result;
+        } else {
+            int ret = result;
+            for (int i=0; i<argument.length; i++) {
+                ret = hash(ret, argument[i]);
+            }
+            return ret;
+        }   
+    }
 	
 	public static int hash(int result, long argument) {
 		return (int)(result + BASE * argument);
@@ -60,31 +74,61 @@ public class HashHelper {
 	}
 	
 	public static int hash(int result, List argument) {
-	    Iterator iter = argument.iterator();
-	    int h = result;
-	    while (iter.hasNext()) {
-	        h = hash(h, iter.next());
-	    }
-	    return h;
+	    return hash(result, argument == null ? null : argument.iterator());
 	}
-	
-	public static int hash(int result, Object argument) {
-		if (argument == null) {
-			return result;
-		} else if (argument instanceof Object[]) {
-			return hash(result, (Object[])argument);
-		} else {
-			return hash(result, argument.hashCode());
-		}
-	}
-	
-	private static int hash(int result, Object[] argument) {
-		int ret = result;
-		
-		for (int i=0; i<argument.length; i++) {
-			ret = hash(ret, argument[i]);
-		}
-		
-		return ret;
-	}
+    
+    // The hashCode must be order-independant in the case of a Set.
+    public static int hash(int result, Set argument) {
+        if (argument == null) {
+            return result;
+        } else {
+            int[] hashCodes = new int[argument.size()];
+            Iterator iter = argument.iterator();
+            for (int i=0; iter.hasNext(); i++) {
+                hashCodes[i] = iter.next().hashCode();
+            }
+            Arrays.sort(hashCodes);
+            return hash(result, hashCodes);
+        }
+    }
+    
+    public static int hash(int result, Object[] argument) {
+        if (argument == null) {
+            return result;
+        } else {
+            int ret = result;
+            for (int i=0; i<argument.length; i++) {
+                ret = hash(ret, argument[i]);
+            }
+            return ret;
+        }
+    }
+    
+    public static int hash(int result, Object argument) {
+        if (argument == null) {
+            return result;
+        } else if (argument instanceof Object[]) {
+            return hash(result, (Object[])argument);
+        } else if (argument instanceof int[]) {
+            return hash(result, (int[])argument);            
+        } else if (argument instanceof Set) {
+            return hash(result, (Set)argument);
+        } else if (argument instanceof List) {
+            return hash(result, (List)argument);            
+        } else {
+            return hash(result, argument.hashCode());
+        }
+    }
+    
+    private static int hash(int result, Iterator iter) {
+        if (iter == null) {
+            return result;
+        } else {
+            int h = result;
+            while (iter.hasNext()) {
+                h = hash(h, iter.next());
+            }
+            return h;
+        }
+    }
 }

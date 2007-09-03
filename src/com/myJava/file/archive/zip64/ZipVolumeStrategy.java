@@ -8,12 +8,13 @@ import java.io.OutputStream;
 import com.myJava.file.FileSystemDriver;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.multivolumes.VolumeStrategy;
+import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -89,6 +90,7 @@ public class ZipVolumeStrategy implements VolumeStrategy {
         }
         
         File target = new File(FileSystemManager.getParentFile(file), FileSystemManager.getName(file) + suffix + (vol + 1));
+        Logger.defaultLogger().info("Opening next zip volume : " + FileSystemManager.getAbsolutePath(target));
         return target;
     }
 

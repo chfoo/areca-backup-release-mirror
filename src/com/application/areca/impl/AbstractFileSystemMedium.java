@@ -47,7 +47,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -74,6 +74,7 @@ extends AbstractMedium
 implements TargetActions, IndicatorTypes {
 
     private static final boolean REPOSITORY_ACCESS_DEBUG = ((ArecaTechnicalConfiguration)ArecaTechnicalConfiguration.getInstance()).isRepositoryAccessDebugMode();
+    private static final String REPOSITORY_ACCESS_DEBUG_ID = "Areca repository access";
     
 	protected static final String TMP_ARCHIVE_SUFFIX = ".not_commited";
 
@@ -117,7 +118,7 @@ implements TargetActions, IndicatorTypes {
         try {
             try {
                 if (REPOSITORY_ACCESS_DEBUG) {
-                    baseDriver = new EventFileSystemDriver(baseDriver, new LoggerFileSystemDriverListener());
+                    baseDriver = new EventFileSystemDriver(baseDriver, REPOSITORY_ACCESS_DEBUG_ID, new LoggerFileSystemDriverListener());
                 }
                 FileSystemManager.getInstance().registerDriver(storageDir.getParentFile(), baseDriver);
             } catch (Exception e) {
@@ -126,7 +127,7 @@ implements TargetActions, IndicatorTypes {
             }
             
             if (REPOSITORY_ACCESS_DEBUG) {
-                encryptedDriver = new EventFileSystemDriver(encryptedDriver, new LoggerFileSystemDriverListener());
+                encryptedDriver = new EventFileSystemDriver(encryptedDriver, REPOSITORY_ACCESS_DEBUG_ID, new LoggerFileSystemDriverListener());
             }
             FileSystemManager.getInstance().registerDriver(storageDir, encryptedDriver);
         } catch (DriverAlreadySetException e) {
@@ -137,7 +138,7 @@ implements TargetActions, IndicatorTypes {
             throw new ApplicationException(e);
         }
     }    
-    
+
     public void setTarget(AbstractRecoveryTarget target, boolean revalidate) {
         super.setTarget(target, revalidate);
         if (revalidate) {

@@ -7,7 +7,10 @@ import java.io.OutputStream;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
+import com.application.areca.ArecaTechnicalConfiguration;
 import com.myJava.file.FileSystemDriver;
+import com.myJava.file.FileSystemManager;
+import com.myJava.file.cache.CachedFileSystemDriver;
 import com.myJava.file.ftp.FTPFileInfoCache;
 import com.myJava.file.ftp.FTPFileSystemDriver;
 import com.myJava.file.ftp.FTPProxy;
@@ -21,7 +24,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -46,7 +49,9 @@ This file is part of Areca.
 public class FTPFileSystemPolicy 
 extends AbstractFileSystemPolicy
 implements FileSystemPolicy {
-
+    private static final boolean CACHE = ArecaTechnicalConfiguration.get().isRepositoryFTPCache();
+    private static final int CACHE_DEPTH = ArecaTechnicalConfiguration.get().getRepositoryFTPCacheDepth();
+    
     private static final String LOCAL_DIR_PREFIX;
     public static final int DEFAULT_PORT = 21;
     
@@ -297,7 +302,13 @@ implements FileSystemPolicy {
     }
 
     public FileSystemDriver initFileSystemDriver() throws ApplicationException {
-        return new FTPFileSystemDriver(buildProxy(), getLocalDirectory(), getRemoteDirectory());
+        FileSystemDriver base = new FTPFileSystemDriver(buildProxy(), getLocalDirectory(), getRemoteDirectory());
+        if (CACHE) {
+            File storageDir = FileSystemManager.getParentFile(new File(getBaseArchivePath()));
+            return new CachedFileSystemDriver(base, FileSystemManager.getParentFile(storageDir), CACHE_DEPTH);
+        } else {
+            return base;
+        }
     }
     
     public PublicClonable duplicate() {

@@ -2,12 +2,13 @@ package com.myJava.util;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -86,6 +87,23 @@ public class EqualsHelper {
 	        return true;
 	    }
 	}
+    
+    // Equals must be order-independant in case of a Set.
+    public static boolean equals(Set o1, Set o2) {
+        if (! checkClasses(o1, o2)) {
+            return false;
+        } else if (o1.size() != o2.size()) {
+            return false;
+        } else {
+            Iterator iter1 = o1.iterator();
+            while (iter1.hasNext()) {
+                if (! o2.contains(iter1.next())) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
 	
 	public static boolean checkNulls(Object o1, Object o2) {
 		if (o1 == null && o2 == null) {

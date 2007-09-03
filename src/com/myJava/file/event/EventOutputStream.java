@@ -8,7 +8,7 @@ import java.io.OutputStream;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -45,21 +45,21 @@ extends OutputStream {
     }
 
     public void close() throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("close", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("close", file);
         driver.throwStartEvent(event);
         out.close();
         driver.throwStopEvent(event);
     }
 
     public void flush() throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("flush", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("flush", file);
         driver.throwStartEvent(event);
         out.flush();
         driver.throwStopEvent(event);
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("write", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("write", file);
         event.setArgument(new Integer(len));
         driver.throwStartEvent(event);
         out.write(b, off, len);
@@ -67,7 +67,7 @@ extends OutputStream {
     }
 
     public void write(byte[] b) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("write", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("write", file);
         event.setArgument(new Integer(b.length));
         driver.throwStartEvent(event);
         out.write(b);
@@ -75,7 +75,7 @@ extends OutputStream {
     }
 
     public void write(int b) throws IOException {
-        FileSystemDriverEvent event = new FileSystemDriverEvent("write", file, driver.getPredecessor());
+        FileSystemDriverEvent event = driver.buildEvent("write", file);
         driver.throwStartEvent(event);
         out.write(b);
         driver.throwStopEvent(event);

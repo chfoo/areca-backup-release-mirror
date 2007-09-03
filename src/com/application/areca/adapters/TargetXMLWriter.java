@@ -31,7 +31,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -299,7 +299,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
     }
     
     protected void serializeFilter(FileExtensionArchiveFilter filter) {
-        sb.append("\n\n<");
+        sb.append("\n<");
         sb.append(XML_FILTER_FILEEXTENSION);
         sb.append(" ");
         sb.append(XML_FILTER_EXCLUDE);
@@ -324,32 +324,34 @@ public class TargetXMLWriter extends AbstractXMLWriter {
     }    
     
     protected void serializeFilter(FileSizeArchiveFilter filter) {
-        serializeFilterGenericData(filter, XML_FILTER_FILESIZE);
+        serializeFilterGenericData(filter, XML_FILTER_FILESIZE, true);
     }
     
     protected void serializeFilter(FileDateArchiveFilter filter) {
-        serializeFilterGenericData(filter, XML_FILTER_FILEDATE);
+        serializeFilterGenericData(filter, XML_FILTER_FILEDATE, true);
     }
     
     protected void serializeFilter(LinkFilter filter) {
-        serializeFilterGenericData(filter, XML_FILTER_LINK);
+        serializeFilterGenericData(filter, XML_FILTER_LINK, false);
     }
 
     protected void serializeFilter(LockedFileFilter filter) {
-        serializeFilterGenericData(filter, XML_FILTER_LOCKED);
+        serializeFilterGenericData(filter, XML_FILTER_LOCKED, false);
     }
     
-    protected void serializeFilterGenericData(ArchiveFilter filter, String filterName) {
+    protected void serializeFilterGenericData(ArchiveFilter filter, String filterName, boolean addParam) {
         sb.append("\n<");
         sb.append(filterName);
         sb.append(" ");
         sb.append(XML_FILTER_EXCLUDE);
         sb.append("=");
         sb.append(encode("" + filter.isExclude()));
-        sb.append(" ");
-        sb.append(XML_FILTER_PARAM);
-        sb.append("=");
-        sb.append(encode(filter.getStringParameters()));
+        if (addParam) {
+            sb.append(" ");
+            sb.append(XML_FILTER_PARAM);
+            sb.append("=");
+            sb.append(encode(filter.getStringParameters()));
+        }
         sb.append("/>");        
     }
     

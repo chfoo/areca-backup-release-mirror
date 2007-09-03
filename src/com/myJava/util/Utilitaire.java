@@ -3,7 +3,7 @@
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -99,6 +99,25 @@ public abstract class Utilitaire {
             index = chaine.indexOf(str, index+str.length());
         }
         return nbOcc;
+    }
+    
+    /**
+     * comptage des occurences d'une chaine dans une autre chaine
+     */
+    public static int count(String chaine, int startIndex, char c) {
+        if (chaine == null) {
+            return 0;
+        }
+        
+        int l = chaine.length();
+        int cpt = 0;
+        for (int i=startIndex; i<l; i++) {
+            if (chaine.charAt(i) == c) {
+                cpt++;
+            }
+        }
+        
+        return cpt;
     }
 
     /**

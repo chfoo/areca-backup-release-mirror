@@ -24,6 +24,7 @@ import com.myJava.file.hash.HashFileSystemDriver;
 import com.myJava.util.EqualsHelper;
 import com.myJava.util.HashHelper;
 import com.myJava.util.ToStringHelper;
+import com.myJava.util.log.Logger;
 
 /**
  * Driver "chainable" apportant des fonctionnalités de cryptage.
@@ -32,7 +33,7 @@ import com.myJava.util.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -3366468978279844961
+ * <BR>Areca Build ID : -2622785387388097396
  */
  
  /*
@@ -82,12 +83,8 @@ extends AbstractLinkableFileSystemDriver {
     public EncryptedFileSystemDriver(File directoryRoot, String transformation, AlgorithmParameterSpec iv, Key key) {
 
         // Init attributs
-        try {
-            this.directoryRoot = directoryRoot.getCanonicalFile();
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e.getMessage());
-        }
-        
+        this.directoryRoot = directoryRoot.getAbsoluteFile();
+
         this.key = key;
         this.transformation = transformation;
         this.iv = iv;
@@ -142,7 +139,11 @@ extends AbstractLinkableFileSystemDriver {
     public boolean canWrite(File file) {
         return this.predecessor.canWrite(this.encryptFileName(file));
     }
-    
+
+    public FileInformations getInformations(File file) {
+        return this.predecessor.getInformations(this.encryptFileName(file));
+    }
+
     public Attributes getAttributes(File f) throws IOException {
         return this.predecessor.getAttributes(this.encryptFileName(f));
     }
@@ -339,39 +340,35 @@ extends AbstractLinkableFileSystemDriver {
             
             return cipher;
         } catch (InvalidKeyException e1) {
+            Logger.defaultLogger().error(e1);
             throw new IllegalArgumentException(e1.getMessage());
         } catch (NoSuchAlgorithmException e1) {
+            Logger.defaultLogger().error(e1);
             throw new IllegalArgumentException(e1.getMessage());
         } catch (NoSuchPaddingException e1) {
+            Logger.defaultLogger().error(e1);
             throw new IllegalArgumentException(e1.getMessage());
         } catch (InvalidAlgorithmParameterException e1) {
+            Logger.defaultLogger().error(e1);
             throw new IllegalArgumentException(e1.getMessage());
         }
     }
     
     protected File encryptFileName(File file) {
-        try {
-            File orig = file.getCanonicalFile();
-            if (orig.equals(this.directoryRoot)) {
-                return orig;
-            } else {
-                return new File(this.encryptFileName(orig.getParentFile()), this.encryptFileName(orig.getName()));
-            }
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e.getMessage());
+        File orig = file.getAbsoluteFile();
+        if (orig.equals(this.directoryRoot)) {
+            return orig;
+        } else {
+            return new File(this.encryptFileName(orig.getParentFile()), this.encryptFileName(orig.getName()));
         }
     }
     
     protected File decryptFileName(File file) {
-        try {
-            File orig = file.getCanonicalFile();
-            if (orig.equals(this.directoryRoot)) {
-                return orig;
-            } else {
-                return new File(this.decryptFileName(orig.getParentFile()), this.decryptFileName(orig.getName()));
-            }
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e.getMessage());
+        File orig = file.getAbsoluteFile();
+        if (orig.equals(this.directoryRoot)) {
+            return orig;
+        } else {
+            return new File(this.decryptFileName(orig.getParentFile()), this.decryptFileName(orig.getName()));
         }
     }
     
@@ -401,10 +398,13 @@ extends AbstractLinkableFileSystemDriver {
             return sb.toString();
             
         } catch (IllegalStateException e) {
+            Logger.defaultLogger().error(e);
             throw new IllegalArgumentException("IllegalStateException : [" + shortName + "] - " + e.getMessage());
         } catch (IllegalBlockSizeException e) {
+            Logger.defaultLogger().error(e);
             throw new IllegalArgumentException("IllegalBlockSizeException : [" + shortName + "] - " + e.getMessage());
         } catch (BadPaddingException e) {
+            Logger.defaultLogger().error(e);
             throw new IllegalArgumentException("BadPaddingException : [" + shortName + "] - " + e.getMessage());
         }
     }
@@ -427,12 +427,16 @@ extends AbstractLinkableFileSystemDriver {
             byte[] decrypted = this.fileNameDecryptionCipher.doFinal(values);
             return new String(decrypted);
         } catch (NumberFormatException e) {
+            Logger.defaultLogger().error(e);
             throw new IllegalArgumentException(e.getMessage());
         } catch (IllegalStateException e) {
+            Logger.defaultLogger().error(e);
             throw new IllegalArgumentException("IllegalStateException : [" + shortName + "] - " + e.getMessage());
         } catch (IllegalBlockSizeException e) {
+            Logger.defaultLogger().error(e);
             throw new IllegalArgumentException("IllegalBlockSizeException : [" + shortName + "] - " + e.getMessage());
         } catch (BadPaddingException e) {
+            Logger.defaultLogger().error(e);
             throw new IllegalArgumentException("BadPaddingException : [" + shortName + "] - " + e.getMessage());
         }
     }
@@ -464,6 +468,13 @@ extends AbstractLinkableFileSystemDriver {
         }
     }
     
+    public String toString() {
+        StringBuffer sb = ToStringHelper.init(this);
+        ToStringHelper.append("Root", this.directoryRoot, sb);
+        ToStringHelper.append("Predecessor", this.predecessor, sb);
+        return ToStringHelper.close(sb);
+    }
+    
     protected static class FilenameFilterAdapter implements FilenameFilter {
         protected FilenameFilter filter;
         protected EncryptedFileSystemDriver driver;
@@ -481,6 +492,33 @@ extends AbstractLinkableFileSystemDriver {
             String targetName = driver.decryptFileName(name);
             
             return filter.accept(targetDirectory, targetName);
+        }
+        
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            } else if (! (obj instanceof FilenameFilterAdapter)) {
+                return false;
+            } else {
+                FilenameFilterAdapter other = (FilenameFilterAdapter)obj;
+                return 
+                    EqualsHelper.equals(this.filter, other.filter)
+                    && EqualsHelper.equals(this.driver, other.driver);
+            }
+        }
+
+        public int hashCode() {
+            int h = HashHelper.initHash(this);
+            h = HashHelper.hash(h, filter);
+            h = HashHelper.hash(h, driver);
+            return h;
+        }
+
+        public String toString() {
+            StringBuffer sb = ToStringHelper.init(this);
+            ToStringHelper.append("Filter", this.filter, sb);
+            ToStringHelper.append("Driver", this.driver, sb);
+            return ToStringHelper.close(sb);
         }
     }
     
@@ -500,17 +538,37 @@ extends AbstractLinkableFileSystemDriver {
             File target = driver.decryptFileName(filename);
             return filter.accept(target);
         }
+        
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            } else if (! (obj instanceof FileFilterAdapter)) {
+                return false;
+            } else {
+                FileFilterAdapter other = (FileFilterAdapter)obj;
+                return 
+                    EqualsHelper.equals(this.filter, other.filter)
+                    && EqualsHelper.equals(this.driver, other.driver);
+            }
+        }
+
+        public int hashCode() {
+            int h = HashHelper.initHash(this);
+            h = HashHelper.hash(h, filter);
+            h = HashHelper.hash(h, driver);
+            return h;
+        }
+
+        public String toString() {
+            StringBuffer sb = ToStringHelper.init(this);
+            ToStringHelper.append("Filter", this.filter, sb);
+            ToStringHelper.append("Driver", this.driver, sb);
+            return ToStringHelper.close(sb);
+        }
     }
 
     public boolean directFileAccessSupported() {
         return false;
-    }
-    
-    public String toString() {
-        StringBuffer sb = ToStringHelper.init(this);
-        ToStringHelper.append("ROOT", this.directoryRoot, sb);
-        ToStringHelper.append("PREDECESSOR", this.predecessor, sb);
-        return ToStringHelper.close(sb);
     }
     
     public boolean isContentSensitive() {
