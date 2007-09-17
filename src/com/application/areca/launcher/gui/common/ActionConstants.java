@@ -4,7 +4,7 @@ package com.application.areca.launcher.gui.common;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -31,6 +31,7 @@ public interface ActionConstants {
 	public static final String CMD_OPEN = "open";
 	public static final String CMD_PREFERENCES = "preferences";
 	public static final String CMD_BACKUP_WORKSPACE = "backup workspace";    
+    public static final String CMD_IMPORT_GROUP = "import group";    
     public static final String CMD_EXIT = "exit";
     public static final String CMD_SIMULATE = "simulate";    
     public static final String CMD_BACKUP = "backup";
@@ -61,6 +62,9 @@ public interface ActionConstants {
     public static final String CMD_NEW_PROCESS = "new process";
     public static final String CMD_EDIT_PROCESS = "edit process";    
     public static final String CMD_DEL_PROCESS = "del process";    
+    
+    public static final String CMD_SEARCH_PHYSICAL = "show physical";    
+    public static final String CMD_SEARCH_LOGICAL = "show logical";    
     
     // Actions génériques
     public static final String ACTION_SAVE = "save";

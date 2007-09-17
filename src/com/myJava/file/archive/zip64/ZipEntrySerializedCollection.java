@@ -5,16 +5,16 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import com.myJava.system.OSTool;
 import com.myJava.util.SerializedCollection;
 import com.myJava.util.Utilitaire;
-import com.myJava.util.os.OSTool;
 
 /**
  * SerializedCollection implementation dedicated to ZipEntries
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

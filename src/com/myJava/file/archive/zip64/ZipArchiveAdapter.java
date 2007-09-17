@@ -14,7 +14,7 @@ import com.myJava.file.multivolumes.VolumeStrategy;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -40,11 +40,19 @@ public class ZipArchiveAdapter
 extends AbstractArchiveAdapter
 implements ArchiveAdapter {
     
+    public ZipArchiveAdapter(InputStream in) {
+        this(in, 1);
+    }
+    
     public ZipArchiveAdapter(InputStream in, long streamSize) {
         super(ACCESS_READ, streamSize);
         if (streamSize != 0) {
             this.zin = new ZipInputStream(in);
         }
+    }
+    
+    public ZipArchiveAdapter(VolumeStrategy strategy) {
+        this(strategy, 1);
     }
 
     public ZipArchiveAdapter(VolumeStrategy strategy, long streamSize) {

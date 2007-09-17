@@ -36,7 +36,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -86,6 +86,11 @@ implements MouseListener, Refreshable, Listener {
 
         sashMain.setWeights(new int[] {60, 40});
         sashHisto.setWeights(new int[] {60, 40});
+    }
+    
+    public void setSelectedEntry(RecoveryEntry entry) {
+        this.explorer.setSelectedEntry(entry);
+        this.initHistoryContent(entry);
     }
     
     private void buildHistoryComposite(Composite parent) {

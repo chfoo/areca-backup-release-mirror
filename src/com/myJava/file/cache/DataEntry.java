@@ -6,13 +6,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import com.myJava.util.ToStringHelper;
+import com.myJava.object.ToStringHelper;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -184,7 +184,7 @@ public class DataEntry {
     
     public void remove(String name) {
         if (this.contentMap != null) {
-            DataEntry existing = (DataEntry)this.contentMap.remove(name);
+            this.contentMap.remove(name);
             clearPopulated();
         }
     }

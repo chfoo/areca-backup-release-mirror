@@ -11,14 +11,14 @@ import com.myJava.encryption.EncryptionUtil;
 import com.myJava.file.AbstractLinkableFileSystemDriver;
 import com.myJava.file.EncryptedFileSystemDriver;
 import com.myJava.file.FileSystemDriver;
-import com.myJava.util.PublicClonable;
-import com.myJava.util.ToStringHelper;
+import com.myJava.object.PublicClonable;
+import com.myJava.object.ToStringHelper;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

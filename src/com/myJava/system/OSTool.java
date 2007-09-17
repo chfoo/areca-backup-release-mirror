@@ -1,4 +1,4 @@
-package com.myJava.util.os;
+package com.myJava.system;
 
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -19,7 +19,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

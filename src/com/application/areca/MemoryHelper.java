@@ -1,13 +1,13 @@
 package com.application.areca;
 
-import com.myJava.util.os.OSTool;
+import com.myJava.system.OSTool;
 
 /**
  * Static class that provides helper methods for memory management.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

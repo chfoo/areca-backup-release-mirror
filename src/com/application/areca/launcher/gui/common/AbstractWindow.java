@@ -17,13 +17,13 @@ import org.eclipse.swt.widgets.Text;
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.version.VersionInfos;
-import com.myJava.util.os.OSTool;
+import com.myJava.system.OSTool;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

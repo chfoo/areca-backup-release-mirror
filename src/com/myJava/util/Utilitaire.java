@@ -3,7 +3,7 @@
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -42,7 +42,7 @@ import com.myJava.util.log.Logger;
 public abstract class Utilitaire {
     
     private static Short[] POOLED_SHORTS;
-    private static final Random rndGenerator = new Random(System.currentTimeMillis()%10000);
+    private static final Random rndGenerator = new Random(System.currentTimeMillis());
 
     static {
         POOLED_SHORTS = new Short[21];

@@ -2,17 +2,17 @@ package com.application.areca.launcher.gui;
 
 import javax.swing.JOptionPane;
 
-import com.application.areca.ArecaTechnicalConfiguration;
+import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.version.VersionInfos;
+import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.OSTool;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -34,22 +34,24 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class Launcher {
-    
-    public static void main(String[] args) {
+public class Launcher extends AbstractArecaLauncher {
+
+    public static void main(String[] args) {       
+        Launcher launcher = new Launcher();
+        launcher.launch(args);
+    }
+
+    protected void launchImpl(String[] args) {
         boolean killOnError = true;
         try {
-            ArecaTechnicalConfiguration.initialize();
-            checkJavaVersion();
-                       
             String workspace = null;
             switch (ArecaPreferences.getStartupMode()) {
             case ArecaPreferences.LAST_WORKSPACE_MODE:
                 workspace = ArecaPreferences.getLastWorkspace();
-            break;
+                break;
             case ArecaPreferences.DEFAULT_WORKSPACE_MODE:
                 workspace = ArecaPreferences.getDefaultWorkspace();
-            break;
+                break;
             }
             if (workspace == null) {
                 if (args.length != 0) {
@@ -58,7 +60,7 @@ public class Launcher {
                     workspace = System.getProperty("user.dir");
                 }
             }
-            
+
             Application gui = Application.getInstance();
             gui.loadWorkspace(workspace);
             killOnError = false;  // Now that the gui was initialized, don't kill on error 
@@ -66,30 +68,30 @@ public class Launcher {
         } catch (Throwable e) {
             e.printStackTrace();
             Logger.defaultLogger().error("Unexpected error", e);
-            
+
             if (killOnError) {
                 Logger.defaultLogger().warn("Critical error during initialization ... exiting.");
                 System.exit(-1);
             }
         }
     }
-    
-    private static void checkJavaVersion() {
+
+    protected void checkJavaVersion() {
         if (! OSTool.isJavaVersionGreaterThanOrEquals(VersionInfos.REQUIRED_JAVA_VERSION)) {
-            System.out.println("----------------------------------------------------------------------------------\n ");
+            System.out.println(SEPARATOR + "\n ");
             System.out.println(VersionInfos.VERSION_MSG);
-            System.out.println("----------------------------------------------------------------------------------");
-            
+            showLine();
+
             JOptionPane.showMessageDialog(null,
                     VersionInfos.VERSION_MSG, VersionInfos.APP_NAME + " - Invalid Java Version", JOptionPane.ERROR_MESSAGE);
 
             System.exit(-1);
         }
-        
+
         if (! VersionInfos.checkJavaVendor()) {
-            System.out.println("----------------------------------------------------------------------------------");
+            showLine();
             System.out.println(VersionInfos.VENDOR_MSG);
-            System.out.println("----------------------------------------------------------------------------------");
+            showLine();
         }
     }
 }

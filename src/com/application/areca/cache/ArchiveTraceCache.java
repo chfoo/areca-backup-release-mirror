@@ -19,7 +19,7 @@ import com.application.areca.metadata.trace.ArchiveTraceManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -85,6 +85,7 @@ public class ArchiveTraceCache extends AbstractArchiveDataCache {
      * Compares the object pool size and the global archive trace size.
      * <BR>Used for debugging purpose ... highlights the instance pooling effect. 
      */
+    /*
     private void debugContent(AbstractIncrementalFileSystemMedium medium) {
         ArchiveDataMap map = this.findArchiveDataMap(medium);
         if (map != null) {
@@ -109,6 +110,7 @@ public class ArchiveTraceCache extends AbstractArchiveDataCache {
 	        }
         }
     }
+    */
     
     /**
      * Inits the data in cache.

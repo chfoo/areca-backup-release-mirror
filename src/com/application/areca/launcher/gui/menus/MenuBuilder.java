@@ -11,7 +11,7 @@ import com.application.areca.ResourceManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -45,6 +45,7 @@ extends AppActionReferenceHolder {
         Menu mnWorkspace = buildSubMenu("menu.workspace", menu);
         add(AC_OPEN, mnWorkspace);
         add(AC_BACKUP_WS, mnWorkspace);
+        add(AC_IMPORT_GROUP, mnWorkspace);
         addSeparator(mnWorkspace);
         add(AC_PREFERENCES, mnWorkspace);
         addSeparator(mnWorkspace);
@@ -170,6 +171,15 @@ extends AppActionReferenceHolder {
         
         add(AC_RECOVER_HISTORY, menu);
         add(AC_TEXTEDIT_HISTORY, menu);
+        
+        return menu;
+    }
+    
+    public static Menu buildSearchContextMenu(Shell parent) {
+        Menu menu = new Menu(parent, SWT.POP_UP);
+        
+        add(AC_SEARCH_PHYSICAL, menu);
+        add(AC_SEARCH_LOGICAL, menu);
         
         return menu;
     }

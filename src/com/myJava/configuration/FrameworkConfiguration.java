@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -14,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -51,10 +54,14 @@ public class FrameworkConfiguration {
     private static String KEY_OS_BROWSERS = "os.browsers";  
     private static String KEY_SSE_PROTOCOLS = "sse.protocols";  
     private static String KEY_ZIP_BUFFER = "zip.buffer.size"; 
+    private static String KEY_ZIP_MV_DIGITS = "zip.mv.digits"; 
     private static String KEY_LOG_LEVEL = "log.level";
     private static String KEY_FS_USE_BUFFER = "fs.use.buffer";   
     private static String KEY_FS_BUFFER_SIZE = "fs.buffer.size";   
     private static String KEY_FS_CACHE_DEBUG = "fs.cache.debug";    
+    private static String KEY_LAUNCHER_IH = "launcher.initialheap";  
+    private static String KEY_LAUNCHER_MH = "launcher.maxheap";   
+    private static String KEY_LAUNCHER_WAITFOR = "launcher.waitfor";   
     
     private static int DEF_FTP_MAX_PROXIES = 3;
     private static long DEF_FTP_NOOP_DELAY = 30000;    
@@ -68,11 +75,17 @@ public class FrameworkConfiguration {
     private static String[] DEF_OS_BROWSERS = {"firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape"};
     private static String[] DEF_SSE_PROTOCOLS = {"TLS", "SSL"};  
     private static int DEF_ZIP_BUFFER = 2048;
+    private static int DEF_ZIP_MV_DIGITS = 2; 
     private static int DEF_LOG_LEVEL = 8;
     private static boolean DEF_FS_USE_BUFFER = true;   
     private static int DEF_FS_BUFFER_SIZE = 65536;   
     private static boolean DEF_FS_CACHE_DEBUG = false; 
+    private static int DEF_LAUNCHER_IH = -1;  
+    private static int DEF_LAUNCHER_MH = -1;   
+    private static boolean DEF_LAUNCHER_WAITFOR = true;  
 
+    private static String VM_PROPS_PREFIX = "launcher.d.";
+    
     private String strUrl = null;
     private Properties props = new Properties();
 
@@ -120,6 +133,22 @@ public class FrameworkConfiguration {
             }
         }
     }
+    
+    public Map getJavaProperties() {
+        return getPropertiesMap(VM_PROPS_PREFIX);
+    }
+    
+    private Map getPropertiesMap(String prefix) {
+        Enumeration enum = this.props.keys();
+        HashMap map = new HashMap();
+        while (enum.hasMoreElements()) {
+            String key = (String)enum.nextElement();
+            if (key.startsWith(prefix)) {
+                map.put(key.substring(prefix.length()), props.get(key));
+            }
+        }
+        return map;
+    }
 
     public int getFileToolDelay() {
         return getProperty(KEY_FT_DELAY, DEF_FT_DELAY);
@@ -137,8 +166,24 @@ public class FrameworkConfiguration {
         return getProperty(KEY_FS_CACHE_DEBUG, DEF_FS_CACHE_DEBUG);
     }
     
+    public boolean isLauncherWaitFor() {
+        return getProperty(KEY_LAUNCHER_WAITFOR, DEF_LAUNCHER_WAITFOR);
+    }
+    
+    public int getLauncherInitialHeap() {
+        return getProperty(KEY_LAUNCHER_IH, DEF_LAUNCHER_IH);
+    }
+    
+    public int getLauncherMaxHeap() {
+        return getProperty(KEY_LAUNCHER_MH, DEF_LAUNCHER_MH);
+    }
+    
     public boolean isHashCacheMode() {
         return getProperty(KEY_HASH_USE_CACHE, DEF_HASH_USE_CACHE);
+    }
+    
+    public int getZipMvDigits() {
+        return getProperty(KEY_ZIP_MV_DIGITS, DEF_ZIP_MV_DIGITS);
     }
     
     public int getHashCacheSize() {

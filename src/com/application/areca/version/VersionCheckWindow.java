@@ -17,18 +17,18 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.SecuredRunner;
+import com.myJava.system.NoBrowserFoundException;
+import com.myJava.system.OSTool;
+import com.myJava.system.OSToolException;
 import com.myJava.util.Utilitaire;
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.NoBrowserFoundException;
-import com.myJava.util.os.OSTool;
-import com.myJava.util.os.OSToolException;
 import com.myJava.util.version.VersionData;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

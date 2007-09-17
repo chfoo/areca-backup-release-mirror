@@ -15,16 +15,16 @@ import com.myJava.file.ftp.FTPFileInfoCache;
 import com.myJava.file.ftp.FTPFileSystemDriver;
 import com.myJava.file.ftp.FTPProxy;
 import com.myJava.file.ftp.FictiveFile;
-import com.myJava.util.PublicClonable;
-import com.myJava.util.ToStringHelper;
+import com.myJava.object.PublicClonable;
+import com.myJava.object.ToStringHelper;
+import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.OSTool;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

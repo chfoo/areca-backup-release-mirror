@@ -19,10 +19,10 @@ import com.application.areca.postprocess.PostProcessorList;
 import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
 import com.application.areca.version.VersionInfos;
+import com.myJava.object.EqualsHelper;
+import com.myJava.object.HashHelper;
+import com.myJava.object.PublicClonable;
 import com.myJava.util.CalendarUtils;
-import com.myJava.util.EqualsHelper;
-import com.myJava.util.HashHelper;
-import com.myJava.util.PublicClonable;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.History;
 import com.myJava.util.history.HistoryEntry;
@@ -35,7 +35,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

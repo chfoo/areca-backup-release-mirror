@@ -15,13 +15,13 @@ import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.FilterEditionWindow;
 import com.application.areca.launcher.gui.FilterRepository;
-import com.myJava.util.os.OSTool;
+import com.myJava.system.OSTool;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

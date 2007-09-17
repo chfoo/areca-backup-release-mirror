@@ -13,17 +13,17 @@ import java.io.OutputStream;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.file.attributes.AttributesHelper;
-import com.myJava.util.HashHelper;
-import com.myJava.util.ToStringHelper;
+import com.myJava.object.HashHelper;
+import com.myJava.object.ToStringHelper;
+import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.OSTool;
 
 /**
  * Driver par défaut : relaie tous ses appels à la classe "File".
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

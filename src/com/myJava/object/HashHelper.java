@@ -1,4 +1,4 @@
-package com.myJava.util;
+package com.myJava.object;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -11,7 +11,7 @@ import java.util.Set;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

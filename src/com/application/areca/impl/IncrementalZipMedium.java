@@ -20,14 +20,14 @@ import com.myJava.file.archive.ArchiveWriter;
 import com.myJava.file.archive.zip64.ZipArchiveAdapter;
 import com.myJava.file.archive.zip64.ZipVolumeStrategy;
 import com.myJava.file.multivolumes.VolumeStrategy;
-import com.myJava.util.PublicClonable;
+import com.myJava.object.PublicClonable;
 
 /**
  * Incremental storage support which uses an archive to store the data.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

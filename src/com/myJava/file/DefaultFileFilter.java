@@ -6,9 +6,9 @@ import java.util.Set;
 
 import javax.swing.filechooser.FileFilter;
 
-import com.myJava.util.EqualsHelper;
-import com.myJava.util.HashHelper;
-import com.myJava.util.ToStringHelper;
+import com.myJava.object.EqualsHelper;
+import com.myJava.object.HashHelper;
+import com.myJava.object.ToStringHelper;
 
 /**
  * FileFilter par défaut : filtre les fichiers par extension.
@@ -16,7 +16,7 @@ import com.myJava.util.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

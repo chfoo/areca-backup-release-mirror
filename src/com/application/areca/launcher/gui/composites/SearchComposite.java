@@ -5,11 +5,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -18,6 +19,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
@@ -38,7 +40,7 @@ import com.application.areca.search.TargetSearchResult;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -62,12 +64,11 @@ This file is part of Areca.
  */
 public class SearchComposite 
 extends Composite 
-implements Listener, Refreshable, IDoubleClickListener { 
+implements MouseListener, Listener, Refreshable { 
     
     protected final ResourceManager RM = ResourceManager.instance();
     private final Application application = Application.getInstance();
     
-    private SearchResultItem currentItem = null;
     private Composite pnlTargets;
     private Composite pnlButtons;
     private Tree tree;
@@ -206,7 +207,7 @@ implements Listener, Refreshable, IDoubleClickListener {
         tree = tv.getTree();
         tree.setLayoutData(data);
         tree.setLinesVisible(AbstractWindow.getTableLinesVisible());
-        tv.addDoubleClickListener(this);
+        tree.addMouseListener(this);
         
         return panel;
     }
@@ -345,7 +346,6 @@ implements Listener, Refreshable, IDoubleClickListener {
     }
     
     private void refreshContent(SearchResult result) {
-        this.currentItem = null;
         tree.removeAll();
 
         if (result != null) {
@@ -380,15 +380,27 @@ implements Listener, Refreshable, IDoubleClickListener {
         }
     }
 
-    public void doubleClick(DoubleClickEvent event) {
+    public void mouseDoubleClick(MouseEvent e) {}
+    public void mouseUp(MouseEvent e) {}
+    public void mouseDown(MouseEvent e) {
+        TreeItem item = this.tree.getItem(new Point(e.x, e.y));
+        if (item != null && item.getParentItem() != null) {
+            showMenu(e, Application.getInstance().getSearchContextMenu());
+        }
+    }
+    
+    private void showMenu(MouseEvent e, Menu m) {
+        if (e.button == 3) {
+            m.setVisible(true);
+        }
+    }
+    
+    public SearchResultItem getSelectedItem() {
         TreeItem[] selection = tree.getSelection();
         if (selection != null && selection.length != 0 && selection[0].getData() instanceof SearchResultItem) {
-            this.currentItem = (SearchResultItem)selection[0].getData();
-            
-            this.application.enforceSelectedTarget(this.currentItem.getTarget());
-            this.application.setCurrentDates(this.currentItem.getCalendar(), this.currentItem.getCalendar());
-            
-            this.application.showArchiveDetail(this.currentItem.getEntry());
+            return (SearchResultItem)selection[0].getData();
+        } else {
+            return null;
         }
     }
 }

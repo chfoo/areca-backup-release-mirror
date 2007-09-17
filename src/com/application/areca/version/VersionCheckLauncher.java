@@ -5,14 +5,14 @@ import javax.swing.JOptionPane;
 import org.eclipse.swt.widgets.Display;
 
 import com.application.areca.ArecaTechnicalConfiguration;
+import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.OSTool;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

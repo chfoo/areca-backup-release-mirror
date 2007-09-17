@@ -11,7 +11,7 @@ import com.application.areca.RecoveryEntry;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.metadata.trace.ArchiveTrace;
 import com.myJava.file.FileNameUtil;
-import com.myJava.util.os.OSTool;
+import com.myJava.system.OSTool;
 
 /**
  * Class defining the physical content of an archive.
@@ -19,7 +19,7 @@ import com.myJava.util.os.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

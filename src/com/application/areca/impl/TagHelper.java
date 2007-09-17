@@ -6,17 +6,17 @@ import java.util.GregorianCalendar;
 
 import com.application.areca.context.ProcessContext;
 import com.myJava.file.FileSystemManager;
+import com.myJava.system.OSTool;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.Utilitaire;
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.OSTool;
 
 /**
  * Helper class for dynamic tags processing
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

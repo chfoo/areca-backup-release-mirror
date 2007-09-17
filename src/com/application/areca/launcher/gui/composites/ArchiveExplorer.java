@@ -38,7 +38,7 @@ import com.myJava.file.FileNameUtil;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -280,6 +280,9 @@ implements MouseListener, Listener
                 parent = getElement(parent, element);
             }
             this.tree.setSelection(parent);
+            
+            Application.getInstance().setCurrentEntry(entry);
+            Application.getInstance().setCurrentFilter(buildFilter(entry));
         }
     }
     
@@ -313,7 +316,10 @@ implements MouseListener, Listener
         return filter;
     }
     
-
+    private String[] buildFilter(RecoveryEntry entry) {
+        return new String[] {entry.getName()};
+    }
+    
     public void mouseDoubleClick(MouseEvent e) {}
     public void mouseUp(MouseEvent e) {}
     

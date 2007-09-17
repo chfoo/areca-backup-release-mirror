@@ -13,7 +13,7 @@ import com.application.areca.launcher.gui.common.SecuredRunner;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -38,6 +38,7 @@ This file is part of Areca.
 public class AppActionReferenceHolder implements ActionConstants{
     public static AppAction AC_OPEN = new AppAction("app.openworkspaceaction", ArecaImages.ICO_WORKSPACE_OPEN, ArecaImages.ICO_WORKSPACE_OPEN_B, CMD_OPEN);
     public static AppAction AC_BACKUP_WS = new AppAction("app.backupworkspace", CMD_BACKUP_WORKSPACE);
+    public static AppAction AC_IMPORT_GROUP = new AppAction("app.importgroupaction", CMD_IMPORT_GROUP);
     public static AppAction AC_PREFERENCES = new AppAction("app.openpreferencesaction", ArecaImages.ICO_CONFIGURE, ArecaImages.ICO_CONFIGURE_B, CMD_PREFERENCES);
     public static AppAction AC_EXIT= new AppAction("app.quitaction", CMD_EXIT);
 
@@ -71,6 +72,10 @@ public class AppActionReferenceHolder implements ActionConstants{
     public static AppAction AC_RECOVER_FILTER_LATEST = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_FROM_LOGICAL);
     public static AppAction AC_RECOVER_HISTORY = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_ENTRY);
     public static AppAction AC_TEXTEDIT_HISTORY = new AppAction("app.editaction", CMD_EDIT_FILE);    
+    
+    public static AppAction AC_SEARCH_PHYSICAL = new AppAction("mainpanel.physical", CMD_SEARCH_PHYSICAL);    
+    public static AppAction AC_SEARCH_LOGICAL = new AppAction("mainpanel.logical", CMD_SEARCH_LOGICAL);    
+    
 
     public static void refresh() {
         SecuredRunner.execute(Application.getInstance().getDisplay(), new Runnable() {

@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.AbstractRecoveryTarget;
-import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.RecoveryProcess;
 import com.application.areca.UserInformationChannel;
 import com.application.areca.adapters.ProcessXMLReader;
@@ -14,20 +14,18 @@ import com.application.areca.context.ProcessContext;
 import com.application.areca.launcher.CommandConstants;
 import com.application.areca.launcher.InvalidCommandException;
 import com.application.areca.launcher.UserCommandLine;
-import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.Utilitaire;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.OSTool;
 
 /**
  * Launcher
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -49,17 +47,22 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class Launcher implements CommandConstants {
-    public static String SEPARATOR = "------------------------------------------------------------------";
+public class Launcher
+extends AbstractArecaLauncher
+implements CommandConstants {
+    
     private static UserInformationChannel channel = new LoggerUserInformationChannel(false);
+    
+    public static void main(String[] args) {
+        Launcher launcher = new Launcher();
+        launcher.launch(args);
+    }
     
     /**
      * Méthode principale de lancement.
      * @param args
      */
-    public static void main(String[] args) {
-        checkJavaVersion();
-        ArecaTechnicalConfiguration.initialize();
+    protected void launchImpl(String[] args) {
         UserCommandLine command = null;
         try {
             command = new UserCommandLine(args);
@@ -295,23 +298,6 @@ public class Launcher implements CommandConstants {
             throw new InvalidCommandException("Invalid target ID : [" + targetId + "]");
         } else {
             return target;
-        }
-    }
-    
-    private static void checkJavaVersion() {
-        if (!
-                OSTool.isJavaVersionGreaterThanOrEquals(VersionInfos.REQUIRED_JAVA_VERSION)
-        ) {
-            System.out.println(SEPARATOR + "\n ");
-            System.out.println(VersionInfos.VERSION_MSG);
-            System.out.println(SEPARATOR);
-            System.exit(-1);
-        }
-        
-        if (! VersionInfos.checkJavaVendor()) {
-            System.out.println(SEPARATOR);
-            System.out.println(VersionInfos.VENDOR_MSG);
-            System.out.println(SEPARATOR);
         }
     }
 }

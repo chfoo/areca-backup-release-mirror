@@ -23,7 +23,7 @@ import com.application.areca.postprocess.PostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -69,7 +69,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         window.monitorControl(txtTitle);
         
         // Example
-        Label lblNull = new Label(this, SWT.NONE);
+        new Label(this, SWT.NONE);
         Label lblExample = new Label(this, SWT.NONE);
         lblExample.setText(RM.getLabel("procedition.dynparams.label"));
         lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));

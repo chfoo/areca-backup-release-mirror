@@ -47,11 +47,11 @@ import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemIterator;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.attributes.Attributes;
+import com.myJava.system.OSTool;
 import com.myJava.util.Utilitaire;
 import com.myJava.util.errors.ActionError;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.OSTool;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
@@ -63,7 +63,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

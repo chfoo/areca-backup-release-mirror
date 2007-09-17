@@ -1,11 +1,11 @@
-package com.myJava.util.os;
+package com.myJava.system;
 
 /**
- * Exception throw if no external browser could be found.
+ * Wrapper class for exceptions thrown during OSTool calls.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -27,26 +27,26 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class NoBrowserFoundException extends Exception {
+public class OSToolException extends Exception {
 
     /**
      * 
      */
-    public NoBrowserFoundException() {
+    public OSToolException() {
         super();
     }
 
     /**
      * @param message
      */
-    public NoBrowserFoundException(String message) {
+    public OSToolException(String message) {
         super(message);
     }
 
     /**
      * @param cause
      */
-    public NoBrowserFoundException(Throwable cause) {
+    public OSToolException(Throwable cause) {
         super(cause);
     }
 
@@ -54,7 +54,7 @@ public class NoBrowserFoundException extends Exception {
      * @param message
      * @param cause
      */
-    public NoBrowserFoundException(String message, Throwable cause) {
+    public OSToolException(String message, Throwable cause) {
         super(message, cause);
     }
 

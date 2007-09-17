@@ -1,11 +1,12 @@
-package com.myJava.util.os;
+package com.myJava.system;
+
+import com.myJava.util.log.Logger;
 
 /**
- * Wrapper class for exceptions thrown during OSTool calls.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -27,35 +28,20 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class OSToolException extends Exception {
-
-    /**
-     * 
-     */
-    public OSToolException() {
-        super();
+public abstract class AbstractLauncher {  
+    public void launch(String[] args) {
+        try {
+            initialize();
+            checkJavaVersion();
+            launchImpl(args);   
+        } catch (Throwable e) {
+            e.printStackTrace();
+            Logger.defaultLogger().error("Unexpected error", e);
+            System.exit(-1);
+        }
     }
 
-    /**
-     * @param message
-     */
-    public OSToolException(String message) {
-        super(message);
-    }
-
-    /**
-     * @param cause
-     */
-    public OSToolException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * @param message
-     * @param cause
-     */
-    public OSToolException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+    protected abstract void initialize();
+    protected abstract void launchImpl(String[] args);
+    protected abstract void checkJavaVersion();
 }

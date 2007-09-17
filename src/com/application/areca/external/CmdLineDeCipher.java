@@ -3,6 +3,7 @@ package com.application.areca.external;
 import java.io.File;
 import java.io.IOException;
 
+import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.ApplicationException;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.myJava.commandline.BooleanCmdLineOption;
@@ -20,7 +21,7 @@ import com.myJava.file.FileTool;
  * <BR>
  * @author Ludovic QUESNELLE
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -42,7 +43,9 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class CmdLineDeCipher {
+public class CmdLineDeCipher 
+extends AbstractArecaLauncher {
+    
     private static final String ARG_ALG = "algorithm";
     private static final String ARG_PASSWD = "password";
     private static final String ARG_SOURCE = "source";
@@ -65,6 +68,11 @@ public class CmdLineDeCipher {
 	private String targetDir="";
 	private boolean justShow=false;
 	
+    public static void main(String[] args) {
+        CmdLineDeCipher launcher = new CmdLineDeCipher();
+        launcher.launch(args);
+    }
+    
 	public CmdLineDeCipher() {
 	}
 		
@@ -136,8 +144,8 @@ public class CmdLineDeCipher {
 		}
         showLine();
 	}
-	
-	public static void main(String[] args) {
+
+    protected void launchImpl(String[] args) {
 		try {
             // Here Parse the commandLine
             // -Alg=Algo -Sen=Sentence -Source=source -Dest=destination
@@ -154,8 +162,4 @@ public class CmdLineDeCipher {
             showLine();
         }
 	}
-    
-    private static void showLine() {
-        System.out.println("------------------------------------------------");
-    }
 }

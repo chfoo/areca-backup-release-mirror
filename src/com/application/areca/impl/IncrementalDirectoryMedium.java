@@ -10,7 +10,7 @@ import com.application.areca.cache.ArchiveTraceCache;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.metadata.trace.ArchiveTrace;
 import com.myJava.file.FileSystemManager;
-import com.myJava.util.PublicClonable;
+import com.myJava.object.PublicClonable;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -19,7 +19,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

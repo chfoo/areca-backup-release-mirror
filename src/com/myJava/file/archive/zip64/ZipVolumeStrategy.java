@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import com.myJava.file.FileSystemDriver;
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.multivolumes.VolumeStrategy;
 import com.myJava.util.log.Logger;
@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -38,6 +38,7 @@ This file is part of Areca.
  */
 public class ZipVolumeStrategy implements VolumeStrategy {
 
+    private static final int ZIP_MV_DIGITS = FrameworkConfiguration.getInstance().getZipMvDigits();
     private static String VOLUME_SUFFIX = ".z";
     private static String LAST_VOLUME_SUFFIX = ".zip";
     
@@ -54,7 +55,9 @@ public class ZipVolumeStrategy implements VolumeStrategy {
     }
 
     public OutputStream getNextOutputStream() throws IOException {
-        return FileSystemManager.getFileOutputStream(getNextFile());
+        File f = getNextFile();
+        Logger.defaultLogger().info("Opening next zip volume : " + FileSystemManager.getAbsolutePath(f));
+        return FileSystemManager.getFileOutputStream(f);
     }
 
     public InputStream getNextInputStream() throws IOException {
@@ -63,11 +66,13 @@ public class ZipVolumeStrategy implements VolumeStrategy {
         } else {
             File f =getNextFile();
             if (FileSystemManager.exists(f)) {
+                Logger.defaultLogger().info("Opening next zip volume : " + FileSystemManager.getAbsolutePath(f));
                 return FileSystemManager.getFileInputStream(f);
             } else {
                 f = getFinalArchive();
                 endReached = true;
                 if (FileSystemManager.exists(f)) {
+                    Logger.defaultLogger().info("Opening next zip volume : " + FileSystemManager.getAbsolutePath(f));
                     return FileSystemManager.getFileInputStream(f);
                 } else {
                     return null;
@@ -83,15 +88,16 @@ public class ZipVolumeStrategy implements VolumeStrategy {
     
     private File getVolume(int vol) {
         String suffix = VOLUME_SUFFIX;
-        if (vol+1 < 10) {
-            suffix += "0";
-        } else if (vol + 1 > 100) {
-            throw new IllegalStateException("Unable to handle more than 100 zip volumes.");
+        String nb = "" + (vol+1);
+        while (nb.length() < ZIP_MV_DIGITS) {
+            nb = "0" + nb;
+        }
+
+        if (nb.length() > ZIP_MV_DIGITS) {
+            throw new IllegalStateException("Unable to handle more than " + ((int)Math.pow(10, ZIP_MV_DIGITS)) + " zip volumes.");
         }
         
-        File target = new File(FileSystemManager.getParentFile(file), FileSystemManager.getName(file) + suffix + (vol + 1));
-        Logger.defaultLogger().info("Opening next zip volume : " + FileSystemManager.getAbsolutePath(target));
-        return target;
+        return new File(FileSystemManager.getParentFile(file), FileSystemManager.getName(file) + suffix + nb);
     }
 
     public int getVolumesCount() {
@@ -100,6 +106,10 @@ public class ZipVolumeStrategy implements VolumeStrategy {
     
     private File getFinalArchive() {
         return new File(FileSystemManager.getParentFile(file), FileSystemManager.getName(file) + LAST_VOLUME_SUFFIX);
+    }
+    
+    public File getFirstVolume() {
+        return getVolume(0);
     }
 
     public void close() throws IOException {

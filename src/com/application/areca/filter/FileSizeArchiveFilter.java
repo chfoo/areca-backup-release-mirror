@@ -4,16 +4,16 @@ import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.myJava.file.FileSystemManager;
-import com.myJava.util.EqualsHelper;
-import com.myJava.util.HashHelper;
-import com.myJava.util.PublicClonable;
+import com.myJava.object.EqualsHelper;
+import com.myJava.object.HashHelper;
+import com.myJava.object.PublicClonable;
 
 /**
  * Checks that the file's size is bellow the specified max size (in bytes)
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

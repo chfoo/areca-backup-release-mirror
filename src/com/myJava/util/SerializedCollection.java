@@ -12,8 +12,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import com.myJava.file.FileSystemManager;
+import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.OSTool;
 
 /**
  * Partial <code>Collection</code> implementation which allows to store large collections.
@@ -27,7 +27,7 @@ import com.myJava.util.os.OSTool;
  * implemented by these classes when "read/writeObject" is called (which results in a growing HashTable)
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

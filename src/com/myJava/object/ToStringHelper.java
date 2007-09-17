@@ -1,7 +1,8 @@
-package com.myJava.util;
+package com.myJava.object;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -9,7 +10,7 @@ import java.util.Set;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -36,7 +37,7 @@ public class ToStringHelper {
     public static StringBuffer init(Object o) {
         StringBuffer sb = new StringBuffer();
         if (o == null) {
-            sb.append("[null]");
+            sb.append("<null>");
         } else {
             sb.append("[").append(o.getClass().getName());
         }
@@ -68,6 +69,38 @@ public class ToStringHelper {
             appendNull(name, sb);
         } else {
             append(name, l.iterator(), sb);
+        }
+    }
+    
+    public static void append(String name, Map m, StringBuffer sb) {
+        if (m == null) {
+            appendNull(name, sb);
+        } else {
+            preAppend(name, sb);
+            serialize(m, sb);
+            postAppend(sb);
+        }
+    }
+    
+    public static void serialize(Map m, StringBuffer sb) {
+        if (m != null) {
+            sb.append("{");
+            Iterator iter = m.entrySet().iterator();
+            boolean first = true;
+            while (iter.hasNext()) {
+                if (! first) {
+                    sb.append(", ");
+                }
+                first = false;
+                
+                Map.Entry entry = (Map.Entry)iter.next();
+                sb.append("[");
+                normalize(entry.getKey(), sb);
+                sb.append("] = [");
+                normalize(entry.getValue(), sb);
+                sb.append("]");
+            }
+            sb.append("}");
         }
     }
     
@@ -135,7 +168,7 @@ public class ToStringHelper {
     
     private static void normalize(Object o, StringBuffer sb) {
         if (o == null) {
-            sb.append("[null]");
+            sb.append("<null>");
         } else {
             sb.append(o.toString());
         }
@@ -143,7 +176,7 @@ public class ToStringHelper {
     
     private static void normalize(String s, StringBuffer sb) {
         if (s == null) {
-            sb.append("[null]");
+            sb.append("<null>");
         } else {
             sb.append("\"").append(s).append("\"");
         }

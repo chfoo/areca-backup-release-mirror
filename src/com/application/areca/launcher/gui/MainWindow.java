@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
 import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.RecoveryEntry;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
@@ -39,7 +40,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -70,8 +71,11 @@ public class MainWindow extends AbstractWindow {
     private SashForm mainSash;
     private Composite progressContainer;
     private int returnTabIndex = 0;
+    private LogicalViewComposite logicalView;
+    private SearchComposite searchView;
     
     private static final int TAB_PHYSICAL = 0;
+    private static final int TAB_LOGICAL = 1;
     private static final int TAB_PROGRESS = 6;
 
     /**
@@ -133,10 +137,12 @@ public class MainWindow extends AbstractWindow {
         progressContainer = new ProgressComposite(tabs);
         
         addFolderItem(RM.getLabel("mainpanel.physical.label"), ArecaImages.ICO_REF_TARGET, new PhysicalViewComposite(tabs));
-        addFolderItem(RM.getLabel("mainpanel.logical.label"), ArecaImages.ICO_REF_TARGET, new LogicalViewComposite(tabs));
+        this.logicalView = new LogicalViewComposite(tabs);
+        addFolderItem(RM.getLabel("mainpanel.logical.label"), ArecaImages.ICO_REF_TARGET, this.logicalView);
         addFolderItem(RM.getLabel("mainpanel.history.label"), ArecaImages.ICO_HISTORY, new HistoryComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.indicators.label"), ArecaImages.ICO_TARGET_NEW, new IndicatorsComposite(tabs));
-        addFolderItem(RM.getLabel("mainpanel.search.label"), ArecaImages.ICO_FIND, new SearchComposite(tabs));
+        this.searchView = new SearchComposite(tabs);
+        addFolderItem(RM.getLabel("mainpanel.search.label"), ArecaImages.ICO_FIND, searchView);
         addFolderItem(RM.getLabel("mainpanel.log.label"), ArecaImages.ICO_TARGET_NEW, new LogComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.progress.label"), ArecaImages.ICO_TARGET_NEW, progressContainer);
 
@@ -152,7 +158,11 @@ public class MainWindow extends AbstractWindow {
         
         return composite;
     }
-    
+
+    public SearchComposite getSearchView() {
+        return searchView;
+    }
+
     public void focusOnProgress() {
         int tab = this.application.getFolderMonitor().getCurrentSelection();
         if (tab != TAB_PROGRESS) {
@@ -160,6 +170,12 @@ public class MainWindow extends AbstractWindow {
         }
         this.tabs.setSelection(TAB_PROGRESS);
         this.application.getFolderMonitor().handleSelection(this.tabs.getItem(TAB_PROGRESS));
+    }
+    
+    public void focusOnLogicalView(RecoveryEntry entry) {
+        this.tabs.setSelection(TAB_LOGICAL);
+        this.application.getFolderMonitor().handleSelection(this.tabs.getItem(TAB_LOGICAL));
+        this.logicalView.setSelectedEntry(entry);
     }
     
     public void goBackToLastTab() {

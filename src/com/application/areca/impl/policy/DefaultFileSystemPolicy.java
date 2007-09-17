@@ -9,15 +9,15 @@ import com.myJava.file.DefaultFileSystemDriver;
 import com.myJava.file.FileSystemDriver;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.cache.CachedFileSystemDriver;
-import com.myJava.util.PublicClonable;
-import com.myJava.util.ToStringHelper;
+import com.myJava.object.PublicClonable;
+import com.myJava.object.ToStringHelper;
 import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

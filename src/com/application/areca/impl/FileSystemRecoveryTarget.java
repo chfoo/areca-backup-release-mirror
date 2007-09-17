@@ -19,8 +19,8 @@ import com.application.areca.context.ProcessContext;
 import com.application.areca.metadata.manifest.Manifest;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
-import com.myJava.util.DuplicateHelper;
-import com.myJava.util.PublicClonable;
+import com.myJava.object.DuplicateHelper;
+import com.myJava.object.PublicClonable;
 import com.myJava.util.errors.ActionError;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.log.Logger;
@@ -30,7 +30,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

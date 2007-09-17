@@ -19,7 +19,7 @@ import com.application.areca.postprocess.ShellScriptPostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -75,7 +75,7 @@ public class ShellScriptProcessorComposite extends AbstractProcessorComposite {
         txtParams.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         window.monitorControl(txtParams);
         
-        Label lbl1 = new Label(this, SWT.NONE);
+        new Label(this, SWT.NONE);
         Label lblExample = new Label(this, SWT.NONE);
         lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         lblExample.setText(RM.getLabel("procedition.scriptparams.example.label"));

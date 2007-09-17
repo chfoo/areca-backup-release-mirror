@@ -2,7 +2,7 @@ package com.myJava.file.ftp;
 
 import java.io.File;
 
-import com.myJava.util.ToStringHelper;
+import com.myJava.object.ToStringHelper;
 /**
  * This class extends the default "File" structure.
  * <BR>It represents a fictive local or a remote file.
@@ -12,7 +12,7 @@ import com.myJava.util.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

@@ -49,20 +49,21 @@ import com.application.areca.launcher.gui.composites.LogComposite;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.application.areca.launcher.gui.menus.MenuBuilder;
 import com.application.areca.metadata.manifest.Manifest;
+import com.application.areca.search.SearchResultItem;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.system.OSTool;
 import com.myJava.util.Utilitaire;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
-import com.myJava.util.os.OSTool;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
@@ -126,6 +127,7 @@ implements ActionConstants, Window.IExceptionHandler {
     private Menu workspaceContextMenu;
     private Menu logContextMenu;
     private Menu historyContextMenu;
+    private Menu searchContextMenu;
 
     private Workspace workspace;
     private MainWindow mainWindow;
@@ -166,6 +168,7 @@ implements ActionConstants, Window.IExceptionHandler {
         this.workspaceContextMenu = MenuBuilder.buildWorkspaceContextMenu(shell);
         this.logContextMenu = MenuBuilder.buildLogContextMenu(shell);
         this.historyContextMenu = MenuBuilder.buildHistoryContextMenu(shell);
+        this.searchContextMenu = MenuBuilder.buildSearchContextMenu(shell);
     }
     
     public void checkSystem() {
@@ -208,6 +211,10 @@ implements ActionConstants, Window.IExceptionHandler {
 
     public Menu getHistoryContextMenu() {
         return historyContextMenu;
+    }
+
+    public Menu getSearchContextMenu() {
+        return searchContextMenu;
     }
 
     public Display getDisplay() {
@@ -346,16 +353,11 @@ implements ActionConstants, Window.IExceptionHandler {
         } else if (command.equals(CMD_OPEN)) {
             // OPEN WORKSPACE
             String path = showDirectoryDialog(this.workspace.path, this.mainWindow);
-            if (path != null) {
-                try {
-                    this.setWorkspace(new Workspace(FileSystemManager.getAbsolutePath(new File(path)), this), true);
-                } catch (AdapterException e1) {
-                    this.handleException(
-                            RM.getLabel("error.loadworkspace.message", new Object[] {e1.getMessage(), e1.getSource()}),
-                            e1
-                    );
-                }                
-            }
+            openWorkspace(path);
+        } else if (command.equals(CMD_IMPORT_GROUP)) {
+            // IMPORT GROUP
+            ImportGroupWindow frm = new ImportGroupWindow();
+            showDialog(frm);
         } else if (command.equals(CMD_PREFERENCES)) {
             // PREFERENCES
             PreferencesWindow frm = new PreferencesWindow();
@@ -407,6 +409,19 @@ implements ActionConstants, Window.IExceptionHandler {
             }  
         } else if (command.equals(CMD_BUILD_BATCH)) {
             buildBatch();
+        } else if (command.equals(CMD_SEARCH_LOGICAL) || command.equals(CMD_SEARCH_PHYSICAL)) {
+            SearchResultItem item = this.mainWindow.getSearchView().getSelectedItem();
+            
+            this.enforceSelectedTarget(item.getTarget());
+            this.setCurrentDates(item.getCalendar(), item.getCalendar());
+            
+            if (command.equals(CMD_SEARCH_PHYSICAL)) {
+                // Archive detail
+                this.showArchiveDetail(item.getEntry());
+            } else {
+                // Logical view
+                this.showLogicalView(item.getEntry());
+            }
         } else if (command.equals(CMD_RECOVER_ENTRY) || command.equals(CMD_EDIT_FILE)) {
             // RECOVER ENTRY
             final String path;
@@ -491,6 +506,24 @@ implements ActionConstants, Window.IExceptionHandler {
         }
     }   
     
+    private void openWorkspace(String path) {
+        if (path != null) {
+            try {
+                this.setWorkspace(new Workspace(FileSystemManager.getAbsolutePath(new File(path)), this), true);
+            } catch (AdapterException e) {
+                this.handleException(
+                        RM.getLabel("error.loadworkspace.message", new Object[] {e.getMessage(), e.getSource()}),
+                        e
+                );
+            } catch (Throwable e) {
+                this.handleException(
+                        RM.getLabel("error.loadworkspace.message", new Object[] {e.getMessage(), path}),
+                        e
+                );
+            }                  
+        }
+    }
+    
     public void buildBatch() {
         String fileNameSelected = "backup_" + Utilitaire.replace(this.getCurrentProcess().getSource(), ".xml", "");
         String fileNameAll = "backup";
@@ -565,6 +598,22 @@ implements ActionConstants, Window.IExceptionHandler {
             } catch (Exception e) {
                 handleException("Error during shortcut creation", e);
             }
+        }
+    }
+    
+    public void importGroup(File f) {
+        try {
+            if (
+                    this.workspace != null
+                    && FileSystemManager.exists(f) 
+                    && FileSystemManager.isFile(f) 
+                    && FileSystemManager.getName(f).toLowerCase().endsWith(".xml")              
+            ) {
+                FileTool.getInstance().copy(f, new File(workspace.getPath()));
+                this.openWorkspace(this.workspace.getPath());
+            }
+        } catch (Throwable e) {
+            handleException(RM.getLabel("error.importgrp.message"), e);
         }
     }
     
@@ -700,6 +749,10 @@ implements ActionConstants, Window.IExceptionHandler {
         } finally {
             this.disableWaitCursor();
         }
+    }
+    
+    public void showLogicalView(RecoveryEntry entry) {
+        this.mainWindow.focusOnLogicalView(entry);
     }
 
     /**
@@ -1111,6 +1164,10 @@ implements ActionConstants, Window.IExceptionHandler {
         } else {
             item.setText("   " + label + "   ");
         }
+    }
+    
+    public String showFileDialog(AbstractWindow parent) {
+        return showFileDialog(OSTool.getUserDir(), parent);
     }
     
     public String showFileDialog(String dir, AbstractWindow parent) {

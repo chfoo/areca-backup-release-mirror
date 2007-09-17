@@ -35,7 +35,7 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.event.EventFileSystemDriver;
 import com.myJava.file.event.LoggerFileSystemDriverListener;
-import com.myJava.util.ToStringHelper;
+import com.myJava.object.ToStringHelper;
 import com.myJava.util.errors.ActionError;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.DefaultHistory;
@@ -47,7 +47,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

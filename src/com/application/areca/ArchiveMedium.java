@@ -9,7 +9,7 @@ import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
-import com.myJava.util.PublicClonable;
+import com.myJava.object.PublicClonable;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.History;
 
@@ -18,7 +18,7 @@ import com.myJava.util.history.History;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

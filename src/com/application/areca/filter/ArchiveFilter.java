@@ -1,14 +1,14 @@
 package com.application.areca.filter;
 
 import com.application.areca.RecoveryEntry;
-import com.myJava.util.PublicClonable;
+import com.myJava.object.PublicClonable;
 
 /**
  * Classe générique définissant un filtre d'entrée à backuper.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

@@ -5,15 +5,15 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.application.areca.RecoveryEntry;
-import com.myJava.util.EqualsHelper;
-import com.myJava.util.HashHelper;
-import com.myJava.util.PublicClonable;
+import com.myJava.object.EqualsHelper;
+import com.myJava.object.HashHelper;
+import com.myJava.object.PublicClonable;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*

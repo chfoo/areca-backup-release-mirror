@@ -8,15 +8,15 @@ import java.util.Set;
 
 import javax.crypto.spec.IvParameterSpec;
 
-import com.myJava.util.EqualsHelper;
-import com.myJava.util.HashHelper;
+import com.myJava.object.EqualsHelper;
+import com.myJava.object.HashHelper;
 
 /**
  * Default parameters indexed by encryption algorithm
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : -2622785387388097396
+ * <BR>Areca Build ID : 3732974506771028333
  */
  
  /*
