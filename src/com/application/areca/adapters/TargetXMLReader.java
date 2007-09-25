@@ -41,7 +41,7 @@ import com.application.areca.postprocess.ShellScriptPostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3732974506771028333
+ * <BR>Areca Build ID : 7453350623295719521
  */
  
  /*
@@ -269,6 +269,11 @@ public class TargetXMLReader implements XMLTags {
             pp.setOnlyIfError(Boolean.valueOf(failureOnlyNode.getNodeValue()).booleanValue());
         }
         
+        Node smtpsNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_SMTPS);
+        if (smtpsNode != null) {
+            pp.setSmtps(Boolean.valueOf(smtpsNode.getNodeValue()).booleanValue());
+        }
+        
         Node listFilteredNode = node.getAttributes().getNamedItem(XML_PP_LIST_FILTERED);
         if (listFilteredNode != null) {
             pp.setListFiltered(Boolean.valueOf(listFilteredNode.getNodeValue()).booleanValue());
@@ -288,6 +293,16 @@ public class TargetXMLReader implements XMLTags {
         Node titleNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_TITLE);
         if (titleNode != null) {
             pp.setTitle(titleNode.getNodeValue());
+        }
+        
+        Node introNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_INTRO);
+        if (introNode != null) {
+            pp.setIntro(introNode.getNodeValue());
+        }
+        
+        Node fromNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_FROM);
+        if (fromNode != null) {
+            pp.setFrom(fromNode.getNodeValue());
         }
         
         pp.setRecipients(recipientsNode.getNodeValue());

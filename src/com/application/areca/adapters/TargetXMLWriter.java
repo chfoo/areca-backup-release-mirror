@@ -31,7 +31,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3732974506771028333
+ * <BR>Areca Build ID : 7453350623295719521
  */
  
  /*
@@ -207,13 +207,25 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("=");
         sb.append(encode("" + pp.isOnlyIfError()));     
         sb.append(" ");     
+        sb.append(XML_PP_EMAIL_SMTPS);
+        sb.append("=");
+        sb.append(encode("" + pp.isSmtps()));    
+        sb.append(" ");     
         sb.append(XML_PP_LIST_FILTERED);
         sb.append("=");
         sb.append(encode("" + pp.isListFiltered()));  
         sb.append(" ");
         sb.append(XML_PP_EMAIL_TITLE);
         sb.append("=");
-        sb.append(encode(pp.getTitle()));          
+        sb.append(encode(pp.getTitle()));   
+        sb.append(" ");
+        sb.append(XML_PP_EMAIL_FROM);
+        sb.append("=");
+        sb.append(encode(pp.getFrom()));   
+        sb.append(" ");
+        sb.append(XML_PP_EMAIL_INTRO);
+        sb.append("=");
+        sb.append(encode(pp.getIntro())); 
         sb.append("/>");        
     }
     

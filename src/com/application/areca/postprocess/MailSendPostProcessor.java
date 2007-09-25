@@ -35,7 +35,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3732974506771028333
+ * <BR>Areca Build ID : 7453350623295719521
  */
  
  /*
@@ -60,12 +60,15 @@ This file is part of Areca.
 public class MailSendPostProcessor extends AbstractPostProcessor {
 
     private String smtpServer;
+    private boolean smtps;
+    private String from;
     private String recipients;
     private String user;
     private String password;
     private boolean onlyIfError;
     private boolean listFiltered = true;
     private String title = "Areca : backup report for target %TARGET_NAME%.";
+    private String intro = "ARECA : Backup Report";
 
     public MailSendPostProcessor() {
         super();
@@ -91,12 +94,36 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
         this.user = user;
     }
 
+    public String getIntro() {
+        return intro;
+    }
+
+    public void setIntro(String intro) {
+        this.intro = intro;
+    }
+
+    public boolean isSmtps() {
+        return smtps;
+    }
+
+    public void setSmtps(boolean smtps) {
+        this.smtps = smtps;
+    }
+
     public boolean isOnlyIfError() {
         return onlyIfError;
     }
 
     public void setOnlyIfError(boolean onlyIfError) {
         this.onlyIfError = onlyIfError;
+    }
+
+    public String getFrom() {
+        return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
     }
 
     public boolean isListFiltered() {
@@ -169,7 +196,10 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
             Logger.defaultLogger().info("Sending a mail report to : " + this.recipients + " using SMTP server : " + this.smtpServer);
             try {
                 String subject = TagHelper.replaceParamValues(this.title, context);
-                String content = getReportAsText(context.getReport());
+                String content = 
+                    TagHelper.replaceParamValues(this.intro, context)
+                    + "\n"
+                    + getReportAsText(context.getReport());
                 
                 if (ArecaTechnicalConfiguration.get().isSMTPDebugMode()) {
                     baos = new ByteArrayOutputStream();
@@ -199,7 +229,7 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
             String subject,
             String content,
             PrintStream debugStream
-    ) throws ApplicationException {
+    ) throws ApplicationException {       
     	Properties props = System.getProperties();
     	props.put("mail.smtp.host", getSmtpServerName());
     	props.put("mail.smtp.port", "" + getSmtpServerPort());
@@ -218,16 +248,23 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
     	    }
     	    
     	    MimeMessage msg = new MimeMessage(session);
-    	    msg.setFrom(addresses[0]);
 
+    	    msg.setFrom((this.from == null || this.from.trim().length() == 0) ? addresses[0] : new InternetAddress(this.from));
     	    msg.setRecipients(Message.RecipientType.TO, addresses);
     	    msg.setSubject(subject);
     	    msg.setText(content, OSTool.getIANAFileEncoding());
     	    msg.setSentDate(new Date());
                 	    
     	    if (isAuthenticated()) {
-        	    props.put("mail.smtp.auth", "true");
-                Transport tr = session.getTransport("smtp");
+                Transport tr;
+                if (isSmtps()) {
+                    props.put("mail.smtps.auth", "true");
+                    tr = session.getTransport("smtps");
+                } else {
+                    props.put("mail.smtp.auth", "true");
+                    tr = session.getTransport("smtp");
+                }
+                
                 tr.connect(getSmtpServerName(), getSmtpServerPort(), getUser(), getPassword());
                 msg.saveChanges();
                 tr.sendMessage(msg, msg.getAllRecipients());
@@ -274,6 +311,9 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
         pro.onlyIfError = this.onlyIfError;
         pro.listFiltered = this.listFiltered;
         pro.title = this.title;
+        pro.smtps = this.smtps;
+        pro.intro = this.intro;
+        pro.from = this.from;
         return pro;
     }
     
@@ -317,7 +357,10 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
             	&& EqualsHelper.equals(this.recipients, other.recipients)
                 && EqualsHelper.equals(this.onlyIfError, other.onlyIfError)
                 && EqualsHelper.equals(this.listFiltered, other.listFiltered)
-                && EqualsHelper.equals(this.title, other.title)                         
+                && EqualsHelper.equals(this.smtps, other.smtps)
+                && EqualsHelper.equals(this.title, other.title)      
+                && EqualsHelper.equals(this.intro, other.intro)      
+                && EqualsHelper.equals(this.from, other.from)                     
             	;
         }
     }
@@ -330,7 +373,10 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
         h = HashHelper.hash(h, this.recipients);
         h = HashHelper.hash(h, this.onlyIfError);
         h = HashHelper.hash(h, this.listFiltered);     
-        h = HashHelper.hash(h, this.title);    
+        h = HashHelper.hash(h, this.smtps);             
+        h = HashHelper.hash(h, this.title);
+        h = HashHelper.hash(h, this.intro);    
+        h = HashHelper.hash(h, this.from);            
         return h;
     }
 }

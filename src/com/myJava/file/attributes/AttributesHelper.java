@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
 import com.myJava.file.FileSystemManager;
+import com.myJava.object.ToStringHelper;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 
@@ -16,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3732974506771028333
+ * <BR>Areca Build ID : 7453350623295719521
  */
  
  /*
@@ -269,7 +270,38 @@ public class AttributesHelper {
     }
 
     private static void execute(String[] cmd) throws IOException {
-        Runtime.getRuntime().exec(cmd);
+        Process p = null;
+        try {
+            p = Runtime.getRuntime().exec(cmd);
+        } catch (RuntimeException e) {
+            Logger.defaultLogger().error("Error executing " + ToStringHelper.serialize(cmd), e);
+            throw e;
+        } catch (IOException ioe) {
+            Logger.defaultLogger().error("Error executing " + ToStringHelper.serialize(cmd), ioe);
+            throw ioe;
+        } finally {
+            try {
+                if (p != null) {
+                    try {
+                        if (p.getErrorStream() != null) {
+                            p.getErrorStream().close();
+                        }
+                    } finally {
+                        try {
+                            if (p.getInputStream() != null) {
+                                p.getInputStream().close();
+                            }
+                        } finally {
+                            if (p.getOutputStream() != null) {
+                                p.getOutputStream().close();
+                            }
+                        }
+                    }
+                }
+            } catch (Throwable e) {
+                Logger.defaultLogger().error("Error closing streams", e);
+            }
+        }
     }
 
     public static void main(String[] args) {

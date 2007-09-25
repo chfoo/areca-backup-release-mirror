@@ -10,7 +10,7 @@ import java.util.Set;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3732974506771028333
+ * <BR>Areca Build ID : 7453350623295719521
  */
  
  /*
@@ -101,6 +101,27 @@ public class ToStringHelper {
                 sb.append("]");
             }
             sb.append("}");
+        }
+    }
+    
+    public static String serialize(Object[] o) {
+        if (o == null) {
+            return "<null>";
+        } else {
+            StringBuffer b = new StringBuffer();
+            b.append('{');
+            for (int i=0; i<o.length; i++) {
+                if (i != 0) {
+                    b.append(", ");
+                }
+                if (o[i] != null) {
+                    b.append(o.toString());
+                } else {
+                    b.append("<null>");
+                }
+            }
+            b.append('}');
+            return b.toString();
         }
     }
     

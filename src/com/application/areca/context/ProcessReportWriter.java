@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3732974506771028333
+ * <BR>Areca Build ID : 7453350623295719521
  */
  
  /*
@@ -49,7 +49,6 @@ public class ProcessReportWriter {
     
 
     public void writeReport(ProcessReport report) throws IOException {
-        write("ARECA : BACKUP REPORT");
         writeSeparator();
         write("Target : " + report.getTarget().getTargetName() + " (#" + report.getTarget().getId() + ")");
         write("UID : " + report.getTarget().getUid());

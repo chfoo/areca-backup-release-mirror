@@ -16,7 +16,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3732974506771028333
+ * <BR>Areca Build ID : 7453350623295719521
  */
  
  /*
@@ -55,28 +55,28 @@ public class TagHelper {
     public static String replaceParamValues(String param, ProcessContext context) {
         if (param == null) {
             return null;
+        } else {
+            String value = param;
+            
+            value = Utilitaire.replace(value, PARAM_ARCHIVE, FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()));
+            value = Utilitaire.replace(value, PARAM_ARCHIVE_NAME, FileSystemManager.getName(context.getFinalArchiveFile()));
+            
+            value = Utilitaire.replace(value, PARAM_TARGET_UID, context.getReport().getTarget().getUid());
+            value = Utilitaire.replace(value, PARAM_TARGET_NAME, context.getReport().getTarget().getTargetName());
+            
+            try {
+                String localHost = InetAddress.getLocalHost().getHostName();
+                value = Utilitaire.replace(value, PARAM_COMPUTER_NAME, localHost);
+            } catch (UnknownHostException e) {
+                Logger.defaultLogger().error("Error detecting local host name", e);
+            }
+            
+            GregorianCalendar now = new GregorianCalendar();
+            value = Utilitaire.replace(value, PARAM_DATE, CalendarUtils.getDateToString(now));
+            value = Utilitaire.replace(value, PARAM_TIME, CalendarUtils.getTimeToString(now));
+            value = Utilitaire.replace(value, PARAM_USER_NAME, OSTool.getUserName());
+            
+            return value;
         }
-        
-        String value = param;
-        
-        value = Utilitaire.replace(value, PARAM_ARCHIVE, FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()));
-        value = Utilitaire.replace(value, PARAM_ARCHIVE_NAME, FileSystemManager.getName(context.getFinalArchiveFile()));
-        
-        value = Utilitaire.replace(value, PARAM_TARGET_UID, context.getReport().getTarget().getUid());
-        value = Utilitaire.replace(value, PARAM_TARGET_NAME, context.getReport().getTarget().getTargetName());
-        
-        try {
-            String localHost = InetAddress.getLocalHost().getHostName();
-            value = Utilitaire.replace(value, PARAM_COMPUTER_NAME, localHost);
-        } catch (UnknownHostException e) {
-            Logger.defaultLogger().error("Error detecting local host name", e);
-        }
-        
-        GregorianCalendar now = new GregorianCalendar();
-        value = Utilitaire.replace(value, PARAM_DATE, CalendarUtils.getDateToString(now));
-        value = Utilitaire.replace(value, PARAM_TIME, CalendarUtils.getTimeToString(now));
-        value = Utilitaire.replace(value, PARAM_USER_NAME, OSTool.getUserName());
-        
-        return value;
     }
 }

@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3732974506771028333
+ * <BR>Areca Build ID : 7453350623295719521
  */
  
  /*
@@ -99,10 +99,13 @@ public interface XMLTags {
     public static final String XML_PP_EMAIL_RECIPIENTS = "recipients";
     public static final String XML_PP_EMAIL_SMTP = "smtp_host";
     public static final String XML_PP_EMAIL_TITLE = "title";    
+    public static final String XML_PP_EMAIL_FROM = "from";    
+    public static final String XML_PP_EMAIL_INTRO = "introduction";    
     public static final String XML_PP_EMAIL_USER = "smtp_user";
     public static final String XML_PP_ONLY_IF_ERROR = "failure_only";
     public static final String XML_PP_LIST_FILTERED = "list_filtered";
     public static final String XML_PP_EMAIL_PASSWORD = "smtp_password";    
+    public static final String XML_PP_EMAIL_SMTPS = "smtp_s";    
     public static final String XML_PP_SHELL_SCRIPT = "script";
     public static final String XML_PP_SHELL_PARAMS = "parameters";    
     public static final String XML_PP_MERGE_DELAY = "delay";    

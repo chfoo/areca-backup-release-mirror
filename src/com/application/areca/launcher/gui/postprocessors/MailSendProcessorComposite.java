@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Text;
 import com.application.areca.ApplicationException;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
+import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.postprocess.MailSendPostProcessor;
 import com.application.areca.postprocess.PostProcessor;
 
@@ -23,7 +24,7 @@ import com.application.areca.postprocess.PostProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3732974506771028333
+ * <BR>Areca Build ID : 7453350623295719521
  */
  
  /*
@@ -52,8 +53,11 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
     private Text txtUser;
     private Text txtPassword;
     private Text txtTitle;
+    private Text txtIntro;
+    private Text txtFrom;
     private Button btnTest;
     private Button btnOnlyError;
+    private Button btnSMTPS;
     private Button btnListFiltered;
     
     public MailSendProcessorComposite(Composite composite, PostProcessor proc, ProcessorEditionWindow window) {
@@ -67,6 +71,16 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         txtTitle = new Text(this, SWT.BORDER);
         txtTitle.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         window.monitorControl(txtTitle);
+        
+        // Intro
+        Label lblIntro = new Label(this, SWT.NONE);
+        lblIntro.setText(RM.getLabel("procedition.mailintro.label"));
+        txtIntro = new Text(this, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
+        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true);
+        dt.heightHint = AbstractWindow.computeHeight(50);
+        dt.widthHint = AbstractWindow.computeWidth(200);
+        txtIntro.setLayoutData(dt);
+        window.monitorControl(txtIntro);
         
         // Example
         new Label(this, SWT.NONE);
@@ -82,6 +96,14 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         txtRecipients.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         window.monitorControl(txtRecipients);
         
+        // From
+        Label lblFrom = new Label(this, SWT.NONE);
+        lblFrom.setText(RM.getLabel("procedition.mailfrom.label"));
+        
+        txtFrom = new Text(this, SWT.BORDER);
+        txtFrom.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        window.monitorControl(txtFrom);
+        
         // SMTP
         Label lblSmtp = new Label(this, SWT.NONE);
         lblSmtp.setText(RM.getLabel("procedition.smtp.label"));
@@ -89,6 +111,13 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         txtSmtp = new Text(this, SWT.BORDER);
         txtSmtp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         window.monitorControl(txtSmtp);
+        
+        // SMTPS
+        new Label(this, SWT.NONE);
+        btnSMTPS = new Button(this, SWT.CHECK);
+        btnSMTPS.setText(RM.getLabel("procedition.smtps.label"));
+        btnSMTPS.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+        window.monitorControl(btnSMTPS);
         
         // User
         Label lblUser = new Label(this, SWT.NONE);
@@ -149,6 +178,13 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
             btnOnlyError.setSelection(mProc.isOnlyIfError());
             btnListFiltered.setSelection(mProc.isListFiltered());
             txtTitle.setText(mProc.getTitle());
+            btnSMTPS.setSelection(mProc.isSmtps());
+            if (mProc.getIntro() != null) {
+                txtIntro.setText(mProc.getIntro());
+            }
+            if (mProc.getFrom() != null) {
+                txtFrom.setText(mProc.getFrom());
+            }
         }
     }
 
@@ -161,6 +197,9 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         mProc.setOnlyIfError(btnOnlyError.getSelection());
         mProc.setListFiltered(btnListFiltered.getSelection());
         mProc.setTitle(txtTitle.getText());
+        mProc.setSmtps(btnSMTPS.getSelection());
+        mProc.setIntro(txtIntro.getText());
+        mProc.setFrom(txtFrom.getText());
     }
     
     public boolean validateParams() {
