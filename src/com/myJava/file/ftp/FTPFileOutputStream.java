@@ -10,7 +10,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -39,6 +39,7 @@ public class FTPFileOutputStream extends OutputStream {
     private String ownerId;
     private long lastConnectionId;
     private String fileName;
+    private boolean closed = false;
     
     /**
      * @param proxy
@@ -54,28 +55,37 @@ public class FTPFileOutputStream extends OutputStream {
     }
     
     public void close() throws IOException {
-        try {
-            proxy.debug("OutputStream : close()");
-            if (proxy.hasReconnectSince(this.lastConnectionId)) {
-                Logger.defaultLogger().error("Unable to properly close the OutputStream since the FTP connection has been reinitialized since the stream's creation.", "FTPFileOutputStream.close()");
-                proxy.debug("Unable to properly close the OutputStream since the FTP connection has been reinitialized since the stream's creation.", "FTPFileOutputStream.close()");                
-                throw new IOException("Unable to properly close the OutputStream since the FTP connection has been reinitialized since the stream's creation.");
-            }
-            flush();
-            out.close();
-        } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            throw e;
-        } finally {
+        proxy.debug("OutputStream : close()");
+        
+        if (closed) {
+            proxy.debug("Outputstream already closed.", "FTPFileOutputStream.close()");     
+        } else {
             try {
-                proxy.completePendingCommand(true);
-            } catch (FTPConnectionException e) {
-                Logger.defaultLogger().error("Unable to complete the FTP data transfert", e, "FTPFileOutputStream.close()");
-                proxy.debug("Unable to complete the FTP data transfert", "FTPFileOutputStream.close()");
-                throw new IOException("Unable to complete the FTP data transfert : " + e.getMessage());
+                if (proxy.hasReconnectSince(this.lastConnectionId)) {
+                    Logger.defaultLogger().error("Unable to properly close the OutputStream since the FTP connection has been reinitialized since the stream's creation.", "FTPFileOutputStream.close()");
+                    proxy.debug("Unable to properly close the OutputStream since the FTP connection has been reinitialized since the stream's creation.", "FTPFileOutputStream.close()");                
+                    throw new IOException("Unable to properly close the OutputStream since the FTP connection has been reinitialized since the stream's creation.");
+                }
+                try {
+                    flush();
+                } finally {
+                    out.close();
+                    closed = true;
+                }
+            } catch (IOException e) {
+                Logger.defaultLogger().error(e);
+                throw e;
             } finally {
-                this.proxy.releaseLock(ownerId);
-                this.proxy.removeCachedFileInfos(fileName);
+                try {
+                    proxy.completePendingCommand(true);
+                } catch (FTPConnectionException e) {
+                    Logger.defaultLogger().error("Unable to complete the FTP data transfert", e, "FTPFileOutputStream.close()");
+                    proxy.debug("Unable to complete the FTP data transfert", "FTPFileOutputStream.close()");
+                    throw new IOException("Unable to complete the FTP data transfert : " + e.getMessage());
+                } finally {
+                    this.proxy.releaseLock(ownerId);
+                    this.proxy.removeCachedFileInfos(fileName);
+                }
             }
         }
     }

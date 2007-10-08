@@ -1,4 +1,4 @@
-package com.application.areca.postprocess;
+package com.application.areca.processor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,7 +35,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -57,7 +57,7 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class MailSendPostProcessor extends AbstractPostProcessor {
+public class MailSendAction extends AbstractCustomAction {
 
     private String smtpServer;
     private boolean smtps;
@@ -70,7 +70,7 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
     private String title = "Areca : backup report for target %TARGET_NAME%.";
     private String intro = "ARECA : Backup Report";
 
-    public MailSendPostProcessor() {
+    public MailSendAction() {
         super();
     }
     
@@ -189,7 +189,7 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
         ;
     }
     
-    public void run(ProcessContext context) throws ApplicationException {
+    public void runImpl(ProcessContext context) throws ApplicationException {
         if ((! context.getReport().isCommited()) || (! this.onlyIfError)) {
             PrintStream str = null;
             ByteArrayOutputStream baos = null;
@@ -303,7 +303,7 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
     }
     
     public PublicClonable duplicate() {
-        MailSendPostProcessor pro = new MailSendPostProcessor();
+        MailSendAction pro = new MailSendAction();
         pro.recipients = this.recipients;
         pro.smtpServer = this.smtpServer;   
         pro.user = this.user;
@@ -317,18 +317,18 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
         return pro;
     }
     
-    public void validate() throws PostProcessorValidationException {
+    public void validate() throws CustomActionValidationException {
         if (smtpServer == null || smtpServer.trim().length() == 0) {
-            throw new PostProcessorValidationException("A SMTP server must be provided");
+            throw new CustomActionValidationException("A SMTP server must be provided");
         }
         if (recipients == null || recipients.trim().length() == 0) {
-            throw new PostProcessorValidationException("At least one recipient must be provided");
+            throw new CustomActionValidationException("At least one recipient must be provided");
         }
         
         List recp = getAddressesAsList();
         for (int i=0; i<recp.size(); i++) {
             if (! CommonRules.checkEmail((String)recp.get(i))) {
-                throw new PostProcessorValidationException("Invalid Email : " + recp.get(i));
+                throw new CustomActionValidationException("Invalid Email : " + recp.get(i));
             }
         }
     }
@@ -346,10 +346,10 @@ public class MailSendPostProcessor extends AbstractPostProcessor {
     }
     
     public boolean equals(Object obj) {
-        if (obj == null || (! (obj instanceof MailSendPostProcessor)) ) {
+        if (obj == null || (! (obj instanceof MailSendAction)) ) {
             return false;
         } else {
-            MailSendPostProcessor other = (MailSendPostProcessor)obj;
+            MailSendAction other = (MailSendAction)obj;
             return 
             	EqualsHelper.equals(this.password, other.password)
             	&& EqualsHelper.equals(this.user, other.user)

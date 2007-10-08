@@ -1,14 +1,10 @@
-package com.application.areca.postprocess;
-
-import com.application.areca.ApplicationException;
-import com.application.areca.context.ProcessContext;
-import com.myJava.object.PublicClonable;
+package com.application.areca.processor;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -30,10 +26,21 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public interface PostProcessor extends Comparable, PublicClonable {
+public class CustomActionValidationException extends Exception {
 
-    public void postProcess(ProcessContext context) throws ApplicationException;
-    public boolean requiresFilteredEntriesListing();
-    public String getParametersSummary();
-    public void validate() throws PostProcessorValidationException;
+    public CustomActionValidationException() {
+        super();
+    }
+
+    public CustomActionValidationException(String message) {
+        super(message);
+    }
+
+    public CustomActionValidationException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public CustomActionValidationException(Throwable cause) {
+        super(cause);
+    }
 }

@@ -1,4 +1,4 @@
-package com.application.areca.postprocess;
+package com.application.areca.processor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -39,11 +39,11 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ShellScriptPostProcessor extends AbstractPostProcessor {
+public class ShellScriptAction extends AbstractCustomAction {
     private String command;
     private String commandParameters;
 
-    public ShellScriptPostProcessor() {
+    public ShellScriptAction() {
         super();
     }
     
@@ -82,7 +82,7 @@ public class ShellScriptPostProcessor extends AbstractPostProcessor {
         return elements;
     }
     
-    public void run(ProcessContext context) throws ApplicationException {
+    public void runImpl(ProcessContext context) throws ApplicationException {
         try {
             String[] fullCommand = getFullCommand(context);
             Process p = Runtime.getRuntime().exec(fullCommand);
@@ -114,29 +114,29 @@ public class ShellScriptPostProcessor extends AbstractPostProcessor {
     }
     
     public PublicClonable duplicate() {
-        ShellScriptPostProcessor pro = new ShellScriptPostProcessor();
+        ShellScriptAction pro = new ShellScriptAction();
         pro.command = this.command;
         return pro;
     }
     
-    public void validate() throws PostProcessorValidationException {
+    public void validate() throws CustomActionValidationException {
         if (command == null || command.trim().length() == 0) {
-            throw new PostProcessorValidationException("A shell command must be supplied.");
+            throw new CustomActionValidationException("A shell command must be supplied.");
         }
         
         if (commandParameters != null) {
             if (commandParameters.indexOf('\"') != -1) {
-                throw new PostProcessorValidationException("Shell arguments can't contain quotes.");
+                throw new CustomActionValidationException("Shell arguments can't contain quotes.");
             }
         }
     }
     
     
     public boolean equals(Object obj) {
-        if (obj == null || (! (obj instanceof ShellScriptPostProcessor)) ) {
+        if (obj == null || (! (obj instanceof ShellScriptAction)) ) {
             return false;
         } else {
-            ShellScriptPostProcessor other = (ShellScriptPostProcessor)obj;
+            ShellScriptAction other = (ShellScriptAction)obj;
             return 
                 EqualsHelper.equals(this.command, other.command)
                 && EqualsHelper.equals(this.commandParameters, other.commandParameters)

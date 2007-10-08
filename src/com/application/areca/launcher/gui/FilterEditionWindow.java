@@ -1,5 +1,7 @@
 package com.application.areca.launcher.gui;
 
+import java.util.Iterator;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -23,7 +25,7 @@ import com.application.areca.launcher.gui.filters.AbstractFilterComposite;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -73,14 +75,10 @@ extends AbstractWindow {
         Label lblFilterType = new Label(composite, SWT.NONE);
         lblFilterType.setText(RM.getLabel("filteredition.filtertypefield.label"));
         cboFilterType = new Combo(composite, SWT.READ_ONLY);
-        cboFilterType.add(RM.getLabel("filteredition.fileextensionfilter.label"));
-        cboFilterType.add(RM.getLabel("filteredition.regexfilter.label"));
-        cboFilterType.add(RM.getLabel("filteredition.directoryfilter.label"));
-        cboFilterType.add(RM.getLabel("filteredition.filesizefilter.label"));
-        cboFilterType.add(RM.getLabel("filteredition.filedatefilter.label"));  
-        cboFilterType.add(RM.getLabel("filteredition.linkfilter.label"));       
-        cboFilterType.add(RM.getLabel("filteredition.lockedfilefilter.label"));   
-        cboFilterType.add(RM.getLabel("filteredition.filtergroup.label"));   
+        Iterator iter = FilterRepository.getFilters().iterator();
+        while (iter.hasNext()) {
+            cboFilterType.add((String)iter.next());
+        }
         GridData dt = new GridData(SWT.FILL, SWT.CENTER, true, false);
         dt.widthHint = AbstractWindow.computeWidth(400);
         cboFilterType.setLayoutData(dt);
@@ -109,12 +107,11 @@ extends AbstractWindow {
         pnlParamsContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
         
         // INIT
+        cboFilterType.select(FilterRepository.getIndex(currentFilter));  
         if (this.currentFilter != null) {
             this.cboFilterType.setEnabled(false);
             chkExclude.setSelection(currentFilter.isExclude());
-            cboFilterType.select(FilterRepository.getIndex(currentFilter));  
         } else {
-            cboFilterType.select(0);
             chkExclude.setSelection(true);
         }
         

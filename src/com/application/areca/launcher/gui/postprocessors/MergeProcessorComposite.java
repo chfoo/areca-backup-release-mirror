@@ -9,15 +9,15 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
-import com.application.areca.postprocess.MergePostProcessor;
-import com.application.areca.postprocess.PostProcessor;
+import com.application.areca.processor.CustomAction;
+import com.application.areca.processor.MergeAction;
 import com.myJava.util.CommonRules;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -44,7 +44,7 @@ public class MergeProcessorComposite extends AbstractProcessorComposite {
     private Text txtDelay;
     private Button btnKeepDeletedEntries;
     
-    public MergeProcessorComposite(Composite composite, PostProcessor proc, ProcessorEditionWindow window) {
+    public MergeProcessorComposite(Composite composite, CustomAction proc, ProcessorEditionWindow window) {
         super(composite, proc, window);
         this.setLayout(new GridLayout(2, false));
         
@@ -62,14 +62,14 @@ public class MergeProcessorComposite extends AbstractProcessorComposite {
         window.monitorControl(btnKeepDeletedEntries);
         
         if (proc != null) {
-            MergePostProcessor fProc = (MergePostProcessor)proc;
+            MergeAction fProc = (MergeAction)proc;
             txtDelay.setText("" + fProc.getDelay());
             btnKeepDeletedEntries.setSelection(fProc.isKeepDeletedEntries());
         }
     }
 
-    public void initProcessor(PostProcessor proc) {
-        MergePostProcessor fProc = (MergePostProcessor)proc;
+    public void initProcessor(CustomAction proc) {
+        MergeAction fProc = (MergeAction)proc;
         fProc.setDelay(Integer.parseInt(txtDelay.getText()));
         fProc.setKeepDeletedEntries(btnKeepDeletedEntries.getSelection());
     }

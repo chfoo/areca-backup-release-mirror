@@ -1,10 +1,17 @@
-package com.application.areca.postprocess;
+package com.application.areca.launcher.gui.filters;
+
+import org.eclipse.swt.widgets.Composite;
+
+import com.application.areca.filter.ArchiveFilter;
+import com.application.areca.filter.FileOwnerArchiveFilter;
+import com.application.areca.launcher.gui.FilterEditionWindow;
+import com.application.areca.launcher.gui.FilterRepository;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -26,21 +33,14 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class PostProcessorValidationException extends Exception {
-
-    public PostProcessorValidationException() {
-        super();
+public class FileOwnerFilterComposite extends AbstractSimpleParamFilterComposite {
+    private static final String EXAMPLE = RM.getLabel("filteredition.exampleowner.label");    
+    
+    public FileOwnerFilterComposite(Composite composite, ArchiveFilter filter, FilterEditionWindow window) {
+        super(composite, FilterRepository.getIndex(FileOwnerArchiveFilter.class), filter, window);
     }
 
-    public PostProcessorValidationException(String message) {
-        super(message);
-    }
-
-    public PostProcessorValidationException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public PostProcessorValidationException(Throwable cause) {
-        super(cause);
+    public String getParamExample() {
+        return EXAMPLE;
     }
 }

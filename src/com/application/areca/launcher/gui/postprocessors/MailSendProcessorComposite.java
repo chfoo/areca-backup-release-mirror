@@ -17,14 +17,14 @@ import com.application.areca.ApplicationException;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.postprocess.MailSendPostProcessor;
-import com.application.areca.postprocess.PostProcessor;
+import com.application.areca.processor.CustomAction;
+import com.application.areca.processor.MailSendAction;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -60,7 +60,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
     private Button btnSMTPS;
     private Button btnListFiltered;
     
-    public MailSendProcessorComposite(Composite composite, PostProcessor proc, ProcessorEditionWindow window) {
+    public MailSendProcessorComposite(Composite composite, CustomAction proc, ProcessorEditionWindow window) {
         super(composite, proc, window);
         this.setLayout(new GridLayout(2, false));
         
@@ -146,7 +146,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
                 PrintStream ps = new PrintStream(baos);
                 
                 try {
-                    MailSendPostProcessor testProc = new MailSendPostProcessor();
+                    MailSendAction testProc = new MailSendAction();
                     initProcessor(testProc);
                     testProc.sendMail("Areca mail report test", "Areca mail report test successfull !", ps);
                     
@@ -170,7 +170,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         window.monitorControl(btnOnlyError);
         
         if (proc != null) {
-            MailSendPostProcessor mProc = (MailSendPostProcessor)proc;
+            MailSendAction mProc = (MailSendAction)proc;
             txtRecipients.setText(mProc.getRecipients());
             txtSmtp.setText(mProc.getSmtpServer());
             txtUser.setText(mProc.getUser());
@@ -188,8 +188,8 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         }
     }
 
-    public void initProcessor(PostProcessor proc) {
-        MailSendPostProcessor mProc = (MailSendPostProcessor)proc;
+    public void initProcessor(CustomAction proc) {
+        MailSendAction mProc = (MailSendAction)proc;
         mProc.setRecipients(txtRecipients.getText());
         mProc.setSmtpServer(txtSmtp.getText());
         mProc.setUser(txtUser.getText());

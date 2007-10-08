@@ -15,7 +15,7 @@ import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.FilterGroup;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.metadata.manifest.Manifest;
-import com.application.areca.postprocess.PostProcessorList;
+import com.application.areca.processor.CustomActionList;
 import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
 import com.application.areca.version.VersionInfos;
@@ -35,7 +35,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -69,7 +69,8 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     protected String targetName; // Name of the target
     protected RecoveryProcess process;
     protected String comments;
-    protected PostProcessorList postProcessors = new PostProcessorList();
+    protected CustomActionList postProcessors = new CustomActionList();
+    protected CustomActionList preProcessors = new CustomActionList();
     protected boolean running;
      
     public void setProcess(RecoveryProcess process) {
@@ -84,12 +85,17 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         other.targetName = "Copy of " + targetName;
         other.comments = comments;
         other.filterGroup = (FilterGroup)this.filterGroup.duplicate();
-        other.postProcessors = (PostProcessorList)postProcessors.duplicate();
+        other.postProcessors = (CustomActionList)postProcessors.duplicate();
+        other.preProcessors = (CustomActionList)preProcessors.duplicate();
         other.setMedium((ArchiveMedium)medium.duplicate(), true);
     }
     
-    public PostProcessorList getPostProcessors() {
+    public CustomActionList getPostProcessors() {
         return postProcessors;
+    }
+
+    public CustomActionList getPreProcessors() {
+        return preProcessors;
     }
 
     public boolean isRunning() {
@@ -240,7 +246,19 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         }
         
         if (backupRequired) {
-            if (! this.postProcessors.isEmpty()) {
+            if (! this.preProcessors.isEmpty()) {
+                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1);
+                TaskMonitor preProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
+                try {     
+                    this.preProcessors.run(context);
+                } finally {
+                    preProcessMon.enforceCompletion();
+                }
+            }
+            
+            if ((! this.postProcessors.isEmpty()) && (! this.preProcessors.isEmpty())) {
+                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8);
+            } else if ((! this.postProcessors.isEmpty()) || (! this.preProcessors.isEmpty())) {
                 context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.9);
             }
             
@@ -298,7 +316,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                     context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1);
 	                TaskMonitor postProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
 	                try {     
-	                    this.postProcessors.postProcess(context);
+	                    this.postProcessors.run(context);
 	                } finally {
 	                    postProcessMon.enforceCompletion();
 	                }

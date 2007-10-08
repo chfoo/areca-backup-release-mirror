@@ -3,7 +3,7 @@
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
@@ -229,19 +230,6 @@ public abstract class Utilitaire {
             return path.substring(index+1);
         }
     }
-
-    /**
-     * Transforme un vecteur d'objets en tableau de string
-     */
-    public static String[] vectorToStringArray(Vector v) {
-        int nb = v.size();
-        String[] array = new String[nb];
-        for (int i=0; i<nb; i++) {
-            array[i] = v.elementAt(i).toString();
-        }
-        return array;
-    }
-
 
     /**
      * Méthode utilitaire permettant de logger l'intégralité de ce qui est

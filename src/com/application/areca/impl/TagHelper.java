@@ -16,7 +16,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -47,6 +47,7 @@ public class TagHelper {
     public static final String PARAM_USER_NAME = "%USER_NAME%";
     public static final String PARAM_DATE = "%DATE%";
     public static final String PARAM_TIME = "%TIME%";
+    public static final String PARAM_SUCCESS = "%SUCCESS%";
     
     public static String replaceTag(String value, String oldTag, String newTag) {
         return Utilitaire.replace(value, oldTag, newTag);
@@ -58,8 +59,13 @@ public class TagHelper {
         } else {
             String value = param;
             
-            value = Utilitaire.replace(value, PARAM_ARCHIVE, FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()));
-            value = Utilitaire.replace(value, PARAM_ARCHIVE_NAME, FileSystemManager.getName(context.getFinalArchiveFile()));
+            if (context.getFinalArchiveFile() != null) {
+                value = Utilitaire.replace(value, PARAM_ARCHIVE, FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()));
+                value = Utilitaire.replace(value, PARAM_ARCHIVE_NAME, FileSystemManager.getName(context.getFinalArchiveFile()));
+            } else {
+                value = Utilitaire.replace(value, PARAM_ARCHIVE, "");
+                value = Utilitaire.replace(value, PARAM_ARCHIVE_NAME, "");
+            }
             
             value = Utilitaire.replace(value, PARAM_TARGET_UID, context.getReport().getTarget().getUid());
             value = Utilitaire.replace(value, PARAM_TARGET_NAME, context.getReport().getTarget().getTargetName());
@@ -76,6 +82,8 @@ public class TagHelper {
             value = Utilitaire.replace(value, PARAM_TIME, CalendarUtils.getTimeToString(now));
             value = Utilitaire.replace(value, PARAM_USER_NAME, OSTool.getUserName());
             
+            value = Utilitaire.replace(value, PARAM_SUCCESS, context.getReport().isCommited() ? "1" : "0");
+
             return value;
         }
     }

@@ -1,4 +1,4 @@
-package com.application.areca.postprocess;
+package com.application.areca.processor;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -16,7 +16,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -38,22 +38,22 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class PostProcessorList implements PublicClonable {
+public class CustomActionList implements PublicClonable {
 
-    protected List postProcessors = new ArrayList();
+    protected List actions = new ArrayList();
     protected boolean requiresFilteredEntriesListing = false;
 
     public PublicClonable duplicate() {
-        PostProcessorList other = new PostProcessorList();
-        other.postProcessors = DuplicateHelper.duplicate(postProcessors);
+        CustomActionList other = new CustomActionList();
+        other.actions = DuplicateHelper.duplicate(actions);
         other.requiresFilteredEntriesListing = requiresFilteredEntriesListing;
         return other;
     }
     
     private void updateReportRequired() {
-        Iterator iter = this.postProcessors.iterator();
+        Iterator iter = this.actions.iterator();
         while (iter.hasNext()) {
-            PostProcessor processor = (PostProcessor)iter.next();
+            CustomAction processor = (CustomAction)iter.next();
             if (processor.requiresFilteredEntriesListing()) {
                 requiresFilteredEntriesListing = true;
                 return;
@@ -65,28 +65,28 @@ public class PostProcessorList implements PublicClonable {
         return requiresFilteredEntriesListing;
     }
     
-    public void addPostProcessor(PostProcessor postProcessor) {
-        this.postProcessors.add(postProcessor);
+    public void addAction(CustomAction action) {
+        this.actions.add(action);
         updateReportRequired();
     }
 
     /**
      * Calls the post processors 
      */
-    public void postProcess(ProcessContext context) throws ApplicationException {
+    public void run(ProcessContext context) throws ApplicationException {
         if (! this.isEmpty()) {
             double taskShare = 1.0 / (double)this.getSize();
             
-	        Iterator iter = this.postProcessors.iterator();
+	        Iterator iter = this.actions.iterator();
 	        StringBuffer exceptions = new StringBuffer();
 	        while (iter.hasNext()) {
 	            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(taskShare);
 	            TaskMonitor itemMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
-	            PostProcessor processor = (PostProcessor)iter.next();
+	            CustomAction action = (CustomAction)iter.next();
 	            try {
-	                processor.postProcess(context);
+                    action.run(context);
 	            } catch (Throwable e) {
-	                Logger.defaultLogger().error("Error during post-processing.", e);
+	                Logger.defaultLogger().error("Error during processor.", e);
 	                exceptions.append("\n").append(e.getMessage());
 	            } finally {
 	                itemMonitor.enforceCompletion();
@@ -95,20 +95,20 @@ public class PostProcessorList implements PublicClonable {
 	        
 	        String errorMsg = exceptions.toString();
 	        if (errorMsg.length() != 0) {
-	            throw new ApplicationException("The following errors occured during the post-processing : " + errorMsg);
+	            throw new ApplicationException("The following errors occured during processor : " + errorMsg);
 	        }
         }
     }
     
     public Iterator iterator() {
-        return this.postProcessors.iterator();
+        return this.actions.iterator();
     }
     
     public int getSize() {
-        return this.postProcessors.size();
+        return this.actions.size();
     }
     
     public boolean isEmpty() {
-        return this.postProcessors.isEmpty();
+        return this.actions.isEmpty();
     }
 }

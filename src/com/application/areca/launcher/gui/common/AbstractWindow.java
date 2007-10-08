@@ -23,7 +23,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -90,7 +90,7 @@ extends ApplicationWindow {
         shell.setText(getFullWindowTitle());
         shell.setImage(ArecaImages.ICO_SMALL);
     }
-    
+
     public boolean close() {
         boolean close = true;
         

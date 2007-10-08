@@ -12,14 +12,14 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
-import com.application.areca.postprocess.PostProcessor;
-import com.application.areca.postprocess.ShellScriptPostProcessor;
+import com.application.areca.processor.CustomAction;
+import com.application.areca.processor.ShellScriptAction;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -46,7 +46,7 @@ public class ShellScriptProcessorComposite extends AbstractProcessorComposite {
     private Text txtScript;
     private Text txtParams;
     
-    public ShellScriptProcessorComposite(Composite composite, PostProcessor proc, final ProcessorEditionWindow window) {
+    public ShellScriptProcessorComposite(Composite composite, CustomAction proc, final ProcessorEditionWindow window) {
         super(composite, proc, window);
         this.setLayout(new GridLayout(3, false));
         
@@ -81,14 +81,14 @@ public class ShellScriptProcessorComposite extends AbstractProcessorComposite {
         lblExample.setText(RM.getLabel("procedition.scriptparams.example.label"));
         
         if (proc != null) {
-            ShellScriptPostProcessor sProc = (ShellScriptPostProcessor)proc;
+            ShellScriptAction sProc = (ShellScriptAction)proc;
             txtScript.setText(sProc.getCommand());
             txtParams.setText(sProc.getCommandParameters() == null ? "" : sProc.getCommandParameters());
         }
     }
 
-    public void initProcessor(PostProcessor proc) {
-        ShellScriptPostProcessor fProc = (ShellScriptPostProcessor)proc;
+    public void initProcessor(CustomAction proc) {
+        ShellScriptAction fProc = (ShellScriptAction)proc;
         fProc.setCommand(txtScript.getText());
         fProc.setCommandParameters(txtParams.getText());
     }

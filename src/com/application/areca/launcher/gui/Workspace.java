@@ -16,9 +16,10 @@ import com.application.areca.adapters.ProcessXMLReader;
 import com.application.areca.cache.CacheInitializer;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.launcher.gui.common.LocalPreferences;
-import com.application.areca.postprocess.PostProcessor;
+import com.application.areca.processor.CustomAction;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
+import com.myJava.util.log.ConsoleLogProcessor;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
 
@@ -28,7 +29,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -132,7 +133,8 @@ public class Workspace {
 	    try {
             File f = new File(path);
             if (FileSystemManager.exists(f)) {
-                Logger.defaultLogger().removeAllProcessors();
+                Logger.defaultLogger().remove(FileLogProcessor.class);
+                Logger.defaultLogger().remove(ConsoleLogProcessor.class);
                 FileLogProcessor proc = new FileLogProcessor(new File(FileSystemManager.getAbsolutePath(f) + "/log/", VersionInfos.APP_NAME.toLowerCase()));
                 Logger.defaultLogger().addProcessor(proc);
 
@@ -186,7 +188,7 @@ public class Workspace {
         return ret;
     }
     
-    public PostProcessor[] buildPostProcessorArray() {
+    public CustomAction[] buildPostProcessorArray() {
         Iterator iter = this.getProcessIterator();
         HashSet set = new HashSet();
         while (iter.hasNext()) {
@@ -200,7 +202,7 @@ public class Workspace {
                 }
             }
         }
-        PostProcessor[] ret = (PostProcessor[])set.toArray(new PostProcessor[0]);
+        CustomAction[] ret = (CustomAction[])set.toArray(new CustomAction[0]);
         Arrays.sort(ret);
         return ret;
     }

@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -52,6 +52,7 @@ public interface XMLTags {
     public static final String XML_FILTER_GROUP_OPERATOR_OR = "or";
     public static final String XML_FILTER_DIRECTORY = "directory_filter";
     public static final String XML_FILTER_REGEX = "regex_filter";
+    public static final String XML_FILTER_OWNER = "owner_filter";
     public static final String XML_FILTER_FILESIZE = "size_filter";
     public static final String XML_FILTER_FILEDATE = "date_filter";
     public static final String XML_FILTER_LINK = "link_filter";
@@ -94,6 +95,7 @@ public interface XMLTags {
     public static final String XML_POSTPROCESSOR_EMAIL = "email_processor";
     public static final String XML_POSTPROCESSOR_DUMP = "dump_processor";
     public static final String XML_POSTPROCESSOR_MERGE = "merge_processor";
+    public static final String XML_PP_AFTER = "execute_after";   
     public static final String XML_PP_DUMP_DIRECTORY = "directory";
     public static final String XML_PP_DUMP_NAME = "filename";
     public static final String XML_PP_EMAIL_RECIPIENTS = "recipients";

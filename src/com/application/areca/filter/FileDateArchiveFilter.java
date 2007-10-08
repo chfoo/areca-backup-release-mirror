@@ -17,7 +17,7 @@ import com.myJava.util.CalendarUtils;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -116,6 +116,7 @@ public class FileDateArchiveFilter extends AbstractArchiveFilter {
         FileDateArchiveFilter filter = new FileDateArchiveFilter();
         filter.exclude = this.exclude;
         filter.minDate = this.minDate;
+        filter.greaterThan = this.greaterThan;
         return filter;
     }    
 

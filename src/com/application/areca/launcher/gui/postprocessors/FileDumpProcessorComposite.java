@@ -14,15 +14,15 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
-import com.application.areca.postprocess.FileDumpPostProcessor;
-import com.application.areca.postprocess.PostProcessor;
+import com.application.areca.processor.CustomAction;
+import com.application.areca.processor.FileDumpAction;
 import com.myJava.file.FileSystemManager;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -51,7 +51,7 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
     private Button btnOnlyError;
     private Button btnListFiltered;
     
-    public FileDumpProcessorComposite(Composite composite, PostProcessor proc, final ProcessorEditionWindow window) {
+    public FileDumpProcessorComposite(Composite composite, CustomAction proc, final ProcessorEditionWindow window) {
         super(composite, proc, window);
         this.setLayout(new GridLayout(3, false));
         
@@ -98,7 +98,7 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
         window.monitorControl(btnOnlyError);
         
         if (proc != null) {
-            FileDumpPostProcessor sProc = (FileDumpPostProcessor)proc;
+            FileDumpAction sProc = (FileDumpAction)proc;
             txtDir.setText(sProc.getDestinationFolder().getAbsolutePath());
             txtName.setText(sProc.getReportName());
             btnListFiltered.setSelection(sProc.isListFiltered());
@@ -106,8 +106,8 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
         }
     }
 
-    public void initProcessor(PostProcessor proc) {
-        FileDumpPostProcessor fProc = (FileDumpPostProcessor)proc;
+    public void initProcessor(CustomAction proc) {
+        FileDumpAction fProc = (FileDumpAction)proc;
         fProc.setDestinationFolder(new File(txtDir.getText()));
         fProc.setReportName(txtName.getText());
         fProc.setOnlyIfError(btnOnlyError.getSelection());

@@ -1,5 +1,7 @@
 package com.application.areca.launcher.gui;
 
+import java.util.Iterator;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -17,13 +19,13 @@ import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.postprocessors.AbstractProcessorComposite;
-import com.application.areca.postprocess.PostProcessor;
+import com.application.areca.processor.CustomAction;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -50,18 +52,21 @@ extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
     private static final String TITLE = RM.getLabel("procedition.dialog.title");
     
+    protected boolean preprocess; 
+    
     protected Combo cboProcessorType;
     protected AbstractProcessorComposite pnlParams;
     protected Group pnlParamsContainer;
     
-    protected PostProcessor proc;  
+    protected CustomAction proc;  
     protected FileSystemRecoveryTarget currentTarget;
     protected Button btnSave;
 
-    public ProcessorEditionWindow(PostProcessor proc, FileSystemRecoveryTarget currentTarget) {
+    public ProcessorEditionWindow(CustomAction proc, FileSystemRecoveryTarget currentTarget, boolean preprocess) {
         super();
         this.proc = proc;
         this.currentTarget = currentTarget;
+        this.preprocess = preprocess;
     }
 
     protected Control createContents(Composite parent) {
@@ -74,10 +79,10 @@ extends AbstractWindow {
         Label lblProcType = new Label(composite, SWT.NONE);
         lblProcType.setText(RM.getLabel("procedition.type.label"));
         cboProcessorType = new Combo(composite, SWT.READ_ONLY);
-        cboProcessorType.add(RM.getLabel("procedition.dump.label"));
-        cboProcessorType.add(RM.getLabel("procedition.mail.label"));
-        cboProcessorType.add(RM.getLabel("procedition.shell.label"));
-        cboProcessorType.add(RM.getLabel("procedition.merge.label"));   
+        Iterator iter = ProcessorRepository.getProcessors(preprocess).iterator();
+        while (iter.hasNext()) {
+            cboProcessorType.add((String)iter.next());
+        }
         GridData dt1 = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
         dt1.widthHint = computeWidth(400);
         cboProcessorType.setLayoutData(dt1);
@@ -116,7 +121,7 @@ extends AbstractWindow {
         return TITLE;
     }
 
-    public PostProcessor getCurrentProcessor() {
+    public CustomAction getCurrentProcessor() {
         return this.proc;
     }
 

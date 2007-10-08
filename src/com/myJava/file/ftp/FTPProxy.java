@@ -27,7 +27,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -184,7 +184,7 @@ public class FTPProxy {
         }
     }
     
-    private void checkLocked() {
+    private synchronized void checkLocked() {
         if (this.ownerId == null) {
             throw new IllegalStateException("Attempted to use the FTPProxy without having acquired a lock on it");
         }

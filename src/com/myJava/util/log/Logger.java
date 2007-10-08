@@ -12,7 +12,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -55,10 +55,6 @@ public final class Logger {
     public Logger() {
         this.setLogLevel(FrameworkConfiguration.getInstance().getLogLevel());
         this.addProcessor(new ConsoleLogProcessor());
-    }
-    
-    public void removeAllProcessors() {
-        this.processors.clear();
     }
 
     /**
@@ -150,7 +146,11 @@ public final class Logger {
             Iterator iter = this.processors.iterator();
             while(iter.hasNext()) {
                 LogProcessor proc = (LogProcessor)iter.next();
-                proc.log(level, message, e, source);
+                try {
+                    proc.log(level, message, e, source);
+                } catch (RuntimeException e1) {
+                    e1.printStackTrace();
+                }
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.application.areca.postprocess;
+package com.application.areca.processor;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
@@ -8,7 +8,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -30,18 +30,18 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public abstract class AbstractPostProcessor implements PostProcessor {
+public abstract class AbstractCustomAction implements CustomAction {
 
-    public AbstractPostProcessor() {
+    public AbstractCustomAction() {
     }
     
-    public void postProcess(ProcessContext context) throws ApplicationException {
+    public void run(ProcessContext context) throws ApplicationException {
         try {
-            Logger.defaultLogger().info("Validating and running post-processor : " + this.getName() + " - " + this.getParametersSummary());
+            Logger.defaultLogger().info("Validating and running processor : " + this.getName() + " - " + this.getParametersSummary());
             this.validate();
-            this.run(context);
-        } catch (PostProcessorValidationException e) {
-            throw new ApplicationException("Error during post-processor validation : " + e.getMessage(), e);
+            this.runImpl(context);
+        } catch (CustomActionValidationException e) {
+            throw new ApplicationException("Error during processor validation : " + e.getMessage(), e);
         }
     }
     
@@ -49,13 +49,13 @@ public abstract class AbstractPostProcessor implements PostProcessor {
         return this.getClass().getName();
     }
     
-    protected abstract void run(ProcessContext context) throws ApplicationException;
+    protected abstract void runImpl(ProcessContext context) throws ApplicationException;
 
     public int compareTo(Object o) {
         if (o == null) {
             return 1;
         } else {
-            PostProcessor other = (PostProcessor)o;
+            CustomAction other = (CustomAction)o;
             return (this.getClass().getName() + this.getParametersSummary()).compareTo(other.getClass().getName() + other.getParametersSummary());
         }
     }

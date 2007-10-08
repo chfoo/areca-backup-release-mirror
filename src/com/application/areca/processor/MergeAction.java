@@ -1,4 +1,4 @@
-package com.application.areca.postprocess;
+package com.application.areca.processor;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
@@ -12,7 +12,7 @@ import com.myJava.object.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -34,7 +34,7 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class MergePostProcessor extends AbstractPostProcessor {
+public class MergeAction extends AbstractCustomAction {
 
     private int delay = 0;
     private boolean keepDeletedEntries = false;
@@ -42,7 +42,7 @@ public class MergePostProcessor extends AbstractPostProcessor {
     /**
      * @param target
      */
-    public MergePostProcessor() {
+    public MergeAction() {
         super();
     }
 
@@ -62,7 +62,7 @@ public class MergePostProcessor extends AbstractPostProcessor {
         this.delay = delay;
     }
     
-    public void run(ProcessContext context) throws ApplicationException {
+    public void runImpl(ProcessContext context) throws ApplicationException {
         AbstractRecoveryTarget target = context.getReport().getTarget();
         target.getProcess().processCompactOnTargetImpl(target, delay, keepDeletedEntries, new ProcessContext(target, context.getInfoChannel()));
     }
@@ -76,23 +76,23 @@ public class MergePostProcessor extends AbstractPostProcessor {
     }
     
     public PublicClonable duplicate() {
-        MergePostProcessor pro = new MergePostProcessor();
+        MergeAction pro = new MergeAction();
         pro.delay = this.delay;
         pro.keepDeletedEntries = this.keepDeletedEntries;
         return pro;
     }
 
-    public void validate() throws PostProcessorValidationException {
+    public void validate() throws CustomActionValidationException {
         if (delay <= 0) {
-            throw new PostProcessorValidationException("The merge delay must be above 0");
+            throw new CustomActionValidationException("The merge delay must be above 0");
         }
     }
     
     public boolean equals(Object obj) {
-        if (obj == null || (! (obj instanceof MergePostProcessor)) ) {
+        if (obj == null || (! (obj instanceof MergeAction)) ) {
             return false;
         } else {
-            MergePostProcessor other = (MergePostProcessor)obj;
+            MergeAction other = (MergeAction)obj;
             return 
                 EqualsHelper.equals(this.delay, other.delay)
                 && EqualsHelper.equals(this.keepDeletedEntries, other.keepDeletedEntries);

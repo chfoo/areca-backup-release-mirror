@@ -8,8 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.util.Utilitaire;
@@ -21,7 +20,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -47,7 +46,7 @@ This file is part of Areca.
 public class FileTool {
     
     private static final long DEFAULT_DELETION_DELAY = FrameworkConfiguration.getInstance().getFileToolDelay();
-    private static final int BUFFER_SIZE = 200000; //FrameworkConfiguration.getInstance().getFileToolBufferSize();
+    private static final int BUFFER_SIZE = FrameworkConfiguration.getInstance().getFileToolBufferSize();
     private static final int DELETION_GC_FREQUENCY = (int)(2000 / DEFAULT_DELETION_DELAY);
     private static final int DELETION_MAX_ATTEMPTS = 1000;
     
@@ -262,6 +261,14 @@ public class FileTool {
         delete(fileOrDirectory, waitForAvailability, DEFAULT_DELETION_DELAY);
     }
     
+    public void createFile(File destinationFile, String content) throws IOException {
+        OutputStream fos = FileSystemManager.getFileOutputStream(destinationFile);
+        OutputStreamWriter fw = new OutputStreamWriter(fos);
+        fw.write(content);
+        fw.flush();
+        fw.close();
+    }
+    
     /**
      * Retourne le contenu intégral du fichier passé en argument sous forme de chaîne de
      * caractères.
@@ -284,13 +291,16 @@ public class FileTool {
     	if (inStream == null) {
     		return null;
     	}
+        
+        int bSize = 65536;
+        char[] b = new char[bSize];
     	
         StringBuffer content = new StringBuffer();
         try {
             InputStreamReader reader = encoding == null ? new InputStreamReader(inStream) : new InputStreamReader(inStream, encoding);            
-            int c;
-            while ((c = reader.read()) != -1) {
-                content = content.append((char)c);
+            int read = 0;
+            while ((read = reader.read(b)) != -1) {
+                content.append(b, 0, read);
             }
         } finally {
             try {
@@ -302,14 +312,6 @@ public class FileTool {
         }
         return new String(content);
     }
-
-    public void createFile(File destinationFile, String content) throws IOException {
-        OutputStream fos = FileSystemManager.getFileOutputStream(destinationFile);
-        OutputStreamWriter fw = new OutputStreamWriter(fos);
-        fw.write(content);
-        fw.flush();
-        fw.close();
-    }
     
     /**
      * Retourne le contenu du fichier sous forme de tableau de String.
@@ -317,7 +319,7 @@ public class FileTool {
      * <BR>Les espaces superflus sont supprimés et les lignes vides sont ignorées.
      */
     public String[] getFileRows(File sourceFile) throws IOException {
-        return parseStreamContent(this.getFileContent(sourceFile));
+        return getInputStreamRows(FileSystemManager.getFileInputStream(sourceFile), null, true);
     }
     
     /**
@@ -325,12 +327,30 @@ public class FileTool {
      * <BR>Un String par ligne.
      * <BR>Les espaces superflus sont supprimés et les lignes vides sont ignorées.
      */
-    public String[] getInputStreamRows(InputStream stream, String encoding, boolean closeStreamOnExit) throws IOException {
-        return parseStreamContent(this.getInputStreamContent(stream, encoding, closeStreamOnExit));
-    }
-    
-    public String[] getInputStreamRows(InputStream stream, boolean closeStreamOnExit) throws IOException {
-        return getInputStreamRows(stream, null, closeStreamOnExit);
+    public String[] getInputStreamRows(InputStream inStream, String encoding, boolean closeStreamOnExit) throws IOException {
+        if (inStream == null) {
+            return null;
+        }
+
+        ArrayList v = new ArrayList();
+        try {
+            BufferedReader reader = new BufferedReader(encoding == null ? new InputStreamReader(inStream) : new InputStreamReader(inStream, encoding));            
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.length() != 0) {
+                    v.add(line);
+                }
+            }
+        } finally {
+            try {
+                if (closeStreamOnExit) {
+                    inStream.close();
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return (String[])v.toArray(new String[v.size()]);
     }
     
     public String getFirstRow(InputStream stream, String encoding) throws IOException {
@@ -347,30 +367,6 @@ public class FileTool {
             }
         }
         return line;
-    }
-    
-    /**
-     * Retourne le contenu sous forme de tableau de String.
-     * <BR>Un String par ligne.
-     * <BR>Les espaces superflus sont supprimés et les lignes vides sont ignorées.
-     */
-    private String[] parseStreamContent(String content) {
-    	if (content == null) {
-    		return new String[0];
-    	}
-    	
-        StringTokenizer stt = new StringTokenizer(content, "\n");
-        String elt = "";
-        Vector v = new Vector();
-        
-        while (stt.hasMoreElements()) {
-            elt = stt.nextToken().trim();
-            if (elt != null && ! elt.equalsIgnoreCase("")) {
-                v.addElement(elt);
-            }
-        }
-        
-        return Utilitaire.vectorToStringArray(v);
     }
     
     /**

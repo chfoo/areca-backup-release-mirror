@@ -13,7 +13,7 @@ import com.application.areca.launcher.gui.common.SecuredRunner;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -107,7 +107,8 @@ public class AppActionReferenceHolder implements ActionConstants{
                     AC_HISTORY.setEnabled(false);
                     AC_EDIT_TARGET.setEnabled(false);
                     AC_DUP_TARGET.setEnabled(false);     
-                    AC_DEL_TARGET.setEnabled(false);            
+                    AC_DEL_TARGET.setEnabled(false);      
+                    AC_VIEW_MANIFEST.setEnabled(false);
                 } else if (FileSystemRecoveryTarget.class.isAssignableFrom(application.getCurrentObject().getClass())) {
                     boolean available = ! application.getCurrentTarget().isRunning();
                     
@@ -138,6 +139,9 @@ public class AppActionReferenceHolder implements ActionConstants{
                             && application.getCurrentDate() != null
                             && ! application.isLatestVersionRecoveryMode()
                      );
+                    AC_VIEW_MANIFEST.setEnabled(
+                            application.getCurrentDate() != null
+                    );
                     AC_EDIT_TARGET.setEnabled(available);
                     AC_DEL_PROCESS.setEnabled(available);
                     AC_DEL_TARGET.setEnabled(available);
@@ -171,5 +175,6 @@ public class AppActionReferenceHolder implements ActionConstants{
         AC_NEW_TARGET.setEnabled(enabled);
         AC_NEW_PROCESS.setEnabled(enabled);          
         AC_HISTORY.setEnabled(enabled);
+        AC_VIEW_MANIFEST.setEnabled(enabled);
     }
 }

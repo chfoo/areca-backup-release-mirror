@@ -66,10 +66,10 @@ import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
+import com.application.areca.launcher.gui.composites.CustomActionsTable;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.plugins.StorageSelectionHelper;
-import com.application.areca.postprocess.PostProcessor;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.archive.zip64.ZipConstants;
@@ -81,7 +81,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -159,10 +159,8 @@ extends AbstractWindow {
     protected Button btnModifyFilter;
     protected FilterGroup mdlFilters;
  
-    protected Table tblProc;  
-    protected Button btnAddProc;
-    protected Button btnRemoveProc;
-    protected Button btnModifyProc;
+    protected CustomActionsTable postProcessesTab;
+    protected CustomActionsTable preProcessesTab;
     
     protected Table tblSources;  
     protected Button btnAddSource;
@@ -195,7 +193,8 @@ extends AbstractWindow {
             initSourcesTab(initTab(tabs, RM.getLabel("targetedition.sourcesgroup.title")));
             initAdvancedTab(initTab(tabs, RM.getLabel("targetedition.advancedgroup.title")));
             initFiltersTab(initTab(tabs, RM.getLabel("targetedition.filtersgroup.title")));
-            initProcessorsTab(initTab(tabs, RM.getLabel("targetedition.postprocessing.title")));
+            initPreProcessorsTab(initTab(tabs, RM.getLabel("targetedition.preprocessing.title")));
+            initPostProcessorsTab(initTab(tabs, RM.getLabel("targetedition.postprocessing.title")));
 
             SavePanel pnlSave = new SavePanel(this);
             Composite save = pnlSave.buildComposite(ret);
@@ -780,93 +779,24 @@ extends AbstractWindow {
         return false;
     }
 
-    private void initProcessorsTab(Composite composite) {
-        composite.setLayout(initLayout(4));
-        
-        TableViewer viewer = new TableViewer(composite, SWT.BORDER | SWT.SINGLE);
-        tblProc = viewer.getTable();
-        tblProc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
-        
-        TableColumn col1 = new TableColumn(tblProc, SWT.NONE);
-        col1.setText(RM.getLabel("targetedition.proctable.type.label"));
-        col1.setWidth(200);
-        col1.setMoveable(true);
-        
-        TableColumn col2 = new TableColumn(tblProc, SWT.NONE);
-        col2.setText(RM.getLabel("targetedition.proctable.parameters.label"));
-        col2.setWidth(300);
-        col2.setMoveable(true);
-        
-        tblProc.setHeaderVisible(true);
-        tblProc.setLinesVisible(AbstractWindow.getTableLinesVisible());
- 
-        viewer.addDoubleClickListener(new IDoubleClickListener() {
-            public void doubleClick(DoubleClickEvent event) {
-                editCurrentProcessor();
-            }
-        });
-        
-        btnAddProc = new Button(composite, SWT.PUSH);
-        btnAddProc.setText(RM.getLabel("targetedition.addprocaction.label"));
-        btnAddProc.addListener(SWT.Selection, new Listener(){
-            public void handleEvent(Event event) {
-                PostProcessor newproc = showProcEditionFrame(null);
-                if (newproc != null) {
-                    addProcessor(newproc);
-                    registerUpdate();                
-                }
-            }
-        });
-        
-        btnModifyProc = new Button(composite, SWT.PUSH);
-        btnModifyProc.setText(RM.getLabel("targetedition.editprocaction.label"));
-        btnModifyProc.addListener(SWT.Selection, new Listener(){
-            public void handleEvent(Event event) {
-                editCurrentProcessor();
-            }
-        });
-        
-        btnRemoveProc = new Button(composite, SWT.PUSH);
-        btnRemoveProc.setText(RM.getLabel("targetedition.removeprocaction.label"));
-        btnRemoveProc.addListener(SWT.Selection, new Listener(){
-            public void handleEvent(Event event) {
-                if (tblProc.getSelectionIndex() != -1) {
-                    int result = application.showConfirmDialog(
-                            RM.getLabel("targetedition.removeprocaction.confirm.message"),
-                            RM.getLabel("targetedition.confirmremoveproc.title"));
-                    
-                    if (result == SWT.YES) {
-                        tblProc.remove(tblProc.getSelectionIndex());
-                        registerUpdate();                  
-                    }
-                }
-            }
-        });
-        
-        tblProc.addSelectionListener(new SelectionListener() {
-            public void widgetDefaultSelected(SelectionEvent e) {
-            }
-            public void widgetSelected(SelectionEvent e) {
-                updateProcListState();
-            }
-        });
+    private void initPostProcessorsTab(Composite composite) {
+        this.postProcessesTab = new CustomActionsTable(composite, this, false);
     }
     
-    private void editCurrentProcessor() {
-        if (tblProc.getSelectionIndex() != -1) {
-            TableItem item = tblProc.getItem(tblProc.getSelectionIndex());
-            PostProcessor proc = (PostProcessor)item.getData();
-            showProcEditionFrame(proc);
-            updateProcessor(item, proc);
-            registerUpdate();    
-        }
+    private void initPreProcessorsTab(Composite composite) {
+        this.preProcessesTab = new CustomActionsTable(composite, this, true);
     }
 
+    public void publicRegisterUpdate() {
+        registerUpdate();
+    }
+    
     protected void registerUpdate() {
         super.registerUpdate();
         
         updateFilterListState();
-        updateProcListState();
+        this.preProcessesTab.updateProcListState();
+        this.postProcessesTab.updateProcListState();
     }
     
     protected void updateFilterListState() {
@@ -881,12 +811,6 @@ extends AbstractWindow {
         int index =  this.tblSources.getSelectionIndex();
         this.btnRemoveSource.setEnabled(index != -1);
         this.btnModifySource.setEnabled(index != -1);       
-    }
-    
-    protected void updateProcListState() {
-        int index =  this.tblProc.getSelectionIndex();
-        this.btnRemoveProc.setEnabled(index != -1);
-        this.btnModifyProc.setEnabled(index != -1);       
     }
     
     private void initValues() {
@@ -982,19 +906,8 @@ extends AbstractWindow {
             addFilter(null, this.mdlFilters);
 
             // INIT PROCS
-            Iterator processors = target.getPostProcessors().iterator();
-            int index = this.tblProc.getSelectionIndex();
-            while (processors.hasNext()) {
-                PostProcessor proc = (PostProcessor)processors.next();
-
-                TableItem item = new TableItem(tblProc, SWT.NONE);
-                item.setText(0, ProcessorRepository.getName(proc.getClass()));
-                item.setText(1, proc.getParametersSummary());
-                item.setData(proc);
-            } 
-            if (index != -1) {
-                this.tblProc.setSelection(index);
-            }     
+            this.preProcessesTab.setProcessors(target.getPreProcessors());
+            this.postProcessesTab.setProcessors(target.getPostProcessors());
         } else {     
             // Default settings
             rdZip.setSelection(true);
@@ -1093,13 +1006,6 @@ extends AbstractWindow {
         return ft;
     }
     
-    private PostProcessor showProcEditionFrame(PostProcessor proc) {
-        ProcessorEditionWindow frm = new ProcessorEditionWindow(proc, (FileSystemRecoveryTarget)this.getTarget());
-        showDialog(frm);
-        PostProcessor prc = frm.getCurrentProcessor();
-        return prc;
-    }
-    
     private File showSourceEditionFrame(File source) {
         SourceEditionWindow frm = new SourceEditionWindow(source, (FileSystemRecoveryTarget)this.getTarget());
         showDialog(frm);
@@ -1171,17 +1077,6 @@ extends AbstractWindow {
     private void updateSource(TableItem item, File source) {
         item.setText(0, FileSystemManager.getAbsolutePath(source));
         item.setData(source);
-    }
-    
-    private void addProcessor(PostProcessor proc) {
-        TableItem item = new TableItem(tblProc, SWT.NONE);
-        updateProcessor(item, proc);
-    }
-    
-    private void updateProcessor(TableItem item, PostProcessor proc) {
-        item.setText(0, ProcessorRepository.getName(proc.getClass()));
-        item.setText(1, proc.getParametersSummary());
-        item.setData(proc);
     }
     
     private void processSelection(String refId, String s) {
@@ -1471,9 +1366,8 @@ extends AbstractWindow {
             }
             newTarget.setFilterGroup(this.mdlFilters);
             
-            for (int i=0; i<this.tblProc.getItemCount(); i++) {
-                newTarget.getPostProcessors().addPostProcessor((PostProcessor)this.tblProc.getItem(i).getData());
-            }
+            preProcessesTab.addProcessors(newTarget.getPreProcessors());
+            postProcessesTab.addProcessors(newTarget.getPostProcessors());
             
             this.target = newTarget;
         } catch (Exception e) {
@@ -1489,7 +1383,7 @@ extends AbstractWindow {
         btnSave.setEnabled(rulesSatisfied);
     }
     
-    private void showDialog(AbstractWindow window) {
+    public void showDialog(AbstractWindow window) {
         window.setModal(this);
         window.setBlockOnOpen(true);
         window.open();

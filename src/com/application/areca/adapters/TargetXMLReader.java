@@ -17,6 +17,7 @@ import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.filter.FileDateArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
+import com.application.areca.filter.FileOwnerArchiveFilter;
 import com.application.areca.filter.FileSizeArchiveFilter;
 import com.application.areca.filter.FilterGroup;
 import com.application.areca.filter.LinkFilter;
@@ -30,18 +31,18 @@ import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
-import com.application.areca.postprocess.FileDumpPostProcessor;
-import com.application.areca.postprocess.MailSendPostProcessor;
-import com.application.areca.postprocess.MergePostProcessor;
-import com.application.areca.postprocess.PostProcessor;
-import com.application.areca.postprocess.ShellScriptPostProcessor;
+import com.application.areca.processor.CustomAction;
+import com.application.areca.processor.FileDumpAction;
+import com.application.areca.processor.MailSendAction;
+import com.application.areca.processor.MergeAction;
+import com.application.areca.processor.ShellScriptAction;
 
 /**
  * Adaptateur pour la sérialisation / désérialisation XML.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -136,10 +137,14 @@ public class TargetXMLReader implements XMLTags {
                 target.addFilter(this.readRegexArchiveFilter(children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_FILESIZE)) {
                 target.addFilter(this.readFileSizeArchiveFilter(children.item(i)));  
+            } else if (child.equalsIgnoreCase(XML_FILTER_OWNER)) {
+                target.addFilter(this.readFileOwnerArchiveFilter(children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_LINK)) {
                 target.addFilter(this.readLinkFilter(children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_LOCKED)) {
-                target.addFilter(this.readLockedFileFilter(children.item(i)));                  
+                target.addFilter(this.readLockedFileFilter(children.item(i)));         
+            } else if (child.equalsIgnoreCase(XML_FILTER_OWNER)) {
+                target.addFilter(this.readFileOwnerArchiveFilter(children.item(i)));                        
             } else if (child.equalsIgnoreCase(XML_FILTER_FILEDATE)) {
                 target.addFilter(this.readFileDateArchiveFilter(children.item(i)));  
             // ===== EOF BACKWARD COMPATIBILITY =====
@@ -150,13 +155,13 @@ public class TargetXMLReader implements XMLTags {
                 target.setMedium(this.readMedium(children.item(i), target), false);      
                 target.getMedium().install();
             } else if (child.equalsIgnoreCase(XML_POSTPROCESSOR_DUMP)) {
-                target.getPostProcessors().addPostProcessor(this.readDumpProcessor(children.item(i), target));                
+                addProcessor(children.item(i), this.readDumpProcessor(children.item(i)), target);                
             } else if (child.equalsIgnoreCase(XML_POSTPROCESSOR_EMAIL)) {
-                target.getPostProcessors().addPostProcessor(this.readEmailProcessor(children.item(i), target));                
+                addProcessor(children.item(i), this.readEmailProcessor(children.item(i)), target);                
             } else if (child.equalsIgnoreCase(XML_POSTPROCESSOR_SHELL)) {
-                target.getPostProcessors().addPostProcessor(this.readShellProcessor(children.item(i), target));                
+                addProcessor(children.item(i), this.readShellProcessor(children.item(i)), target);                
             } else if (child.equalsIgnoreCase(XML_POSTPROCESSOR_MERGE)) {
-                target.getPostProcessors().addPostProcessor(this.readMergeProcessor(children.item(i), target));                
+                addProcessor(children.item(i), this.readMergeProcessor(children.item(i)), target);                
             } else if (child.equalsIgnoreCase(XML_SOURCE)) {
                 readSource(sources, children.item(i));
             }
@@ -171,6 +176,20 @@ public class TargetXMLReader implements XMLTags {
         return target;
     }
     
+    protected void addProcessor(Node node, CustomAction action, AbstractRecoveryTarget target) throws AdapterException {
+        Node executeAfterNode = node.getAttributes().getNamedItem(XML_PP_AFTER);
+        boolean executeAfter = true;
+        if (executeAfterNode != null) {
+            executeAfter = Boolean.valueOf(executeAfterNode.getNodeValue()).booleanValue();
+        }
+        
+        if (executeAfter) {
+            target.getPostProcessors().addAction(action);
+        } else {
+            target.getPreProcessors().addAction(action);            
+        }
+    }
+    
     protected void readSource(Set sources, Node node) throws AdapterException {
         Node pathNode = node.getAttributes().getNamedItem(XML_SOURCE_PATH);
         if (pathNode == null) {
@@ -180,12 +199,12 @@ public class TargetXMLReader implements XMLTags {
         }
     }
    
-    protected PostProcessor readDumpProcessor(Node node, AbstractRecoveryTarget target) throws AdapterException {
+    protected CustomAction readDumpProcessor(Node node) throws AdapterException {
         Node paramNode = node.getAttributes().getNamedItem(XML_PP_DUMP_DIRECTORY);
         if (paramNode == null) {
             throw new AdapterException("Dump directory not found for File Dump Processor. A '" + XML_PP_DUMP_DIRECTORY + "' attribute must be set.");
         }          
-        FileDumpPostProcessor pp = new FileDumpPostProcessor();
+        FileDumpAction pp = new FileDumpAction();
         pp.setDestinationFolder(new File(paramNode.getNodeValue()));
         
         Node failureOnlyNode = node.getAttributes().getNamedItem(XML_PP_ONLY_IF_ERROR);
@@ -206,13 +225,13 @@ public class TargetXMLReader implements XMLTags {
         return pp;
     }
     
-    protected PostProcessor readShellProcessor(Node node, AbstractRecoveryTarget target) throws AdapterException {
+    protected CustomAction readShellProcessor(Node node) throws AdapterException {
         Node scriptNode = node.getAttributes().getNamedItem(XML_PP_SHELL_SCRIPT);
         if (scriptNode == null) {
             throw new AdapterException("Shell script file not found for Shell Processor. A '" + XML_PP_SHELL_SCRIPT + "' attribute must be set.");
         }     
         
-        ShellScriptPostProcessor pp = new ShellScriptPostProcessor();
+        ShellScriptAction pp = new ShellScriptAction();
         pp.setCommand(scriptNode.getNodeValue());
         
         
@@ -224,14 +243,14 @@ public class TargetXMLReader implements XMLTags {
         return pp;
     }
     
-    protected PostProcessor readMergeProcessor(Node node, AbstractRecoveryTarget target) throws AdapterException {
+    protected CustomAction readMergeProcessor(Node node) throws AdapterException {
         Node paramNode = node.getAttributes().getNamedItem(XML_PP_MERGE_DELAY);
         if (paramNode == null) {
             throw new AdapterException("Merge delay not found for merge processor. A '" + XML_PP_MERGE_DELAY + "' attribute must be set.");
         }          
         Node keepNode = node.getAttributes().getNamedItem(XML_PP_MERGE_KEEP_DELETED);
         
-        MergePostProcessor pp = new MergePostProcessor();
+        MergeAction pp = new MergeAction();
         pp.setDelay(Integer.parseInt(paramNode.getNodeValue()));
         
         if (keepNode != null) {
@@ -243,8 +262,8 @@ public class TargetXMLReader implements XMLTags {
         return pp;
     }
     
-    protected PostProcessor readEmailProcessor(Node node, AbstractRecoveryTarget target) throws AdapterException {
-        MailSendPostProcessor pp = new MailSendPostProcessor();
+    protected CustomAction readEmailProcessor(Node node) throws AdapterException {
+        MailSendAction pp = new MailSendAction();
         
         Node recipientsNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_RECIPIENTS);
         if (recipientsNode == null) {
@@ -444,6 +463,8 @@ public class TargetXMLReader implements XMLTags {
                 grp.addFilter(this.readLockedFileFilter(children.item(i)));                  
             } else if (child.equalsIgnoreCase(XML_FILTER_FILEDATE)) {
                 grp.addFilter(this.readFileDateArchiveFilter(children.item(i)));  
+            } else if (child.equalsIgnoreCase(XML_FILTER_OWNER)) {
+                grp.addFilter(this.readFileOwnerArchiveFilter(children.item(i)));                 
             } else if (child.equalsIgnoreCase(XML_FILTER_GROUP)) {
                 grp.addFilter(this.readFilterGroup(children.item(i)));  
             }
@@ -465,9 +486,19 @@ public class TargetXMLReader implements XMLTags {
     protected FileSizeArchiveFilter readFileSizeArchiveFilter(Node filterNode) throws AdapterException {
         Node paramNode = filterNode.getAttributes().getNamedItem(XML_FILTER_PARAM);
         if (paramNode == null) {
-            throw new AdapterException("Maximum size not found. Your filter must have a '" + XML_FILTER_PARAM + "' attribute (eg '1024').");
+            throw new AdapterException("Maximum size not found. Your filter must have a '" + XML_FILTER_PARAM + "' attribute (eg '> 1024').");
         }          
         FileSizeArchiveFilter filter = new FileSizeArchiveFilter();
+        initFilter(filter, filterNode, paramNode);
+        return filter;
+    }
+    
+    protected FileOwnerArchiveFilter readFileOwnerArchiveFilter(Node filterNode) throws AdapterException {
+        Node paramNode = filterNode.getAttributes().getNamedItem(XML_FILTER_PARAM);
+        if (paramNode == null) {
+            throw new AdapterException("Owner attributes not found. Your filter must have a '" + XML_FILTER_PARAM + "' attribute (eg 'root:root').");
+        }          
+        FileOwnerArchiveFilter filter = new FileOwnerArchiveFilter();
         initFilter(filter, filterNode, paramNode);
         return filter;
     }

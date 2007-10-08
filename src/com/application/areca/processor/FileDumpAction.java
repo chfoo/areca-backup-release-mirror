@@ -1,4 +1,4 @@
-package com.application.areca.postprocess;
+package com.application.areca.processor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7453350623295719521
+ * <BR>Areca Build ID : 6222835200985278549
  */
  
  /*
@@ -43,7 +43,7 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class FileDumpPostProcessor extends AbstractPostProcessor {
+public class FileDumpAction extends AbstractCustomAction {
 
     private File destinationFolder;
     private String reportName = "%TARGET_UID%_%ARCHIVE_NAME%.report";
@@ -53,7 +53,7 @@ public class FileDumpPostProcessor extends AbstractPostProcessor {
     /**
      * @param target
      */
-    public FileDumpPostProcessor() {
+    public FileDumpAction() {
         super();
     }
 
@@ -89,7 +89,7 @@ public class FileDumpPostProcessor extends AbstractPostProcessor {
         this.onlyIfError = onlyIfError;
     }
 
-    public void run(ProcessContext context) throws ApplicationException {
+    public void runImpl(ProcessContext context) throws ApplicationException {
         if ((! context.getReport().isCommited()) || (! this.onlyIfError)) {
             ProcessReportWriter writer = null;
             File destination = new File(
@@ -136,7 +136,7 @@ public class FileDumpPostProcessor extends AbstractPostProcessor {
     }
 
     public PublicClonable duplicate() {
-        FileDumpPostProcessor pro = new FileDumpPostProcessor();
+        FileDumpAction pro = new FileDumpAction();
         pro.destinationFolder = this.destinationFolder;
         pro.reportName = this.reportName;
         pro.listFiltered = this.listFiltered;
@@ -144,17 +144,17 @@ public class FileDumpPostProcessor extends AbstractPostProcessor {
         return pro;
     }
 
-    public void validate() throws PostProcessorValidationException {
+    public void validate() throws CustomActionValidationException {
         if (FileSystemManager.isFile(this.destinationFolder)) {
-            throw new PostProcessorValidationException("Invalid argument : '" + FileSystemManager.getAbsolutePath(this.destinationFolder) + "' is a file - Please select a directory.");
+            throw new CustomActionValidationException("Invalid argument : '" + FileSystemManager.getAbsolutePath(this.destinationFolder) + "' is a file - Please select a directory.");
         }
     }
 
     public boolean equals(Object obj) {
-        if (obj == null || (! (obj instanceof FileDumpPostProcessor)) ) {
+        if (obj == null || (! (obj instanceof FileDumpAction)) ) {
             return false;
         } else {
-            FileDumpPostProcessor other = (FileDumpPostProcessor)obj;
+            FileDumpAction other = (FileDumpAction)obj;
             return 
                 EqualsHelper.equals(this.destinationFolder, other.destinationFolder)
                 && EqualsHelper.equals(this.reportName, other.reportName)
