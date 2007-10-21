@@ -20,7 +20,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -278,22 +278,26 @@ implements TargetActions, Identifiable {
     public void processCompactOnTarget(AbstractRecoveryTarget target, GregorianCalendar fromDate, GregorianCalendar toDate, boolean keepDeletedEntries, Manifest manifest, ProcessContext context) throws ApplicationException {
         checkTarget(target, ACTION_COMPACT_OR_DELETE);     
 		this.initProgress(context);
-        target.processCompact(fromDate, toDate, keepDeletedEntries, manifest, context);
+        target.processMerge(fromDate, toDate, keepDeletedEntries, manifest, context);
     }  
     
-    public void processCompactOnTarget(AbstractRecoveryTarget target, int delay, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
+    public void processCompactOnTarget(AbstractRecoveryTarget target, int fromDelay, int toDelay, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
  		this.initProgress(context);
- 		processCompactOnTargetImpl(target, delay, keepDeletedEntries, context);
+ 		processCompactOnTargetImpl(target, fromDelay, toDelay, keepDeletedEntries, context);
     }  
     
-    public void processCompactOnTargetImpl(AbstractRecoveryTarget target, int delay, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
+    public void processCompactOnTargetImpl(AbstractRecoveryTarget target, int fromDelay, int toDelay, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
         checkTarget(target, ACTION_COMPACT_OR_DELETE);    
-        target.processCompact(delay, keepDeletedEntries, context);
+        target.processMerge(fromDelay, toDelay, keepDeletedEntries, context);
     }
     
     public void processDeleteOnTarget(AbstractRecoveryTarget target, int delay, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_COMPACT_OR_DELETE);    
 		this.initProgress(context);
+        processDeleteOnTargetImpl(target, delay, context);
+    }  
+    
+    public void processDeleteOnTargetImpl(AbstractRecoveryTarget target, int delay, ProcessContext context) throws ApplicationException {
+        checkTarget(target, ACTION_COMPACT_OR_DELETE);    
         target.processDeleteArchives(delay, context);
     }  
     

@@ -48,7 +48,7 @@ import com.myJava.file.FileSystemIterator;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.system.OSTool;
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 import com.myJava.util.errors.ActionError;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.log.Logger;
@@ -63,7 +63,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -447,9 +447,11 @@ implements TargetActions {
     }
     
     protected void convertArchiveToFinal(ProcessContext context) throws IOException, ApplicationException {
-        AbstractFileSystemMedium.tool.delete(context.getFinalArchiveFile(), true);
-        AbstractFileSystemMedium.tool.delete(getDataDirectory(context.getFinalArchiveFile()), true);
-        
+        if (context.getFinalArchiveFile() != null) {
+            AbstractFileSystemMedium.tool.delete(context.getFinalArchiveFile(), true);
+            AbstractFileSystemMedium.tool.delete(getDataDirectory(context.getFinalArchiveFile()), true);
+        }
+
         // The temporary archive is renamed into the final archive.
         // 5 attempts ...
         if (FileSystemManager.exists(context.getCurrentArchiveFile())) {
@@ -549,7 +551,7 @@ implements TargetActions {
             trace = ArchiveTraceCache.getInstance().getTrace(this, getLastArchive(date));
         }
         
-        recover(destination, filter, null, date, true, trace, context);
+        recover(destination, filter, 1, null, date, true, trace, context);
         rebuidDirectories((File)destination, filter, trace);
         rebuildSymLinks((File)destination, filter, trace);
     }
@@ -563,7 +565,7 @@ implements TargetActions {
                     Map.Entry entry = (Map.Entry)iter.next();
                     File symLink = new File(destination, (String)entry.getKey());
                     
-                    if (filters == null || Utilitaire.passFilter(FileSystemManager.getAbsolutePath(symLink), filters)) {
+                    if (filters == null || Util.passFilter(FileSystemManager.getAbsolutePath(symLink), filters)) {
                         File parent = symLink.getParentFile();
                         if (! FileSystemManager.exists(parent)) {
                             tool.createDir(parent);
@@ -667,11 +669,8 @@ implements TargetActions {
             return elementaryArchives;
         }
     }  
-    
-    /**
-     * Rétablit le contenu des archives à la date précisée.
-     */
-    public void compact(
+
+    public void merge(
             GregorianCalendar fromDate, 
             GregorianCalendar toDate, 
             boolean keepDeletedFiles,
@@ -694,14 +693,13 @@ implements TargetActions {
                 
                 // Init des archives
                 context.setCurrentArchiveFile(new File(computeArchivePath(toDate) + TMP_ARCHIVE_SUFFIX));
-                context.setFinalArchiveFile(new File(computeArchivePath(toDate)));
                 
                 // Nettoyage, en prévention, avant la fusion
-                this.cleanCompact(context);
+                this.cleanMerge(context);
                 
                 // Restauration dans ce répertoire
-                File tmpDestination = new File(FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()) + TMP_COMPACT_LOCATION_SUFFIX);
-                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8);
+                File tmpDestination = new File(FileSystemManager.getAbsolutePath(context.getCurrentArchiveFile()) + TMP_COMPACT_LOCATION_SUFFIX);
+                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8, "recover");
 
                 ArchiveTrace trace;
                 if (keepDeletedFiles) {
@@ -713,12 +711,14 @@ implements TargetActions {
                 context.getReport().setRecoveredFiles(recover(
                         tmpDestination, 
                         null, 
+                        2,
                         fromDate, 
                         toDate, 
                         false, 
                         keepDeletedFiles ? null : trace, 
                         context
                 ));
+
                 context.getInfoChannel().print("Recovery completed - Merged archive creation ...");     
                 context.getInfoChannel().updateCurrentTask(0, 0, FileSystemManager.getPath(context.getCurrentArchiveFile()));
                 
@@ -734,7 +734,10 @@ implements TargetActions {
                 
                 context.getTaskMonitor().checkTaskCancellation();
                 
-                if (context.getReport().getRecoveredFiles().length > 0) {
+                if (context.getReport().getRecoveredFiles().length >= 2) {
+                    GregorianCalendar lastArchiveDate = ArchiveManifestCache.getInstance().getManifest(this, context.getReport().getRecoveredFiles()[context.getReport().getRecoveredFiles().length - 1]).getDate();
+                    context.setFinalArchiveFile(new File(computeArchivePath(lastArchiveDate)));
+                    
 	                // Construction de l'archive à un emplacement temporaire
 	                buildArchiveFromDirectory(tmpDestination, context.getCurrentArchiveFile(), context);
 	                
@@ -744,10 +747,10 @@ implements TargetActions {
 	                }
 	                context.setManifest(mfToInsert);
 	                context.getManifest().setType(Manifest.TYPE_COMPACT);
-	                context.getManifest().setDate(toDate);
+	                context.getManifest().setDate(lastArchiveDate);
 	                context.getManifest().addProperty("Source", "Archive merge");
-	                context.getManifest().addProperty("Archive's start date", Utils.formatDisplayDate(fromDate));
-	                context.getManifest().addProperty("Archive's end date", Utils.formatDisplayDate(toDate));
+	                context.getManifest().addProperty("Merge start date", Utils.formatDisplayDate(fromDate));
+	                context.getManifest().addProperty("Merge end date", Utils.formatDisplayDate(toDate));
 	                
 	                AbstractRecoveryTarget.addBasicInformationsToManifest(context.getManifest());
 	                this.storeManifest(context);
@@ -804,49 +807,52 @@ implements TargetActions {
         return true;
     }
     
-    public void cleanCompact(ProcessContext context) throws IOException {
-        File tmpDestination = new File(FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()) + TMP_COMPACT_LOCATION_SUFFIX);
+    public void cleanMerge(ProcessContext context) throws IOException {
+        File tmpDestination = new File(FileSystemManager.getAbsolutePath(context.getCurrentArchiveFile()) + TMP_COMPACT_LOCATION_SUFFIX);
         AbstractFileSystemMedium.tool.delete(tmpDestination, true);
     }
     
-    public void commitCompact(ProcessContext context) throws ApplicationException {
+    public void commitMerge(ProcessContext context) throws ApplicationException {
         if (! this.overwrite) {
             this.target.secureUpdateCurrentTask("Commiting merge ...", context);
-            super.commitCompact(context);
+            super.commitMerge(context);
             
             try {
                 // Nettoyage des données temporaires
-                this.cleanCompact(context);
+                this.cleanMerge(context);
                 
                 // Fermeture de l'archive
                 this.closeArchive(context); 
                 
-                // Suppression des archives compactées
-                if (context.getReport().getRecoveredFiles() != null) {
+                if (context.getReport().getRecoveredFiles() != null && context.getReport().getRecoveredFiles().length >= 2) {
+                    // Suppression des archives compactées
                     for (int i=0; i<context.getReport().getRecoveredFiles().length; i++) {
                         this.deleteArchive(context.getReport().getRecoveredFiles()[i]);                       
                     }
+
+                    // conversion de l'archive
+                    this.convertArchiveToFinal(context);
+
+                    this.target.secureUpdateCurrentTask("Merge completed - " + context.getReport().getRecoveredFiles().length + " archives merged.", context);
+                } else {
+                    this.target.secureUpdateCurrentTask("Merge completed - No archive merged.", context);
                 }
-                
-                // conversion de l'archive
-                this.convertArchiveToFinal(context);
-                
-                this.target.secureUpdateCurrentTask("Merge completed.", context);
+
             } catch (IOException e) {		
                 Logger.defaultLogger().error("Exception caught during merge commit.", e);
-                this.rollbackCompact(context);
+                this.rollbackMerge(context);
                 throw new ApplicationException(e);
             }
         }
     }
     
-    public void rollbackCompact(ProcessContext context) throws ApplicationException {
+    public void rollbackMerge(ProcessContext context) throws ApplicationException {
         if (! this.overwrite) {
             this.target.secureUpdateCurrentTask("Rollbacking merge ...", context);
             try {
                 try {
                     // Nettoyage des données temporaires
-                    this.cleanCompact(context);
+                    this.cleanMerge(context);
                 } finally {
                     try {
                         // Fermeture de l'archive
@@ -871,10 +877,12 @@ implements TargetActions {
      * Rétablit le contenu des archives dans le répertoire demandé, jusqu'à la date précisée.
      * <BR>Selon la valeur de "deleteArchives", supprime ou non les archives décompressées.
      * <BR>'filters' may be null ...
+     * <BR>The recovery is actually made if there are at least <code>minimumArchiveNumber</code> archives to recover
      */
     protected File[] recover(
             Object destination, 
             String[] filters,
+            int minimumArchiveNumber,
             GregorianCalendar fromDate, 
             GregorianCalendar toDate, 
             boolean applyAttributes,
@@ -896,8 +904,8 @@ implements TargetActions {
             // Première étape : on recopie l'ensemble des archives
             recoveredArchives = this.listArchives(fromDate, toDate);
             
-            if (recoveredArchives.length != 0) {
-                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.9);
+            if (recoveredArchives.length >= minimumArchiveNumber) {
+                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.9, "recover");
                 this.archiveRawRecover(recoveredArchives, filters, targetFile, context);
                 
                 context.getTaskMonitor().checkTaskCancellation();

@@ -11,7 +11,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
 import com.myJava.configuration.FrameworkConfiguration;
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 
 
@@ -20,7 +20,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -374,7 +374,7 @@ public class FileTool {
      */
     public void replaceInFile(File baseFile, String searchString, String newString) throws IOException {
         String content = this.getFileContent(baseFile);
-        content = Utilitaire.replace(content, searchString, newString);
+        content = Util.replace(content, searchString, newString);
         OutputStreamWriter fw = null;
         try {
             OutputStream fos = FileSystemManager.getFileOutputStream(FileSystemManager.getAbsolutePath(baseFile));

@@ -38,15 +38,15 @@ import com.application.areca.launcher.gui.common.Refreshable;
 import com.application.areca.metadata.content.ArchiveContent;
 import com.application.areca.metadata.content.ArchiveContentManager;
 import com.application.areca.metadata.manifest.Manifest;
-import com.myJava.file.FileSystemDriver;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.driver.FileSystemDriver;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -154,10 +154,12 @@ implements SelectionListener, Refreshable {
                         medium, 
                         archives[i]
                 );
-
-                item.setText(1, Utils.formatDisplayDate(manifest.getDate()));
+                if (manifest != null) {
+                    item.setText(1, Utils.formatDisplayDate(manifest.getDate()));
+                    initText(item, 0, manifest);
+                }
+                
                 item.setImage(0, ArecaImages.ICO_FS_FOLDER);
-                initText(item, 0, manifest);
                 initSize(item, 2, archives[i], medium);
             } catch (ApplicationException e) {
                 application.handleException(e);

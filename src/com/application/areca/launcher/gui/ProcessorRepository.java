@@ -8,21 +8,23 @@ import org.eclipse.swt.widgets.Composite;
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.postprocessors.AbstractProcessorComposite;
+import com.application.areca.launcher.gui.postprocessors.DeleteProcessorComposite;
 import com.application.areca.launcher.gui.postprocessors.FileDumpProcessorComposite;
 import com.application.areca.launcher.gui.postprocessors.MailSendProcessorComposite;
 import com.application.areca.launcher.gui.postprocessors.MergeProcessorComposite;
 import com.application.areca.launcher.gui.postprocessors.ShellScriptProcessorComposite;
-import com.application.areca.processor.CustomAction;
-import com.application.areca.processor.FileDumpAction;
-import com.application.areca.processor.MailSendAction;
-import com.application.areca.processor.MergeAction;
-import com.application.areca.processor.ShellScriptAction;
+import com.application.areca.processor.DeleteProcessor;
+import com.application.areca.processor.Processor;
+import com.application.areca.processor.FileDumpProcessor;
+import com.application.areca.processor.MailSendProcessor;
+import com.application.areca.processor.MergeProcessor;
+import com.application.areca.processor.ShellScriptProcessor;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -45,83 +47,118 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ProcessorRepository {
+    private static String K_MERGE = "merge";
+    private static String K_SHELL = "shell";
+    private static String K_DUMP = "dump";
+    private static String K_MAIL = "mail";
+    private static String K_DELETE = "delete";
     
     private static final ResourceManager RM = ResourceManager.instance();
     
     public static List getProcessors(boolean preProcess) {
         ArrayList list = new ArrayList();
-        list.add(RM.getLabel("procedition.shell.label"));
-        
-        if (! preProcess) {
-            list.add(RM.getLabel("procedition.dump.label"));
-            list.add(RM.getLabel("procedition.mail.label"));
-            list.add(RM.getLabel("procedition.merge.label"));
+        list.add(K_SHELL);
+        list.add(K_MERGE);
+
+        if (preProcess) {
+            list.add(K_DELETE);            
+        } else {
+            list.add(K_DUMP);
+            list.add(K_MAIL);
         }
         return list;
     }
     
+    private static String getKey(int i, List procs) {
+        if (i == -1) {
+            return null;
+        } else {
+            return (String)procs.get(i);
+        }
+    }
+    
     public static AbstractProcessorComposite buildProcessorComposite(
             int index, 
+            List procs,
             Composite composite,
-            CustomAction proc, 
+            Processor proc, 
             ProcessorEditionWindow frm
     ) {
+        String key = getKey(index, procs);
         AbstractProcessorComposite pnl = null;
-        if (index == 1) {
+        if (key == K_DUMP) {
             pnl = new FileDumpProcessorComposite(composite, proc, frm);
-        } else if (index == 2){
+        } else if (key == K_MAIL){
             pnl = new MailSendProcessorComposite(composite, proc, frm);
-        } else if (index == 0){
+        } else if (key == K_SHELL){
             pnl = new ShellScriptProcessorComposite(composite, proc, frm);
-        } else if (index == 3){
+        } else if (key == K_MERGE){
             pnl = new MergeProcessorComposite(composite, proc, frm);
+        } else if (key == K_DELETE){
+            pnl = new DeleteProcessorComposite(composite, proc, frm);
         }
         
         return pnl;
     }
     
-    public static CustomAction buildProcessor(int index, AbstractRecoveryTarget target) {
-        CustomAction proc = null;
-        if (index == 1) {
-            proc = new FileDumpAction();
-        } else if (index == 2){
-            proc = new MailSendAction();
-        } else if (index == 0){
-            proc = new ShellScriptAction();
-        } else if (index == 3){
-            proc = new MergeAction();
+    public static Processor buildProcessor(int index, List procs, AbstractRecoveryTarget target) {
+        String key = getKey(index, procs);
+        Processor proc = null;
+        if (key == K_DUMP) {
+            proc = new FileDumpProcessor();
+        } else if (key == K_MAIL){
+            proc = new MailSendProcessor();
+        } else if (key == K_SHELL){
+            proc = new ShellScriptProcessor();
+        } else if (key == K_MERGE){
+            proc = new MergeProcessor();
+        } else if (key == K_DELETE){
+            proc = new DeleteProcessor();            
         }
         
         return proc;
     }
     
-    public static int getIndex(CustomAction proc) {
+    public static String getKey(Processor proc) {
+        if (proc == null) {
+        }
+        
+        if (ShellScriptProcessor.class.isAssignableFrom(proc.getClass())) {
+            return K_SHELL;
+        } else if (MailSendProcessor.class.isAssignableFrom(proc.getClass())) {
+            return K_MAIL;
+        } else if (FileDumpProcessor.class.isAssignableFrom(proc.getClass())) {
+            return K_DUMP;         
+        } else if (MergeProcessor.class.isAssignableFrom(proc.getClass())) {
+            return K_MERGE;         
+        } else if (DeleteProcessor.class.isAssignableFrom(proc.getClass())) {
+            return K_DELETE;  
+        }
+        
+        return null;
+    }
+    
+    public static int getIndex(Processor proc, List procs) {
         if (proc == null) {
             return 0;
         }
         
-    	if (ShellScriptAction.class.isAssignableFrom(proc.getClass())) {
-    		return 0;
-    	} else if (MailSendAction.class.isAssignableFrom(proc.getClass())) {
-    		return 2;
-    	} else if (FileDumpAction.class.isAssignableFrom(proc.getClass())) {
-    		return 1;         
-    	} else if (MergeAction.class.isAssignableFrom(proc.getClass())) {
-    		return 3;         
-    	}
+        String key = getKey(proc);
+        for (int i=0; i<procs.size(); i++) {
+            if (procs.get(i).equals(key)) {
+                return i;
+            }
+        }
     	
     	return 0;
     }
     
-    public static String getName(Class proc) {
-        if (FileDumpAction.class.isAssignableFrom(proc)) {
-            return RM.getLabel("procedition.dump.label");
-        } else if (MailSendAction.class.isAssignableFrom(proc)) {
-            return RM.getLabel("procedition.mail.label");
-        } else if (MergeAction.class.isAssignableFrom(proc)) {
-            return RM.getLabel("procedition.merge.label");
-        } else {
-            return RM.getLabel("procedition.shell.label");          
-        }        
+    public static String getName(Processor proc) {
+        return RM.getLabel("procedition." + getKey(proc) + ".label");
+    }
+    
+    
+    public static String getName(String key) {
+        return RM.getLabel("procedition." + key + ".label");
     }
 }

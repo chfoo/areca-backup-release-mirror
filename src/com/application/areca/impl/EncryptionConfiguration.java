@@ -1,13 +1,17 @@
 package com.application.areca.impl;
 
+import java.security.Key;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
+import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
+import com.application.areca.ResourceManager;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 
@@ -16,7 +20,7 @@ import com.myJava.object.HashHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -40,75 +44,97 @@ This file is part of Areca.
  */
 public class EncryptionConfiguration {
 
+    public static final String KEYCONV_RAW = "RAW";
+    public static final String KEYCONV_HASH = "HASH";
+    public static final String KEYCONV_OLD = "OLD";
+    
     private static Map DEFAULT_PARAMETERS;
     public static final String DEFAULT_ALGORITHM = "DESede"; // Default algorithm ... used for backward compatibility
     public static final String RECOMMENDED_ALGORITHM = "AES_HASH"; // Recommended algorithm
     
+    private static void registerTripleDesConfiguration(int keySize, String id, String keyConvention) {
+        EncryptionConfiguration tDesParam = new EncryptionConfiguration();
+        tDesParam.setKeySize(keySize);
+        tDesParam.setTransformation("DESede/CBC/PKCS5Padding");
+        tDesParam.setAlgorithm("DESede");
+        tDesParam.setId(id);
+        tDesParam.setIV(new IvParameterSpec(new byte[] {0, 0, 0, 0, 0, 0, 0, 0}));
+        tDesParam.setKeyConvention(keyConvention);
+        registerConfiguration(tDesParam);
+    }
+    
+    private static void registerAESConfiguration(int keySize, String id, String keyConvention) {
+        EncryptionConfiguration AESParam = new EncryptionConfiguration();
+        AESParam.setKeySize(keySize);
+        AESParam.setTransformation("AES");
+        AESParam.setAlgorithm("AES");
+        AESParam.setId(id);
+        AESParam.setIV(null);
+        AESParam.setKeyConvention(keyConvention);
+        registerConfiguration(AESParam);
+    }
+    
+    private static void registerConfiguration(EncryptionConfiguration p) {
+        if (p.isSupported()) {
+            DEFAULT_PARAMETERS.put(p.getId(), p);
+        }
+    }
+    
     static {
         DEFAULT_PARAMETERS = new HashMap();
         
-        // Triple DES
-        EncryptionConfiguration tDesParam = new EncryptionConfiguration();
-        tDesParam.setKeySize(24);
-        tDesParam.setTransformation("DESede/CBC/PKCS5Padding");
-        tDesParam.setAlgorithm("DESede");
-        tDesParam.setId("DESede");
-        tDesParam.setIV(new IvParameterSpec(new byte[] {0, 0, 0, 0, 0, 0, 0, 0}));
-        tDesParam.setFullName("Triple DES (Without password hash)");
-        tDesParam.setStrongEncryption(false);
-        DEFAULT_PARAMETERS.put(tDesParam.getId(), tDesParam);
+        // Triple DES 192
+        registerTripleDesConfiguration(24, "DESede", KEYCONV_OLD);
+        registerTripleDesConfiguration(24, "DESede_HASH", KEYCONV_HASH);
+        registerTripleDesConfiguration(24, "DESede_RAW", KEYCONV_RAW);
         
-        // Triple DES with hash
-        EncryptionConfiguration tDesHashParam = new EncryptionConfiguration();
-        tDesHashParam.setKeySize(24);
-        tDesHashParam.setTransformation("DESede/CBC/PKCS5Padding");
-        tDesHashParam.setAlgorithm("DESede");
-        tDesHashParam.setId("DESede_HASH");
-        tDesHashParam.setIV(new IvParameterSpec(new byte[] {0, 0, 0, 0, 0, 0, 0, 0}));
-        tDesHashParam.setFullName("Triple DES");
-        tDesHashParam.setStrongEncryption(true);
-        DEFAULT_PARAMETERS.put(tDesHashParam.getId(), tDesHashParam);
-        
-        // AES
-        EncryptionConfiguration AESParam = new EncryptionConfiguration();
-        AESParam.setKeySize(16);
-        AESParam.setTransformation("AES");
-        AESParam.setAlgorithm("AES");
-        AESParam.setId("AES");
-        AESParam.setIV(null);
-        AESParam.setFullName("AES (Without password hash)");
-        AESParam.setStrongEncryption(false);
-        DEFAULT_PARAMETERS.put(AESParam.getId(), AESParam);
-        
-        // AES WITH HASH
-        EncryptionConfiguration AESHashParam = new EncryptionConfiguration();
-        AESHashParam.setKeySize(16);
-        AESHashParam.setTransformation("AES");
-        AESHashParam.setAlgorithm("AES");
-        AESHashParam.setId("AES_HASH");
-        AESHashParam.setIV(null);
-        AESHashParam.setFullName("AES (Advanced Encryption Standard)");
-        AESHashParam.setStrongEncryption(true);
-        DEFAULT_PARAMETERS.put(AESHashParam.getId(), AESHashParam);
+        // AES 128
+        registerAESConfiguration(16, "AES", KEYCONV_OLD);
+        registerAESConfiguration(16, "AES_HASH", KEYCONV_HASH);
+        registerAESConfiguration(16, "AES_RAW", KEYCONV_RAW);
+
+        // AES 256
+        registerAESConfiguration(32, "AES256_HASH", KEYCONV_HASH);
+        registerAESConfiguration(32, "AES256_RAW", KEYCONV_RAW);
     }
     
-    public static Set getAvailableAlgorithms() {
-        return DEFAULT_PARAMETERS.keySet();
+    private boolean isSupported() {
+        try {
+            Cipher cipher = Cipher.getInstance(this.transformation);
+            byte[] b = new byte[this.keySize];
+            Key key = new SecretKeySpec(b, this.algorithm);
+            if (this.IV == null) {
+                cipher.init(Cipher.ENCRYPT_MODE, key);                
+            } else {
+                cipher.init(Cipher.ENCRYPT_MODE, key, this.IV);
+            }
+            return true;
+        } catch (Throwable e) {
+            e.printStackTrace(); // to remove
+            return false;
+        }
     }
     
-    // Return the set of algorithms which are tagged with the "strong encryption" marker.
-    public static Set getAvailableNonDeprecatedAlgorithms() {
+    public static boolean validateAlgorithmId(String id, boolean filterDeprecated) {
+        return 
+            DEFAULT_PARAMETERS.containsKey(id)
+            && ((! filterDeprecated) || (! getParameters(id).isDeprecated()));
+    }
+    
+    public static String[] getAvailableAlgorithms(boolean filterDeprecated) {
         Iterator algos = DEFAULT_PARAMETERS.keySet().iterator();
-        Set ret = new HashSet();
+        ArrayList ret = new ArrayList();
         while (algos.hasNext()) {
             String k = (String)algos.next();
             EncryptionConfiguration alg = getParameters(k);
-            if (alg.isStrongEncryption()) {
+            if ((! filterDeprecated) || (! alg.isDeprecated())) {
                 ret.add(k);
             }
         }
         
-        return ret;
+        String[] algs = (String[])ret.toArray(new String[ret.size()]);
+        Arrays.sort(algs);
+        return algs;
     }
     
     public static EncryptionConfiguration getParameters(String id) {
@@ -121,7 +147,7 @@ public class EncryptionConfiguration {
     private String algorithm;
     private IvParameterSpec IV;
     private String fullName;
-    private boolean strongEncryption;
+    private String keyConvention;
     
     private EncryptionConfiguration() {
         super();
@@ -137,6 +163,7 @@ public class EncryptionConfiguration {
     
     private void setId(String id) {
         this.id = id;
+        this.setFullName(ResourceManager.instance().getLabel("targetedition.encryption." + id.toLowerCase() + ".label"));
     }
     
     private void setKeySize(int keySize) {
@@ -171,22 +198,26 @@ public class EncryptionConfiguration {
         return fullName;
     }
 
-    public boolean isStrongEncryption() {
-        return strongEncryption;
+    public String getKeyConvention() {
+        return keyConvention;
     }
-    
-    private void setStrongEncryption(boolean hashPassword) {
-        this.strongEncryption = hashPassword;
+
+    public void setKeyConvention(String keyConvention) {
+        this.keyConvention = keyConvention;
     }
-    
+
     private void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+    
+    public boolean isDeprecated() {
+        return this.keyConvention.equals(KEYCONV_OLD);
     }
     
     public int hashCode() {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, this.getAlgorithm());
-        h = HashHelper.hash(h, this.isStrongEncryption());
+        h = HashHelper.hash(h, this.getKeyConvention());
         return h;
     }
     
@@ -203,7 +234,7 @@ public class EncryptionConfiguration {
             EncryptionConfiguration other = (EncryptionConfiguration)obj;
             return 
             	EqualsHelper.equals(this.getAlgorithm(), other.getAlgorithm()) &&
-            	EqualsHelper.equals(this.isStrongEncryption(), other.isStrongEncryption())            	
+            	EqualsHelper.equals(this.getKeyConvention(), other.getKeyConvention())            	
             ;
         }
     }

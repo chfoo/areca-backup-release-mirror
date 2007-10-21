@@ -66,7 +66,7 @@ import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
-import com.application.areca.launcher.gui.composites.CustomActionsTable;
+import com.application.areca.launcher.gui.composites.ProcessorsTable;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.plugins.StorageSelectionHelper;
@@ -74,6 +74,7 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.system.OSTool;
+import com.myJava.util.Util;
 import com.myJava.util.history.History;
 import com.myJava.util.log.Logger;
 
@@ -81,7 +82,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -145,6 +146,7 @@ extends AbstractWindow {
     protected Text txtEncryptionKey;
     protected Text txtMultiVolumes;
     protected Combo cboEncryptionAlgorithm;
+    protected Label lblEncryptionExample;
     protected Label lblEncryptionKey;
     protected Label lblMultiVolumesUnit;
     protected Label lblEncryptionAlgorithm;
@@ -159,8 +161,8 @@ extends AbstractWindow {
     protected Button btnModifyFilter;
     protected FilterGroup mdlFilters;
  
-    protected CustomActionsTable postProcessesTab;
-    protected CustomActionsTable preProcessesTab;
+    protected ProcessorsTable postProcessesTab;
+    protected ProcessorsTable preProcessesTab;
     
     protected Table tblSources;  
     protected Button btnAddSource;
@@ -561,21 +563,30 @@ extends AbstractWindow {
         lblEncryptionAlgorithm.setToolTipText(RM.getLabel("targetedition.algorithmfield.tooltip", new Object[] {EncryptionConfiguration.getParameters(EncryptionConfiguration.RECOMMENDED_ALGORITHM).getAlgorithm()}));
         cboEncryptionAlgorithm = new Combo(grpEncryption, SWT.READ_ONLY);
         monitorControl(cboEncryptionAlgorithm);
+        cboEncryptionAlgorithm.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+                updateEncryptionExample();
+            }
+        });
+        
         cboEncryptionAlgorithm.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        Iterator algIter = EncryptionConfiguration.getAvailableNonDeprecatedAlgorithms().iterator();
-        while (algIter.hasNext()) {
-            String id = (String)algIter.next();
+        String[] algs = EncryptionConfiguration.getAvailableAlgorithms(true);
+        for (int i=0; i<algs.length; i++) {
+            String id = algs[i];
             EncryptionConfiguration conf = EncryptionConfiguration.getParameters(id);
             lstEncryptionAlgorithms.add(conf);
             cboEncryptionAlgorithm.add(conf.getFullName());
         }
-        
+
         lblEncryptionKey = new Label(grpEncryption, SWT.NONE);
         lblEncryptionKey.setText(RM.getLabel("targetedition.keyfield.label"));
         lblEncryptionKey.setToolTipText(RM.getLabel("targetedition.keyfield.tooltip"));
         txtEncryptionKey = new Text(grpEncryption, SWT.BORDER);
         monitorControl(txtEncryptionKey);
         txtEncryptionKey.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        new Label(grpEncryption, SWT.NONE);
+        lblEncryptionExample = new Label(grpEncryption, SWT.NONE);
+        lblEncryptionExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     }
     
     private TreeItem transfered;
@@ -780,11 +791,11 @@ extends AbstractWindow {
     }
 
     private void initPostProcessorsTab(Composite composite) {
-        this.postProcessesTab = new CustomActionsTable(composite, this, false);
+        this.postProcessesTab = new ProcessorsTable(composite, this, false);
     }
     
     private void initPreProcessorsTab(Composite composite) {
-        this.preProcessesTab = new CustomActionsTable(composite, this, true);
+        this.preProcessesTab = new ProcessorsTable(composite, this, true);
     }
 
     public void publicRegisterUpdate() {
@@ -882,7 +893,8 @@ extends AbstractWindow {
             if (fMedium.getEncryptionPolicy().isEncrypted()) {
                 txtEncryptionKey.setText(fMedium.getEncryptionPolicy().getEncryptionKey());
                 String algoId = fMedium.getEncryptionPolicy().getEncryptionAlgorithm();
-                if (EncryptionConfiguration.getAvailableNonDeprecatedAlgorithms().contains(algoId)) {
+                
+                if (EncryptionConfiguration.validateAlgorithmId(algoId, true)) {
                     for (int i=0; i<lstEncryptionAlgorithms.size(); i++) {
                         EncryptionConfiguration conf = (EncryptionConfiguration)lstEncryptionAlgorithms.get(i);
                         if (conf.getId().equals(algoId)) {
@@ -893,6 +905,7 @@ extends AbstractWindow {
                 } else {
                     cboEncryptionAlgorithm.deselectAll();
                 }
+                updateEncryptionExample();
             }
             
             // INIT SOURCES
@@ -971,6 +984,7 @@ extends AbstractWindow {
             cboEncryptionAlgorithm.setEnabled(false);
             lblEncryptionAlgorithm.setEnabled(false);
             lblEncryptionKey.setEnabled(false);
+            lblEncryptionExample.setEnabled(false);
             txtEncryptionKey.setEnabled(false);
             txtMultiVolumes.setEnabled(false);
             lblMultiVolumesUnit.setEnabled(false);
@@ -1169,14 +1183,17 @@ extends AbstractWindow {
         }    
         
         this.resetErrorState(txtEncryptionKey);
-        if (this.chkEncrypted.getSelection() && (
-                this.txtEncryptionKey.getText() == null 
-                || this.txtEncryptionKey.getText().length() == 0           
-        )) {
-            this.setInError(txtEncryptionKey);
-            return false;
-        }    
-        
+        if (this.chkEncrypted.getSelection()) {
+            int index = this.cboEncryptionAlgorithm.getSelectionIndex();
+            if (index != -1) {
+                EncryptionConfiguration config = (EncryptionConfiguration)lstEncryptionAlgorithms.get(index);
+                if (! EncryptionPolicy.validateEncryptionKey(txtEncryptionKey.getText(), config)) {
+                    setInError(this.txtEncryptionKey);
+                    return false;
+                }
+            }
+        }
+
         return true;        
     }
     
@@ -1196,12 +1213,25 @@ extends AbstractWindow {
         }
     }
     
+    private void updateEncryptionExample() {
+        int index = cboEncryptionAlgorithm.getSelectionIndex();
+        if (index != -1) {
+            EncryptionConfiguration config = (EncryptionConfiguration)lstEncryptionAlgorithms.get(index);
+            String configId = config.getId();
+            String example = RM.getLabel("targetedition.encryption." + configId.toLowerCase() + ".example");
+            this.lblEncryptionExample.setText(example);
+        } else {
+            this.lblEncryptionExample.setText("");
+        }
+    }
+    
     private void resetEcryptionKey() {
         if (this.chkEncrypted.getSelection()) {
             this.txtEncryptionKey.setEditable(true);
             this.txtEncryptionKey.setEnabled(true);
             this.cboEncryptionAlgorithm.setEnabled(true);
             this.lblEncryptionAlgorithm.setEnabled(true);
+            this.lblEncryptionExample.setEnabled(true);
             this.lblEncryptionKey.setEnabled(true);
         } else {
             this.txtEncryptionKey.setEditable(false);
@@ -1211,6 +1241,7 @@ extends AbstractWindow {
                 this.txtEncryptionKey.setText("");
             }
             this.cboEncryptionAlgorithm.setEnabled(false);
+            this.lblEncryptionExample.setEnabled(false);
             this.cboEncryptionAlgorithm.setBackground(null);
             this.lblEncryptionAlgorithm.setEnabled(false);
             this.lblEncryptionKey.setEnabled(false);

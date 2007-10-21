@@ -13,7 +13,7 @@ import com.application.areca.launcher.tui.Launcher;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -47,6 +47,8 @@ public class UserCommandLine implements CommandConstants {
         Launcher.COMMAND_COMPACT.addMandatoryArgument(Launcher.OPTION_TARGET);
         Launcher.COMMAND_COMPACT.addOptionalArgument(Launcher.OPTION_DATE);
         Launcher.COMMAND_COMPACT.addOptionalArgument(Launcher.OPTION_DELAY);
+        Launcher.COMMAND_COMPACT.addOptionalArgument(Launcher.OPTION_FROM);
+        Launcher.COMMAND_COMPACT.addOptionalArgument(Launcher.OPTION_TO);
         Launcher.COMMAND_COMPACT.addOptionalArgument(Launcher.OPTION_KEEP_DELETED_ENTRIES);
         
         Launcher.COMMAND_RECOVER.addMandatoryArgument(Launcher.OPTION_CONFIG);
@@ -129,10 +131,11 @@ public class UserCommandLine implements CommandConstants {
         if (
                     this.command.equalsIgnoreCase(Launcher.COMMAND_DELETE.getName())
                     && (! this.options.containsKey(Launcher.OPTION_DELAY.getName()))
+                    && (! this.options.containsKey(Launcher.OPTION_TO.getName()))
                     && (! this.options.containsKey(Launcher.OPTION_DATE.getName()))
             ) {
                 throw new InvalidCommandException("The " +
-                        Launcher.OPTION_DELAY.getName() + " or " + Launcher.OPTION_DATE.getName() + " option is mandatory.");
+                        Launcher.OPTION_TO.getName() + " or " + Launcher.OPTION_DATE.getName() + " option is mandatory.");
         }
     }
     

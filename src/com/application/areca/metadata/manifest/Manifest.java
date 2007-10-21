@@ -6,14 +6,14 @@ import java.util.Iterator;
 import java.util.Map;
 
 import com.myJava.util.CalendarUtils;
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 
 /**
  * Classe définissant un manifeste d'archive
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -156,7 +156,7 @@ public class Manifest {
     }
     
     private static Manifest decodeVersion1(String source) {
-        source = Utilitaire.replace(source, SEPARATOR, " " + SEPARATOR + " ");
+        source = Util.replace(source, SEPARATOR, " " + SEPARATOR + " ");
         String[] tokens = source.split(SEPARATOR);
         
         Manifest m = new Manifest();
@@ -175,7 +175,7 @@ public class Manifest {
     }
     
     private static Manifest decodeVersion0(String source) {
-        source = Utilitaire.replace(source, SEPARATOR, " " + SEPARATOR + " ");
+        source = Util.replace(source, SEPARATOR, " " + SEPARATOR + " ");
         String[] tokens = source.split(SEPARATOR);
         
         Manifest m = new Manifest();
@@ -200,8 +200,8 @@ public class Manifest {
             return "";
         }
         
-        String ret = Utilitaire.replace(source, "\\", "\\\\");
-        ret = Utilitaire.replace(ret, SEPARATOR, "\\+");
+        String ret = Util.replace(source, "\\", "\\\\");
+        ret = Util.replace(ret, SEPARATOR, "\\+");
         return ret;
     }
     
@@ -210,8 +210,8 @@ public class Manifest {
             return null;
         }
         
-        String ret = Utilitaire.replace(source, "\\\\", "\\");
-        ret = Utilitaire.replace(ret, "\\+", SEPARATOR);
+        String ret = Util.replace(source, "\\\\", "\\");
+        ret = Util.replace(ret, "\\+", SEPARATOR);
         return ret;        
     }
     

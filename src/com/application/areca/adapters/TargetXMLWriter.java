@@ -21,12 +21,13 @@ import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
-import com.application.areca.processor.CustomAction;
-import com.application.areca.processor.CustomActionList;
-import com.application.areca.processor.FileDumpAction;
-import com.application.areca.processor.MailSendAction;
-import com.application.areca.processor.MergeAction;
-import com.application.areca.processor.ShellScriptAction;
+import com.application.areca.processor.DeleteProcessor;
+import com.application.areca.processor.Processor;
+import com.application.areca.processor.ProcessorList;
+import com.application.areca.processor.FileDumpProcessor;
+import com.application.areca.processor.MailSendProcessor;
+import com.application.areca.processor.MergeProcessor;
+import com.application.areca.processor.ShellScriptProcessor;
 import com.myJava.file.FileSystemManager;
 
 /**
@@ -34,7 +35,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -131,18 +132,20 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(">");            
     }
     
-    protected void serializeProcessors(CustomActionList actions, boolean preProcesses) {
+    protected void serializeProcessors(ProcessorList actions, boolean preProcesses) {
         Iterator iter = actions.iterator();
         while (iter.hasNext()) {
             Object pp = iter.next();
-            if (FileDumpAction.class.isAssignableFrom(pp.getClass())) {
-                serializeProcessor((FileDumpAction)pp, preProcesses);
-            } else if (MailSendAction.class.isAssignableFrom(pp.getClass())) {
-                serializeProcessor((MailSendAction)pp, preProcesses);            
-            } else if (ShellScriptAction.class.isAssignableFrom(pp.getClass())) {
-                serializeProcessor((ShellScriptAction)pp, preProcesses); 
-            } else if (MergeAction.class.isAssignableFrom(pp.getClass())) {
-                serializeProcessor((MergeAction)pp, preProcesses); 
+            if (FileDumpProcessor.class.isAssignableFrom(pp.getClass())) {
+                serializeProcessor((FileDumpProcessor)pp, preProcesses);
+            } else if (MailSendProcessor.class.isAssignableFrom(pp.getClass())) {
+                serializeProcessor((MailSendProcessor)pp, preProcesses);            
+            } else if (ShellScriptProcessor.class.isAssignableFrom(pp.getClass())) {
+                serializeProcessor((ShellScriptProcessor)pp, preProcesses); 
+            } else if (MergeProcessor.class.isAssignableFrom(pp.getClass())) {
+                serializeProcessor((MergeProcessor)pp, preProcesses); 
+            } else if (DeleteProcessor.class.isAssignableFrom(pp.getClass())) {
+                serializeProcessor((DeleteProcessor)pp, preProcesses); 
             }
         }
     }
@@ -167,8 +170,8 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");   
     }
 
-    protected void serializeProcessor(FileDumpAction pp, boolean postProcess) {
-        serializeProcessorHeader(XML_POSTPROCESSOR_DUMP, postProcess);
+    protected void serializeProcessor(FileDumpProcessor pp, boolean postProcess) {
+        serializeProcessorHeader(XML_PROCESSOR_DUMP, postProcess);
         sb.append(XML_PP_DUMP_DIRECTORY);
         sb.append("=");
         sb.append(encode(FileSystemManager.getAbsolutePath(pp.getDestinationFolder())));
@@ -187,20 +190,32 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("/>");        
     }
     
-    protected void serializeProcessor(MergeAction pp, boolean postProcess) {
-        serializeProcessorHeader(XML_POSTPROCESSOR_MERGE, postProcess);
-        sb.append(XML_PP_MERGE_DELAY);
+    protected void serializeProcessor(MergeProcessor pp, boolean postProcess) {
+        serializeProcessorHeader(XML_PROCESSOR_MERGE, postProcess);
+        sb.append(XML_PP_MERGE_FROM_DELAY);
         sb.append("=");
-        sb.append(encode("" + pp.getDelay()));
+        sb.append(encode("" + pp.getFromDelay()));
         sb.append(" ");
+        sb.append(XML_PP_MERGE_TO_DELAY);
+        sb.append("=");
+        sb.append(encode("" + pp.getToDelay()));
+        sb.append(" ");        
         sb.append(XML_PP_MERGE_KEEP_DELETED);
         sb.append("=");
         sb.append(encode("" + pp.isKeepDeletedEntries()));
         sb.append("/>");        
     }
     
-    protected void serializeProcessor(MailSendAction pp, boolean postProcess) {
-        serializeProcessorHeader(XML_POSTPROCESSOR_EMAIL, postProcess);
+    protected void serializeProcessor(DeleteProcessor pp, boolean postProcess) {
+        serializeProcessorHeader(XML_PROCESSOR_DELETE, postProcess);
+        sb.append(XML_PP_DELAY);
+        sb.append("=");
+        sb.append(encode("" + pp.getDelay()));
+        sb.append("/>");        
+    }
+    
+    protected void serializeProcessor(MailSendProcessor pp, boolean postProcess) {
+        serializeProcessorHeader(XML_PROCESSOR_EMAIL, postProcess);
         sb.append(XML_PP_EMAIL_RECIPIENTS);
         sb.append("=");
         sb.append(encode(pp.getRecipients()));
@@ -243,8 +258,8 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("/>");        
     }
     
-    protected void serializeProcessor(ShellScriptAction pp, boolean postProcess) {
-        serializeProcessorHeader(XML_POSTPROCESSOR_SHELL, postProcess);
+    protected void serializeProcessor(ShellScriptProcessor pp, boolean postProcess) {
+        serializeProcessorHeader(XML_PROCESSOR_SHELL, postProcess);
         sb.append(XML_PP_SHELL_SCRIPT);
         sb.append("=");
         sb.append(encode(pp.getCommand()));

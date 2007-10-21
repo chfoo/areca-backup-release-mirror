@@ -9,7 +9,7 @@ import java.util.Set;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -94,6 +94,18 @@ public class DuplicateHelper {
             }
         }
     }
+    
+    public static int[] duplicate(int[] array) {
+        if (array == null) {
+            return null;
+        } else {
+            int[] clone = new int[array.length];
+            for (int i=0; i<array.length; i++) {
+                clone[i] = array[i];
+            }
+            return clone;
+        }
+    }
 
     public static Object duplicate(Object o) {
         if (o == null) {
@@ -102,6 +114,10 @@ public class DuplicateHelper {
             return ((PublicClonable)o).duplicate();
         } else if (o instanceof List) {
             return duplicate((List)o);
+        } else if (o instanceof Set) {
+            return duplicate((Set)o);       
+        } else if (o instanceof int[]) {
+            return duplicate((int[])o);                  
         } else {
             throw new IllegalArgumentException(o.toString() + " is not cloneable.");
         }

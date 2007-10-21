@@ -16,17 +16,18 @@ import com.application.areca.launcher.InvalidCommandException;
 import com.application.areca.launcher.UserCommandLine;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.CalendarUtils;
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 import com.myJava.util.log.ConsoleLogProcessor;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * Launcher
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -75,7 +76,7 @@ implements CommandConstants {
                 if (FileSystemManager.exists(f)) {
                     Logger.defaultLogger().remove(FileLogProcessor.class);
                     Logger.defaultLogger().remove(ConsoleLogProcessor.class);
-                    File configFile = new File(Utilitaire.replace(command.getOption(OPTION_CONFIG), ".xml", ""));
+                    File configFile = new File(Util.replace(command.getOption(OPTION_CONFIG), ".xml", ""));
                     File logFile = new File(
                             FileSystemManager.getParentFile(configFile) + "/log/",
                             FileSystemManager.getName(configFile)
@@ -95,7 +96,7 @@ implements CommandConstants {
             if (command.hasOption(OPTION_TARGET)) {
                 target = getTarget(process, command.getOption(OPTION_TARGET));
             }
-            ProcessContext context = new ProcessContext(target, channel);
+            ProcessContext context = new ProcessContext(target, channel, new TaskMonitor("tui-main"));
             
             if (command.getCommand().equalsIgnoreCase(COMMAND_COMPACT.getName())) {
                 processCompact(command, process, context);
@@ -120,7 +121,7 @@ implements CommandConstants {
             channel.print("Commands : describe / backup / merge / delete / recover");
             channel.print("Options (describe): -config (your xml config file)");
             channel.print("Options (backup)  : -config (your xml config file) [-target (specific target)]");
-            channel.print("Options (merge) : -config (your xml config file) -target (specific target)  [-k] [-date (recovery date : YYYY-MM-DD) / -delay (nr of days)]");
+            channel.print("Options (merge) : -config (your xml config file) -target (specific target)  [-k] -date (recovery date : YYYY-MM-DD) / -from (nr of days - 0='-infinity') -to (nr of days - 0='today')");
             channel.print("Options (delete) : -config (your xml config file) -target (specific target) [-date (recovery date : YYYY-MM-DD) / -delay (nr of days)]");
             channel.print("Options (recover) : -config (your xml config file) -target (specific target) -destination (destination folder) [-date (recovery date : YYYY-MM-DD)]");
             channel.print(SEPARATOR);
@@ -163,7 +164,7 @@ implements CommandConstants {
             Iterator iter = process.getTargetIterator();
             while (iter.hasNext()) {
                 final AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
-                final ProcessContext cloneCtx = new ProcessContext(tg, new LoggerUserInformationChannel(true));
+                final ProcessContext cloneCtx = new ProcessContext(tg, new LoggerUserInformationChannel(true), new TaskMonitor("tui-clone"));
                 Thread th = new Thread(new Runnable() {
                     public void run() {
                         try {
@@ -199,6 +200,8 @@ implements CommandConstants {
      */
     private static void processCompact(UserCommandLine command, RecoveryProcess process, ProcessContext context) throws Exception {
         String strDelay = command.getOption(OPTION_DELAY);
+        String strFrom = command.getOption(OPTION_FROM);
+        String strTo = command.getOption(OPTION_TO);
         AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         
         boolean keepDeletedEntries = (
@@ -206,11 +209,24 @@ implements CommandConstants {
                 && command.getOption(OPTION_KEEP_DELETED_ENTRIES).trim().length() != 0
         );
         
-        if (strDelay != null) {
+        if (strDelay != null || strFrom != null || strTo != null) {
             // A delay (in days) is provided
+            int from = 0;
+            if (strFrom != null) {
+                from = Integer.parseInt(strFrom);
+            }
+            
+            int to = 0;
+            if (strTo != null) {
+                to = Integer.parseInt(strTo);
+            } else if (strDelay != null) {
+                to = Integer.parseInt(strDelay);
+            }
+            
             process.processCompactOnTarget(
                     target,
-                    Integer.parseInt(strDelay),
+                    from, 
+                    to,
                     keepDeletedEntries,
                     context
             );

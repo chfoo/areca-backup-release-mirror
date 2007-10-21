@@ -27,7 +27,7 @@ import com.myJava.object.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -90,9 +90,9 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
     public void open(ProcessContext context) throws ApplicationException {
         if (overwrite) {
             // Delete all archives
-            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2);
+            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2, "backup-delete");
             this.deleteArchives(null, context);
-            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8);
+            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8, "backup-main");
         }
         super.open(context);
     }

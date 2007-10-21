@@ -28,13 +28,13 @@ import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.indicator.Indicator;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.indicator.IndicatorTypes;
-import com.myJava.file.DriverAlreadySetException;
 import com.myJava.file.FileNameUtil;
-import com.myJava.file.FileSystemDriver;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
-import com.myJava.file.event.EventFileSystemDriver;
-import com.myJava.file.event.LoggerFileSystemDriverListener;
+import com.myJava.file.driver.DriverAlreadySetException;
+import com.myJava.file.driver.FileSystemDriver;
+import com.myJava.file.driver.event.EventFileSystemDriver;
+import com.myJava.file.driver.event.LoggerFileSystemDriverListener;
 import com.myJava.object.ToStringHelper;
 import com.myJava.util.errors.ActionError;
 import com.myJava.util.errors.ActionReport;
@@ -47,7 +47,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -368,7 +368,7 @@ implements TargetActions, IndicatorTypes {
 	 * On vide les caches lors de la fusion.
 	 * <BR>A optimiser en tenant compte de la date.
 	 */
-	public void commitCompact(ProcessContext context) throws ApplicationException {
+	public void commitMerge(ProcessContext context) throws ApplicationException {
 	    clearRelatedCaches();
 	}
 
@@ -393,6 +393,10 @@ implements TargetActions, IndicatorTypes {
     public void deleteArchives(GregorianCalendar fromDate, ProcessContext context) throws ApplicationException {
         this.checkRepository();
         
+        Logger.defaultLogger().info(
+                "Starting deletion from " + Utils.formatDisplayDate(fromDate) + "."
+        );
+        
         if (fromDate != null) {
             fromDate = (GregorianCalendar)fromDate.clone();
             fromDate.add(GregorianCalendar.MILLISECOND, -1);
@@ -415,7 +419,12 @@ implements TargetActions, IndicatorTypes {
         } catch (IOException e) {
             throw new ApplicationException(e);
         }
-        context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);          
+        
+        Logger.defaultLogger().info(
+                "Deletion completed - " + archives.length + " archive" + (archives.length>1?"s":"") + " deleted."
+        );
+        
+        context.getTaskMonitor().getCurrentActiveSubTask().enforceCompletion();          
     }
     
     protected abstract void deleteArchive(File archive) throws IOException;

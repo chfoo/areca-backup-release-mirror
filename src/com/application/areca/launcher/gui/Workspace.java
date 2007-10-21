@@ -16,7 +16,7 @@ import com.application.areca.adapters.ProcessXMLReader;
 import com.application.areca.cache.CacheInitializer;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.launcher.gui.common.LocalPreferences;
-import com.application.areca.processor.CustomAction;
+import com.application.areca.processor.Processor;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.ConsoleLogProcessor;
@@ -29,7 +29,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -188,7 +188,7 @@ public class Workspace {
         return ret;
     }
     
-    public CustomAction[] buildPostProcessorArray() {
+    public Processor[] buildPostProcessorArray() {
         Iterator iter = this.getProcessIterator();
         HashSet set = new HashSet();
         while (iter.hasNext()) {
@@ -202,7 +202,7 @@ public class Workspace {
                 }
             }
         }
-        CustomAction[] ret = (CustomAction[])set.toArray(new CustomAction[0]);
+        Processor[] ret = (Processor[])set.toArray(new Processor[0]);
         Arrays.sort(ret);
         return ret;
     }

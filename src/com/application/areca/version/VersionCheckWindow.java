@@ -20,7 +20,7 @@ import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.system.NoBrowserFoundException;
 import com.myJava.system.OSTool;
 import com.myJava.system.OSToolException;
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 import com.myJava.util.version.VersionData;
 
@@ -28,7 +28,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -169,7 +169,7 @@ extends ApplicationWindow {
                         txt.setText(
                                 "Version : " + data.getVersionId() + 
                                 " (" + VersionInfos.formatVersionDate(data.getVersionDate()) + ")" +
-                                "\n\nDescription :\n" + ((data.getDescription() == null || data.getDescription().trim().length() == 0) ? "No description provided for this version." : Utilitaire.replace(data.getDescription(), "<BR>", "\n")) +
+                                "\n\nDescription :\n" + ((data.getDescription() == null || data.getDescription().trim().length() == 0) ? "No description provided for this version." : Util.replace(data.getDescription(), "<BR>", "\n")) +
                                 "\n\nDownload URL :\n" + (data.getDownloadUrl() == null ? "" : data.getDownloadUrl().toExternalForm())
                         );
                     }

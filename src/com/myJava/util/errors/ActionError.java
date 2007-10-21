@@ -2,7 +2,7 @@ package com.myJava.util.errors;
 
 import java.util.Hashtable;
 
-import com.myJava.util.SimpleEnumeration;
+import com.myJava.util.collections.SimpleEnumeration;
 
 /**
  * Classe représentant une erreur de données.
@@ -10,7 +10,7 @@ import com.myJava.util.SimpleEnumeration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*

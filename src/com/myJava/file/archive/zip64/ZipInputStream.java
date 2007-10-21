@@ -43,7 +43,7 @@ import com.myJava.util.log.Logger;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
 public class ZipInputStream 
 extends InflaterInputStream 
@@ -91,7 +91,7 @@ implements ZipConstants {
 
     public void closeEntry() throws IOException {
         ensureOpen();
-        while (read(tmpbuf, 0, tmpbuf.length) != -1) ;
+        while (read(tmpbuf, 0, tmpbuf.length) != -1) ;    // -> To be enhanced : we should just skip the remaining bytes without decompressing them
         entryEOF = true;
     }
 

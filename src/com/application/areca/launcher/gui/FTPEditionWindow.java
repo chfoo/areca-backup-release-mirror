@@ -21,15 +21,15 @@ import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.configuration.FrameworkConfiguration;
-import com.myJava.file.ftp.SecuredSocketFactory;
-import com.myJava.util.Utilitaire;
+import com.myJava.file.driver.ftp.SecuredSocketFactory;
+import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -261,7 +261,7 @@ extends AbstractWindow {
                         testFTP(policy);    
                     }
                 };
-                Thread th = new Thread(rn, "FTP Test #" + Utilitaire.getRndLong());
+                Thread th = new Thread(rn, "FTP Test #" + Util.getRndLong());
                 th.setDaemon(true);
                 registerCurrentRunningTest(th);
                 th.start();

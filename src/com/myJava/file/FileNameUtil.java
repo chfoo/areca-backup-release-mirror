@@ -1,12 +1,12 @@
 package com.myJava.file;
 
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -35,13 +35,13 @@ public class FileNameUtil {
      * <BR>Adds a trailing file separator 
      */
     public static String normalizePath(String p) {
-        return Utilitaire.replace(p, "\\", "/");
+        return Util.replace(p, "\\", "/");
     }
     
     public static String heavyNormalizePath(String p, boolean addTrailingSeparator) {
-        p = Utilitaire.replace(p, "\\", "/");
-        p = Utilitaire.replace(p, "//", "/");
-        p = Utilitaire.replace(p, "//", "/");
+        p = Util.replace(p, "\\", "/");
+        p = Util.replace(p, "//", "/");
+        p = Util.replace(p, "//", "/");
 
         if (addTrailingSeparator && (! p.endsWith("/"))) {
             p += "/";

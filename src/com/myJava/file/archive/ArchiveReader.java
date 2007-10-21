@@ -7,13 +7,13 @@ import java.io.InputStream;
 
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -63,7 +63,7 @@ public class ArchiveReader {
     public void injectIntoDirectory(File dir, String[] entriesToRecover) throws IOException {
         if (entriesToRecover != null) {
             for (int i=0; i<entriesToRecover.length; i++) {
-                entriesToRecover[i] = Utilitaire.trimSlashes(entriesToRecover[i]);
+                entriesToRecover[i] = Util.trimSlashes(entriesToRecover[i]);
             }
         }
         
@@ -75,7 +75,7 @@ public class ArchiveReader {
             String fileName;
             while((fileName = adapter.getNextEntry()) != null) {
                 try {
-                    if (entriesToRecover == null || Utilitaire.passFilter(Utilitaire.trimSlashes(fileName), entriesToRecover)) {
+                    if (entriesToRecover == null || Util.passFilter(Util.trimSlashes(fileName), entriesToRecover)) {
                         File target = new File(dir, fileName);
 
 	                    if (FileSystemManager.exists(target)) {

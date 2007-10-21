@@ -1,6 +1,7 @@
 package com.application.areca.context;
 
 import java.io.File;
+import java.util.Properties;
 import java.util.Stack;
 
 import com.application.areca.AbstractRecoveryTarget;
@@ -17,7 +18,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -87,6 +88,8 @@ public class ProcessContext {
      */
     protected int rootCount;
     
+    protected Properties overridenDynamicProperties = new Properties();
+    
     /**
      * Report being built during the process
      */
@@ -99,16 +102,18 @@ public class ProcessContext {
      * Logger spécifique utilisé pour les retours utilisateur (typiquement : affichage à l'écran)
      */
     private UserInformationChannel infoChannel;
-    
+
     public ProcessContext(AbstractRecoveryTarget target, UserInformationChannel channel) {
-        this(target, channel, new TaskMonitor());
+        this(target, channel, null);
     }
     
     public ProcessContext(AbstractRecoveryTarget target, UserInformationChannel channel, TaskMonitor taskMonitor) {
         this.currentReport = new ProcessReport(target);
         this.fileSystemLevels = new Stack();
         this.infoChannel = channel;
-        this.infoChannel.setTaskMonitor(taskMonitor);
+        if (taskMonitor != null) {
+            this.infoChannel.setTaskMonitor(taskMonitor);
+        }
     }
     
     public ArchiveContentAdapter getContentAdapter() {
@@ -122,7 +127,11 @@ public class ProcessContext {
     public File getCurrentArchiveFile() {
         return currentArchiveFile;
     }
-    
+
+    public Properties getOverridenDynamicProperties() {
+        return overridenDynamicProperties;
+    }
+
     public void setCurrentArchiveFile(File currentArchiveFile) {
         this.currentArchiveFile = currentArchiveFile;
     }

@@ -1,7 +1,6 @@
 package com.application.areca.launcher.gui;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -24,7 +23,7 @@ import com.application.areca.launcher.gui.common.SavePanel;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -91,9 +90,9 @@ extends AbstractWindow {
         mainData1.horizontalAlignment = SWT.FILL;
         cboEncryptionAlgorithm.setLayoutData(mainData1);
         
-        Iterator algIter = EncryptionConfiguration.getAvailableAlgorithms().iterator();
-        while (algIter.hasNext()) {
-            String id = (String)algIter.next();
+        String[] algs = EncryptionConfiguration.getAvailableAlgorithms(false);
+        for (int i=0; i<algs.length; i++) {
+            String id = algs[i];
             EncryptionConfiguration conf = EncryptionConfiguration.getParameters(id);
             encryptionAlgorithms.add(conf);
             cboEncryptionAlgorithm.add(conf.getFullName());

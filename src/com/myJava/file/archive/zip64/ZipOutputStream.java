@@ -21,7 +21,7 @@ import java.util.zip.ZipException;
 
 import com.myJava.file.multivolumes.VolumeOutputStream;
 import com.myJava.file.multivolumes.VolumeStrategy;
-import com.myJava.util.SerializedCollection;
+import com.myJava.util.collections.SerializedCollection;
 import com.myJava.util.log.Logger;
 
 /**
@@ -40,7 +40,7 @@ import com.myJava.util.log.Logger;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
 public class ZipOutputStream 
 extends DeflaterOutputStream 

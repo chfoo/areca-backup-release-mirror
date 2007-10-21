@@ -54,16 +54,17 @@ import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.system.OSTool;
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -525,7 +526,7 @@ implements ActionConstants, Window.IExceptionHandler {
     }
     
     public void buildBatch() {
-        String fileNameSelected = "backup_" + Utilitaire.replace(this.getCurrentProcess().getSource(), ".xml", "");
+        String fileNameSelected = "backup_" + Util.replace(this.getCurrentProcess().getSource(), ".xml", "");
         String fileNameAll = "backup";
         if (this.isCurrentObjectTarget()) {
             fileNameSelected += "_" + this.getCurrentTarget().getId();
@@ -545,7 +546,7 @@ implements ActionConstants, Window.IExceptionHandler {
         }
         
         //String path = showFileDialog(OSTool.getUserHome(), this.mainWindow, fileName, RM.getLabel("app.buildbatch.label"), SWT.SAVE);
-        CreateShortcutWindow win = new CreateShortcutWindow(OSTool.getUserHome(), fileNameSelected, fileNameAll);
+        CreateBackupShortcutWindow win = new CreateBackupShortcutWindow(OSTool.getUserHome(), fileNameSelected, fileNameAll);
         showDialog(win);
         String path = win.getSelectedPath();
         boolean forSelectedOnly = win.isForSelectedOnly();
@@ -1229,7 +1230,7 @@ implements ActionConstants, Window.IExceptionHandler {
             addChannel(channel);
             
             try {
-                this.context = new ProcessContext(rTarget, channel);
+                this.context = new ProcessContext(rTarget, channel, new TaskMonitor("application-main"));
 
                 channel.startRunning();
                 registerState(true);

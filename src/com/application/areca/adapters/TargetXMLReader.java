@@ -31,18 +31,19 @@ import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
-import com.application.areca.processor.CustomAction;
-import com.application.areca.processor.FileDumpAction;
-import com.application.areca.processor.MailSendAction;
-import com.application.areca.processor.MergeAction;
-import com.application.areca.processor.ShellScriptAction;
+import com.application.areca.processor.DeleteProcessor;
+import com.application.areca.processor.Processor;
+import com.application.areca.processor.FileDumpProcessor;
+import com.application.areca.processor.MailSendProcessor;
+import com.application.areca.processor.MergeProcessor;
+import com.application.areca.processor.ShellScriptProcessor;
 
 /**
  * Adaptateur pour la sérialisation / désérialisation XML.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -154,14 +155,16 @@ public class TargetXMLReader implements XMLTags {
             } else if (child.equalsIgnoreCase(XML_MEDIUM)) {
                 target.setMedium(this.readMedium(children.item(i), target), false);      
                 target.getMedium().install();
-            } else if (child.equalsIgnoreCase(XML_POSTPROCESSOR_DUMP)) {
+            } else if (child.equalsIgnoreCase(XML_PROCESSOR_DUMP)) {
                 addProcessor(children.item(i), this.readDumpProcessor(children.item(i)), target);                
-            } else if (child.equalsIgnoreCase(XML_POSTPROCESSOR_EMAIL)) {
+            } else if (child.equalsIgnoreCase(XML_PROCESSOR_EMAIL)) {
                 addProcessor(children.item(i), this.readEmailProcessor(children.item(i)), target);                
-            } else if (child.equalsIgnoreCase(XML_POSTPROCESSOR_SHELL)) {
+            } else if (child.equalsIgnoreCase(XML_PROCESSOR_SHELL)) {
                 addProcessor(children.item(i), this.readShellProcessor(children.item(i)), target);                
-            } else if (child.equalsIgnoreCase(XML_POSTPROCESSOR_MERGE)) {
-                addProcessor(children.item(i), this.readMergeProcessor(children.item(i)), target);                
+            } else if (child.equalsIgnoreCase(XML_PROCESSOR_MERGE)) {
+                addProcessor(children.item(i), this.readMergeProcessor(children.item(i)), target);    
+            } else if (child.equalsIgnoreCase(XML_PROCESSOR_DELETE)) {
+                addProcessor(children.item(i), this.readDeleteProcessor(children.item(i)), target);                 
             } else if (child.equalsIgnoreCase(XML_SOURCE)) {
                 readSource(sources, children.item(i));
             }
@@ -176,7 +179,7 @@ public class TargetXMLReader implements XMLTags {
         return target;
     }
     
-    protected void addProcessor(Node node, CustomAction action, AbstractRecoveryTarget target) throws AdapterException {
+    protected void addProcessor(Node node, Processor action, AbstractRecoveryTarget target) throws AdapterException {
         Node executeAfterNode = node.getAttributes().getNamedItem(XML_PP_AFTER);
         boolean executeAfter = true;
         if (executeAfterNode != null) {
@@ -184,9 +187,9 @@ public class TargetXMLReader implements XMLTags {
         }
         
         if (executeAfter) {
-            target.getPostProcessors().addAction(action);
+            target.getPostProcessors().addProcessor(action);
         } else {
-            target.getPreProcessors().addAction(action);            
+            target.getPreProcessors().addProcessor(action);            
         }
     }
     
@@ -199,12 +202,12 @@ public class TargetXMLReader implements XMLTags {
         }
     }
    
-    protected CustomAction readDumpProcessor(Node node) throws AdapterException {
+    protected Processor readDumpProcessor(Node node) throws AdapterException {
         Node paramNode = node.getAttributes().getNamedItem(XML_PP_DUMP_DIRECTORY);
         if (paramNode == null) {
             throw new AdapterException("Dump directory not found for File Dump Processor. A '" + XML_PP_DUMP_DIRECTORY + "' attribute must be set.");
         }          
-        FileDumpAction pp = new FileDumpAction();
+        FileDumpProcessor pp = new FileDumpProcessor();
         pp.setDestinationFolder(new File(paramNode.getNodeValue()));
         
         Node failureOnlyNode = node.getAttributes().getNamedItem(XML_PP_ONLY_IF_ERROR);
@@ -225,13 +228,13 @@ public class TargetXMLReader implements XMLTags {
         return pp;
     }
     
-    protected CustomAction readShellProcessor(Node node) throws AdapterException {
+    protected Processor readShellProcessor(Node node) throws AdapterException {
         Node scriptNode = node.getAttributes().getNamedItem(XML_PP_SHELL_SCRIPT);
         if (scriptNode == null) {
             throw new AdapterException("Shell script file not found for Shell Processor. A '" + XML_PP_SHELL_SCRIPT + "' attribute must be set.");
         }     
         
-        ShellScriptAction pp = new ShellScriptAction();
+        ShellScriptProcessor pp = new ShellScriptProcessor();
         pp.setCommand(scriptNode.getNodeValue());
         
         
@@ -243,16 +246,27 @@ public class TargetXMLReader implements XMLTags {
         return pp;
     }
     
-    protected CustomAction readMergeProcessor(Node node) throws AdapterException {
-        Node paramNode = node.getAttributes().getNamedItem(XML_PP_MERGE_DELAY);
-        if (paramNode == null) {
-            throw new AdapterException("Merge delay not found for merge processor. A '" + XML_PP_MERGE_DELAY + "' attribute must be set.");
+    protected Processor readMergeProcessor(Node node) throws AdapterException {
+        MergeProcessor pp = new MergeProcessor();
+        
+        // TO
+        Node toNode = node.getAttributes().getNamedItem(XML_PP_MERGE_TO_DELAY);
+        if (toNode == null) {
+            toNode = node.getAttributes().getNamedItem(XML_PP_DELAY);  // Backward compatibility
+            if (toNode == null) {
+                throw new AdapterException("Merge delay not found for merge processor. A '" + XML_PP_DELAY + "' attribute must be set.");
+            }
         }          
         Node keepNode = node.getAttributes().getNamedItem(XML_PP_MERGE_KEEP_DELETED);
+        pp.setToDelay(Integer.parseInt(toNode.getNodeValue()));
         
-        MergeAction pp = new MergeAction();
-        pp.setDelay(Integer.parseInt(paramNode.getNodeValue()));
+        // FROM
+        Node fromNode = node.getAttributes().getNamedItem(XML_PP_MERGE_FROM_DELAY);
+        if (fromNode != null) {
+            pp.setFromDelay(Integer.parseInt(fromNode.getNodeValue()));
+        }  
         
+        // KEEP DELETED
         if (keepNode != null) {
             pp.setKeepDeletedEntries(Boolean.valueOf(keepNode.getNodeValue()).booleanValue());
         } else {
@@ -262,8 +276,18 @@ public class TargetXMLReader implements XMLTags {
         return pp;
     }
     
-    protected CustomAction readEmailProcessor(Node node) throws AdapterException {
-        MailSendAction pp = new MailSendAction();
+    protected Processor readDeleteProcessor(Node node) throws AdapterException {
+        DeleteProcessor pp = new DeleteProcessor();
+        Node delayNode = node.getAttributes().getNamedItem(XML_PP_DELAY);
+        if (delayNode == null) {
+            throw new AdapterException("Delay not found for delete processor. A '" + XML_PP_DELAY + "' attribute must be set.");
+        }  
+        pp.setDelay(Integer.parseInt(delayNode.getNodeValue()));
+        return pp;
+    }
+    
+    protected Processor readEmailProcessor(Node node) throws AdapterException {
+        MailSendProcessor pp = new MailSendProcessor();
         
         Node recipientsNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_RECIPIENTS);
         if (recipientsNode == null) {

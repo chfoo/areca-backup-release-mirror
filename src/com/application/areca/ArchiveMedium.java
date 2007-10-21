@@ -18,7 +18,7 @@ import com.myJava.util.history.History;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -53,12 +53,12 @@ public interface ArchiveMedium extends PublicClonable {
     public void store(RecoveryEntry entry, ProcessContext context) throws StoreException, ApplicationException;
     
     /**
-     * Compacte le support jusqu'à la date donnée.
+     * Fusionne les archives jusqu'à la date donnée.
      * <BR>Le comportement de cette méthode varie avec l'implémentation.
      * <BR>Cette méthode sert à éliminer des informations redondantes éventuellement stockées au
      * fil des archivages. 
      */
-    public void compact(
+    public void merge(
             GregorianCalendar fromDate, 
             GregorianCalendar toDate, 
             boolean keepDeletedEntries,
@@ -115,14 +115,14 @@ public interface ArchiveMedium extends PublicClonable {
     public void rollbackBackup(ProcessContext context) throws ApplicationException;
     
     /**
-     * Valide le compact
+     * Valide le merge
      */
-    public void commitCompact(ProcessContext context) throws ApplicationException;
+    public void commitMerge(ProcessContext context) throws ApplicationException;
     
     /**
-     * Annule le compact
+     * Annule le merge
      */
-    public void rollbackCompact(ProcessContext context) throws ApplicationException;
+    public void rollbackMerge(ProcessContext context) throws ApplicationException;
     
     /**
      * Retourne la cible à laquelle est affecté le support 

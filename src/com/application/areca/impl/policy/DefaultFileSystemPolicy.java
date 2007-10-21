@@ -5,10 +5,10 @@ import java.io.File;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
 import com.application.areca.ArecaTechnicalConfiguration;
-import com.myJava.file.DefaultFileSystemDriver;
-import com.myJava.file.FileSystemDriver;
 import com.myJava.file.FileSystemManager;
-import com.myJava.file.cache.CachedFileSystemDriver;
+import com.myJava.file.driver.DefaultFileSystemDriver;
+import com.myJava.file.driver.FileSystemDriver;
+import com.myJava.file.driver.cache.CachedFileSystemDriver;
 import com.myJava.object.PublicClonable;
 import com.myJava.object.ToStringHelper;
 import com.myJava.util.log.Logger;
@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*

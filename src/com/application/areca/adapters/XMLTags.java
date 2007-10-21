@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -91,10 +91,11 @@ public interface XMLTags {
     public static final String XML_MEDIUM_FTP_IMPLICIT = "ftp_implicit";
     public static final String XML_MEDIUM_FTP_REMOTEDIR= "ftp_remotedir";
     
-    public static final String XML_POSTPROCESSOR_SHELL = "shell_processor";
-    public static final String XML_POSTPROCESSOR_EMAIL = "email_processor";
-    public static final String XML_POSTPROCESSOR_DUMP = "dump_processor";
-    public static final String XML_POSTPROCESSOR_MERGE = "merge_processor";
+    public static final String XML_PROCESSOR_SHELL = "shell_processor";
+    public static final String XML_PROCESSOR_EMAIL = "email_processor";
+    public static final String XML_PROCESSOR_DUMP = "dump_processor";
+    public static final String XML_PROCESSOR_MERGE = "merge_processor";
+    public static final String XML_PROCESSOR_DELETE = "delete_processor";
     public static final String XML_PP_AFTER = "execute_after";   
     public static final String XML_PP_DUMP_DIRECTORY = "directory";
     public static final String XML_PP_DUMP_NAME = "filename";
@@ -110,6 +111,8 @@ public interface XMLTags {
     public static final String XML_PP_EMAIL_SMTPS = "smtp_s";    
     public static final String XML_PP_SHELL_SCRIPT = "script";
     public static final String XML_PP_SHELL_PARAMS = "parameters";    
-    public static final String XML_PP_MERGE_DELAY = "delay";    
+    public static final String XML_PP_DELAY = "delay";   // deprecated 
+    public static final String XML_PP_MERGE_FROM_DELAY = "from_delay";  
+    public static final String XML_PP_MERGE_TO_DELAY = "to_delay";      
     public static final String XML_PP_MERGE_KEEP_DELETED = "keep_deleted";    
 }

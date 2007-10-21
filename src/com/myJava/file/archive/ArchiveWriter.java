@@ -7,12 +7,12 @@ import java.io.OutputStream;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -64,7 +64,7 @@ public class ArchiveWriter {
         } else {
             File[] children = FileSystemManager.listFiles(file);
             for (int i=0; i<children.length; i++) {
-                this.addFile(children[i], Utilitaire.replace(FileSystemManager.getCanonicalPath(children[i]), FileSystemManager.getCanonicalPath(file), fullName));
+                this.addFile(children[i], Util.replace(FileSystemManager.getCanonicalPath(children[i]), FileSystemManager.getCanonicalPath(file), fullName));
             }
         }
     }

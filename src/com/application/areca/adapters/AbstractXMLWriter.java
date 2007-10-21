@@ -1,12 +1,12 @@
 package com.application.areca.adapters;
 
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -39,12 +39,12 @@ public abstract class AbstractXMLWriter implements XMLTags {
     protected static String encode(String orig) {
         String ret = orig;
 
-        ret = Utilitaire.replace(ret, "&", "&amp;");
-        ret = Utilitaire.replace(ret, "\n", "&#xA;");
-        ret = Utilitaire.replace(ret, "<", "&lt;");
-        ret = Utilitaire.replace(ret, ">", "&gt;");  
-        ret = Utilitaire.replace(ret, "\"", "&quot;");
-        ret = Utilitaire.replace(ret, "'", "&apos;");            
+        ret = Util.replace(ret, "&", "&amp;");
+        ret = Util.replace(ret, "\n", "&#xA;");
+        ret = Util.replace(ret, "<", "&lt;");
+        ret = Util.replace(ret, ">", "&gt;");  
+        ret = Util.replace(ret, "\"", "&quot;");
+        ret = Util.replace(ret, "'", "&apos;");            
         
         return "\"" + ret + "\"";
     }

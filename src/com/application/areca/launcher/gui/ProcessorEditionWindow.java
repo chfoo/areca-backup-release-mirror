@@ -1,6 +1,7 @@
 package com.application.areca.launcher.gui;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -19,13 +20,13 @@ import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.postprocessors.AbstractProcessorComposite;
-import com.application.areca.processor.CustomAction;
+import com.application.areca.processor.Processor;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -52,21 +53,20 @@ extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
     private static final String TITLE = RM.getLabel("procedition.dialog.title");
     
-    protected boolean preprocess; 
-    
     protected Combo cboProcessorType;
+    protected List procKeys;
     protected AbstractProcessorComposite pnlParams;
     protected Group pnlParamsContainer;
     
-    protected CustomAction proc;  
+    protected Processor proc;  
     protected FileSystemRecoveryTarget currentTarget;
     protected Button btnSave;
 
-    public ProcessorEditionWindow(CustomAction proc, FileSystemRecoveryTarget currentTarget, boolean preprocess) {
+    public ProcessorEditionWindow(Processor proc, FileSystemRecoveryTarget currentTarget, boolean preprocess) {
         super();
         this.proc = proc;
-        this.currentTarget = currentTarget;
-        this.preprocess = preprocess;
+        this.currentTarget = currentTarget;        
+        procKeys = ProcessorRepository.getProcessors(preprocess);
     }
 
     protected Control createContents(Composite parent) {
@@ -79,9 +79,9 @@ extends AbstractWindow {
         Label lblProcType = new Label(composite, SWT.NONE);
         lblProcType.setText(RM.getLabel("procedition.type.label"));
         cboProcessorType = new Combo(composite, SWT.READ_ONLY);
-        Iterator iter = ProcessorRepository.getProcessors(preprocess).iterator();
+        Iterator iter = procKeys.iterator();
         while (iter.hasNext()) {
-            cboProcessorType.add((String)iter.next());
+            cboProcessorType.add(ProcessorRepository.getName((String)iter.next()));
         }
         GridData dt1 = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
         dt1.widthHint = computeWidth(400);
@@ -94,7 +94,7 @@ extends AbstractWindow {
                 registerUpdate();
             }
         });
-        cboProcessorType.select(ProcessorRepository.getIndex(proc));  
+        cboProcessorType.select(ProcessorRepository.getIndex(proc, procKeys));  
         if (this.proc != null) {
             this.cboProcessorType.setEnabled(false);
         }
@@ -121,7 +121,7 @@ extends AbstractWindow {
         return TITLE;
     }
 
-    public CustomAction getCurrentProcessor() {
+    public Processor getCurrentProcessor() {
         return this.proc;
     }
 
@@ -132,10 +132,10 @@ extends AbstractWindow {
 
     protected void saveChanges() {
         if (this.proc == null) {
-            this.proc = ProcessorRepository.buildProcessor(this.cboProcessorType.getSelectionIndex(), this.currentTarget);
+            this.proc = ProcessorRepository.buildProcessor(this.cboProcessorType.getSelectionIndex(), this.procKeys, this.currentTarget);
         }
         this.pnlParams.initProcessor(proc);
-        
+
         this.hasBeenUpdated = false;
         this.close();
     }
@@ -147,6 +147,7 @@ extends AbstractWindow {
     private void buildParamPnl() {
         this.pnlParams = ProcessorRepository.buildProcessorComposite(
                 this.cboProcessorType.getSelectionIndex(), 
+                this.procKeys, 
                 this.pnlParamsContainer, 
                 proc, 
                 this);

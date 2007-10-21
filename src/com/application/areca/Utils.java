@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -83,12 +83,24 @@ public class Utils {
             }
         });
         
-        String[] languages = new String[files.length];
-        for (int i=0; i<files.length; i++) {
-            languages[i] = FileSystemManager.getName(files[i]).substring(ResourceManager.RESOURCE_NAME.length() + 1, ResourceManager.RESOURCE_NAME.length() + 3);
+        if (files == null) {
+            Logger.defaultLogger().warn("CAUTION : Unable to locate the translation files in " + FileSystemManager.getAbsolutePath(translationsRoot));
+            if (! FileSystemManager.exists(getApplicationRoot())) {
+                Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(getApplicationRoot()) + " does not exist.");                
+            } else {
+                if (! FileSystemManager.exists(translationsRoot)) {
+                    Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(translationsRoot) + " does not exist.");                
+                } 
+            }
+            return new String[0];
+        } else {
+            String[] languages = new String[files.length];
+            for (int i=0; i<files.length; i++) {
+                languages[i] = FileSystemManager.getName(files[i]).substring(ResourceManager.RESOURCE_NAME.length() + 1, ResourceManager.RESOURCE_NAME.length() + 3);
+            }
+            
+            return languages;
         }
-        
-        return languages;
     }
     
     public static String getTranslationsAsString() {

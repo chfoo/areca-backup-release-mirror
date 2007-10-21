@@ -15,7 +15,7 @@ import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.FilterGroup;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.metadata.manifest.Manifest;
-import com.application.areca.processor.CustomActionList;
+import com.application.areca.processor.ProcessorList;
 import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
 import com.application.areca.version.VersionInfos;
@@ -35,7 +35,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -69,8 +69,8 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     protected String targetName; // Name of the target
     protected RecoveryProcess process;
     protected String comments;
-    protected CustomActionList postProcessors = new CustomActionList();
-    protected CustomActionList preProcessors = new CustomActionList();
+    protected ProcessorList postProcessors = new ProcessorList();
+    protected ProcessorList preProcessors = new ProcessorList();
     protected boolean running;
      
     public void setProcess(RecoveryProcess process) {
@@ -85,16 +85,16 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         other.targetName = "Copy of " + targetName;
         other.comments = comments;
         other.filterGroup = (FilterGroup)this.filterGroup.duplicate();
-        other.postProcessors = (CustomActionList)postProcessors.duplicate();
-        other.preProcessors = (CustomActionList)preProcessors.duplicate();
+        other.postProcessors = (ProcessorList)postProcessors.duplicate();
+        other.preProcessors = (ProcessorList)preProcessors.duplicate();
         other.setMedium((ArchiveMedium)medium.duplicate(), true);
     }
     
-    public CustomActionList getPostProcessors() {
+    public ProcessorList getPostProcessors() {
         return postProcessors;
     }
 
-    public CustomActionList getPreProcessors() {
+    public ProcessorList getPreProcessors() {
         return preProcessors;
     }
 
@@ -235,19 +235,19 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         // - Le support requiert une pré-vérification
         // - Le manifeste est null (ie l'utilisateur n'en a pas fourni un explicitement) - Si un manifeste est renseigné, on fait tjs le backup.
         if (this.medium.isPreBackupCheckUseful() && manifest == null) {
-            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.3);
+            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.3, "pre-check");
             context.getInfoChannel().print("Pre-check in progress ...");
             this.processSimulateImpl(context, false);
             context.getInfoChannel().print("Pre-check completed.");
             backupRequired = (context.getReport().getSavedFiles() > 0 || context.getReport().getDeletedFiles() > 0);
-            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.7);
+            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.7, "backup");
             
             context.getReport().reset();
         }
         
         if (backupRequired) {
             if (! this.preProcessors.isEmpty()) {
-                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1);
+                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1, "pre-processors");
                 TaskMonitor preProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
                 try {     
                     this.preProcessors.run(context);
@@ -257,9 +257,9 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
             }
             
             if ((! this.postProcessors.isEmpty()) && (! this.preProcessors.isEmpty())) {
-                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8);
+                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8, "backup-main");
             } else if ((! this.postProcessors.isEmpty()) || (! this.preProcessors.isEmpty())) {
-                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.9);
+                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.9, "backup-main");
             }
             
             if (manifest == null) {
@@ -313,7 +313,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                 }
             } finally {
                 if (! this.postProcessors.isEmpty()) {
-                    context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1);
+                    context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1, "post-processors");
 	                TaskMonitor postProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
 	                try {     
 	                    this.postProcessors.run(context);
@@ -442,27 +442,40 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
 		}
     }
     
-    /**
-     * Merges the archive which are older than "delay" days.
-     */
-    public void processCompact(int delay, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
-        GregorianCalendar mergeDate = new GregorianCalendar();
-        mergeDate.add(Calendar.DATE, -1 * delay);
+    public void processMerge(int fromDelay, int toDelay, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
+        if (fromDelay != 0 && toDelay != 0 && fromDelay < toDelay) {
+            // switch from/to
+            int tmp = toDelay;
+            toDelay = fromDelay;
+            fromDelay = tmp;
+        }
         
-        processCompact(null, mergeDate, keepDeletedEntries, null, context);
+        // From
+        GregorianCalendar fromDate = null;
+        if (fromDelay != 0) {
+            fromDate = new GregorianCalendar();
+            fromDate.add(Calendar.DATE, -1 * fromDelay);
+        }
+        
+        // To
+        GregorianCalendar toDate = new GregorianCalendar();
+        toDate.add(Calendar.DATE, -1 * toDelay);
+        
+        // Go !
+        processMerge(fromDate, toDate, keepDeletedEntries, null, context);
     }
     
     /**
      * Lance la fusion sur la target
      */
-    public void processCompact(String date, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
-        processCompact(null, CalendarUtils.resolveDate(date, null), keepDeletedEntries, null, context);
+    public void processMerge(String date, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
+        processMerge(null, CalendarUtils.resolveDate(date, null), keepDeletedEntries, null, context);
     }
     
     /**
      * Lance la fusion sur la target
      */
-    public void processCompact(
+    public void processMerge(
             GregorianCalendar fromDate, 
             GregorianCalendar toDate, 
             boolean keepDeletedEntries,
@@ -482,11 +495,11 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     		} catch (IOException e) {
     			throw new ApplicationException(e);
     		}        
-    		this.medium.compact(fromDate, toDate, keepDeletedEntries, manifest, context);
-    		this.commitCompact(context);
+    		this.medium.merge(fromDate, toDate, keepDeletedEntries, manifest, context);
+    		this.commitMerge(context);
     	} catch (Exception e) {
     	    Logger.defaultLogger().error(e);
-    		this.rollbackCompact(context);
+    		this.rollbackMerge(context);
     		if (e instanceof ApplicationException) {
     			throw (ApplicationException)e;
     		} else {
@@ -540,14 +553,13 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     }
     
     /**
-     * Validation du compact
-     * <BR>Relache également le lock sur la target, afin que d'autres opérations puissent être effectuées.
+     * Validation du merge
      */
-    protected void commitCompact(ProcessContext context) throws ApplicationException {
+    protected void commitMerge(ProcessContext context) throws ApplicationException {
         try {
             context.getTaskMonitor().checkTaskCancellation();
             context.getTaskMonitor().setCancellable(false);
-            this.medium.commitCompact(context);
+            this.medium.commitMerge(context);
             context.getReport().setCommited();
         } catch (TaskCancelledException e) {
             throw new ApplicationException(e);
@@ -555,10 +567,9 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     }
     
     /**
-     * Annulation du compact
-     * <BR>Relache également le lock sur la target, afin que d'autres opérations puissent être effectuées.
+     * Annulation du merge
      */
-    protected void rollbackCompact(ProcessContext context) throws ApplicationException {
+    protected void rollbackMerge(ProcessContext context) throws ApplicationException {
 		try {
             context.getInfoChannel().getTaskMonitor().setCancellable(false);
             
@@ -571,7 +582,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
 			throw new ApplicationException(e1);
 		} 
 		
-    	this.medium.rollbackCompact(context);
+    	this.medium.rollbackMerge(context);
     }
     
     /**

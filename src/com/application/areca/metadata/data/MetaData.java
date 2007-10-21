@@ -12,7 +12,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -76,5 +76,13 @@ public class MetaData implements MetaDataKeys {
     
     protected Properties getProperties() {
         return this.props;
+    }
+    
+    public void setDynamicProperty(String key, String value) {
+        this.props.setProperty(key, value);
+    }
+    
+    public String getDynamicProperty(String key) {
+        return this.props.getProperty(key);
     }
 }

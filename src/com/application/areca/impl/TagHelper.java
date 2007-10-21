@@ -8,7 +8,7 @@ import com.application.areca.context.ProcessContext;
 import com.myJava.file.FileSystemManager;
 import com.myJava.system.OSTool;
 import com.myJava.util.CalendarUtils;
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 
 /**
@@ -16,7 +16,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -50,7 +50,7 @@ public class TagHelper {
     public static final String PARAM_SUCCESS = "%SUCCESS%";
     
     public static String replaceTag(String value, String oldTag, String newTag) {
-        return Utilitaire.replace(value, oldTag, newTag);
+        return Util.replace(value, oldTag, newTag);
     }
     
     public static String replaceParamValues(String param, ProcessContext context) {
@@ -60,29 +60,29 @@ public class TagHelper {
             String value = param;
             
             if (context.getFinalArchiveFile() != null) {
-                value = Utilitaire.replace(value, PARAM_ARCHIVE, FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()));
-                value = Utilitaire.replace(value, PARAM_ARCHIVE_NAME, FileSystemManager.getName(context.getFinalArchiveFile()));
+                value = Util.replace(value, PARAM_ARCHIVE, FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()));
+                value = Util.replace(value, PARAM_ARCHIVE_NAME, FileSystemManager.getName(context.getFinalArchiveFile()));
             } else {
-                value = Utilitaire.replace(value, PARAM_ARCHIVE, "");
-                value = Utilitaire.replace(value, PARAM_ARCHIVE_NAME, "");
+                value = Util.replace(value, PARAM_ARCHIVE, "");
+                value = Util.replace(value, PARAM_ARCHIVE_NAME, "");
             }
             
-            value = Utilitaire.replace(value, PARAM_TARGET_UID, context.getReport().getTarget().getUid());
-            value = Utilitaire.replace(value, PARAM_TARGET_NAME, context.getReport().getTarget().getTargetName());
+            value = Util.replace(value, PARAM_TARGET_UID, context.getReport().getTarget().getUid());
+            value = Util.replace(value, PARAM_TARGET_NAME, context.getReport().getTarget().getTargetName());
             
             try {
                 String localHost = InetAddress.getLocalHost().getHostName();
-                value = Utilitaire.replace(value, PARAM_COMPUTER_NAME, localHost);
+                value = Util.replace(value, PARAM_COMPUTER_NAME, localHost);
             } catch (UnknownHostException e) {
                 Logger.defaultLogger().error("Error detecting local host name", e);
             }
             
             GregorianCalendar now = new GregorianCalendar();
-            value = Utilitaire.replace(value, PARAM_DATE, CalendarUtils.getDateToString(now));
-            value = Utilitaire.replace(value, PARAM_TIME, CalendarUtils.getTimeToString(now));
-            value = Utilitaire.replace(value, PARAM_USER_NAME, OSTool.getUserName());
+            value = Util.replace(value, PARAM_DATE, CalendarUtils.getDateToString(now));
+            value = Util.replace(value, PARAM_TIME, CalendarUtils.getTimeToString(now));
+            value = Util.replace(value, PARAM_USER_NAME, OSTool.getUserName());
             
-            value = Utilitaire.replace(value, PARAM_SUCCESS, context.getReport().isCommited() ? "1" : "0");
+            value = Util.replace(value, PARAM_SUCCESS, context.getReport().isCommited() ? "1" : "0");
 
             return value;
         }

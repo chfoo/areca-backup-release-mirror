@@ -8,17 +8,19 @@ import javax.crypto.spec.SecretKeySpec;
 import com.application.areca.ApplicationException;
 import com.application.areca.impl.EncryptionConfiguration;
 import com.myJava.encryption.EncryptionUtil;
-import com.myJava.file.AbstractLinkableFileSystemDriver;
-import com.myJava.file.EncryptedFileSystemDriver;
-import com.myJava.file.FileSystemDriver;
+import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
+import com.myJava.file.driver.EncryptedFileSystemDriver;
+import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.object.PublicClonable;
 import com.myJava.object.ToStringHelper;
+import com.myJava.util.Util;
+import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -76,6 +78,27 @@ public class EncryptionPolicy implements PublicClonable {
         }
     }
     
+    public static boolean validateEncryptionKey(String encryptionKey, EncryptionConfiguration params) {
+        if (encryptionKey == null || encryptionKey.trim().length() == 0) {
+            return false;
+        } else if (
+                params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_HASH)
+                || params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_OLD)
+        ) {
+            return true;
+        } else if (params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_RAW)) {
+            try {
+                byte[] b = Util.parseHexa(encryptionKey);
+                return (b.length == params.getKeySize());
+            } catch (Throwable e) {
+                return false;
+            }
+        } else {
+            Logger.defaultLogger().warn("Unknown encryption configuration : " + params.getId());
+            return false;
+        }
+    }
+    
     /**
      * Normalizes the key so it can by used by the encryption algorithm.
      * <BR>Note that the "strong encryption" mode is highly recommended :
@@ -83,8 +106,14 @@ public class EncryptionPolicy implements PublicClonable {
      * <BR>- It generates stronger keys (the password can have any size : it is hashed using MD5 and (if needed) SHA to produce a byte array)
      */
     private static byte[] getNormalizedEncryptionKey(String encryptionKey, EncryptionConfiguration params) {
-        if (params.isStrongEncryption()) {
+        if (! validateEncryptionKey(encryptionKey, params)) {
+            throw new IllegalArgumentException("Illegal key : [" + encryptionKey + "] for algorithm : [" + params.getFullName()  + "/" + params.getId() + "]");
+        }
+
+        if (params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_HASH)) {
             return EncryptionUtil.getNormalizedEncryptionKey(encryptionKey, params.getKeySize());
+        } else if (params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_RAW)) {
+            return Util.parseHexa(encryptionKey);
         } else {
             // Older key generation method .... NOT RECOMMENDED (platform dependant and weak)
 	        String normalizedKey = encryptionKey;

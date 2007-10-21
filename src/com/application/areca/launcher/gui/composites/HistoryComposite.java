@@ -24,7 +24,7 @@ import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Refreshable;
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 import com.myJava.util.history.History;
 import com.myJava.util.history.HistoryEntry;
 
@@ -32,7 +32,7 @@ import com.myJava.util.history.HistoryEntry;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -186,13 +186,13 @@ implements Listener, Refreshable, HistoryEntryTypes {
         } else {
             String label = entry.getDescription();
 
-            if (Utilitaire.count(label.toLowerCase(), "annulation") != 0 || Utilitaire.count(label.toLowerCase(), "cancellation") != 0) {
+            if (Util.count(label.toLowerCase(), "annulation") != 0 || Util.count(label.toLowerCase(), "cancellation") != 0) {
                 return HISTO_BACKUP_CANCEL;
-            } else if (Utilitaire.count(label.toLowerCase(), "archivage") != 0 || Utilitaire.count(label.toLowerCase(), "backup") != 0) {
+            } else if (Util.count(label.toLowerCase(), "archivage") != 0 || Util.count(label.toLowerCase(), "backup") != 0) {
                 return HISTO_BACKUP;
-            } else if (Utilitaire.count(label.toLowerCase(), "suppression") != 0 || Utilitaire.count(label.toLowerCase(), "deletion") != 0) {
+            } else if (Util.count(label.toLowerCase(), "suppression") != 0 || Util.count(label.toLowerCase(), "deletion") != 0) {
                 return HISTO_DELETE;
-            } else if (Utilitaire.count(label.toLowerCase(), "restauration") != 0 || Utilitaire.count(label.toLowerCase(), "recovery") != 0) {
+            } else if (Util.count(label.toLowerCase(), "restauration") != 0 || Util.count(label.toLowerCase(), "recovery") != 0) {
                 return HISTO_RECOVER;
             } else {
                 return HISTO_MERGE;

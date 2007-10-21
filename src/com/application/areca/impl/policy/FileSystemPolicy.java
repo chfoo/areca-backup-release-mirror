@@ -2,14 +2,14 @@ package com.application.areca.impl.policy;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
-import com.myJava.file.FileSystemDriver;
+import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.object.PublicClonable;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*

@@ -30,7 +30,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -205,81 +205,82 @@ implements TargetActions {
      */
     public RecoveryEntry nextElement(ProcessContext context) throws ApplicationException {
 
-        // Locate the first storable file
-        while (context.getCurrentLevel().hasMoreElements()) {
-            File f = context.getCurrentLevel().nextElement();
-            FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(this.getSourceDirectory(), f);
-
-            double completionStep = 0.98 / (context.getCurrentLevel().getSize() == 0 ? 1 : context.getCurrentLevel().getSize());
-            if (context.getCurrentLevel().getParent() == null) {
-                completionStep /= Math.max(context.getRootCount(), 1);
+        while (true) {
+            // Locate the first storable file
+            while (context.getCurrentLevel().hasMoreElements()) {
+                File f = context.getCurrentLevel().nextElement();
+                FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(this.getSourceDirectory(), f);
+    
+                double completionStep = 0.98 / (context.getCurrentLevel().getSize() == 0 ? 1 : context.getCurrentLevel().getSize());
+                if (context.getCurrentLevel().getParent() == null) {
+                    completionStep /= Math.max(context.getRootCount(), 1);
+                }
+                
+                try {
+                    if (
+                            FileSystemManager.isDirectory(f) && ((! trackSymlinks) || (! FileSystemManager.isLink(f)))
+                    ) {
+                        // check if we can iterate on this directory
+                        if (this.acceptEntry(entry, false, context)) {
+                            context.getFileSystemLevels().push(context.getCurrentLevel());
+                            context.setCurrentLevel(new FileSystemLevel(f, context.getCurrentLevel()));
+                            
+                            // Progress information
+                            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(completionStep, FileSystemManager.getAbsolutePath(f));
+                            Logger.defaultLogger().fine("Processing " + FileSystemManager.getAbsolutePath(f));
+                            
+                            // stats update
+                            context.getReport().addDirectoryCount();
+                        } else {
+                            context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);
+                        }
+                    } else {
+                        // Check if we can store the file
+                        context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);
+                        if (this.acceptEntry(entry, true, context)) {
+                            entry.setSize(FileSystemManager.length(f));
+                            context.getReport().addFileCount();
+                            context.getCurrentLevel().setHaveFilesBeenStored(true);
+                            return entry;
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new ApplicationException(e);
+                }
             }
             
-            try {
-                if (
-                        FileSystemManager.isDirectory(f) && ((! trackSymlinks) || (! FileSystemManager.isLink(f)))
-                ) {
-                    // check if we can iterate on this directory
-                    if (this.acceptEntry(entry, false, context)) {
-                        context.getFileSystemLevels().push(context.getCurrentLevel());
-                        context.setCurrentLevel(new FileSystemLevel(f, context.getCurrentLevel()));
-                        
-                        // Progress information
-                        context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(completionStep);
-                        Logger.defaultLogger().fine("Processing " + FileSystemManager.getAbsolutePath(f));
-                        
-                        // stats update
-                        context.getReport().addDirectoryCount();
-                    } else {
-                        context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);
-                    }
-                } else {
-                    // Check if we can store the file
-                    context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);
-                    if (this.acceptEntry(entry, true, context)) {
-                        entry.setSize(FileSystemManager.length(f));
-                        context.getReport().addFileCount();
-                        context.getCurrentLevel().setHaveFilesBeenStored(true);
-                        return entry;
-                    }
-                }
-            } catch (IOException e) {
-                throw new ApplicationException(e);
-            }
-        }
-        
-        // No more elements - process the next file system level
-        FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(
-                this.getSourceDirectory(), 
-                context.getCurrentLevel().getBaseDirectory()
-        );
-        
-        // Check if we can store the directory
-        if (
-                ( ! context.getCurrentLevel().isHasBeenSent())
-                && (! FileSystemManager.isFile(context.getCurrentLevel().getBaseDirectory()))
-                && entry.getName().length() != 0
-                && (
-                        context.getCurrentLevel().isHaveFilesBeenStored()
-                        || this.acceptEntry(entry, true, context)
-                )
-        ) {
-            context.getCurrentLevel().setHasBeenSent(true);
-            if (context.getCurrentLevel().getParent() != null) {
-                context.getCurrentLevel().getParent().setHaveFilesBeenStored(true);
-            }
-
-            return entry;
-        } else {               
-            if (context.getFileSystemLevels().isEmpty()) {
-                context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
-                return null;
-            } else {
+            // No more elements - process the next file system level
+            FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(
+                    this.getSourceDirectory(), 
+                    context.getCurrentLevel().getBaseDirectory()
+            );
+            
+            // Check if we can store the directory
+            if (
+                    ( ! context.getCurrentLevel().isHasBeenSent())
+                    && (! FileSystemManager.isFile(context.getCurrentLevel().getBaseDirectory()))
+                    && entry.getName().length() != 0
+                    && (
+                            context.getCurrentLevel().isHaveFilesBeenStored()
+                            || this.acceptEntry(entry, true, context)
+                    )
+            ) {
+                context.getCurrentLevel().setHasBeenSent(true);
                 if (context.getCurrentLevel().getParent() != null) {
-                    context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
+                    context.getCurrentLevel().getParent().setHaveFilesBeenStored(true);
                 }
-                context.setCurrentLevel((FileSystemLevel)context.getFileSystemLevels().pop());
-                return this.nextElement(context);
+    
+                return entry;
+            } else {               
+                if (context.getFileSystemLevels().isEmpty()) {
+                    context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
+                    return null;
+                } else {
+                    if (context.getCurrentLevel().getParent() != null) {
+                        context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
+                    }
+                    context.setCurrentLevel((FileSystemLevel)context.getFileSystemLevels().pop());
+                }
             }
         }
     }

@@ -8,13 +8,13 @@ import java.io.OutputStream;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
 import com.application.areca.ArecaTechnicalConfiguration;
-import com.myJava.file.FileSystemDriver;
 import com.myJava.file.FileSystemManager;
-import com.myJava.file.cache.CachedFileSystemDriver;
-import com.myJava.file.ftp.FTPFileInfoCache;
-import com.myJava.file.ftp.FTPFileSystemDriver;
-import com.myJava.file.ftp.FTPProxy;
-import com.myJava.file.ftp.FictiveFile;
+import com.myJava.file.driver.FileSystemDriver;
+import com.myJava.file.driver.cache.CachedFileSystemDriver;
+import com.myJava.file.driver.ftp.FTPFileInfoCache;
+import com.myJava.file.driver.ftp.FTPFileSystemDriver;
+import com.myJava.file.driver.ftp.FTPProxy;
+import com.myJava.file.driver.ftp.FictiveFile;
 import com.myJava.object.PublicClonable;
 import com.myJava.object.ToStringHelper;
 import com.myJava.system.OSTool;
@@ -24,7 +24,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*

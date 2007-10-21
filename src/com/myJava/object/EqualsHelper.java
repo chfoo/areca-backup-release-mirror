@@ -8,7 +8,7 @@ import java.util.Set;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -87,6 +87,19 @@ public class EqualsHelper {
 	        return true;
 	    }
 	}
+    
+    public static boolean equals(int[] o1, int[] o2) {
+        if (o1.length != o2.length) {
+            return false;
+        } else {
+            for (int i=0; i<o1.length; i++) {
+                if (o1[i] != o2[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
     
     // Equals must be order-independant in case of a Set.
     public static boolean equals(Set o1, Set o2) {

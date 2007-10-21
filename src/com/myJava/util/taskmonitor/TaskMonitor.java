@@ -3,6 +3,8 @@ package com.myJava.util.taskmonitor;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.myJava.object.ToStringHelper;
+
 /**
  * Classe définissant un moniteur d'avancement de tâche.
  * <BR>Permet d'enregistrer des sous tâches, de définir un état d'avancement global
@@ -10,7 +12,7 @@ import java.util.List;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -55,11 +57,14 @@ public class TaskMonitor {
     // Tells wether a "cancel" has been requested by the user
     protected boolean cancelRequested = false;
     
-    public TaskMonitor() {
+    protected String name = "";
+    
+    public TaskMonitor(String name) {
         this.currentCompletionRate = 0;
         this.currentSubTaskShare = 0;
         this.currentSubTask = null;
         this.parentTask = null; 
+        this.name = name;
         this.clearAllListeners();  
     }
     
@@ -101,8 +106,8 @@ public class TaskMonitor {
         subTask.parentTask = this;
     }
     
-    public void addNewSubTask(double subTaskShare) {
-        this.setCurrentSubTask(new TaskMonitor(), subTaskShare);
+    public void addNewSubTask(double subTaskShare, String name) {
+        this.setCurrentSubTask(new TaskMonitor(name), subTaskShare);
     }
 
     // Initialise le taux d'avancement global de la tâche.
@@ -234,5 +239,14 @@ public class TaskMonitor {
         if (this.isCancelRequested()) {
             throw new TaskCancelledException("The task has been cancelled");
         }
+    }
+
+    public String toString() {
+        StringBuffer sb = ToStringHelper.init(this);
+        ToStringHelper.append("Name", this.name, sb);
+        ToStringHelper.append("Child", this.currentSubTask, sb);
+        ToStringHelper.append("ChildShare", this.currentSubTaskShare, sb);
+        ToStringHelper.append("Completion", this.currentCompletionRate, sb);
+        return ToStringHelper.close(sb);
     }
 }

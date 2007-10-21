@@ -19,7 +19,7 @@ import java.util.zip.GZIPOutputStream;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.CalendarUtils;
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 
 /**
@@ -28,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -250,11 +250,11 @@ public class DefaultHistory implements History {
         GregorianCalendar date = source.getDate();
         
         String strCal = CalendarUtils.getDateToString(date) + "-" + CalendarUtils.getFullTimeToString(date);
-        return strCal + "\n" + Utilitaire.replace(Utilitaire.replace(source.getDescription(), "\n", "<<N>>"), "\r", "<<R>>") + "\n" + source.type;
+        return strCal + "\n" + Util.replace(Util.replace(source.getDescription(), "\n", "<<N>>"), "\r", "<<R>>") + "\n" + source.type;
     }
     
     private String decodeString(String source) {
-        return Utilitaire.replace(Utilitaire.replace(source, "<<N>>", "\n"), "<<R>>", "\r");
+        return Util.replace(Util.replace(source, "<<N>>", "\n"), "<<R>>", "\r");
     }  
     
     protected static class GregorianCalendarComparator implements Comparator {

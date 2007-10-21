@@ -6,15 +6,15 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import com.myJava.system.OSTool;
-import com.myJava.util.SerializedCollection;
-import com.myJava.util.Utilitaire;
+import com.myJava.util.Util;
+import com.myJava.util.collections.SerializedCollection;
 
 /**
  * SerializedCollection implementation dedicated to ZipEntries
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -45,7 +45,7 @@ public class ZipEntrySerializedCollection extends SerializedCollection {
         super();
         
         // Override the buffer file
-        long rnd = Utilitaire.getRndLong();
+        long rnd = Util.getRndLong();
         this.bufferFile = new File(OSTool.getTempDirectory(), "java_zip64_buffer_" + rnd + ".tmp");
     }
 

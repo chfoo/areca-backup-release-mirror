@@ -9,15 +9,16 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
-import com.application.areca.processor.CustomAction;
-import com.application.areca.processor.MergeAction;
+import com.application.areca.processor.Processor;
+import com.application.areca.processor.MergeProcessor;
+import com.application.areca.processor.ProcessorValidationException;
 import com.myJava.util.CommonRules;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -41,19 +42,27 @@ This file is part of Areca.
  */
 public class MergeProcessorComposite extends AbstractProcessorComposite {
 
-    private Text txtDelay;
+    private Text txtFromDelay;
+    private Text txtToDelay;
     private Button btnKeepDeletedEntries;
     
-    public MergeProcessorComposite(Composite composite, CustomAction proc, ProcessorEditionWindow window) {
+    public MergeProcessorComposite(Composite composite, Processor proc, ProcessorEditionWindow window) {
         super(composite, proc, window);
         this.setLayout(new GridLayout(2, false));
         
-        Label lbl = new Label(this, SWT.NONE);
-        lbl.setText(RM.getLabel("procedition.delay.label"));
+        Label lblFrom = new Label(this, SWT.NONE);
+        lblFrom.setText(RM.getLabel("procedition.delay.from.label"));
         
-        txtDelay = new Text(this, SWT.BORDER);
-        txtDelay.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        window.monitorControl(txtDelay);
+        txtFromDelay = new Text(this, SWT.BORDER);
+        txtFromDelay.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        window.monitorControl(txtFromDelay);
+        
+        Label lblTo = new Label(this, SWT.NONE);
+        lblTo.setText(RM.getLabel("procedition.delay.to.label"));
+        
+        txtToDelay = new Text(this, SWT.BORDER);
+        txtToDelay.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        window.monitorControl(txtToDelay);
         
         btnKeepDeletedEntries = new Button(this, SWT.CHECK);
         btnKeepDeletedEntries.setText(RM.getLabel("archivedetail.keepdeletedentries.label"));
@@ -62,23 +71,51 @@ public class MergeProcessorComposite extends AbstractProcessorComposite {
         window.monitorControl(btnKeepDeletedEntries);
         
         if (proc != null) {
-            MergeAction fProc = (MergeAction)proc;
-            txtDelay.setText("" + fProc.getDelay());
+            MergeProcessor fProc = (MergeProcessor)proc;
+            txtFromDelay.setText("" + fProc.getFromDelay());
+            txtToDelay.setText("" + fProc.getToDelay());
             btnKeepDeletedEntries.setSelection(fProc.isKeepDeletedEntries());
         }
     }
 
-    public void initProcessor(CustomAction proc) {
-        MergeAction fProc = (MergeAction)proc;
-        fProc.setDelay(Integer.parseInt(txtDelay.getText()));
+    public void initProcessor(Processor proc) {
+        MergeProcessor fProc = (MergeProcessor)proc;
+        if (txtFromDelay.getText() != null && txtFromDelay.getText().trim().length() > 0) {
+            fProc.setFromDelay(Integer.parseInt(txtFromDelay.getText()));
+        }
+        fProc.setToDelay(Integer.parseInt(txtToDelay.getText()));
         fProc.setKeepDeletedEntries(btnKeepDeletedEntries.getSelection());
     }
     
-    public boolean validateParams() {
-        window.resetErrorState(txtDelay);
+    public boolean validateParams() {       
+        // From
+        window.resetErrorState(txtFromDelay);
+        if (
+                txtFromDelay.getText() != null
+                && txtFromDelay.getText().trim().length() > 0
+                && (! CommonRules.checkInteger(txtFromDelay.getText(), true))
+        ) {
+            window.setInError(txtFromDelay);
+            return false;
+        }
         
-        if (txtDelay.getText() == null || txtDelay.getText().trim().length() == 0 || ! CommonRules.checkInteger(txtDelay.getText())) {
-            window.setInError(txtDelay);
+        // To
+        window.resetErrorState(txtToDelay);
+        if (
+                ! CommonRules.checkInteger(txtToDelay.getText(), true)
+        ) {
+            window.setInError(txtToDelay);
+            return false;
+        }
+        
+        // Consistency
+        MergeProcessor p = new MergeProcessor();
+        initProcessor(p);
+        try {
+            p.validate();
+        } catch (ProcessorValidationException e) {
+            window.setInError(txtFromDelay);
+            window.setInError(txtToDelay);
             return false;
         }
 

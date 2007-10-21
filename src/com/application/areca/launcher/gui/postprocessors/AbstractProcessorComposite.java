@@ -5,14 +5,14 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
-import com.application.areca.processor.CustomAction;
+import com.application.areca.processor.Processor;
 
 /**
  * Abstract implementation for all Post Processor parameters panel
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6222835200985278549
+ * <BR>Areca Build ID : 5653799526062900358
  */
  
  /*
@@ -37,15 +37,15 @@ This file is part of Areca.
 public abstract class AbstractProcessorComposite extends Composite {
 
     protected static final ResourceManager RM = ResourceManager.instance();
-    protected CustomAction currentProcessor;
+    protected Processor currentProcessor;
     protected ProcessorEditionWindow window;
     
-    public AbstractProcessorComposite(Composite parent, CustomAction proc, ProcessorEditionWindow window) {
+    public AbstractProcessorComposite(Composite parent, Processor proc, ProcessorEditionWindow window) {
         super(parent, SWT.NONE);
         this.window = window;
         this.currentProcessor = proc;
     }
 
-    public abstract void initProcessor(CustomAction proc);
+    public abstract void initProcessor(Processor proc);
     public abstract boolean validateParams();
 }
