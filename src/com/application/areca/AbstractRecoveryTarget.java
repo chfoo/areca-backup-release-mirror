@@ -35,7 +35,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -538,6 +538,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     			throw new ApplicationException(e);
     		}
     	} finally {
+            context.getTaskMonitor().resetCancellationState();
             context.getInfoChannel().print("Deletion completed.");
         }   
     }  
@@ -561,6 +562,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
             context.getTaskMonitor().setCancellable(false);
             this.medium.commitMerge(context);
             context.getReport().setCommited();
+            context.getTaskMonitor().resetCancellationState();
         } catch (TaskCancelledException e) {
             throw new ApplicationException(e);
         }
@@ -583,6 +585,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
 		} 
 		
     	this.medium.rollbackMerge(context);
+        context.getTaskMonitor().resetCancellationState();
     }
     
     /**

@@ -17,14 +17,14 @@ import com.application.areca.ApplicationException;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.processor.Processor;
 import com.application.areca.processor.MailSendProcessor;
+import com.application.areca.processor.Processor;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*

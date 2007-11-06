@@ -5,10 +5,13 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+import java.nio.charset.Charset;
 
+import com.myJava.file.archive.zip64.ZipInputStream;
+import com.myJava.file.archive.zip64.ZipOutputStream;
+import com.myJava.file.archive.zip64.ZipVolumeStrategy;
 import com.myJava.file.attributes.Attributes;
+import com.myJava.file.multivolumes.VolumeInputStream;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
@@ -18,7 +21,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -42,6 +45,43 @@ This file is part of Areca.
  */
 public class CompressedFileSystemDriver 
 extends AbstractLinkableFileSystemDriver {
+
+    private long volumeSize = -1;
+    private Charset charset = null;
+    private String comment = null;
+    private boolean useZip64 = false;
+
+    public Charset getCharset() {
+        return charset;
+    }
+
+    public void setCharset(Charset charset) {
+        this.charset = charset;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public boolean isUseZip64() {
+        return useZip64;
+    }
+
+    public void setUseZip64(boolean useZip64) {
+        this.useZip64 = useZip64;
+    }
+
+    public long getVolumeSize() {
+        return volumeSize;
+    }
+
+    public void setVolumeSize(long volumeSize) {
+        this.volumeSize = volumeSize;
+    }
 
     /**
      * @param directoryRoot
@@ -177,15 +217,42 @@ extends AbstractLinkableFileSystemDriver {
     }
     
     public InputStream getFileInputStream(File file) throws IOException {
-        return new GZIPInputStream(predecessor.getFileInputStream(file));
+        ZipInputStream zin;
+        if (volumeSize != -1) {
+            ZipVolumeStrategy strategy = new ZipVolumeStrategy(file, predecessor, false);
+            zin = new ZipInputStream(new VolumeInputStream(strategy));
+        } else {
+            zin = new ZipInputStream(predecessor.getFileInputStream(file));
+        }
+        if (charset != null) {
+            zin.setCharset(charset);
+        }
+        return zin;
     }
     
     public OutputStream getCachedFileOutputStream(File file) throws IOException {
-        return new GZIPOutputStream(predecessor.getCachedFileOutputStream(file));
+        return getOutputStream(file, true);
     }    
     
     public OutputStream getFileOutputStream(File file) throws IOException {
-        return new GZIPOutputStream(predecessor.getFileOutputStream(file));
+        return getOutputStream(file, false);
+    }    
+    
+    private OutputStream getOutputStream(File file, boolean cached) throws IOException {
+        ZipOutputStream zout;
+        if (volumeSize != -1) {
+            ZipVolumeStrategy strategy = new ZipVolumeStrategy(file, predecessor, cached);
+            zout = new ZipOutputStream(strategy, volumeSize, useZip64);
+        } else {
+            zout = new ZipOutputStream(predecessor.getFileOutputStream(file), useZip64);
+        }
+        if (charset != null) {
+            zout.setCharset(charset);
+        }
+        if (comment != null) {
+            zout.setComment(comment);
+        }
+        return zout;
     }    
     
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException {

@@ -8,7 +8,7 @@ import com.application.areca.context.ReportingConfiguration;
 /**
  * @author Stephane Brunel
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*

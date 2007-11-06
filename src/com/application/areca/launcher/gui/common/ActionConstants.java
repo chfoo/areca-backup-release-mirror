@@ -4,7 +4,7 @@ package com.application.areca.launcher.gui.common;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -53,6 +53,7 @@ public interface ActionConstants {
     public static final String CMD_CANCEL_CURRENT_PROCESS = "cancel current process";
     public static final String CMD_SEARCH = "search";
     public static final String CMD_BUILD_BATCH = "build batch";
+    public static final String CMD_BUILD_STRATEGY = "build strategy";
 
     public static final String CMD_NEW_TARGET = "new target";
     public static final String CMD_EDIT_TARGET = "edit target";    

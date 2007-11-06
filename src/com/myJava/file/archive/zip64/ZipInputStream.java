@@ -43,7 +43,7 @@ import com.myJava.util.log.Logger;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
 public class ZipInputStream 
 extends InflaterInputStream 
@@ -240,70 +240,6 @@ implements ZipConstants {
         }
         return ret;
     }
-
-    /*
-    private static String getUTF8String(byte[] b, int off, int len) {
-        // First, count the number of characters in the sequence
-        int count = 0;
-        int max = off + len;
-        int i = off;
-        while (i < max) {
-            int c = b[i++] & 0xff;
-            switch (c >> 4) {
-            case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
-                // 0xxxxxxx
-                count++;
-                break;
-            case 12: case 13:
-                // 110xxxxx 10xxxxxx
-                if ((int)(b[i++] & 0xc0) != 0x80) {
-                    throw new IllegalArgumentException();
-                }
-                count++;
-                break;
-            case 14:
-                // 1110xxxx 10xxxxxx 10xxxxxx
-                if (((int)(b[i++] & 0xc0) != 0x80) ||
-                        ((int)(b[i++] & 0xc0) != 0x80)) {
-                    throw new IllegalArgumentException();
-                }
-                count++;
-                break;
-            default:
-                // 10xxxxxx, 1111xxxx
-                throw new IllegalArgumentException();
-            }
-        }
-        if (i != max) {
-            throw new IllegalArgumentException();
-        }
-        // Now decode the characters...
-        char[] cs = new char[count];
-        i = 0;
-        while (off < max) {
-            int c = b[off++] & 0xff;
-            switch (c >> 4) {
-            case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
-                // 0xxxxxxx
-                cs[i++] = (char)c;
-                break;
-            case 12: case 13:
-                // 110xxxxx 10xxxxxx
-                cs[i++] = (char)(((c & 0x1f) << 6) | (b[off++] & 0x3f));
-                break;
-            case 14:
-                // 1110xxxx 10xxxxxx 10xxxxxx
-                int t = (b[off++] & 0x3f) << 6;
-                cs[i++] = (char)(((c & 0x0f) << 12) | t | (b[off++] & 0x3f));
-                break;
-            default:
-                // 10xxxxxx, 1111xxxx
-                throw new IllegalArgumentException();
-            }
-        }
-        return new String(cs, 0, count);
-    }
-    */
 
     protected ZipEntry createZipEntry(String name) {
         return new ZipEntry(name);

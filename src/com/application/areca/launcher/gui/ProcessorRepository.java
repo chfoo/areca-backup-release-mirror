@@ -14,17 +14,17 @@ import com.application.areca.launcher.gui.postprocessors.MailSendProcessorCompos
 import com.application.areca.launcher.gui.postprocessors.MergeProcessorComposite;
 import com.application.areca.launcher.gui.postprocessors.ShellScriptProcessorComposite;
 import com.application.areca.processor.DeleteProcessor;
-import com.application.areca.processor.Processor;
 import com.application.areca.processor.FileDumpProcessor;
 import com.application.areca.processor.MailSendProcessor;
 import com.application.areca.processor.MergeProcessor;
+import com.application.areca.processor.Processor;
 import com.application.areca.processor.ShellScriptProcessor;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*

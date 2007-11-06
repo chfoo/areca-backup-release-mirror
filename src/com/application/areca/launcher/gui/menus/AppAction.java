@@ -21,7 +21,7 @@ import com.application.areca.launcher.gui.Application;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -77,7 +77,7 @@ public class AppAction implements SelectionListener {
         } 
         
         // Label
-        label = " " + normalizeMenuLabel(RM.getLabel(resPrefixKey + ".label"), mnemonic, accel);
+        label = normalizeMenuLabel(RM.getLabel(resPrefixKey + ".label"), mnemonic, accel);
         
         // Icon
         if (image != null) {

@@ -2,7 +2,6 @@ package com.application.areca.cache;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.impl.AbstractFileSystemMedium;
@@ -19,7 +18,7 @@ import com.application.areca.metadata.trace.ArchiveTraceManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*

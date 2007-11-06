@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -66,9 +66,15 @@ public class Utils {
     }
     
     public static File getApplicationRoot() {
-        URL url = ClassLoader.getSystemClassLoader().getResource(ResourceManager.RESOURCE_NAME + "_en.properties");
-        File licenseFile = new File(URLDecoder.decode(url.getFile()));
-        return FileSystemManager.getParentFile(FileSystemManager.getParentFile(licenseFile));
+        String dir = System.getProperty("user.dir");
+        if (dir != null && dir.trim().length() != 0) {
+            return new File(dir);
+        } else {
+            Logger.defaultLogger().warn("Unable to load the 'user.dir' java property. Using classpath to detect application root.");
+            URL url = ClassLoader.getSystemClassLoader().getResource(ResourceManager.RESOURCE_NAME + "_en.properties");
+            File licenseFile = new File(URLDecoder.decode(url.getFile()));
+            return FileSystemManager.getParentFile(FileSystemManager.getParentFile(licenseFile));
+        }
     }
     
     public static String[] getTranslations() {

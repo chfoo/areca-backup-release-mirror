@@ -36,7 +36,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -233,7 +233,7 @@ implements MouseListener, Refreshable, Listener {
 
     private void refreshManifest(EntryArchiveData data) {
         // Affichage manifeste et enregistrement date courante
-        this.application.setCurrentHistoryDate(data.getManifest().getDate());
+        this.application.setCurrentEntryData(data);
         
         Manifest mf = data.getManifest();
         String txt = "";

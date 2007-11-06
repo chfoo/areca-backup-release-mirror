@@ -8,11 +8,13 @@ import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.Util;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -45,9 +47,14 @@ public class ArchiveWriter {
         this.adapter = adapter;
     }
 
-    public void addFile(File file, String fullName) throws IOException {
+    public void addFile(File file, String fullName, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
         if (! FileSystemManager.exists(file)) {
             return;
+        }
+        
+        if (monitor != null) {
+            monitor.checkTaskCancellation();
         }
         
         if (FileSystemManager.isFile(file)) {
@@ -58,27 +65,48 @@ public class ArchiveWriter {
             long length = FileSystemManager.length(file);
             
             this.adapter.addEntry(fullName, length);            
-            this.tool.copyFile(file, this.adapter.getArchiveOutputStream(), false);
+            this.tool.copyFile(file, this.adapter.getArchiveOutputStream(), false, monitor);
             this.adapter.closeEntry();
             this.entries++;
         } else {
             File[] children = FileSystemManager.listFiles(file);
             for (int i=0; i<children.length; i++) {
-                this.addFile(children[i], Util.replace(FileSystemManager.getCanonicalPath(children[i]), FileSystemManager.getCanonicalPath(file), fullName));
+                this.addFile(children[i], Util.replace(FileSystemManager.getCanonicalPath(children[i]), FileSystemManager.getCanonicalPath(file), fullName), monitor);
             }
         }
     }
 
-    public void addFile(File file) throws IOException {
-        this.addFile(file, FileSystemManager.getCanonicalPath(file));
-    }
-
-    public void addFile(String file, String fullName) throws IOException {
-        this.addFile(new File(file), fullName);
+    public void addFile(File file, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
+        this.addFile(file, FileSystemManager.getCanonicalPath(file), monitor);
     }
     
-    public void addFile(String file) throws IOException {
-        this.addFile(new File(file));
+    public void addFile(String file, String fullName) 
+    throws IOException {
+        try {
+            this.addFile(file, fullName, null);
+        } catch (TaskCancelledException e) {
+            // ignored
+        }
+    }
+
+    public void addFile(String file, String fullName, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
+        this.addFile(new File(file), fullName, monitor);
+    }
+    
+    public void addFile(String file) 
+    throws IOException {
+        try {
+            this.addFile(file, (TaskMonitor)null);
+        } catch (TaskCancelledException e) {
+            // ignored
+        }
+    }
+    
+    public void addFile(String file, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
+        this.addFile(new File(file), monitor);
     }
     
     public OutputStream getOutputStream() {

@@ -32,10 +32,10 @@ import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.processor.DeleteProcessor;
-import com.application.areca.processor.Processor;
 import com.application.areca.processor.FileDumpProcessor;
 import com.application.areca.processor.MailSendProcessor;
 import com.application.areca.processor.MergeProcessor;
+import com.application.areca.processor.Processor;
 import com.application.areca.processor.ShellScriptProcessor;
 
 /**
@@ -43,7 +43,7 @@ import com.application.areca.processor.ShellScriptProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*

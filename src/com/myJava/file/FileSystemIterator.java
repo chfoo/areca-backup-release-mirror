@@ -15,7 +15,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -59,26 +59,26 @@ public class FileSystemIterator implements Iterator {
      * Cet élément est filtré par appel aux filtres.
      */
     private File nextFileOrDirectory() {
-        if (currentLevel.hasMoreElements()) {
-            File f = currentLevel.nextElement();
-
-            try {
-                if (FileSystemManager.isDirectory(f) && (followSymLinks || (! FileSystemManager.isLink(f)))) {
-                    this.fileSystemLevels.push(this.currentLevel);
-                    this.currentLevel = new FileSystemLevel(f);
+        while (true) {
+            if (currentLevel.hasMoreElements()) {
+                File f = currentLevel.nextElement();
+    
+                try {
+                    if (FileSystemManager.isDirectory(f) && (followSymLinks || (! FileSystemManager.isLink(f)))) {
+                        this.fileSystemLevels.push(this.currentLevel);
+                        this.currentLevel = new FileSystemLevel(f);
+                    }
+                } catch (IOException e) {
+                    Logger.defaultLogger().error("Unreadable file : " + FileSystemManager.getAbsolutePath(f), e);
+                    throw new IllegalArgumentException("Unreadable file : " + FileSystemManager.getAbsolutePath(f));
                 }
-            } catch (IOException e) {
-                Logger.defaultLogger().error("Unreadable file : " + FileSystemManager.getAbsolutePath(f), e);
-                throw new IllegalArgumentException("Unreadable file : " + FileSystemManager.getAbsolutePath(f));
-            }
-            return f;  
-
-        } else {
-            if (this.fileSystemLevels.isEmpty()) {
-                return null;
+                return f;  
             } else {
-                this.currentLevel = (FileSystemLevel)this.fileSystemLevels.pop();
-                return this.nextFileOrDirectory();
+                if (this.fileSystemLevels.isEmpty()) {
+                    return null;
+                } else {
+                    this.currentLevel = (FileSystemLevel)this.fileSystemLevels.pop();
+                }
             }
         }
     }

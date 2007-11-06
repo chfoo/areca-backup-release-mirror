@@ -9,11 +9,13 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -45,9 +47,14 @@ public class ArchiveReader {
         this.tool = FileTool.getInstance();
     }
 
-    public InputStream getInputStream(String entry) throws IOException {
+    public InputStream getInputStream(String entry, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
       String entr;
         while((entr = adapter.getNextEntry()) != null) {
+            if (monitor != null) {
+                monitor.checkTaskCancellation();
+            }
+            
             if (entr.equals(entry)) {
                 return adapter.getArchiveInputStream();
             }
@@ -57,10 +64,15 @@ public class ArchiveReader {
     }
     
     public void injectIntoDirectory(File dir) throws IOException {
-        this.injectIntoDirectory(dir, null);
+        try {
+            this.injectIntoDirectory(dir, null, null);
+        } catch (TaskCancelledException ignored) {
+            // This exception is never thrown because no monitor is set. 
+        }
     }
     
-    public void injectIntoDirectory(File dir, String[] entriesToRecover) throws IOException {
+    public void injectIntoDirectory(File dir, String[] entriesToRecover, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
         if (entriesToRecover != null) {
             for (int i=0; i<entriesToRecover.length; i++) {
                 entriesToRecover[i] = Util.trimSlashes(entriesToRecover[i]);
@@ -75,6 +87,10 @@ public class ArchiveReader {
             String fileName;
             while((fileName = adapter.getNextEntry()) != null) {
                 try {
+                    if (monitor != null) {
+                        monitor.checkTaskCancellation();
+                    }
+                    
                     if (entriesToRecover == null || Util.passFilter(Util.trimSlashes(fileName), entriesToRecover)) {
                         File target = new File(dir, fileName);
 

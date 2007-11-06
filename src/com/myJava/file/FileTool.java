@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 
 /**
@@ -20,7 +22,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -59,23 +61,36 @@ public class FileTool {
     private FileTool() {
     }
     
+    public void copy(File sourceFileOrDirectory, File targetParentDirectory) throws IOException {
+        try {
+            copy(sourceFileOrDirectory, targetParentDirectory, null);
+        } catch (TaskCancelledException ignored) {
+            // Never happens since no monitor is set.
+        }
+    }
+    
     /**
      * Copie le fichier ou répertoire source dans le répertoire parent destination.
      */
-    public void copy(File sourceFileOrDirectory, File targetParentDirectory) throws IOException {
+    public void copy(File sourceFileOrDirectory, File targetParentDirectory, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
         if (sourceFileOrDirectory == null || targetParentDirectory == null) {
             throw new IllegalArgumentException("Source : " + sourceFileOrDirectory + ", Destination : " + targetParentDirectory);
         }
         
+        if (monitor != null) {
+            monitor.checkTaskCancellation();
+        }
+        
         if (FileSystemManager.isFile(sourceFileOrDirectory)) {
-        	this.copyFile(sourceFileOrDirectory, targetParentDirectory);
+        	this.copyFile(sourceFileOrDirectory, targetParentDirectory, monitor);
         } else {
             // Création du répertoire
             File td = new File(targetParentDirectory, FileSystemManager.getName(sourceFileOrDirectory));
             this.createDir(td);
             
             // Copie du contenu de la source dans le répertoire nouvellement créé.
-            this.copyDirectoryContent(sourceFileOrDirectory, td);
+            this.copyDirectoryContent(sourceFileOrDirectory, td, monitor);
         }
     }
     
@@ -86,8 +101,9 @@ public class FileTool {
      * @param sourceFile Pointeur sur le fichier à copier
      * @param targetDirectory Répertoire cible. Si ce répertoire n'existe pas, il est créé (récursivement).
      */
-    private void copyFile(File sourceFile, File targetDirectory) throws IOException  {
-        copyFile(sourceFile, targetDirectory, FileSystemManager.getName(sourceFile));
+    private void copyFile(File sourceFile, File targetDirectory, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
+        copyFile(sourceFile, targetDirectory, FileSystemManager.getName(sourceFile), monitor);
     }
     
     /**
@@ -97,7 +113,8 @@ public class FileTool {
      * @param sourceFile Pointeur sur le fichier à copier
      * @param targetDirectory Répertoire cible. Si ce répertoire n'existe pas, il est créé (récursivement).
      */
-    public void copyFile(File sourceFile, File targetDirectory, String targetShortFileName) throws IOException  {
+    public void copyFile(File sourceFile, File targetDirectory, String targetShortFileName, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
         
         // Vérifications préalables
         if (! FileSystemManager.exists(targetDirectory)) {
@@ -109,15 +126,25 @@ public class FileTool {
         OutputStream outStream = FileSystemManager.getFileOutputStream(tf);
         
         // Copie
-        this.copyFile(sourceFile, outStream, true);
+        this.copyFile(sourceFile, outStream, true, monitor);
     }
     
     /**
      * Copie le fichier sourceFile vers le flux outStream.
      * <BR>closeStream détermine si le flux de sortie sera fermé après la copie ou non
      */
-    public void copyFile(File sourceFile, OutputStream outStream, boolean closeStream) throws IOException  {      
-        this.copy(FileSystemManager.getFileInputStream(sourceFile), outStream, true, closeStream);
+    public void copyFile(File sourceFile, OutputStream outStream, boolean closeStream, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException  {      
+        this.copy(FileSystemManager.getFileInputStream(sourceFile), outStream, true, closeStream, monitor);
+    }
+
+    public void copy(InputStream inStream, OutputStream outStream, boolean closeInputStream, boolean closeOutputStream) 
+    throws IOException {
+        try {
+            copy(inStream, outStream, closeInputStream, closeOutputStream, null);
+        } catch (TaskCancelledException e) {
+            // Ignored
+        }
     }
     
     /**
@@ -125,12 +152,16 @@ public class FileTool {
      * <BR>inStream est fermé après copie.
      * <BR>closeStream détermine si le flux de sortie sera fermé après la copie ou non
      */
-    public void copy(InputStream inStream, OutputStream outStream, boolean closeInputStream, boolean closeOutputStream) throws IOException  {
+    public void copy(InputStream inStream, OutputStream outStream, boolean closeInputStream, boolean closeOutputStream, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
 
         try {
             byte[] in = new byte[BUFFER_SIZE];
             int nbRead;
             while (true) {
+                if (monitor != null) {
+                    monitor.checkTaskCancellation();
+                }
                 nbRead = inStream.read(in);
                 if (nbRead == -1) {
                     break;
@@ -164,7 +195,7 @@ public class FileTool {
      * <BR>Alors après la copie, le contenu de c:\toto\sourceDir sera copié dans d:\myDir
      * <BR>targetDirectory est créé (récursivement) s'il n'existe pas.
      */
-    public void copyDirectoryContent(File sourceDirectory, File targetDirectory) throws IOException {
+    public void copyDirectoryContent(File sourceDirectory, File targetDirectory, TaskMonitor monitor) throws IOException, TaskCancelledException {
         if (! FileSystemManager.exists(targetDirectory)) {
             this.createDir(targetDirectory);
         }
@@ -172,7 +203,7 @@ public class FileTool {
         // Copie du contenu
         File[] files = FileSystemManager.listFiles(sourceDirectory);
         for (int i=0; i<files.length; i++) {
-        	this.copy(files[i], targetDirectory);
+        	this.copy(files[i], targetDirectory, monitor);
         }
     }
     
@@ -188,7 +219,8 @@ public class FileTool {
      * @param destinationDirectory
      * @throws IOException
      */
-    public void moveDirectoryContent(File sourceDirectory, File destinationDirectory, boolean waitForAvailability) throws IOException {
+    public void moveDirectoryContent(File sourceDirectory, File destinationDirectory, boolean waitForAvailability, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
         if (! FileSystemManager.exists(destinationDirectory)) {
             this.createDir(destinationDirectory);
         }
@@ -196,11 +228,12 @@ public class FileTool {
         // Déplacement du contenu
         File[] files = FileSystemManager.listFiles(sourceDirectory);
         for (int i=0; i<files.length; i++) {
-            this.move(files[i], destinationDirectory, waitForAvailability);
+            this.move(files[i], destinationDirectory, waitForAvailability, monitor);
         }
     }
     
-    public void move(File sourceFileOrDirectory, File targetParentDirectory, boolean waitForAvailability) throws IOException {
+    public void move(File sourceFileOrDirectory, File targetParentDirectory, boolean waitForAvailability, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
         // Création du répertoire d'accueil si nécessaire
         if (! FileSystemManager.exists(targetParentDirectory)) {
             this.createDir(targetParentDirectory);
@@ -212,8 +245,8 @@ public class FileTool {
         if (! FileSystemManager.renameTo(sourceFileOrDirectory, destFile)) {
 
         	// Si la tentative standard échoue (méthode "renameTo"), on tente une copie, puis suppression
-        	this.copy(sourceFileOrDirectory, targetParentDirectory);
-        	this.delete(sourceFileOrDirectory, waitForAvailability);
+        	this.copy(sourceFileOrDirectory, targetParentDirectory, monitor);
+        	this.delete(sourceFileOrDirectory, waitForAvailability, monitor);
         }
     }
     
@@ -223,13 +256,17 @@ public class FileTool {
      * que celui ci soit disponible pour le supprimer (mise en attente du thread).
      * <BR>Une tentative de suppression sera faite toutes les "deletionDelay" millisecondes.
      */
-    public void delete(File fileOrDirectory, boolean waitForAvailability, long deletionDelay) 
-    throws IOException, IllegalArgumentException {
+    public void delete(File fileOrDirectory, boolean waitForAvailability, long deletionDelay, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
+        if (monitor != null) {
+            monitor.checkTaskCancellation();
+        }
+        
         if (FileSystemManager.isDirectory(fileOrDirectory)) {
             // Suppression du contenu
             File[] files = FileSystemManager.listFiles(fileOrDirectory);
             for (int i=0; i<files.length; i++) {
-                this.delete(files[i], waitForAvailability, deletionDelay);
+                this.delete(files[i], waitForAvailability, deletionDelay, monitor);
             }
         }
 
@@ -257,8 +294,18 @@ public class FileTool {
         }
     }
     
-    public void delete(File fileOrDirectory, boolean waitForAvailability) throws IOException {
-        delete(fileOrDirectory, waitForAvailability, DEFAULT_DELETION_DELAY);
+    public void delete(File fileOrDirectory, boolean waitForAvailability) 
+    throws IOException {
+        try {
+            delete(fileOrDirectory, waitForAvailability, null);
+        } catch (TaskCancelledException ignored) {
+            // Never happens since no monitor is set
+        }
+    }
+    
+    public void delete(File fileOrDirectory, boolean waitForAvailability, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
+        delete(fileOrDirectory, waitForAvailability, DEFAULT_DELETION_DELAY, monitor);
     }
     
     public void createFile(File destinationFile, String content) throws IOException {

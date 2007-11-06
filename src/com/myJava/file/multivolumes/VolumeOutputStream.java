@@ -1,17 +1,8 @@
 package com.myJava.file.multivolumes;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
-import com.myJava.file.FileTool;
-import com.myJava.file.archive.zip64.ZipVolumeStrategy;
 import com.myJava.util.log.Logger;
 
 /**
@@ -19,7 +10,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -119,35 +110,7 @@ public class VolumeOutputStream extends OutputStream {
     
     public void ensureCapacity(long length) throws IOException {
         if (this.currentVolumeSize + length > volumeSize) {
-            //System.out.println("Insufficient capacity detected - opening next volume. (" + this.strategy.getCurrentVolumeNumber() + ")");
             openNextVolume();
-        }
-    }
-    
-
-    public static void main(String[] args) {
-        try {
-            FileTool tool = FileTool.getInstance();
-            File parent = new File("/home/olivier/Desktop/toto");
-            File outF = new File(parent, "out");
-            File inF = new File(parent, "in");      
-            File cloneF = new File(parent, "clone");        
-            
-            FileInputStream in = new FileInputStream(inF);
-            ZipVolumeStrategy sto = new ZipVolumeStrategy(outF);
-            OutputStream out = new GZIPOutputStream(new VolumeOutputStream(sto, 1125));
-            tool.copy(in, out, true, true);
-
-            ZipVolumeStrategy sti = new ZipVolumeStrategy(outF);
-            InputStream clone = new GZIPInputStream(new VolumeInputStream(sti));
-            FileOutputStream cloneOut = new FileOutputStream(cloneF);
-            tool.copy(clone, cloneOut, true, true);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }

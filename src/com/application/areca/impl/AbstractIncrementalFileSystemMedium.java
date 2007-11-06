@@ -63,7 +63,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -358,6 +358,50 @@ implements TargetActions {
      * Registers an entry after it has passed the filters. (hence a stored entry) 
      */
     protected abstract void registerStoredEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException;
+    
+    public void recoverEntry(
+            GregorianCalendar date, 
+            RecoveryEntry entryToRecover, 
+            Object destination,
+            ProcessContext context            
+    ) throws ApplicationException {
+        if (destination == null || entryToRecover == null) {
+            return;
+        }
+
+        File archive = this.getLastArchive(date);
+        try {
+            FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)entryToRecover;
+            if (! FileSystemManager.exists((File)destination)) {
+                tool.createDir((File)destination);
+            }
+            
+            if (entry.isLink()) {
+                recoverSymLink(entry, archive, (File)destination);
+            } else {            
+                File tmp = new File(entry.getName());
+                File targetFile = new File((File)destination, FileSystemManager.getName(tmp));
+                
+                recoverEntryImpl(archive, entry, destination, context);
+
+                String hash = ArchiveTraceCache.getInstance().getTrace(this, archive).getFileHash(entry);
+                if (hash != null) {
+                    FileSystemManager.setLastModified(targetFile, ArchiveTrace.extractFileModificationDateFromTrace(hash));
+                }
+            }
+        } catch (ApplicationException e) {
+            throw e;            
+        } catch (Throwable e) {
+            throw new ApplicationException(e);
+        }
+    }
+    
+    public abstract void recoverEntryImpl(
+            File archive,
+            FileSystemRecoveryEntry entry, 
+            Object destination,
+            ProcessContext context            
+    ) throws IOException, TaskCancelledException, ApplicationException;
     
     /**
      * Fermeture de l'archive
@@ -906,7 +950,70 @@ implements TargetActions {
             
             if (recoveredArchives.length >= minimumArchiveNumber) {
                 context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.9, "recover");
-                this.archiveRawRecover(recoveredArchives, filters, targetFile, context);
+
+                // Process Recovery
+                boolean useDummyMode = false;
+                if (filters != null && filters.length != 0) {
+                    for (int i=0; i<filters.length; i++) {
+                        if (filters[i].endsWith("/") || filters[i].endsWith("\\")) {
+                            useDummyMode = true;
+                            break;
+                        }
+                    }
+                } else {
+                    useDummyMode = true;
+                }
+                
+                if (useDummyMode) {
+                    // Dummy mode : recover all archives
+                    this.archiveRawRecover(recoveredArchives, filters, targetFile, context);
+                } else {
+                    // Smart mode : iterate on each entry and recover its latest version only
+                    String root = ((FileSystemRecoveryTarget)this.getTarget()).getSourceDirectory();
+                    Map entriesByArchive = new HashMap();
+                    
+                    Set entriesToDispatch = new HashSet();
+                    for (int e=0; e<filters.length; e++) {
+                        entriesToDispatch.add(new FileSystemRecoveryEntry(root, new File(root, filters[e])));
+                    }
+                    
+                    // Build a list of entries to recover indexed by archive
+                    for (int i=recoveredArchives.length - 1; i>=0 && entriesToDispatch.size() > 0; i--) {
+                        ArchiveContent content = ArchiveContentManager.getContentForArchive(this, recoveredArchives[i]);
+                        Iterator iter = entriesToDispatch.iterator();
+                        Set toRemove = new HashSet();
+                        while (iter.hasNext()) {
+                            FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)iter.next();
+                            if (content.contains(entry)) {
+                                List entries = (List)entriesByArchive.get(recoveredArchives[i]);
+                                if (entries == null) {
+                                    entries = new ArrayList();
+                                    entriesByArchive.put(recoveredArchives[i], entries);
+                                }
+                                entries.add(entry);
+                                toRemove.add(entry);
+                            }
+                        }
+                        entriesToDispatch.removeAll(toRemove);
+                    }
+                    
+                    // Recovery
+                    Iterator iter = entriesByArchive.keySet().iterator();
+                    double share = 0.98/entriesByArchive.size();
+                    while (iter.hasNext()) {
+                        File archive = (File)iter.next();
+                        List entries = (List)entriesByArchive.get(archive);
+                        
+                        String[] filtersForArchive = new String[entries.size()];
+                        for (int i=0; i<filtersForArchive.length; i++) {
+                            filtersForArchive[i] = ((RecoveryEntry)entries.get(i)).getName();
+                        }
+                        
+                        context.getInfoChannel().getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(share, FileSystemManager.getAbsolutePath(archive));
+                        this.archiveRawRecover(new File[] {archive}, filtersForArchive, targetFile, context);
+                    }
+                    context.getInfoChannel().getTaskMonitor().getCurrentActiveSubTask().enforceCompletion();
+                }
                 
                 context.getTaskMonitor().checkTaskCancellation();
                 

@@ -16,7 +16,7 @@ import com.application.areca.launcher.gui.common.SavePanel;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -57,7 +57,7 @@ extends AbstractWindow {
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(2, false);
-        layout.verticalSpacing = 20;
+        layout.verticalSpacing = 10;
         composite.setLayout(layout);
 
         Label lblImage = new Label(composite, SWT.NONE);
@@ -68,7 +68,7 @@ extends AbstractWindow {
         content.setEditable(false);
         content.setText(message);
         GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true);
-        dt.widthHint = AbstractWindow.computeWidth(400);
+        dt.widthHint = AbstractWindow.computeWidth(450);
         dt.heightHint = AbstractWindow.computeWidth(150);
         content.setLayoutData(dt);
 

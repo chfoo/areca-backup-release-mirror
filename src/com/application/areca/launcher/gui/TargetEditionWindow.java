@@ -74,7 +74,6 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.system.OSTool;
-import com.myJava.util.Util;
 import com.myJava.util.history.History;
 import com.myJava.util.log.Logger;
 
@@ -82,7 +81,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -1140,7 +1139,7 @@ extends AbstractWindow {
                         
                         File backupDir = new File(this.txtMediumPath.getText());
                         FileTool tool = FileTool.getInstance();
-                        if (tool.isParentOf(src, backupDir)) {
+                        if (AbstractFileSystemMedium.CHECK_DIRECTORY_CONSISTENCY && tool.isParentOf(src, backupDir)) {
                             this.setInError(txtMediumPath);
                             return false;           
                         }

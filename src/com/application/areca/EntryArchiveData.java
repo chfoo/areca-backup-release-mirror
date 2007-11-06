@@ -7,7 +7,7 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -40,7 +40,6 @@ public class EntryArchiveData {
 	public static final short STATUS_MODIFIED = 3;
 	public static final short STATUS_DELETED = 4;
 
-	
 	// status binaires : existe / n'existe pas (archives non incrémentales)
 	public static final short STATUS_NONEXISTANT = 5;
 	public static final short STATUS_EXISTANT = 6;

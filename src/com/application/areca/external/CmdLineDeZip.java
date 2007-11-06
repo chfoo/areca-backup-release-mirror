@@ -13,13 +13,12 @@ import com.myJava.file.FileTool;
 import com.myJava.file.archive.ArchiveReader;
 import com.myJava.file.archive.zip64.ZipArchiveAdapter;
 import com.myJava.file.archive.zip64.ZipVolumeStrategy;
-import com.myJava.file.multivolumes.VolumeStrategy;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*

@@ -1,5 +1,6 @@
 package com.application.areca.launcher.gui.menus;
 
+import com.application.areca.EntryArchiveData;
 import com.application.areca.RecoveryProcess;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.launcher.gui.Application;
@@ -13,7 +14,7 @@ import com.application.areca.launcher.gui.common.SecuredRunner;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -56,7 +57,8 @@ public class AppActionReferenceHolder implements ActionConstants{
     public static AppAction AC_SIMULATE = new AppAction("app.simulateaction", ArecaImages.ICO_ACT_ARCHIVE, ArecaImages.ICO_ACT_ARCHIVE_B, CMD_SIMULATE);
     public static AppAction AC_BACKUP = new AppAction("app.backupaction", ArecaImages.ICO_ACT_ARCHIVE, ArecaImages.ICO_ACT_ARCHIVE_B, CMD_BACKUP);
     public static AppAction AC_BACKUP_ALL = new AppAction("app.backupallaction", null, null, CMD_BACKUP_ALL);    
-    public static AppAction AC_BUILD_BATCH = new AppAction("app.buildbatch", ArecaImages.ICO_FILTER, CMD_BUILD_BATCH);    
+    public static AppAction AC_BUILD_BATCH = new AppAction("app.buildbatch", ArecaImages.ICO_FILTER, CMD_BUILD_BATCH);
+    public static AppAction AC_BUILD_STRATEGY = new AppAction("app.strategy", ArecaImages.ICO_FILTER, CMD_BUILD_STRATEGY);    
     public static AppAction AC_BACKUP_MANIFEST = new AppAction("app.backupwmaction", ArecaImages.ICO_ACT_ARCHIVE, ArecaImages.ICO_ACT_ARCHIVE_B, CMD_BACKUP_MANIFEST);
     public static AppAction AC_MERGE = new AppAction("app.mergearchivesaction", ArecaImages.ICO_ACT_COMPACT, ArecaImages.ICO_ACT_COMPACT_B, CMD_COMPACT);
     public static AppAction AC_DELETE_ARCHIVES = new AppAction("app.deletearchivesaction", ArecaImages.ICO_ACT_DELETE, ArecaImages.ICO_ACT_DELETE_B, CMD_DELETE_ARCHIVES);
@@ -90,6 +92,7 @@ public class AppActionReferenceHolder implements ActionConstants{
                     boolean available = ! application.getCurrentProcess().isRunning();
                     
                     AC_BUILD_BATCH.setEnabled(true);
+                    AC_BUILD_STRATEGY.setEnabled(false);
                     AC_EDIT_PROCESS.setEnabled(true);
                     AC_NEW_PROCESS.setEnabled(true);
                     AC_NEW_TARGET.setEnabled(true);  
@@ -113,6 +116,7 @@ public class AppActionReferenceHolder implements ActionConstants{
                     boolean available = ! application.getCurrentTarget().isRunning();
                     
                     AC_BUILD_BATCH.setEnabled(true);
+                    AC_BUILD_STRATEGY.setEnabled(true);
                     AC_HISTORY.setEnabled(true);   
                     AC_EDIT_PROCESS.setEnabled(true);
                     AC_DUP_TARGET.setEnabled(true); 
@@ -146,9 +150,23 @@ public class AppActionReferenceHolder implements ActionConstants{
                     AC_DEL_PROCESS.setEnabled(available);
                     AC_DEL_TARGET.setEnabled(available);
                     AC_RECOVER_FILTER.setEnabled(available);
-                    AC_RECOVER_HISTORY.setEnabled(available);
+                    AC_RECOVER_HISTORY.setEnabled(
+                            available
+                            && application.getCurrentEntryData() != null
+                            && application.getCurrentEntryData().getStatus() != EntryArchiveData.STATUS_DELETED
+                    );
                     String cmd = ArecaPreferences.getEditionCommand();
-                    AC_TEXTEDIT_HISTORY.setEnabled(available && cmd != null && cmd.length() != 0 && (application.getCurrentEntry() == null || ! application.getCurrentEntry().isLink()));
+                    AC_TEXTEDIT_HISTORY.setEnabled(
+                            available 
+                            && cmd != null 
+                            && cmd.length() != 0 
+                            && (
+                                    application.getCurrentEntry() == null 
+                                    || ! application.getCurrentEntry().isLink()
+                            )
+                            && application.getCurrentEntryData() != null
+                            && application.getCurrentEntryData().getStatus() != EntryArchiveData.STATUS_DELETED
+                    );
                 } else {
                     enableCommands(false);
                 }
@@ -162,6 +180,7 @@ public class AppActionReferenceHolder implements ActionConstants{
         AC_BACKUP.setEnabled(enabled);
         AC_BACKUP_ALL.setEnabled(enabled);
         AC_BUILD_BATCH.setEnabled(enabled);
+        AC_BUILD_STRATEGY.setEnabled(enabled);
         AC_BACKUP_MANIFEST.setEnabled(enabled);        
         AC_MERGE.setEnabled(enabled);
         AC_DELETE_ARCHIVES.setEnabled(enabled);        

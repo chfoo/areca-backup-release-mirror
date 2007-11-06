@@ -2,13 +2,10 @@ package com.application.areca.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.GregorianCalendar;
 
 import com.application.areca.ApplicationException;
-import com.application.areca.RecoveryEntry;
 import com.application.areca.cache.ArchiveTraceCache;
 import com.application.areca.context.ProcessContext;
-import com.application.areca.metadata.trace.ArchiveTrace;
 import com.myJava.file.FileSystemManager;
 import com.myJava.object.PublicClonable;
 import com.myJava.util.log.Logger;
@@ -19,7 +16,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -63,7 +60,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
     protected void storeFileInArchive(File file, String path, ProcessContext context) throws ApplicationException {
         File tg = new File(context.getCurrentArchiveFile(), path);
         try {
-            tool.copyFile(file, FileSystemManager.getParentFile(tg), FileSystemManager.getName(tg));
+            tool.copyFile(file, FileSystemManager.getParentFile(tg), FileSystemManager.getName(tg), context.getTaskMonitor());
         } catch (Throwable e) {
             throw new ApplicationException("Error storing file " + FileSystemManager.getAbsolutePath(file) + " - target=" + FileSystemManager.getAbsolutePath(tg), e);
         }
@@ -84,13 +81,13 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
                 
                 // Copie de l'élément en cours.
                 if (entriesToRecover == null) {
-                    tool.copyDirectoryContent(elementaryArchives[i], targetFile);
+                    tool.copyDirectoryContent(elementaryArchives[i], targetFile, context.getTaskMonitor());
                 } else {
                     for (int j=0; j<entriesToRecover.length; j++) {
                         File sourceFileOrDirectory = new File(elementaryArchives[i], entriesToRecover[j]);
                         if (FileSystemManager.exists(sourceFileOrDirectory)) {
 	                        File targetDirectory = FileSystemManager.getParentFile(new File(targetFile, entriesToRecover[j]));
-	                        tool.copy(sourceFileOrDirectory, targetDirectory);
+	                        tool.copy(sourceFileOrDirectory, targetDirectory, context.getTaskMonitor());
                         }
                     }
                 }
@@ -110,9 +107,11 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
     
     protected void buildArchiveFromDirectory(File sourceDir, File destination, ProcessContext context) throws ApplicationException {
         try {
-            tool.moveDirectoryContent(sourceDir, destination, true);
+            tool.moveDirectoryContent(sourceDir, destination, true, context.getTaskMonitor());
         } catch (IOException e) {
             throw new ApplicationException(e);
+        } catch (TaskCancelledException e) {
+            throw new ApplicationException(e);            
         }
     } 
 
@@ -142,51 +141,30 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
             AbstractFileSystemMedium.tool.createDir(context.getCurrentArchiveFile());
         }
         
-    	if (overwrite) {
-    		AbstractFileSystemMedium.tool.moveDirectoryContent(context.getCurrentArchiveFile(), context.getFinalArchiveFile(), true);
-    		AbstractFileSystemMedium.tool.delete(context.getCurrentArchiveFile(), true);
-    		
-    		AbstractFileSystemMedium.tool.moveDirectoryContent(getDataDirectory(context.getCurrentArchiveFile()), getDataDirectory(context.getFinalArchiveFile()), true);
-    		AbstractFileSystemMedium.tool.delete(getDataDirectory(context.getCurrentArchiveFile()), true);
-    	} else {
-    		super.convertArchiveToFinal(context);
-    	}
+    	try {
+            if (overwrite) {
+            	AbstractFileSystemMedium.tool.moveDirectoryContent(context.getCurrentArchiveFile(), context.getFinalArchiveFile(), true, context.getTaskMonitor());
+            	AbstractFileSystemMedium.tool.delete(context.getCurrentArchiveFile(), true);
+            	
+            	AbstractFileSystemMedium.tool.moveDirectoryContent(getDataDirectory(context.getCurrentArchiveFile()), getDataDirectory(context.getFinalArchiveFile()), true, context.getTaskMonitor());
+            	AbstractFileSystemMedium.tool.delete(getDataDirectory(context.getCurrentArchiveFile()), true);
+            } else {
+            	super.convertArchiveToFinal(context);
+            }
+        } catch (TaskCancelledException e) {
+            throw new ApplicationException(e);
+        }
     }
 	
-    public void recoverEntry(
-            GregorianCalendar date, 
-            RecoveryEntry entryToRecover, 
+    public void recoverEntryImpl(
+            File archive,
+            FileSystemRecoveryEntry entry, 
             Object destination,
             ProcessContext context            
-    ) throws ApplicationException {
-        if (destination == null || entryToRecover == null) {
-            return;
-        }
-        
-        try {
-            File targetDirectory= (File)destination;
-            if (! FileSystemManager.exists(targetDirectory)) {
-                tool.createDir(targetDirectory);
-            }
-            
-            FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)entryToRecover;
-            File archive = this.getLastArchive(date);
-            
-            if (entry.isLink()) {
-                recoverSymLink(entry, archive, targetDirectory);
-            } else {
-                File sourceFile = new File(archive, entry.getName());
-                
-                if (FileSystemManager.exists(sourceFile)) {
-                    AbstractFileSystemMedium.tool.copy(sourceFile, targetDirectory);
-                }
-                
-                String hash = ArchiveTraceCache.getInstance().getTrace(this, archive).getFileHash(entry);
-                File targetFile = new File(targetDirectory, FileSystemManager.getName(sourceFile));
-                FileSystemManager.setLastModified(targetFile, ArchiveTrace.extractFileModificationDateFromTrace(hash));
-            }
-        } catch (IOException e) {
-            throw new ApplicationException(e);
+    ) throws IOException, TaskCancelledException, ApplicationException {      
+        File sourceFile = new File(archive, entry.getName());
+        if (FileSystemManager.exists(sourceFile)) {
+            AbstractFileSystemMedium.tool.copy(sourceFile, (File)destination, context.getTaskMonitor());
         }
     }
     

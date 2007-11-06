@@ -9,8 +9,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
-import com.application.areca.processor.Processor;
 import com.application.areca.processor.MergeProcessor;
+import com.application.areca.processor.Processor;
 import com.application.areca.processor.ProcessorValidationException;
 import com.myJava.util.CommonRules;
 
@@ -18,7 +18,7 @@ import com.myJava.util.CommonRules;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*

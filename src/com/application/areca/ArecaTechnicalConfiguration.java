@@ -6,7 +6,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -44,6 +44,7 @@ extends FrameworkConfiguration {
     private static String KEY_REPOSITORYACCESS_FTP_CACHE = "repository.access.ftp.cache";
     private static String KEY_REPOSITORYACCESS_HD_CACHE_DEPTH = "repository.access.hd.cache.depth";
     private static String KEY_REPOSITORYACCESS_FTP_CACHE_DEPTH = "repository.access.ftp.cache.depth";
+    private static String KEY_CHECK_DIRECTORY_CONSISTENCY = "repository.check.consistency";
     
     private static boolean DEF_SMTP_DEBUG = false;
     private static long DEF_MEMORY_BASE_KB = 20 * 1024;
@@ -57,6 +58,7 @@ extends FrameworkConfiguration {
     private static boolean DEF_REPOSITORYACCESS_FTP_CACHE = false; // Not stable yet
     private static int DEF_REPOSITORYACCESS_HD_CACHE_DEPTH = 2;
     private static int DEF_REPOSITORYACCESS_FTP_CACHE_DEPTH = 2;
+    private static boolean DEF_CHECK_DIRECTORY_CONSISTENCY = true;
     
     public ArecaTechnicalConfiguration() {
         super();
@@ -77,6 +79,10 @@ extends FrameworkConfiguration {
     
     public boolean isSMTPDebugMode() {
         return getProperty(KEY_SMTP_DEBUG, DEF_SMTP_DEBUG);
+    }
+    
+    public boolean isCheckRepositoryConsistency() {
+        return getProperty(KEY_CHECK_DIRECTORY_CONSISTENCY, DEF_CHECK_DIRECTORY_CONSISTENCY);
     }
     
     public boolean isRepositoryAccessDebugMode() {

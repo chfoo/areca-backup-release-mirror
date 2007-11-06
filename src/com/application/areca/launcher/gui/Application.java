@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.jface.window.Window;
@@ -64,7 +65,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -137,10 +138,10 @@ implements ActionConstants, Window.IExceptionHandler {
     private GregorianCalendar currentFromDate;			// Début de l'intervalle de dates en cours de sélection
     private GregorianCalendar currentToDate;				// Fin de l'intervalle de dates en cours de sélection
     private RecoveryEntry currentEntry;						// Entrée en cours de sélection (utile pour le détail d'une archive)
-    private GregorianCalendar currentHistoryDate; 		// En cas d'affichage de l'historique d'une entrée, date en cours de sélection
+    private EntryArchiveData currentEntryData;   		    // En cas d'affichage de l'historique d'une entrée, date en cours de sélection
     private String[] currentFilter;									// En cas de sélection d'un noeud sur le panel de détail d'une archive (répertoire ou Entry réelle), nom de celui ci.
     private boolean latestVersionRecoveryMode;         // Indique si la recovery se fera en dernière version ou non
-    
+
     private Set channels = new HashSet();
 
     private FileTool fileTool = FileTool.getInstance();
@@ -171,11 +172,11 @@ implements ActionConstants, Window.IExceptionHandler {
         this.historyContextMenu = MenuBuilder.buildHistoryContextMenu(shell);
         this.searchContextMenu = MenuBuilder.buildSearchContextMenu(shell);
     }
-    
+
     public void checkSystem() {
         if (! VersionInfos.checkJavaVendor()) {
             Logger.defaultLogger().warn(VersionInfos.VENDOR_MSG);
-            
+
             if (ArecaPreferences.isDisplayJavaVendorMessage()) {
                 this.showVendorDialog();
             }
@@ -185,7 +186,7 @@ implements ActionConstants, Window.IExceptionHandler {
     public Menu getArchiveContextMenu() {
         return archiveContextMenu;
     }
-    
+
     public Menu getArchiveContextMenuLogical() {
         return archiveContextMenuLogical;
     }
@@ -409,13 +410,17 @@ implements ActionConstants, Window.IExceptionHandler {
                 }  
             }  
         } else if (command.equals(CMD_BUILD_BATCH)) {
+            // BUILD BATCH
             buildBatch();
+        } else if (command.equals(CMD_BUILD_STRATEGY)) {
+            // BUILD STRATEGY
+            buildStrategy();            
         } else if (command.equals(CMD_SEARCH_LOGICAL) || command.equals(CMD_SEARCH_PHYSICAL)) {
             SearchResultItem item = this.mainWindow.getSearchView().getSelectedItem();
-            
+
             this.enforceSelectedTarget(item.getTarget());
             this.setCurrentDates(item.getCalendar(), item.getCalendar());
-            
+
             if (command.equals(CMD_SEARCH_PHYSICAL)) {
                 // Archive detail
                 this.showArchiveDetail(item.getEntry());
@@ -440,7 +445,7 @@ implements ActionConstants, Window.IExceptionHandler {
                         public void runCommand() throws ApplicationException {
                             rProcess.processRecoverOnTarget(rTarget, rPath, rFromDate, rEntry, context);
                         }
-                        
+
                         protected void finishCommand() {
                             if (command.equals(CMD_EDIT_FILE)) {
                                 File entry = new File(path, rEntry.getName());
@@ -462,7 +467,7 @@ implements ActionConstants, Window.IExceptionHandler {
                     rn.rEntry = this.currentEntry;
                     rn.rName = RM.getLabel("app.recoverfileaction.process.message");
                     rn.rPath = FileSystemManager.getAbsolutePath(new File(path));
-                    rn.rFromDate = this.currentHistoryDate;
+                    rn.rFromDate = this.currentEntryData.getManifest().getDate();
                     rn.launch();                    
                 }  
             }        
@@ -506,7 +511,7 @@ implements ActionConstants, Window.IExceptionHandler {
             this.mainWindow.refresh(true, true);
         }
     }   
-    
+
     private void openWorkspace(String path) {
         if (path != null) {
             try {
@@ -524,9 +529,90 @@ implements ActionConstants, Window.IExceptionHandler {
             }                  
         }
     }
-    
+
+    public void buildStrategy() {
+        // Dialog
+        String prefix = Util.replace(this.getCurrentProcess().getSource(), ".xml", "").toLowerCase().replace(' ', '_');
+        prefix += "_" + this.getCurrentTarget().getId()+ "_every_";
+
+        CreateStrategyWindow win = new CreateStrategyWindow(OSTool.getUserHome(), prefix);
+        showDialog(win);
+
+        String path = win.getSelectedPath();
+
+        if (path != null && win.getTimes() != null && win.getTimes().size() != 0) {
+            String files = "";
+
+            // Init
+            String commentPrefix;
+            String commandPrefix;
+            String extension;
+            File applicationRoot = Utils.getApplicationRoot();
+            File executable;
+            if (OSTool.isSystemWindows()) {
+                extension = ".bat";
+                commentPrefix = "@REM ";
+                commandPrefix = "@";
+                executable = new File(applicationRoot, "areca_cl.exe");
+            } else {
+                extension = ".sh";
+                commentPrefix = "# ";
+                commandPrefix = "";
+                executable = new File(applicationRoot, "/bin/run_tui.sh");
+            }
+            String content = commentPrefix + "Script generated by Areca v" + VersionInfos.getLastVersion().getVersionId() + " on " + Utils.formatDisplayDate(new GregorianCalendar()) + "\n\n";
+            content += commentPrefix + "Target Group : \"" + this.getCurrentProcess().getName() + "\"\n";
+            content += commentPrefix + "Target : \"" + this.getCurrentTarget().getTargetName() + "\"\n\n";
+
+            String configPath = FileSystemManager.getAbsolutePath(this.getCurrentProcess().getSourceFile());
+            String command = commandPrefix + "\"" + FileSystemManager.getAbsolutePath(executable) + "\" merge -config \"" + configPath + "\" -target " + this.getCurrentTarget().getId();
+
+            // Script generation
+            List parameters = win.getTimes();
+            int unit = 1;
+            for (int i=0; i<parameters.size(); i++) {                
+                int repetition = ((Integer)parameters.get(i)).intValue();
+                String fileName = prefix + unit + "_days" + extension;
+                String fileContent = content;
+                fileContent += commentPrefix + "This script must be run every ";
+                if (unit == 1) {
+                    fileContent += "day.\n";                    
+                } else {
+                    fileContent += unit + " days.\n";
+                }
+
+                if (i == 0) {
+                    // Backup
+                    fileContent += "\n" + commentPrefix + "Daily backup\n";
+                    fileContent += commandPrefix + "\"" + FileSystemManager.getAbsolutePath(executable) + "\" backup -config \"" + configPath + "\" -target " + this.getCurrentTarget().getId() + "\n";
+                    unit *= repetition;
+                } else {
+                    // Intermediate merge
+                    int to = unit;
+                    int from = 2*unit;
+                    fileContent += "\n" + commentPrefix + "Merge between day " + to + " and day " + from + " \n";
+                    fileContent += command + " -from " + from + " -to " + to + "\n";
+                    unit *= repetition + 1;
+                }
+
+                // Final merge
+                if (i == parameters.size() - 1) {
+                    fileContent += "\n" + commentPrefix + "Merge after day " + unit + " \n";
+                    fileContent += command + " -delay " + unit + "\n";
+                }
+
+                // File generation
+                File tgFile = new File(path, fileName);
+                files += "\n- " + FileSystemManager.getName(tgFile);
+                buildExecutableFile(tgFile, fileContent);
+            }
+
+            this.showInformationDialog(RM.getLabel("shrtc.confirm.message", new Object[]{path, files}), RM.getLabel("shrtc.confirm.title"), false);
+        }
+    }
+
     public void buildBatch() {
-        String fileNameSelected = "backup_" + Util.replace(this.getCurrentProcess().getSource(), ".xml", "");
+        String fileNameSelected = "backup_" + Util.replace(this.getCurrentProcess().getSource(), ".xml", "").toLowerCase().replace(' ', '_');
         String fileNameAll = "backup";
         if (this.isCurrentObjectTarget()) {
             fileNameSelected += "_" + this.getCurrentTarget().getId();
@@ -544,13 +630,12 @@ implements ActionConstants, Window.IExceptionHandler {
             commentPrefix = "# ";
             commandPrefix = "";
         }
-        
-        //String path = showFileDialog(OSTool.getUserHome(), this.mainWindow, fileName, RM.getLabel("app.buildbatch.label"), SWT.SAVE);
+
         CreateBackupShortcutWindow win = new CreateBackupShortcutWindow(OSTool.getUserHome(), fileNameSelected, fileNameAll);
         showDialog(win);
         String path = win.getSelectedPath();
         boolean forSelectedOnly = win.isForSelectedOnly();
-        
+
         if (path != null) {
             String content = commentPrefix + "Backup script generated by Areca v" + VersionInfos.getLastVersion().getVersionId() + " on " + Utils.formatDisplayDate(new GregorianCalendar()) + "\n\n";
 
@@ -561,14 +646,14 @@ implements ActionConstants, Window.IExceptionHandler {
             } else {
                 executable = new File(applicationRoot, "/bin/run_tui.sh");
             }
-            
+
             if (forSelectedOnly) {
                 content += generateShortcutScript(
                         executable, 
                         this.getCurrentProcess(), 
                         isCurrentObjectTarget() ? getCurrentTarget() : null, 
-                        commentPrefix, 
-                        commandPrefix);
+                                commentPrefix, 
+                                commandPrefix);
             } else {
                 Iterator iter = this.workspace.getProcessIterator();
                 while (iter.hasNext()) {
@@ -582,26 +667,30 @@ implements ActionConstants, Window.IExceptionHandler {
                 }
             }
 
-            try {
-                Logger.defaultLogger().info("Creating shell script : " + path);
-                this.fileTool.createFile(new File(path), content);
-
-                if (! OSTool.isSystemWindows()) {
-                    String[] chmod = new String[] {"chmod", "750", path};
-                    Process p = Runtime.getRuntime().exec(chmod);
-                    int retValue = p.waitFor();
-                    Logger.defaultLogger().info("Executed chmod command - got the following return code : " + retValue);
-                    if (retValue != 0) {
-                        String errorMsg = fileTool.getInputStreamContent(p.getErrorStream(), false);
-                        Logger.defaultLogger().warn("Got the following error message : " + errorMsg);
-                    }
-                }
-            } catch (Exception e) {
-                handleException("Error during shortcut creation", e);
-            }
+            buildExecutableFile(new File(path), content);
         }
     }
-    
+
+    private void buildExecutableFile(File path, String content) {
+        try {
+            this.fileTool.createFile(path, content);
+            String strTgFile = FileSystemManager.getAbsolutePath(path);
+            Logger.defaultLogger().info("Creating shell script : " + strTgFile);
+            if (! OSTool.isSystemWindows()) {
+                String[] chmod = new String[] {"chmod", "750", strTgFile};
+                Process p = Runtime.getRuntime().exec(chmod);
+                int retValue = p.waitFor();
+                Logger.defaultLogger().info("Executed chmod command - got the following return code : " + retValue);
+                if (retValue != 0) {
+                    String errorMsg = fileTool.getInputStreamContent(p.getErrorStream(), false);
+                    Logger.defaultLogger().warn("Got the following error message : " + errorMsg);
+                }
+            }
+        } catch (Throwable e) {
+            handleException("Error during command file creation", e);
+        }
+    }
+
     public void importGroup(File f) {
         try {
             if (
@@ -610,22 +699,22 @@ implements ActionConstants, Window.IExceptionHandler {
                     && FileSystemManager.isFile(f) 
                     && FileSystemManager.getName(f).toLowerCase().endsWith(".xml")              
             ) {
-                FileTool.getInstance().copy(f, new File(workspace.getPath()));
+                FileTool.getInstance().copy(f, new File(workspace.getPath()), null);
                 this.openWorkspace(this.workspace.getPath());
             }
         } catch (Throwable e) {
             handleException(RM.getLabel("error.importgrp.message"), e);
         }
     }
-    
+
     private String generateShortcutScript(
             File executable,
             RecoveryProcess process, 
             AbstractRecoveryTarget target,
             String commentPrefix,
             String commandPrefix        
-        ) {
-        
+    ) {
+
         String comments = commentPrefix + "Target Group : \"" + process.getName() + "\"\n";
         String configPath = FileSystemManager.getAbsolutePath(process.getSourceFile());
         String command = "backup -config \"" + configPath + "\"";
@@ -633,9 +722,9 @@ implements ActionConstants, Window.IExceptionHandler {
             command += " -target " + target.getId();
             comments += commentPrefix + "Target : \"" + target.getTargetName() + "\"\n";
         }
-        
+
         command = commandPrefix + "\"" + FileSystemManager.getAbsolutePath(executable) + "\" " + command;
-        
+
         return comments + command + "\n\n";
     }
 
@@ -751,7 +840,7 @@ implements ActionConstants, Window.IExceptionHandler {
             this.disableWaitCursor();
         }
     }
-    
+
     public void showLogicalView(RecoveryEntry entry) {
         this.mainWindow.focusOnLogicalView(entry);
     }
@@ -793,7 +882,7 @@ implements ActionConstants, Window.IExceptionHandler {
             this.launchBackupOnTarget(tg, null);
         }
     }
-    
+
     public void launchBackupOnWorkspace() {
         Iterator iter = this.workspace.getProcessIterator();
         while (iter.hasNext()) {
@@ -801,7 +890,7 @@ implements ActionConstants, Window.IExceptionHandler {
             this.launchBackupOnProcess(process);
         }
     }
-    
+
     public void launchBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest) {
         RecoveryProcess process = target.getProcess();
         ProcessRunner rn = new ProcessRunner(target) {
@@ -850,7 +939,7 @@ implements ActionConstants, Window.IExceptionHandler {
                 isCompact);
         showDialog(frm);
     }
-    
+
     public void showVendorDialog() {
         JavaVendorWindow frm = new JavaVendorWindow();
         showDialog(frm);
@@ -963,7 +1052,7 @@ implements ActionConstants, Window.IExceptionHandler {
     public String[] getCurrentFilter() {
         return currentFilter;
     }
-    
+
     public void setCurrentFilter(String[] argCurrentFilter) {
         boolean containsRoot = false;
         if (argCurrentFilter != null) {
@@ -980,17 +1069,28 @@ implements ActionConstants, Window.IExceptionHandler {
             this.currentFilter = null;
         }
     }
-    
+
     public GregorianCalendar getCurrentFromDate() {
         return currentFromDate;
     }
 
+    public EntryArchiveData getCurrentEntryData() {
+        return currentEntryData;
+    }
+
+    public void setCurrentEntryData(EntryArchiveData currentEntryData) {
+        this.currentEntryData = currentEntryData;
+        AppActionReferenceHolder.refresh();
+    }
+
     public GregorianCalendar getCurrentHistoryDate() {
-        return currentHistoryDate;
+        if (currentEntryData == null || currentEntryData.getManifest() == null) {
+            return null;
+        } else {
+            return currentEntryData.getManifest().getDate();
+        }
     }
-    public void setCurrentHistoryDate(GregorianCalendar currentHistoryDate) {
-        this.currentHistoryDate = currentHistoryDate;
-    }
+
     public Identifiable getCurrentObject() {
         return currentObject;
     }
@@ -1015,11 +1115,11 @@ implements ActionConstants, Window.IExceptionHandler {
     }
     public void setWorkspace(Workspace workspace, boolean refreshInterface) {
         this.workspace = workspace;
-        
+
         this.currentEntry = null;
         this.currentFilter = null;
         this.currentFromDate = null;
-        this.currentHistoryDate = null;
+        this.currentEntryData = null;
         this.currentObject = null;
         this.currentToDate = null;
 
@@ -1131,7 +1231,7 @@ implements ActionConstants, Window.IExceptionHandler {
             return false;
         }
     }
-    
+
     public String showDirectoryDialog(String dir, AbstractWindow parent) {
         DirectoryDialog fileChooser = new DirectoryDialog(parent.getShell(), SWT.OPEN);
         if (dir != null) {
@@ -1139,10 +1239,10 @@ implements ActionConstants, Window.IExceptionHandler {
         }
         fileChooser.setText(RM.getLabel("common.choosedirectory.title"));
         fileChooser.setMessage(RM.getLabel("common.choosedirectory.message"));
-        
+
         return fileChooser.open();
     }
-    
+
     public String showFileDialog(String dir, AbstractWindow parent, String fileName, String title, int style) {
         FileDialog fileChooser = new FileDialog(parent.getShell(), style);
         if (dir != null) {
@@ -1158,7 +1258,7 @@ implements ActionConstants, Window.IExceptionHandler {
         }
         return fileChooser.open();
     }
-    
+
     public static void setTabLabel(CTabItem item, String label, boolean hasImage) {
         if (hasImage) {
             item.setText(label + "    ");
@@ -1166,19 +1266,19 @@ implements ActionConstants, Window.IExceptionHandler {
             item.setText("   " + label + "   ");
         }
     }
-    
+
     public String showFileDialog(AbstractWindow parent) {
         return showFileDialog(OSTool.getUserDir(), parent);
     }
-    
+
     public String showFileDialog(String dir, AbstractWindow parent) {
         return showFileDialog(dir, parent, null, null, SWT.OPEN);
     }
-    
+
     public void addChannel(UserInformationChannel channel) {
         this.channels.add(channel);
     }
-    
+
     public void removeChannel(UserInformationChannel channel) {
         this.channels.remove(channel);
     }
@@ -1213,7 +1313,7 @@ implements ActionConstants, Window.IExceptionHandler {
         public ProcessRunner(AbstractRecoveryTarget target) {
             this.rTarget = target;
             channel = new InfoChannel(rTarget, mainWindow.getProgressContainer());
-            
+
             GridData infoData = new GridData();
             infoData.grabExcessHorizontalSpace = true;
             infoData.horizontalAlignment = SWT.FILL;
@@ -1228,7 +1328,7 @@ implements ActionConstants, Window.IExceptionHandler {
 
         public void run() {
             addChannel(channel);
-            
+
             try {
                 this.context = new ProcessContext(rTarget, channel, new TaskMonitor("application-main"));
 
@@ -1268,7 +1368,7 @@ implements ActionConstants, Window.IExceptionHandler {
                 removeChannel(channel);
             }
         }
-        
+
         private void registerState(boolean running) {
             rTarget.setRunning(running);
         }

@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -119,7 +119,7 @@ public class ArchiveTrace {
     public static long extractDirectoryModificationDateFromTrace(String trace) {
         int idx1 = trace.indexOf(INTERNAL_SEP);
         if (idx1 < 0) {
-            return -1;
+            return Long.parseLong(trace);
         } else {
             return Long.parseLong(trace.substring(0, idx1));
         }

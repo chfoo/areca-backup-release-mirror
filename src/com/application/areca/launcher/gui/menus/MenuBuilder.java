@@ -11,7 +11,7 @@ import com.application.areca.ResourceManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -63,7 +63,11 @@ extends AppActionReferenceHolder {
         addSeparator(mnEdit);
         add(AC_DUP_TARGET, mnEdit);
         addSeparator(mnEdit);
-        add(AC_BUILD_BATCH, mnEdit);
+        
+        // ASSISTANTS
+        Menu mnAssist = buildSubMenu("menu.assist", mnEdit);
+        add(AC_BUILD_BATCH, mnAssist);
+        add(AC_BUILD_STRATEGY, mnAssist);
         
         // ACTION
         Menu mnRun = buildSubMenu("menu.run", menu);
@@ -129,7 +133,11 @@ extends AppActionReferenceHolder {
         addSeparator(menu);
         add(AC_DUP_TARGET, menu);   
         addSeparator(menu);
-        add(AC_BUILD_BATCH, menu);  
+        
+        // ASSISTANTS
+        Menu mnAssist = buildSubMenu("menu.assist", menu);
+        add(AC_BUILD_BATCH, mnAssist);
+        add(AC_BUILD_STRATEGY, mnAssist);
 
         return menu;
     }

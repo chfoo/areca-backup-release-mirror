@@ -10,6 +10,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
@@ -23,7 +24,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -71,20 +72,43 @@ extends AbstractWindow {
         Group grpLocation = new Group(composite, SWT.NONE);
         grpLocation.setText(RM.getLabel("targetedition.sourcedirfield.label"));
         GridLayout grpLayout = new GridLayout(2, false);
+        grpLayout.verticalSpacing = 2;
         grpLocation.setLayout(grpLayout);
         grpLocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         
         location = new Text(grpLocation, SWT.BORDER);
         GridData mainData2 = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        mainData2.widthHint = AbstractWindow.computeWidth(300);
+        mainData2.widthHint = AbstractWindow.computeWidth(350);
         location.setLayoutData(mainData2);
         monitorControl(location);
         
-        Button btnBrowse = new Button(grpLocation, SWT.PUSH);
-        btnBrowse.setText(RM.getLabel("common.browseaction.label"));
-        btnBrowse.addListener(SWT.Selection, new Listener() {
+        Button btnBrowsed = new Button(grpLocation, SWT.PUSH);
+        btnBrowsed.setText(RM.getLabel("common.browsedirectoryaction.label"));
+        btnBrowsed.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+        btnBrowsed.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
-                String path = Application.getInstance().showDirectoryDialog(location.getText(), SourceEditionWindow.this);
+               String str = location.getText();
+               if (str != null && str.trim().length() != 0) {
+                   File f = new File(str);
+                   if (FileSystemManager.isFile(f)) {
+                       str = FileSystemManager.getAbsolutePath(FileSystemManager.getParentFile(f));
+                   }
+               }
+                String path = Application.getInstance().showDirectoryDialog(str, SourceEditionWindow.this);
+                if (path != null) {
+                    location.setText(path);
+                }
+            }
+        });
+        
+        new Label(grpLocation, SWT.NONE);
+        
+        Button btnBrowsef = new Button(grpLocation, SWT.PUSH);
+        btnBrowsef.setText(RM.getLabel("common.browsefileaction.label"));
+        btnBrowsef.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+        btnBrowsef.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+                String path = Application.getInstance().showFileDialog(location.getText(), SourceEditionWindow.this);
                 if (path != null) {
                     location.setText(path);
                 }

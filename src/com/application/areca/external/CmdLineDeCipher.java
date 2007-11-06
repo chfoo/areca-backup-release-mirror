@@ -21,7 +21,7 @@ import com.myJava.file.driver.FileSystemDriver;
  * <BR>
  * @author Ludovic QUESNELLE
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -127,10 +127,10 @@ extends AbstractArecaLauncher {
 	protected void process() throws IOException{
 		if(justShow) {
 			display();
-		}else {
+		} else {
 			FileTool fileMgr=FileTool.getInstance();
 			String fileToProcess=(source!=null) ? source  : mountPoint;
-			fileMgr.copy(new File(fileToProcess),new File(targetDir));
+			fileMgr.copy(new File(fileToProcess), new File(targetDir));
 		}
 	}
 	

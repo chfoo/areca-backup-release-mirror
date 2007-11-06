@@ -47,7 +47,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5653799526062900358
+ * <BR>Areca Build ID : 6892146605129115786
  */
  
  /*
@@ -73,7 +73,8 @@ public abstract class AbstractFileSystemMedium
 extends AbstractMedium 
 implements TargetActions, IndicatorTypes {
 
-    private static final boolean REPOSITORY_ACCESS_DEBUG = ((ArecaTechnicalConfiguration)ArecaTechnicalConfiguration.getInstance()).isRepositoryAccessDebugMode();
+    public static final boolean CHECK_DIRECTORY_CONSISTENCY = ArecaTechnicalConfiguration.get().isCheckRepositoryConsistency();
+    private static final boolean REPOSITORY_ACCESS_DEBUG = ArecaTechnicalConfiguration.get().isRepositoryAccessDebugMode();
     private static final String REPOSITORY_ACCESS_DEBUG_ID = "Areca repository access";
     
 	protected static final String TMP_ARCHIVE_SUFFIX = ".not_commited";
@@ -243,7 +244,7 @@ implements TargetActions, IndicatorTypes {
             Iterator iter = ((FileSystemRecoveryTarget)this.getTarget()).sources.iterator();
             while (iter.hasNext()) {
                 File src = (File)iter.next();
-                if (AbstractFileSystemMedium.tool.isParentOf(src, backupDir)) {
+                if (CHECK_DIRECTORY_CONSISTENCY && AbstractFileSystemMedium.tool.isParentOf(src, backupDir)) {
                     result.addError(new ActionError(Errors.ERR_C_INCLUSION, Errors.ERR_M_INCLUSION));               
                 }
             }
