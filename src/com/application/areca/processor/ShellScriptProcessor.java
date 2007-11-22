@@ -1,5 +1,8 @@
 package com.application.areca.processor;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -10,6 +13,7 @@ import com.application.areca.impl.TagHelper;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.PublicClonable;
+import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 
 /**
@@ -17,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -72,24 +76,60 @@ public class ShellScriptProcessor extends AbstractProcessor {
                 args.add(TagHelper.replaceParamValues(stt.nextToken(), context));
             }
         }
+
+        String[] elements = new String[args.size() + (OSTool.isSystemWindows() ? 3 : 1)];
         
-        String[] elements = new String[args.size() + 1];
-        elements[0] = this.command;
+        int offset = 0;
+        if (OSTool.isSystemWindows()) {
+            elements[0] = "cmd";
+            elements[1] = "/c";
+            offset = 2;
+        }
+        elements[offset] = this.command;
         for (int i=0; i<args.size(); i++) {
-            elements[i+1] = (String)args.get(i);
+            elements[i+1+offset] = (String)args.get(i);
         }
         
         return elements;
     }
     
     public void runImpl(ProcessContext context) throws ApplicationException {
+        BufferedReader errorReader = null;
+        Process process = null;
         try {
             String[] fullCommand = getFullCommand(context);
-            Process p = Runtime.getRuntime().exec(fullCommand);
-            Logger.defaultLogger().info("Shell command [" + this.command + "] executed with the following parameters :" + paramsToString(fullCommand) + ". Exit value = [" + p.waitFor() + "]"); // Wait until the process finishes
+            process = Runtime.getRuntime().exec(fullCommand);
+            int retValue = process.waitFor(); // Wait until the process finishes
+            String err = "";
+            if (retValue != 0) {
+                errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                err = " : [" + errorReader.readLine() + "]";
+            }
+            Logger.defaultLogger().info("Shell command [" + paramsToString(fullCommand) + "] executed - Exit value = [" + retValue + "]" + err); 
         } catch (Throwable e) {
-            String msg = "Error during shell commmand execution (" + command + ") : " + e.getMessage();
-            throw new ApplicationException(msg, e);
+            if (e instanceof ApplicationException) {
+                throw (ApplicationException)e;
+            } else {
+                String msg = "Error during shell commmand execution (" + command + ") : " + e.getMessage();
+                throw new ApplicationException(msg, e);
+            }
+        } finally {
+            try {
+                // ERROR
+                if (errorReader != null) {
+                    errorReader.close();
+                } else if (process != null) {
+                    process.getErrorStream().close();
+                }
+                
+                // OUT
+                if (process != null) {
+                    process.getInputStream().close();
+                    process.getOutputStream().close();
+                }
+            } catch (IOException e) {
+                Logger.defaultLogger().error("Error closing stream.", e);
+            }
         }
     }
     
@@ -107,7 +147,7 @@ public class ShellScriptProcessor extends AbstractProcessor {
 
     private String paramsToString(String[] params) {
         String s = "";
-        for (int i=1; i<params.length; i++) {
+        for (int i=0; i<params.length; i++) {
             s += " \"" + params[i] + "\"";
         }
         return s;

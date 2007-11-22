@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -68,6 +68,8 @@ public interface XMLTags {
     public static final String XML_MEDIUM_ARCHIVEPATH = "archive_path";   
     public static final String XML_MEDIUM_OVERWRITE = "overwrite";
     public static final String XML_MEDIUM_POLICY = "policy";
+    public static final String XML_MEDIUM_FILECOMPRESSION = "file_compression";
+    public static final String XML_MEDIUM_Z64 = "zip64";
     public static final String XML_MEDIUM_ENCRYPTED = "encrypted";
     public static final String XML_MEDIUM_ENCRYPTIONKEY = "encryption_key";
     public static final String XML_MEDIUM_ENCRYPTIONALGO = "encryption_algo";
@@ -78,7 +80,7 @@ public interface XMLTags {
     public static final String XML_MEDIUM_ZIP_CHARSET = "zip_charset";      
     public static final String XML_MEDIUM_TYPE = "type";
     public static final String XML_MEDIUM_TYPE_ZIP = "zip";
-    public static final String XML_MEDIUM_TYPE_ZIP64 = "zip64";
+    public static final String XML_MEDIUM_TYPE_ZIP64 = "zip64"; // DEPRECATED
     public static final String XML_MEDIUM_TYPE_TGZ = "tgz";    
     public static final String XML_MEDIUM_TYPE_DIR = "directory";        
     public static final String XML_MEDIUM_FTP_LOGIN = "ftp_login";

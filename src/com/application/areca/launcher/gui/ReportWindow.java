@@ -22,7 +22,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -81,8 +81,8 @@ extends AbstractWindow {
         lblTop.setText(RM.getLabel("report.filtered.label"));
         
         GridData mainData1 = new GridData(SWT.FILL, SWT.FILL, true, true);
-        mainData1.widthHint = computeWidth(900);
-        mainData1.heightHint = computeHeight(600);
+        mainData1.widthHint = computeWidth(700);
+        mainData1.heightHint = computeHeight(300);
         createTopComposite(composite).setLayoutData(mainData1);
         
         GridData mainData2 = new GridData(SWT.FILL, SWT.FILL, true, false);

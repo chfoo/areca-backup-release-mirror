@@ -65,7 +65,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -1263,7 +1263,7 @@ implements ActionConstants, Window.IExceptionHandler {
         if (hasImage) {
             item.setText(label + "    ");
         } else {
-            item.setText("   " + label + "   ");
+            item.setText("  " + label + "  ");
         }
     }
 

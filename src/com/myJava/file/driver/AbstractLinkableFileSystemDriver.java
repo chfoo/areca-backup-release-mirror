@@ -1,5 +1,6 @@
 package com.myJava.file.driver;
 
+import java.io.File;
 import java.io.IOException;
 
 import com.myJava.object.ToStringHelper;
@@ -12,7 +13,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -66,12 +67,44 @@ implements LinkableFileSystemDriver {
     
     public String toString() {
         StringBuffer sb = ToStringHelper.init(this);
-        ToStringHelper.append("PREDECESSOR", this.predecessor, sb);
+        ToStringHelper.append("Predecessor", this.predecessor, sb);
         return ToStringHelper.close(sb);
     }
     
     public short getAccessEfficiency() {
         return predecessor.getAccessEfficiency();
+    }
+    
+    public File getAbsoluteFile(File file) {
+        return this.predecessor.getAbsoluteFile(file);
+    }
+    
+    public String getAbsolutePath(File file) {
+        return this.predecessor.getAbsolutePath(file);
+    }
+    
+    public File getCanonicalFile(File file) throws IOException {
+        return this.predecessor.getCanonicalFile(file);
+    }
+    
+    public String getCanonicalPath(File file) throws IOException {
+        return this.predecessor.getCanonicalPath(file);
+    }
+    
+    public String getName(File file) {
+        return this.predecessor.getName(file);
+    }
+    
+    public String getParent(File file) {
+        return this.predecessor.getParent(file);
+    }
+    
+    public File getParentFile(File file) {
+        return this.predecessor.getParentFile(file);
+    }
+    
+    public String getPath(File file) {
+        return this.predecessor.getPath(file);
     }
 }
 

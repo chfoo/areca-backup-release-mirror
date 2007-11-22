@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.attributes.Attributes;
@@ -16,7 +14,7 @@ import com.myJava.file.attributes.Attributes;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -40,14 +38,6 @@ This file is part of Areca.
  */
 public abstract class AbstractFileSystemDriver 
 implements FileSystemDriver {
-
-    public boolean canRead(File file) {
-        throw new UnsupportedOperationException("This method is not supported by this implementation");
-    }
-    
-    public boolean canWrite(File file) {
-        throw new UnsupportedOperationException("This method is not supported by this implementation");
-    }
     
     public boolean createNewFile(File file) throws IOException {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
@@ -161,18 +151,6 @@ implements FileSystemDriver {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
     }
     
-    public InputStream getFileInputStream(File file) throws IOException {
-        throw new UnsupportedOperationException("This method is not supported by this implementation");
-    }
-    
-    public OutputStream getFileOutputStream(File file) throws IOException {
-        throw new UnsupportedOperationException("This method is not supported by this implementation");
-    }
-
-    public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
-        throw new UnsupportedOperationException("This method is not supported by this implementation");
-    }
-
     public Attributes getAttributes(File f) throws IOException {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
     }
@@ -184,15 +162,12 @@ implements FileSystemDriver {
     public void deleteOnExit(File f) {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
     }
-    
-    
-    protected String normalize(String path) {
-        return FileNameUtil.normalizePath(path);
-    }
-    
-    protected void normalize(String[] files) {
-        for (int i=0; i<files.length; i++) {
-            files[i] = normalize(files[i]);
+
+    public static String normalizeIfNeeded(String path) {
+        if (File.separatorChar == '\\') {
+            return FileNameUtil.normalizePath(path);
+        } else {
+            return path;
         }
     }
 }

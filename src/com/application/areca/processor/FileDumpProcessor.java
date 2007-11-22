@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -166,7 +166,7 @@ public class FileDumpProcessor extends AbstractProcessor {
 
     public int hashCode() {
         int h = HashHelper.initHash(this);
-        h = HashHelper.hash(h, this.destinationFolder.getAbsolutePath());
+        h = HashHelper.hash(h, FileSystemManager.getAbsolutePath(this.destinationFolder));
         h = HashHelper.hash(h, this.reportName);
         h = HashHelper.hash(h, this.listFiltered);
         h = HashHelper.hash(h, this.onlyIfError);

@@ -34,7 +34,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -405,33 +405,8 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_MEDIUM_TYPE);
         sb.append("=");
-        if (medium.isUseZip64()) {
-            sb.append(encode(XML_MEDIUM_TYPE_ZIP64));
-        } else {
-            sb.append(encode(XML_MEDIUM_TYPE_ZIP));
-        }
+        sb.append(encode(XML_MEDIUM_TYPE_ZIP));
         sb.append(" ");
-        
-        if (medium.isMultiVolumes()) {
-            sb.append(XML_MEDIUM_VOLUME_SIZE);
-            sb.append("=");
-            sb.append(encode("" + medium.getVolumeSize()));
-            sb.append(" ");            
-        }
-        
-        if (medium.getComment() != null) {
-            sb.append(XML_MEDIUM_ZIP_COMMENT);
-            sb.append("=");
-            sb.append(encode(medium.getComment()));
-            sb.append(" ");            
-        }
-        
-        if (medium.getCharset() != null) {
-            sb.append(XML_MEDIUM_ZIP_CHARSET);
-            sb.append("=");
-            sb.append(encode(medium.getCharset().name()));
-            sb.append(" ");            
-        }
         
         this.serializeMediumGeneralData(medium);     
         sb.append("/>");   
@@ -444,6 +419,14 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XML_MEDIUM_TYPE);
         sb.append("=");
         sb.append(encode(XML_MEDIUM_TYPE_DIR));
+        
+        if (medium.getCompressionArguments().isCompressed()) {
+            sb.append(" ");      
+            sb.append(XML_MEDIUM_FILECOMPRESSION);
+            sb.append("=");
+            sb.append(encode("true"));
+        }
+        
         sb.append(" ");
         this.serializeMediumGeneralData(medium);
         sb.append("/>");   
@@ -467,6 +450,36 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XML_MEDIUM_OVERWRITE);
         sb.append("=");
         sb.append(encode("" + medium.isOverwrite())); 
+        
+        if (medium.getCompressionArguments().isCompressed()) {
+            if (medium.getCompressionArguments().isMultiVolumes()) {
+                sb.append(" ");      
+                sb.append(XML_MEDIUM_VOLUME_SIZE);
+                sb.append("=");
+                sb.append(encode("" + medium.getCompressionArguments().getVolumeSize()));
+            }
+            
+            if (medium.getCompressionArguments().getComment() != null) {
+                sb.append(" ");     
+                sb.append(XML_MEDIUM_ZIP_COMMENT);
+                sb.append("=");
+                sb.append(encode(medium.getCompressionArguments().getComment()));
+            }
+            
+            if (medium.getCompressionArguments().getCharset() != null) {
+                sb.append(" ");    
+                sb.append(XML_MEDIUM_ZIP_CHARSET);
+                sb.append("=");
+                sb.append(encode(medium.getCompressionArguments().getCharset().name()));        
+            }
+            
+            if (medium.getCompressionArguments().isUseZip64()) {
+                sb.append(" ");      
+                sb.append(XML_MEDIUM_Z64);
+                sb.append("=");
+                sb.append(encode("true"));
+            }
+        }
     }
     
     protected void serializeEncryptionPolicy(EncryptionPolicy policy) {

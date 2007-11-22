@@ -8,7 +8,9 @@ import java.io.OutputStream;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
 import com.application.areca.ArecaTechnicalConfiguration;
+import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.FileTool;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.driver.cache.CachedFileSystemDriver;
 import com.myJava.file.driver.ftp.FTPFileInfoCache;
@@ -24,7 +26,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -184,7 +186,7 @@ implements FileSystemPolicy {
         }
         
         String subdir = this.remoteDirectory;
-        if ((! subdir.endsWith("/")) && (! subdir.endsWith("\\"))) {
+        if (! FileNameUtil.endsWithSeparator(subdir)) {
             subdir += "/";
         }
         subdir += "areca_cnx_tst";
@@ -278,8 +280,8 @@ implements FileSystemPolicy {
         } else {
             sb.append("ftp://");
         }
-        sb.append(login).append(":").append(password).append("@").append(remoteServer).append(":").append(remotePort);
-        if (! (remoteDirectory.startsWith("/") || remoteDirectory.startsWith("\\"))) {
+        sb.append(login).append("@").append(remoteServer).append(":").append(remotePort);
+        if (! FileNameUtil.startsWithSeparator(remoteDirectory)) {
             sb.append("/");
         }
         sb.append(remoteDirectory);

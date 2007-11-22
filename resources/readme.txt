@@ -1,3 +1,5 @@
+Areca's translation home page : http://areca.wiki.sourceforge.net/Translations
+
 If you want to add a new language : Make a copy of the english translation ("translations/resources_en.properties" file) and name it after the language you want to add ("de" for german, "it" for italian, ...)
 
 VERY IMPORTANT : The content of the translations file MUST be encoded using the ISO-8859-1 encoding. 
@@ -7,3 +9,4 @@ It is strongly advised to use a translation tool in order to ensure translation 
 For instance : 
 - "Zaval Java Resource Editor", available at http://www.zaval.org/products/jrc-editor/download/index.html.
 - "Eclipse ResourceBundle Editor Plugin", available at http://www.resourcebundleeditor.com/wiki/Download
+- "PropEdit", available at http://sourceforge.jp/projects/propedit/ 

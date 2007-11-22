@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -273,8 +273,6 @@ public class ArchiveTrace {
             key = str.substring(0, index);
             hash = str.substring(index + ArchiveTrace.TRACE_SEP.length());
         }
-        
-        key = FileNameUtil.normalizePath(key);
         
         if (str.startsWith(ArchiveTrace.DIRECTORY_MARKER)) {
             // CASE 1 : DIRECTORY

@@ -36,7 +36,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -86,8 +86,8 @@ implements Listener {
         composite.setLayout(layout);
         
         GridData mainData1 = new GridData(SWT.FILL, SWT.FILL, true, true);
-        mainData1.widthHint = computeWidth(900);
-        mainData1.heightHint = computeHeight(600);
+        mainData1.widthHint = computeWidth(700);
+        mainData1.heightHint = computeHeight(300);
         createTopComposite(composite).setLayoutData(mainData1);
         
         GridData mainData2 = new GridData(SWT.FILL, SWT.FILL, true, false);
@@ -105,7 +105,7 @@ implements Listener {
     private Table createTopComposite(Composite parent) {
         table = new Table(parent, SWT.BORDER);   
         TableColumn col1 = new TableColumn(table, SWT.NONE);
-        col1.setWidth(600);
+        col1.setWidth(400);
         col1.setMoveable(true);
         col1.setText(RM.getLabel("simulation.filecolumn.label"));
         TableColumn col2 = new TableColumn(table, SWT.NONE);

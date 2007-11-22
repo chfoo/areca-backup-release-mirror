@@ -9,13 +9,12 @@ import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.multivolumes.VolumeStrategy;
-import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -49,6 +48,7 @@ public class ZipVolumeStrategy implements VolumeStrategy {
     protected FileSystemDriver driver;
     protected boolean cached = false;
 
+
     public ZipVolumeStrategy(File file) {
         this(file, null, false);
     }
@@ -72,7 +72,7 @@ public class ZipVolumeStrategy implements VolumeStrategy {
 
     public OutputStream getNextOutputStream() throws IOException {
         File f = getNextFile();
-        Logger.defaultLogger().info("Opening next zip volume : " + getAbsolutePath(f));
+        //Logger.defaultLogger().info("Opening next zip volume : " + getAbsolutePath(f));
         if (driver == null) {
             return cached ? FileSystemManager.getCachedFileOutputStream(f) : FileSystemManager.getFileOutputStream(f);
         } else {
@@ -86,7 +86,7 @@ public class ZipVolumeStrategy implements VolumeStrategy {
         } else {
             File f =getNextFile();
             if (exists(f)) {
-                Logger.defaultLogger().info("Opening next zip volume : " + getAbsolutePath(f));
+                //Logger.defaultLogger().info("Opening next zip volume : " + getAbsolutePath(f));
                 if (driver == null) {
                     return FileSystemManager.getFileInputStream(f);
                 } else {
@@ -96,7 +96,7 @@ public class ZipVolumeStrategy implements VolumeStrategy {
                 f = getFinalArchive();
                 endReached = true;
                 if (exists(f)) {
-                    Logger.defaultLogger().info("Opening next zip volume : " + getAbsolutePath(f));
+                    //Logger.defaultLogger().info("Opening next zip volume : " + getAbsolutePath(f));
                     if (driver == null) {
                         return FileSystemManager.getFileInputStream(f);
                     } else {
@@ -109,7 +109,7 @@ public class ZipVolumeStrategy implements VolumeStrategy {
         }
     }
     
-    private File getNextFile() {
+    public File getNextFile() {
         currentVolume++;
         return getVolume(currentVolume);
     }
@@ -132,7 +132,7 @@ public class ZipVolumeStrategy implements VolumeStrategy {
         return currentVolume+1;
     }
     
-    private File getFinalArchive() {
+    public File getFinalArchive() {
         return new File(getParentFile(file), getName(file) + LAST_VOLUME_SUFFIX);
     }
     
@@ -143,8 +143,14 @@ public class ZipVolumeStrategy implements VolumeStrategy {
     public void close() throws IOException {
         File lastArchive = getVolume(this.currentVolume);
         File finalArchive = getFinalArchive();
-        if (! renameTo(lastArchive, finalArchive)) {
-            throw new IOException("Unable to finalize zip archive : " + getAbsolutePath(lastArchive));
+        if (exists(lastArchive)) {
+            if (exists(finalArchive)) {
+                delete(finalArchive);
+            }
+            
+            if (! renameTo(lastArchive, finalArchive)) {
+                throw new IOException("Unable to finalize zip archive : " + getAbsolutePath(lastArchive));
+            }
         }
     }
     
@@ -177,6 +183,14 @@ public class ZipVolumeStrategy implements VolumeStrategy {
             return FileSystemManager.renameTo(f1, f2);
         } else {
             return driver.renameTo(f1, f2);            
+        }
+    }
+    
+    private boolean delete(File f) {
+        if (driver == null) {
+            return FileSystemManager.delete(f);
+        } else {
+            return driver.delete(f);            
         }
     }
     

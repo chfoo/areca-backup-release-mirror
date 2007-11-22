@@ -30,7 +30,7 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -77,7 +77,7 @@ extends AbstractWindow {
             tabs.setSimple(Application.SIMPLE_SUBTABS);
             tabs.setLayout(new FillLayout());
             GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true);
-            dt.heightHint = computeHeight(450);
+            dt.heightHint = computeHeight(350);
             dt.widthHint = computeWidth(700);
             tabs.setLayoutData(dt);
 
@@ -112,7 +112,6 @@ extends AbstractWindow {
     private Composite getDataPanel(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(2, false);
-        layout.horizontalSpacing = 30;
         composite.setLayout(layout);
         
         // TITLE
@@ -143,7 +142,7 @@ extends AbstractWindow {
         
         Text txtDescription = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
         GridData ldDescription = new GridData(SWT.FILL, SWT.FILL, true, true);
-        ldDescription.minimumHeight = computeHeight(100);
+        ldDescription.minimumHeight = computeHeight(70);
         txtDescription.setLayoutData(ldDescription);
         txtDescription.setEditable(false);
         

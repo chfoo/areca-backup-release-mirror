@@ -41,7 +41,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -73,15 +73,25 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     private ArrayList alternateProxies = new ArrayList();
     private String remoteRootDirectory;
     private File localRootDirectory;
+    private String strLocalRootDirectory;
 
     // Contains the local files, which will be sent on call to "flush"
     private Map localFiles = new HashMap();
 
     public FTPFileSystemDriver(FTPProxy ftpProxy, File localRoot, String remoteRoot) {
         this.ftpProxy = ftpProxy;
-        this.remoteRootDirectory = FileNameUtil.heavyNormalizePath(remoteRoot, true);
+        this.remoteRootDirectory = FileNameUtil.normalizeSlashes(FileNameUtil.normalizePath(remoteRoot), true);
         this.localRootDirectory = localRoot;
         this.ftpProxy.setFileInfoCache(new FTPFileInfoCache());
+        this.strLocalRootDirectory = FileNameUtil.normalizeSlashes(normalizeIfNeeded(this.localRootDirectory.getAbsolutePath()), true);
+    }
+
+    public boolean canRead(File file) {
+        throw new UnsupportedOperationException("This method is not supported by this implementation");
+    }
+
+    public boolean canWrite(File file) {
+        throw new UnsupportedOperationException("This method is not supported by this implementation");
     }
 
     public boolean supportsLongFileNames() {
@@ -93,7 +103,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public String getAbsolutePath(File file) {
-        return normalize(file.getAbsolutePath());
+        return normalizeIfNeeded(file.getAbsolutePath());
     }
 
     public File getCanonicalFile(File file) throws IOException {
@@ -101,7 +111,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public String getCanonicalPath(File file) throws IOException {
-        return file.getCanonicalPath();
+        return normalizeIfNeeded(file.getCanonicalPath());
     }
 
     public String getName(File file) {
@@ -109,7 +119,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public String getParent(File file) {
-        return file.getParent();
+        return normalizeIfNeeded(file.getParent());
     }
 
     public File getParentFile(File file) {
@@ -117,7 +127,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public String getPath(File file) {
-        return file.getPath();
+        return normalizeIfNeeded(file.getPath());
     }
 
     public boolean isAbsolute(File file) {
@@ -133,7 +143,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
         String[] ret = new String[files.length];
 
         for (int i=0; i<files.length; i++) {
-            ret[i] = normalize(files[i].getAbsolutePath());
+            ret[i] = normalizeIfNeeded(files[i].getAbsolutePath());
         }
 
         return ret;
@@ -144,7 +154,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
         String[] ret = new String[files.length];
 
         for (int i=0; i<files.length; i++) {
-            ret[i] = normalize(files[i].getAbsolutePath());
+            ret[i] = normalizeIfNeeded(files[i].getAbsolutePath());
         }
 
         return ret;
@@ -381,21 +391,21 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
 
     // Returns the normalized local root
     private String getNormalizedLocalRoot() {
-        return FileNameUtil.heavyNormalizePath(this.localRootDirectory.getAbsolutePath(), true);
+        return strLocalRootDirectory;
     }
 
     // Returns the normalized remote root
     private String getNormalizedRemoteRoot() {
-        return FileNameUtil.heavyNormalizePath(remoteRootDirectory, true);
+        return remoteRootDirectory;
     }
 
     // Converts the local file name to a remote file name
     private String translateToRemote(File localFile) {
         int l = this.getNormalizedLocalRoot().length();
+        String path = normalizeIfNeeded(localFile.getAbsolutePath()); 
 
-        if (l < localFile.getAbsolutePath().length()) {
-            String suffix = localFile.getAbsolutePath().substring(l);
-            return FileNameUtil.heavyNormalizePath(this.getNormalizedRemoteRoot() + suffix, false);
+        if (l < path.length()) {
+            return this.getNormalizedRemoteRoot() + path.substring(l);
         } else {
             return this.getNormalizedRemoteRoot();
         }
@@ -407,7 +417,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
 
         if (l < remoteFile.length()) {
             String suffix = remoteFile.substring(l);
-            return FileNameUtil.heavyNormalizePath(this.getNormalizedLocalRoot() + suffix, false);
+            return this.getNormalizedLocalRoot() + suffix;
         } else {
             return this.getNormalizedLocalRoot();
         }
@@ -418,7 +428,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
         if (file instanceof FictiveFile) {
             return (FictiveFile)file;
         } else {
-            return new FictiveFile(normalize(file.getAbsolutePath()), this.translateToRemote(file), this);
+            return new FictiveFile(normalizeIfNeeded(file.getAbsolutePath()), this.translateToRemote(file), this);
         }
     } 
 

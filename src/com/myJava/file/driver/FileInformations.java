@@ -6,7 +6,7 @@ import java.io.File;
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -165,5 +165,10 @@ public class FileInformations {
 
     public boolean isWritableSet() {
         return writableSet;
+    }
+    
+    public void enforceLength(long length) {
+        lengthSet = true;
+        this.length = length;
     }
 }

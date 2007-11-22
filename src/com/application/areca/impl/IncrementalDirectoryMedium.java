@@ -7,6 +7,8 @@ import com.application.areca.ApplicationException;
 import com.application.areca.cache.ArchiveTraceCache;
 import com.application.areca.context.ProcessContext;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.driver.CompressedFileSystemDriver;
+import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.object.PublicClonable;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
@@ -16,7 +18,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -45,7 +47,17 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
         copyAttributes(other);
         return other;
     }
-    
+
+    protected FileSystemDriver buildStorageDriver(File storageDir) throws ApplicationException {
+        FileSystemDriver driver = super.buildStorageDriver(storageDir);
+        
+        if (this.compressionArguments.isCompressed()) {
+            driver = new CompressedFileSystemDriver(storageDir, driver, compressionArguments);
+        }
+        
+        return driver;
+    }
+
     /**
      * Retourne la description du support
      */
@@ -166,10 +178,6 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
         if (FileSystemManager.exists(sourceFile)) {
             AbstractFileSystemMedium.tool.copy(sourceFile, (File)destination, context.getTaskMonitor());
         }
-    }
-    
-    public boolean isCompressed() {
-        return false;
     }
     
     protected void registerGenericEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException {

@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
@@ -23,7 +22,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -48,15 +47,6 @@ This file is part of Areca.
 public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 
     private static String MV_ARCHIVE_NAME = "archive";
-    private boolean multiVolumes = false;
-    private String comment;
-    private Charset charset;
-    
-    /**
-     * Volume Size (MB)
-     */
-    private long volumeSize = -1;
-    private boolean useZip64 = false;
     
     public String getDescription() {
         String type = "incremental";
@@ -102,45 +92,25 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
         }
     }
 
-    public String getComment() {
-        return comment;
-    }
-
-    public Charset getCharset() {
-        return charset;
-    }
-
-    public void setCharset(Charset charset) {
-        this.charset = charset;
-    }
-
-    public void setComment(String comment) {
-        if (comment != null && comment.trim().length() == 0) {
-            this.comment = null;
-        } else {
-            this.comment = comment;
-        }
-    }
-
     /**
      * Builds an ArchiveAdapter for the file passed as argument. 
      */
     protected ArchiveAdapter buildArchiveAdapter(File f, boolean write) throws IOException {      
         ArchiveAdapter adapter = null;
         if (write) {
-            if (multiVolumes) {
-                adapter = new ZipArchiveAdapter(buildVolumeStrategy(f, write), volumeSize * 1024 * 1024, useZip64);   
+            if (compressionArguments.isMultiVolumes()) {
+                adapter = new ZipArchiveAdapter(buildVolumeStrategy(f, write), compressionArguments.getVolumeSize() * 1024 * 1024, compressionArguments.isUseZip64());   
             } else {
                 AbstractFileSystemMedium.tool.createDir(FileSystemManager.getParentFile(f));
-                adapter =  new ZipArchiveAdapter(FileSystemManager.getFileOutputStream(f), useZip64);   
+                adapter =  new ZipArchiveAdapter(FileSystemManager.getFileOutputStream(f), compressionArguments.isUseZip64());   
             }
-            if (comment != null) {
-                adapter.setArchiveComment(comment);
+            if (compressionArguments.getComment()!= null) {
+                adapter.setArchiveComment(compressionArguments.getComment());
             }
             
             return adapter;
         } else {
-            if (multiVolumes) {
+            if (compressionArguments.isMultiVolumes()) {
                 adapter = new ZipArchiveAdapter(buildVolumeStrategy(f, write), 1);   
             } else {
                 long length = 0;
@@ -151,8 +121,8 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
             }        
         }
         
-        if (charset != null) {
-            adapter.setCharset(charset);
+        if (compressionArguments.getCharset() != null) {
+            adapter.setCharset(compressionArguments.getCharset());
         }
         return adapter;
     }
@@ -169,43 +139,11 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
         copyAttributes(other);
         return other;
     }
-    
-    protected void copyAttributes(Object clone) {
-        super.copyAttributes(clone);
-        
-        IncrementalZipMedium other = (IncrementalZipMedium)clone;
-        other.multiVolumes = this.multiVolumes;
-        other.volumeSize = this.volumeSize;
-        other.useZip64 = this.useZip64;
-    }
 
     protected String getArchiveExtension() {
-        return multiVolumes ? "" : ".zip";
+        return compressionArguments.isMultiVolumes() ? "" : ".zip";
     }
 
-    public boolean isMultiVolumes() {
-        return multiVolumes;
-    }
-
-    public void setMultiVolumes(boolean multiVolumes) {
-        this.multiVolumes = multiVolumes;
-    }
-
-    public long getVolumeSize() {
-        return volumeSize;
-    }
-
-    public void setVolumeSize(long volumeSize) {
-        this.volumeSize = volumeSize;
-    }
-
-    public boolean isUseZip64() {
-        return useZip64;
-    }
-
-    public void setUseZip64(boolean useZip64) {
-        this.useZip64 = useZip64;
-    }
 
     protected void archiveRawRecover(
             File[] elementaryArchives, 
@@ -264,11 +202,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
             tool.copy(zin, fout, true, true);
         }
     }
-    
-    public boolean isCompressed() {
-        return true;
-    }
-    
+
     /**
      * Registers a generic entry - wether it has been filtered or not.
      */

@@ -6,7 +6,7 @@ import com.myJava.util.Util;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -38,8 +38,7 @@ public class FileNameUtil {
         return Util.replace(p, "\\", "/");
     }
     
-    public static String heavyNormalizePath(String p, boolean addTrailingSeparator) {
-        p = Util.replace(p, "\\", "/");
+    public static String normalizeSlashes(String p, boolean addTrailingSeparator) {
         p = Util.replace(p, "//", "/");
         p = Util.replace(p, "//", "/");
 
@@ -51,10 +50,10 @@ public class FileNameUtil {
     }
     
     public static boolean startsWithSeparator(String str) {
-        return str.startsWith("/") || str.startsWith("\\");
+        return str != null && (str.startsWith("/") || str.startsWith("\\"));
     }
     
     public static boolean endsWithSeparator(String str) {
-        return str.endsWith("/") || str.endsWith("\\");
+        return str != null && (str.endsWith("/") || str.endsWith("\\"));
     }
 }

@@ -5,8 +5,10 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
+import java.util.ArrayList;
 
+import com.myJava.file.CompressionArguments;
+import com.myJava.file.archive.zip64.ZipEntry;
 import com.myJava.file.archive.zip64.ZipInputStream;
 import com.myJava.file.archive.zip64.ZipOutputStream;
 import com.myJava.file.archive.zip64.ZipVolumeStrategy;
@@ -21,7 +23,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -46,187 +48,223 @@ This file is part of Areca.
 public class CompressedFileSystemDriver 
 extends AbstractLinkableFileSystemDriver {
 
-    private long volumeSize = -1;
-    private Charset charset = null;
-    private String comment = null;
-    private boolean useZip64 = false;
-
-    public Charset getCharset() {
-        return charset;
-    }
-
-    public void setCharset(Charset charset) {
-        this.charset = charset;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public boolean isUseZip64() {
-        return useZip64;
-    }
-
-    public void setUseZip64(boolean useZip64) {
-        this.useZip64 = useZip64;
-    }
-
-    public long getVolumeSize() {
-        return volumeSize;
-    }
-
-    public void setVolumeSize(long volumeSize) {
-        this.volumeSize = volumeSize;
-    }
-
+    private CompressionArguments compression = new CompressionArguments();
+    private File root;
+    private static final String SUFFIX = ".zip";
+    
     /**
      * @param directoryRoot
      * @param key
      */
-    public CompressedFileSystemDriver(FileSystemDriver predecessor) {
+    public CompressedFileSystemDriver(
+            File root,
+            FileSystemDriver predecessor, 
+            CompressionArguments compression) {
         super();
+        this.root = root;
+        this.compression = compression;
         this.setPredecessor(predecessor);
     }
     
     public boolean canRead(File file) {
-        return this.predecessor.canRead(file);
+        return this.predecessor.canRead(encode(file));
     }
     
     public boolean canWrite(File file) {
-        return this.predecessor.canWrite(file);
+        return this.predecessor.canWrite(encode(file));
     }
     
     public boolean createNewFile(File file) throws IOException {
-        return this.predecessor.createNewFile(file);
+        return this.predecessor.createNewFile(encode(file));
     }
     
     public boolean delete(File file) {
-        return this.predecessor.delete(file);
+        File[] f = resolveFiles(file);
+        boolean bool = true;
+        for (int i=0; i<f.length; i++) {
+            if (! predecessor.delete(f[i])) {
+                bool = false;
+                break;
+            }
+        }
+        return bool;
     }
     
     public boolean exists(File file) {
-        return this.predecessor.exists(file);
-    }
-    
-    public File getAbsoluteFile(File file) {
-        return this.predecessor.getAbsoluteFile(file);
+        return this.predecessor.exists(encode(file));
     }
 
     public FileInformations getInformations(File file) {
-        return this.predecessor.getInformations(file);
-    }
-
-    public String getAbsolutePath(File file) {
-        return this.predecessor.getAbsolutePath(file);
-    }
-    
-    public File getCanonicalFile(File file) throws IOException {
-        return this.predecessor.getCanonicalFile(file);
-    }
-    
-    public String getCanonicalPath(File file) throws IOException {
-        return this.predecessor.getCanonicalPath(file);
-    }
-    
-    public String getName(File file) {
-        return this.predecessor.getName(file);
-    }
-    
-    public String getParent(File file) {
-        return this.predecessor.getParent(file);
-    }
-    
-    public File getParentFile(File file) {
-        return this.predecessor.getParentFile(file);
-    }
-    
-    public String getPath(File file) {
-        return this.predecessor.getPath(file);
-    }
-    
-    public boolean isAbsolute(File file) {
-        return this.predecessor.isAbsolute(file);
+        File[] f = resolveFiles(file);
+        boolean bool = true;
+        FileInformations fi = null;
+        long length = -1;
+        for (int i=0; i<f.length; i++) {
+            fi = predecessor.getInformations(f[i]);
+            if (fi.isLengthSet()) {
+                length += fi.getLength();
+            }
+        }
+        if (fi != null && length != -1) {
+            fi.enforceLength(length);
+        }
+        return fi;
     }
     
     public boolean isDirectory(File file) {
-        return this.predecessor.isDirectory(file);
+        return this.predecessor.isDirectory(encode(file));
     }
     
     public boolean isFile(File file) {
-        return this.predecessor.isFile(file);
-    }
-    
-    public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
-        return this.predecessor.createSymbolicLink(symlink, realPath);
+        return this.predecessor.isFile(encode(file));
     }
 
     public boolean isHidden(File file) {
-        return this.predecessor.isHidden(file);
+        return this.predecessor.isHidden(encode(file));
     }
     
     public long lastModified(File file) {
-        return this.predecessor.lastModified(file);
+        File[] f = resolveFiles(file);
+        long time = 0;
+        for (int i=0; i<f.length; i++) {
+            time = Math.max(time, predecessor.lastModified(f[i]));
+        }
+        return time;
     }
     
     public long length(File file) {
-        return this.predecessor.length(file);
+        File[] f = resolveFiles(file);
+        long length = 0;
+        for (int i=0; i<f.length; i++) {
+            length += predecessor.length(f[i]);
+        }
+        return length;
     }
     
     public String[] list(File file, FilenameFilter filter) {
-        return predecessor.list(file, filter);
+        File[] files = this.listFiles(file, filter);
+        if (files != null) {
+            String[] ret = new String[files.length];
+            for (int i=0; i<files.length; i++) {
+                ret[i] = predecessor.getAbsolutePath(files[i]);
+            }
+            
+            return ret;
+        } else {
+            return null;
+        }
     }
     
     public String[] list(File file) {
-        return predecessor.list(file);
+        File[] files = this.listFiles(file);
+        if (files != null) {
+            String[] ret = new String[files.length];
+            for (int i=0; i<files.length; i++) {
+                ret[i] = predecessor.getAbsolutePath(files[i]);
+            }
+            
+            return ret;
+        } else {
+            return null;
+        }
+    }
+    
+    private File[] processFiles(File[] files) {
+        if (files != null) {
+            ArrayList list = new ArrayList();
+            for (int i=0; i<files.length; i++) {
+                if (files[i].getName().endsWith(SUFFIX)) {
+                    list.add(this.decode(files[i]));
+                }
+            }
+            return (File[])list.toArray(new File[list.size()]);
+        } else {
+            return null;
+        }
     }
     
     public File[] listFiles(File file, FileFilter filter) {
-        return predecessor.listFiles(file, filter);
+        File[] files = this.predecessor.listFiles(this.encode(file), new FileFilterAdapter(filter, this));        
+        return processFiles(files);
     }
     
     public File[] listFiles(File file, FilenameFilter filter) {
-        return predecessor.listFiles(file, filter);
+        File[] files = this.predecessor.listFiles(this.encode(file), new FilenameFilterAdapter(filter, this));
+        return processFiles(files);
     }
     
     public File[] listFiles(File file) {
-        return predecessor.listFiles(file);
+        File[] files = this.predecessor.listFiles(this.encode(file));
+        return processFiles(files);
     }
     
     public boolean mkdir(File file) {
-        return this.predecessor.mkdir(file);
+        return this.predecessor.mkdir(encode(file));
     }
     
     public boolean mkdirs(File file) {
-        return this.predecessor.mkdirs(file);
+        return this.predecessor.mkdirs(encode(file));
     }
     
     public boolean renameTo(File source, File dest) {
-        return this.predecessor.renameTo(source, dest);
+        File[] f = resolveFiles(source);
+        boolean bool = true;
+        
+        File target = new File(encode(predecessor.getParentFile(dest)), predecessor.getName(dest));
+        ZipVolumeStrategy vol = new ZipVolumeStrategy(target);
+        for (int i=0; i<f.length; i++) {
+            File encodedDest;
+            if (i == f.length - 1) {
+                encodedDest = vol.getFinalArchive();
+            } else {
+                encodedDest = vol.getNextFile();
+            }
+            
+            if (! predecessor.renameTo(f[i], encodedDest)) {
+                bool = false;
+                break;
+            }
+        }
+        return bool;
     }
     
     public boolean setLastModified(File file, long time) {
-        return this.predecessor.setLastModified(file, time);
+        File[] f = resolveFiles(file);
+        boolean bool = true;
+        for (int i=0; i<f.length; i++) {
+            if (! predecessor.setLastModified(f[i], time)) {
+                bool = false;
+                break;
+            }
+        }
+        return bool;
     }
     
     public boolean setReadOnly(File file) {
-        return this.predecessor.setReadOnly(file);
+        File[] f = resolveFiles(file);
+        boolean bool = true;
+        for (int i=0; i<f.length; i++) {
+            if (! predecessor.setReadOnly(f[i])) {
+                bool = false;
+                break;
+            }
+        }
+        return bool;
     }
     
     public InputStream getFileInputStream(File file) throws IOException {
         ZipInputStream zin;
-        if (volumeSize != -1) {
-            ZipVolumeStrategy strategy = new ZipVolumeStrategy(file, predecessor, false);
+        if (compression.isMultiVolumes()) {
+            File target = new File(encode(predecessor.getParentFile(file)), predecessor.getName(file));
+            ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, false);
             zin = new ZipInputStream(new VolumeInputStream(strategy));
         } else {
-            zin = new ZipInputStream(predecessor.getFileInputStream(file));
+            zin = new ZipInputStream(predecessor.getFileInputStream(encode(file)));
         }
-        if (charset != null) {
-            zin.setCharset(charset);
+        if (compression.getCharset() != null) {
+            zin.setCharset(compression.getCharset());
         }
+        zin.getNextEntry();
         return zin;
     }
     
@@ -240,18 +278,20 @@ extends AbstractLinkableFileSystemDriver {
     
     private OutputStream getOutputStream(File file, boolean cached) throws IOException {
         ZipOutputStream zout;
-        if (volumeSize != -1) {
-            ZipVolumeStrategy strategy = new ZipVolumeStrategy(file, predecessor, cached);
-            zout = new ZipOutputStream(strategy, volumeSize, useZip64);
+        if (compression.isMultiVolumes()) {
+            File target = new File(encode(predecessor.getParentFile(file)), predecessor.getName(file));
+            ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, cached);
+            zout = new ZipOutputStream(strategy, compression.getVolumeSize() * 1024 * 1024, compression.isUseZip64());
         } else {
-            zout = new ZipOutputStream(predecessor.getFileOutputStream(file), useZip64);
+            zout = new ZipOutputStream(predecessor.getFileOutputStream(encode(file)), compression.isUseZip64());
         }
-        if (charset != null) {
-            zout.setCharset(charset);
+        if (compression.getCharset() != null) {
+            zout.setCharset(compression.getCharset());
         }
-        if (comment != null) {
-            zout.setComment(comment);
+        if (compression.getComment() != null) {
+            zout.setComment(compression.getComment());
         }
+        zout.putNextEntry(new ZipEntry(file.getName()));
         return zout;
     }    
     
@@ -262,16 +302,22 @@ extends AbstractLinkableFileSystemDriver {
         return getFileOutputStream(file);
     }   
 
-    public void deleteOnExit(File f) {
-        predecessor.deleteOnExit(f);
+    public void deleteOnExit(File file) {
+        File[] f = resolveFiles(file);
+        for (int i=0; i<f.length; i++) {
+            predecessor.deleteOnExit(f[i]);
+        }
     }
     
-    public Attributes getAttributes(File f) throws IOException {
-        return this.predecessor.getAttributes(f);
+    public Attributes getAttributes(File file) throws IOException {
+        return this.predecessor.getAttributes(encode(file));
     }
 
-    public void applyAttributes(Attributes p, File f) throws IOException {
-        this.predecessor.applyAttributes(p, f);
+    public void applyAttributes(Attributes p, File file) throws IOException {
+        File[] f = resolveFiles(file);
+        for (int i=0; i<f.length; i++) {
+            predecessor.applyAttributes(p, f[i]);
+        }
     }
     
     public int hashCode() {
@@ -307,5 +353,148 @@ extends AbstractLinkableFileSystemDriver {
     
     public boolean isContentSensitive() {
         return true;
+    }
+    
+    protected File encode(File file) {
+        File orig = file.getAbsoluteFile();
+        if (orig.equals(this.root)) {
+            return orig;
+        } else {
+            return new File(this.encode(orig.getParentFile()), this.encode(orig.getName()));
+        }
+    }
+    
+    protected File[] resolveFiles(File file) {
+        File orig = file.getAbsoluteFile();
+        if (orig.equals(this.root)) {
+            return new File[] {orig};
+        } else {
+            if (compression.isMultiVolumes()) {
+                File target = new File(encode(predecessor.getParentFile(orig)), predecessor.getName(orig));
+                ZipVolumeStrategy vol = new ZipVolumeStrategy(target);
+                ArrayList list = new ArrayList(1);
+                while (true) {
+                    File f = vol.getNextFile();
+                    if (predecessor.exists(f)) {
+                        list.add(f);
+                    } else {
+                        break;
+                    }
+                }
+                list.add(vol.getFinalArchive());
+                return (File[])list.toArray(new File[list.size()]);
+            } else {
+                return new File[] {new File(this.encode(orig.getParentFile()), this.encode(orig.getName()))};
+            }
+        }
+    }
+    
+    protected File decode(File file) {
+        File orig = file.getAbsoluteFile();
+        if (orig.equals(this.root)) {
+            return orig;
+        } else {
+            return new File(this.decode(orig.getParentFile()), this.decode(orig.getName()));
+        }
+    }
+    
+    private String encode(String name) {
+        return name + SUFFIX;
+    }
+    
+    private String decode(String name) {
+        if (! name.endsWith(SUFFIX)) {
+            throw new IllegalArgumentException("Illegal file name : " + name + ". It is expected to end with '" + SUFFIX + "'");
+        }
+        return name.substring(0, name.length() - SUFFIX.length());
+    }
+    
+    protected static class FilenameFilterAdapter implements FilenameFilter {
+        protected FilenameFilter filter;
+        protected CompressedFileSystemDriver driver;
+        
+        public FilenameFilterAdapter(
+                FilenameFilter wrappedFilter,
+                CompressedFileSystemDriver driver) {
+            this.filter = wrappedFilter;
+            this.driver = driver;
+        }
+
+        public boolean accept(File dir, String name) {
+            File targetDirectory = driver.decode(dir);
+            String targetName = driver.decode(name);
+            return filter.accept(targetDirectory, targetName);
+        }
+        
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            } else if (! (obj instanceof FilenameFilterAdapter)) {
+                return false;
+            } else {
+                FilenameFilterAdapter other = (FilenameFilterAdapter)obj;
+                return 
+                    EqualsHelper.equals(this.filter, other.filter)
+                    && EqualsHelper.equals(this.driver, other.driver);
+            }
+        }
+
+        public int hashCode() {
+            int h = HashHelper.initHash(this);
+            h = HashHelper.hash(h, filter);
+            h = HashHelper.hash(h, driver);
+            return h;
+        }
+
+        public String toString() {
+            StringBuffer sb = ToStringHelper.init(this);
+            ToStringHelper.append("Filter", this.filter, sb);
+            ToStringHelper.append("Driver", this.driver, sb);
+            return ToStringHelper.close(sb);
+        }
+    }
+    
+    protected static class FileFilterAdapter implements FileFilter {
+        protected FileFilter filter;
+        protected CompressedFileSystemDriver driver;
+        
+        public FileFilterAdapter(
+                FileFilter wrappedFilter,
+                CompressedFileSystemDriver driver) {
+            this.filter = wrappedFilter;
+            this.driver = driver;
+        }
+
+        public boolean accept(File filename) {
+            File target = driver.decode(filename);
+            return filter.accept(target);
+        }
+        
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            } else if (! (obj instanceof FileFilterAdapter)) {
+                return false;
+            } else {
+                FileFilterAdapter other = (FileFilterAdapter)obj;
+                return 
+                    EqualsHelper.equals(this.filter, other.filter)
+                    && EqualsHelper.equals(this.driver, other.driver);
+            }
+        }
+
+        public int hashCode() {
+            int h = HashHelper.initHash(this);
+            h = HashHelper.hash(h, filter);
+            h = HashHelper.hash(h, driver);
+            return h;
+        }
+
+        public String toString() {
+            StringBuffer sb = ToStringHelper.init(this);
+            ToStringHelper.append("Filter", this.filter, sb);
+            ToStringHelper.append("Driver", this.driver, sb);
+            return ToStringHelper.close(sb);
+        }
     }
 }

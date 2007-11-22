@@ -37,13 +37,14 @@ import com.application.areca.processor.MailSendProcessor;
 import com.application.areca.processor.MergeProcessor;
 import com.application.areca.processor.Processor;
 import com.application.areca.processor.ShellScriptProcessor;
+import com.myJava.file.CompressionArguments;
 
 /**
  * Adaptateur pour la sérialisation / désérialisation XML.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -368,36 +369,54 @@ public class TargetXMLReader implements XMLTags {
         Node trackPermsNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_TRACK_PERMS);
         boolean trackPerms = (trackPermsNode != null && trackPermsNode.getNodeValue().equalsIgnoreCase("true"));   
 
-        AbstractIncrementalFileSystemMedium medium;
+        EncryptionPolicy encrArgs = readEncryptionPolicy(mediumNode, target);
+        FileSystemPolicy storage = readFileSystemPolicy(mediumNode);
         
+        CompressionArguments compression = new CompressionArguments();
+        Node volumeSizeNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_VOLUME_SIZE);
+        if (volumeSizeNode != null) {
+            long volumeSize = Long.parseLong(volumeSizeNode.getNodeValue());
+            compression.setVolumeSize(volumeSize);
+        }
+        
+        Node commentNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ZIP_COMMENT);
+        if (commentNode != null) {
+            compression.setComment(commentNode.getNodeValue());
+        }
+        
+        Node charsetNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ZIP_CHARSET);
+        if (charsetNode != null) {
+            compression.setCharset(Charset.forName(charsetNode.getNodeValue()));
+        }
+        
+        Node z64Node = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_Z64);
+        if (z64Node != null) {
+            compression.setUseZip64(Boolean.valueOf(z64Node.getNodeValue()).booleanValue());
+        }
+        
+        AbstractIncrementalFileSystemMedium medium;
+
         if (typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_ZIP) || typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_ZIP64)) {
-            medium = new IncrementalZipMedium();       
-            ((IncrementalZipMedium)medium).setUseZip64(typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_ZIP64));
+            medium = new IncrementalZipMedium();
+            compression.setCompressed(true);
             
-            Node volumeSizeNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_VOLUME_SIZE);
-            if (volumeSizeNode != null) {
-                long volumeSize = Long.parseLong(volumeSizeNode.getNodeValue());
-                ((IncrementalZipMedium)medium).setVolumeSize(volumeSize);
-                ((IncrementalZipMedium)medium).setMultiVolumes(true);
+            // BACKWARD COMPATIBILITY //
+            if (typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_ZIP64)) {
+                compression.setUseZip64(true);
             }
-            
-            Node commentNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ZIP_COMMENT);
-            if (commentNode != null) {
-                ((IncrementalZipMedium)medium).setComment(commentNode.getNodeValue());
-            }
-            
-            Node charsetNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ZIP_CHARSET);
-            if (charsetNode != null) {
-                ((IncrementalZipMedium)medium).setCharset(Charset.forName(charsetNode.getNodeValue()));
-            }
+            // EOF BACKWARD COMPATIBILITY //
         } else if (typeNode.getNodeValue().equalsIgnoreCase(XML_MEDIUM_TYPE_DIR)) {
-            medium = new IncrementalDirectoryMedium();                
+            medium = new IncrementalDirectoryMedium();   
+            
+            Node fileCompressionNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FILECOMPRESSION);
+            if (fileCompressionNode != null) {
+                compression.setCompressed(Boolean.valueOf(fileCompressionNode.getNodeValue()).booleanValue());
+            }
         }  else {
             throw new AdapterException("Unknown medium : " + typeNode.getNodeValue());
         }
         
-        EncryptionPolicy encrArgs = readEncryptionPolicy(mediumNode, target);
-        FileSystemPolicy storage = readFileSystemPolicy(mediumNode);
+        medium.setCompressionArguments(compression);
         medium.setFileSystemPolicy(storage);
         medium.setEncryptionPolicy(encrArgs);
         medium.setOverwrite(isOverwrite);

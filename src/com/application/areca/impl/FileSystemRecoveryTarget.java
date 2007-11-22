@@ -17,6 +17,7 @@ import com.application.areca.RecoveryEntry;
 import com.application.areca.TargetActions;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.metadata.manifest.Manifest;
+import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.object.DuplicateHelper;
@@ -30,7 +31,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -345,7 +346,7 @@ implements TargetActions {
     private static String normalizeDestination(String destination) {
         if (destination == null) {
             return null;
-        } else if (destination.endsWith("\\") || destination.endsWith("/")) {
+        } else if (FileNameUtil.endsWithSeparator(destination)) {
             return destination.substring(0, destination.length() - 1);  
         } else {
             return destination;

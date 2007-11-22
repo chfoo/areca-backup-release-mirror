@@ -33,7 +33,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -159,47 +159,11 @@ extends AbstractLinkableFileSystemDriver {
     public boolean exists(File file) {
         return this.predecessor.exists(this.encryptFileName(file));
     }
-    
-    public File getAbsoluteFile(File file) {
-        return this.predecessor.getAbsoluteFile(file);
-    }
-    
-    public String getAbsolutePath(File file) {
-        return this.predecessor.getAbsolutePath(file);
-    }
-    
-    public File getCanonicalFile(File file) throws IOException {
-        return this.predecessor.getCanonicalFile(file);
-    }
-    
-    public String getCanonicalPath(File file) throws IOException {
-        return this.predecessor.getCanonicalPath(file);
-    }
-    
-    public String getName(File file) {
-        return this.predecessor.getName(file);
-    }
-    
-    public String getParent(File file) {
-        return this.predecessor.getParent(file);
-    }
-    
-    public File getParentFile(File file) {
-        return this.predecessor.getParentFile(file);
-    }
-    
-    public String getPath(File file) {
-        return this.predecessor.getPath(file);
-    }
 
     public void deleteOnExit(File f) {
         predecessor.deleteOnExit(this.encryptFileName(f));
     }
-    
-    public boolean isAbsolute(File file) {
-        return this.predecessor.isAbsolute(this.encryptFileName(file));
-    }
-    
+
     public boolean isDirectory(File file) {
         return this.predecessor.isDirectory(this.encryptFileName(file));
     }
@@ -225,7 +189,7 @@ extends AbstractLinkableFileSystemDriver {
         if (files != null) {
             String[] ret = new String[files.length];
             for (int i=0; i<files.length; i++) {
-                ret[i] = normalize(files[i].getAbsolutePath());
+                ret[i] = predecessor.getAbsolutePath(files[i]);
             }
             
             return ret;
@@ -239,7 +203,7 @@ extends AbstractLinkableFileSystemDriver {
         if (files != null) {
             String[] ret = new String[files.length];
             for (int i=0; i<files.length; i++) {
-                ret[i] = normalize(files[i].getAbsolutePath());
+                ret[i] = predecessor.getAbsolutePath(files[i]);
             }
             
             return ret;

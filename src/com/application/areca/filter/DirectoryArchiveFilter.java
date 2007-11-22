@@ -16,7 +16,7 @@ import com.myJava.object.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -82,15 +82,15 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
     }    
 
     public String getStringParameters() {
-        return  FileSystemManager.getAbsolutePath(this.directory);
+        return FileSystemManager.getAbsolutePath(this.directory);
     }
     
     private boolean contains(File rootDirectory, File checked) {
         if (checked == null || rootDirectory == null) {
             return false;
         } else {   
-            String strChecked = checked.getAbsolutePath();
-            String strRoot = rootDirectory.getAbsolutePath();
+            String strChecked = FileSystemManager.getAbsolutePath(checked);
+            String strRoot = FileSystemManager.getAbsolutePath(rootDirectory);
             return
                 strChecked.equals(strRoot)
                 || strChecked.startsWith(strRoot + "/")
@@ -112,7 +112,7 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
     
     public int hashCode() {
         int h = HashHelper.initHash(this);
-        h = HashHelper.hash(h, this.directory.getAbsolutePath());
+        h = HashHelper.hash(h, FileSystemManager.getAbsolutePath(this.directory));
         h = HashHelper.hash(h, this.exclude);
         return h;
     }

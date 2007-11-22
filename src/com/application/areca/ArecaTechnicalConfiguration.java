@@ -6,7 +6,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -40,6 +40,7 @@ extends FrameworkConfiguration {
     private static String KEY_XML_BACKUP = "xml.config.backup";
     private static String KEY_BACKUP_DEBUG_MODE = "backup.debug";
     private static String KEY_REPOSITORYACCESS_DEBUG = "repository.access.debug";
+    private static String KEY_FILESTREAMS_DEBUG = "file.streams.debug";
     private static String KEY_REPOSITORYACCESS_HD_CACHE = "repository.access.hd.cache";
     private static String KEY_REPOSITORYACCESS_FTP_CACHE = "repository.access.ftp.cache";
     private static String KEY_REPOSITORYACCESS_HD_CACHE_DEPTH = "repository.access.hd.cache.depth";
@@ -54,8 +55,9 @@ extends FrameworkConfiguration {
     private static boolean DEF_XML_BACKUP = true;
     private static boolean DEF_BACKUP_DEBUG_MODE = false;
     private static boolean DEF_REPOSITORYACCESS_DEBUG = false;
-    private static boolean DEF_REPOSITORYACCESS_HD_CACHE = false; // Not stable yet
-    private static boolean DEF_REPOSITORYACCESS_FTP_CACHE = false; // Not stable yet
+    private static boolean DEF_FILESTREAMS_DEBUG = false;
+    private static boolean DEF_REPOSITORYACCESS_HD_CACHE = false;
+    private static boolean DEF_REPOSITORYACCESS_FTP_CACHE = false;
     private static int DEF_REPOSITORYACCESS_HD_CACHE_DEPTH = 2;
     private static int DEF_REPOSITORYACCESS_FTP_CACHE_DEPTH = 2;
     private static boolean DEF_CHECK_DIRECTORY_CONSISTENCY = true;
@@ -88,6 +90,11 @@ extends FrameworkConfiguration {
     public boolean isRepositoryAccessDebugMode() {
         return getProperty(KEY_REPOSITORYACCESS_DEBUG, DEF_REPOSITORYACCESS_DEBUG);
     }
+    
+    public boolean isFileStreamsDebugMode() {
+        return getProperty(KEY_FILESTREAMS_DEBUG, DEF_FILESTREAMS_DEBUG);
+    }
+    
     
     public boolean isRepositoryHDCache() {
         return getProperty(KEY_REPOSITORYACCESS_HD_CACHE, DEF_REPOSITORYACCESS_HD_CACHE);

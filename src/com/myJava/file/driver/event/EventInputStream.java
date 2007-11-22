@@ -8,7 +8,7 @@ import java.io.InputStream;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -53,7 +53,7 @@ extends InputStream {
     }
     
     public void close() throws IOException {
-        FileSystemDriverEvent event = driver.buildEvent("close", file);
+        FileSystemDriverEvent event = driver.buildEvent("i.close", file);
         driver.throwStartEvent(event);
         in.close();
         driver.throwStopEvent(event);

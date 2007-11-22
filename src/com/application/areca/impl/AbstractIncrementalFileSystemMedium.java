@@ -46,6 +46,7 @@ import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemIterator;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.FileTool;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.system.OSTool;
 import com.myJava.util.Util;
@@ -63,7 +64,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -559,6 +560,13 @@ implements TargetActions {
                 } finally {
                     try {
                         this.closeArchive(context);
+                    } catch (Throwable e) {
+                        Logger.defaultLogger().error("Error closing archive", e);
+                        if (e instanceof ApplicationException) {
+                            throw (ApplicationException)e;
+                        } else {
+                            throw new ApplicationException("Error closing archive", e);
+                        }
                     } finally {    
                         try {
                             // Flush des données
@@ -955,7 +963,7 @@ implements TargetActions {
                 boolean useDummyMode = false;
                 if (filters != null && filters.length != 0) {
                     for (int i=0; i<filters.length; i++) {
-                        if (filters[i].endsWith("/") || filters[i].endsWith("\\")) {
+                        if (FileNameUtil.endsWithSeparator(filters[i])) {
                             useDummyMode = true;
                             break;
                         }

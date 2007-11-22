@@ -14,7 +14,9 @@ import com.application.areca.context.ProcessContext;
 import com.application.areca.launcher.CommandConstants;
 import com.application.areca.launcher.InvalidCommandException;
 import com.application.areca.launcher.UserCommandLine;
+import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.FileTool;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.Util;
 import com.myJava.util.log.ConsoleLogProcessor;
@@ -27,7 +29,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -279,7 +281,7 @@ implements CommandConstants {
         AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         
         String destination = command.getOption(OPTION_DESTINATION);
-        if (destination != null && (destination.endsWith("/") || destination.endsWith("\\"))) {
+        if (FileNameUtil.endsWithSeparator(destination)) {
             destination = destination.substring(0, destination.length() - 1);
         }
         process.processRecoverOnTarget(

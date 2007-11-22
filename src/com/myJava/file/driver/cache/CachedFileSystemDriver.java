@@ -26,7 +26,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -182,28 +182,12 @@ implements LinkableFileSystemDriver {
         predecessor.flush();
     }
 
-    public File getAbsoluteFile(File file) {
-        return predecessor.getAbsoluteFile(file);
-    }
-
-    public String getAbsolutePath(File file) {
-        return predecessor.getAbsolutePath(file);
-    }
-
     public short getAccessEfficiency() {
         return predecessor.getAccessEfficiency();
     }
 
     public Attributes getAttributes(File f) throws IOException {
         return predecessor.getAttributes(f);
-    }
-
-    public File getCanonicalFile(File file) throws IOException {
-        return predecessor.getCanonicalFile(file);
-    }
-
-    public String getCanonicalPath(File file) throws IOException {
-        return predecessor.getCanonicalPath(file);
     }
 
     public InputStream getFileInputStream(File file) throws IOException {
@@ -239,26 +223,6 @@ implements LinkableFileSystemDriver {
 
     public OutputStream getFileOutputStream(File file) throws IOException {
         return getFileOutputStream(file, false);
-    }
-
-    public String getName(File file) {
-        return predecessor.getName(file);
-    }
-
-    public String getParent(File file) {
-        return predecessor.getParent(file);
-    }
-
-    public File getParentFile(File file) {
-        return predecessor.getParentFile(file);
-    }
-
-    public String getPath(File file) {
-        return predecessor.getPath(file);
-    }
-
-    public boolean isAbsolute(File file) {
-        return predecessor.isAbsolute(file);
     }
 
     public boolean isContentSensitive() {
@@ -358,7 +322,7 @@ implements LinkableFileSystemDriver {
 
         String[] ret = new String[files.length];
         for (int i=0; i<files.length; i++) {
-            ret[i] = normalize(files[i].getAbsolutePath());
+            ret[i] = predecessor.getAbsolutePath(files[i]);
         }
 
         return ret;
@@ -372,7 +336,7 @@ implements LinkableFileSystemDriver {
 
         String[] ret = new String[files.length];
         for (int i=0; i<files.length; i++) {
-            ret[i] = normalize(files[i].getAbsolutePath());
+            ret[i] = predecessor.getAbsolutePath(files[i]);
         }
 
         return ret;

@@ -15,6 +15,7 @@ import org.apache.commons.net.ftp.FTPReply;
 
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileNameUtil;
+import com.myJava.file.driver.AbstractFileSystemDriver;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
@@ -27,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -453,7 +454,7 @@ public class FTPProxy {
         try {
             File f = new File(remoteFile);
             
-            this.changeWorkingDirectory("mkdir", FileNameUtil.heavyNormalizePath(f.getParent(), false));
+            this.changeWorkingDirectory("mkdir", AbstractFileSystemDriver.normalizeIfNeeded(f.getParent()));
             this.updateOpTime();
             debug("mkdir : mkdir", remoteFile);
             return client.makeDirectory(f.getName());
@@ -582,7 +583,7 @@ public class FTPProxy {
 	            ArrayList returned = new ArrayList();
 	            for (int i=0; i<files.length; i++) {
 	                if (acceptListedFile(files[i])) {
-		                String remotePath = FileNameUtil.heavyNormalizePath(parentFile + "/" + files[i].getName(), false);
+		                String remotePath = FileNameUtil.normalizeSlashes(parentFile + "/" + files[i].getName(), false);
 		                returned.add(new FictiveFile(remotePath, remotePath, files[i].getSize(), files[i].isDirectory(), true, files[i].getTimestamp().getTimeInMillis()));
 	                }
 	            }

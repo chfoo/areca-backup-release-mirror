@@ -9,6 +9,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
 
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.attributes.Attributes;
@@ -23,7 +24,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -49,7 +50,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     
     protected static boolean USE_BUFFER = FrameworkConfiguration.getInstance().useFileSystemBuffer();
     protected static int BUFFER_SIZE = FrameworkConfiguration.getInstance().getFileSystemBufferSize();
-    
+        
     public boolean canRead(File file) {
         return file.canRead();
     }
@@ -91,7 +92,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
      * @see File#getAbsolutePath()
      */
     public String getAbsolutePath(File file) {
-        return normalize(file.getAbsolutePath());
+        return normalizeIfNeeded(file.getAbsolutePath());
     }
     
     public File getCanonicalFile(File file) throws IOException {
@@ -111,7 +112,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
      * @see File#getCanonicalPath()
      */
     public String getCanonicalPath(File file) throws IOException {
-        return normalize(file.getCanonicalPath());
+        return normalizeIfNeeded(file.getCanonicalPath());
     }
     
     public String getName(File file) {
@@ -119,7 +120,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public String getParent(File file) {
-        return normalize(file.getParent());
+        return normalizeIfNeeded(file.getParent());
     }
     
     public File getParentFile(File file) {
@@ -127,7 +128,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public String getPath(File file) {
-        return normalize(file.getPath());
+        return normalizeIfNeeded(file.getPath());
     }
     
     public boolean isAbsolute(File file) {
@@ -157,7 +158,9 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     public String[] list(File file, FilenameFilter filter) {
         try {
             String[] files = file.list(filter);
-            normalize(files);
+            for (int i=0; i<files.length; i++) {
+                files[i] = normalizeIfNeeded(files[i]);
+            }
             return files;
         } catch (RuntimeException e) {
             if (file != null) {
@@ -170,7 +173,9 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     public String[] list(File file) {
         try {
             String[] files = file.list();
-            normalize(files);
+            for (int i=0; i<files.length; i++) {
+                files[i] = normalizeIfNeeded(files[i]);
+            }
             return files;
         } catch (RuntimeException e) {
             if (file != null) {

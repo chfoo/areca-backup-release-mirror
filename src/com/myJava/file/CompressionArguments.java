@@ -1,18 +1,15 @@
-package com.application.areca.impl.policy;
+package com.myJava.file;
 
 import java.nio.charset.Charset;
 
-import com.application.areca.ApplicationException;
-import com.application.areca.ArchiveMedium;
-import com.myJava.file.driver.CompressedFileSystemDriver;
-import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.object.PublicClonable;
+import com.myJava.object.ToStringHelper;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -34,8 +31,8 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class CompressedFileSystemPolicy implements FileSystemPolicy {
-    protected FileSystemPolicy base;
+public class CompressionArguments implements PublicClonable {
+    protected boolean isCompressed = false;
     protected long volumeSize = -1;
     protected Charset charset = null;
     protected String comment = null;
@@ -43,6 +40,14 @@ public class CompressedFileSystemPolicy implements FileSystemPolicy {
 
     public Charset getCharset() {
         return charset;
+    }
+
+    public boolean isCompressed() {
+        return isCompressed;
+    }
+
+    public void setCompressed(boolean isCompressed) {
+        this.isCompressed = isCompressed;
     }
 
     public void setCharset(Charset charset) {
@@ -54,7 +59,11 @@ public class CompressedFileSystemPolicy implements FileSystemPolicy {
     }
 
     public void setComment(String comment) {
-        this.comment = comment;
+        if (comment != null && comment.trim().length() == 0) {
+            this.comment = null;
+        } else {
+            this.comment = comment;
+        }
     }
 
     public boolean isUseZip64() {
@@ -72,56 +81,30 @@ public class CompressedFileSystemPolicy implements FileSystemPolicy {
     public void setVolumeSize(long volumeSize) {
         this.volumeSize = volumeSize;
     }
-
-    public FileSystemPolicy getBase() {
-        return base;
-    }
-
-    public void setBase(FileSystemPolicy base) {
-        this.base = base;
+    
+    public boolean isMultiVolumes() {
+        return volumeSize != -1;
     }
 
     public PublicClonable duplicate() {
-        CompressedFileSystemPolicy clone = new CompressedFileSystemPolicy();
-        clone.setBase((FileSystemPolicy)base.duplicate());
+        CompressionArguments clone = new CompressionArguments();
         clone.setCharset(charset);
         clone.setComment(comment);
+        clone.setCompressed(isCompressed);
         clone.setUseZip64(useZip64);
         clone.setVolumeSize(volumeSize);
         return clone;
     }
-
-    public String getBaseArchivePath() {
-        return base.getBaseArchivePath();
-    }
-
-    public String getDisplayableParameters() {
-        return base.getDisplayableParameters();
-    }
-
-    public String getId() {
-        return base.getId();
-    }
-
-    public FileSystemDriver initFileSystemDriver() throws ApplicationException {
-        FileSystemDriver root = base.initFileSystemDriver();
-        CompressedFileSystemDriver driver = new CompressedFileSystemDriver(root);
-        driver.setCharset(charset);
-        driver.setComment(comment);
-        driver.setUseZip64(useZip64);
-        driver.setVolumeSize(volumeSize);
-        return driver;
-    }
-
-    public void setMedium(ArchiveMedium medium) {
-        base.setMedium(medium);
-    }
-
-    public void synchronizeConfiguration() {
-        base.synchronizeConfiguration();
-    }
-
-    public void validate(boolean extendedTests) throws ApplicationException {
-        base.validate(extendedTests);
+    
+    public String toString() {
+        StringBuffer sb = ToStringHelper.init(this);
+        ToStringHelper.append("IsCompressed", this.isCompressed, sb);
+        if (isCompressed) {
+            ToStringHelper.append("Zip64", this.useZip64, sb);
+            ToStringHelper.append("Charset", this.charset != null ? this.charset.displayName() : null, sb);
+            ToStringHelper.append("Comment", this.comment, sb);
+            ToStringHelper.append("VolumeSize", this.volumeSize, sb);
+        }
+        return ToStringHelper.close(sb);
     }
 }

@@ -22,7 +22,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -279,10 +279,18 @@ public class FileTool {
                         Logger.defaultLogger().warn("Attempted to delete file (" + FileSystemManager.getAbsolutePath(fileOrDirectory) + ") during " + (retry * deletionDelay) + " ms but it seems to be locked !");
                     }
                     if (retry >= DELETION_MAX_ATTEMPTS) {
-                        throw new IOException("Unable to delete file : " + FileSystemManager.getAbsolutePath(fileOrDirectory) + " - isFile=" + FileSystemManager.isFile(fileOrDirectory) + " - Exists="  + FileSystemManager.exists(fileOrDirectory));
+                        String[] files = FileSystemManager.list(fileOrDirectory);
+                        throw new IOException(
+                                "Unable to delete file : " 
+                                + FileSystemManager.getAbsolutePath(fileOrDirectory) 
+                                + " - isFile=" + FileSystemManager.isFile(fileOrDirectory) 
+                                + " - Exists="  + FileSystemManager.exists(fileOrDirectory)
+                                + " - Children="  + (files == null ? 0 : files.length)
+                                + (files == null || files.length > 0 ? "(" + files[0] + " ...)" : "")
+                        );
                     }
                     if (retry%DELETION_GC_FREQUENCY == 0) {
-                        Logger.defaultLogger().warn("File deletion (" + FileSystemManager.getAbsolutePath(fileOrDirectory) + ") : Performing a GC.");
+                        //Logger.defaultLogger().warn("File deletion (" + FileSystemManager.getAbsolutePath(fileOrDirectory) + ") : Performing a GC.");
                         System.gc(); // I know it's not very beautiful ... but it seems to be a bug with old file references (even if all streams are closed)
                     }
                     Thread.sleep(deletionDelay);

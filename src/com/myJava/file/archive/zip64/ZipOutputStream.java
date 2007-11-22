@@ -40,7 +40,7 @@ import com.myJava.util.log.Logger;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
 public class ZipOutputStream 
 extends DeflaterOutputStream 
@@ -70,6 +70,7 @@ implements ZipConstants {
     private int Z64EODRStart = 0;
     private boolean useZip64 = false;
     private List entryCountByDiskNumber = new ArrayList();
+    private boolean disableSizeCheck = false; // Useful for zip32 archives, in case of errors
     
     private boolean finished = false;
     private boolean opened = false;
@@ -154,7 +155,7 @@ implements ZipConstants {
 
     public void putNextEntry(ZipEntry e) throws IOException {
         if ((!useZip64) && this.entries.size() >= ZIP32_MAX_ENTRIES) {
-            throw new IllegalArgumentException("Too many files in archive. Zip32 archive format does not allow to store more than " + ZIP32_MAX_ENTRIES + " files.");
+            throw new IOException("Too many files in archive. Zip32 archive format does not allow to store more than " + ZIP32_MAX_ENTRIES + " files.");
         }
         
         ensureOpen();
@@ -195,7 +196,7 @@ implements ZipConstants {
             e.crc = crc.getValue();
             
             if ((!useZip64) && e.size > ZIP32_ENTRY_SIZE_LIMIT) {
-                throw new IllegalArgumentException(e.name + " is too voluminous (" + (long)(e.size / 1024) + " kbytes). Zip32 archives can't store files bigger than " + (long)(ZIP32_ENTRY_SIZE_LIMIT / 1024) + " kbytes.");
+                throw new IOException(e.name + " is too voluminous (" + (long)(e.size / 1024) + " kbytes). Zip32 archives can't store files bigger than " + (long)(ZIP32_ENTRY_SIZE_LIMIT / 1024) + " kbytes.");
             }
             
             writeEXT(e);
@@ -211,7 +212,8 @@ implements ZipConstants {
     public synchronized void write(byte[] b, int off, int len)
     throws IOException {
         if ((!useZip64) && (len+totalWritten) > ZIP32_OVERALL_SIZE_LIMIT) {
-            throw new IllegalArgumentException(ZIP32_OVERALL_SIZE_MESSAGE);
+            this.disableSizeCheck = true;
+            throw new IOException(ZIP32_OVERALL_SIZE_MESSAGE);
         }
         
         ensureOpen();
@@ -253,8 +255,8 @@ implements ZipConstants {
             
             writeEND(offRelativeToCurrentDisk, cenSize);
             
-            if ((!useZip64) && totalWritten > ZIP32_OVERALL_SIZE_LIMIT) {
-                throw new IllegalArgumentException(ZIP32_OVERALL_SIZE_MESSAGE);
+            if ((!disableSizeCheck) && (!useZip64) && totalWritten > ZIP32_OVERALL_SIZE_LIMIT) {
+                throw new IOException(ZIP32_OVERALL_SIZE_MESSAGE);
             }
             
             finished = true;
@@ -270,12 +272,22 @@ implements ZipConstants {
     
     public void close() throws IOException {
         if (!closed) {
-            super.close();
-            closed = true;
-        }
-        
-        if (this.volumeStrategy != null) {
-            this.volumeStrategy.close();
+            try {
+                super.close();
+                closed = true;
+                
+                if (this.volumeStrategy != null) {
+                    this.volumeStrategy.close();
+                }
+            } catch (Throwable e) {
+                // Force underlying stream closing.
+                out.close();
+                if (e instanceof IOException) {
+                    throw (IOException)e;
+                } else if (e instanceof RuntimeException) {
+                    throw (RuntimeException)e;
+                }
+            }
         }
     }
     

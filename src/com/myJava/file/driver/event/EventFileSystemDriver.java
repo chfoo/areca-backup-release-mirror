@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import com.myJava.file.attributes.Attributes;
 import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
@@ -22,7 +23,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -48,8 +49,18 @@ public class EventFileSystemDriver
 extends AbstractLinkableFileSystemDriver
 implements LinkableFileSystemDriver {
 
-    private ArrayList listeners = new ArrayList();
+    private List listeners = new ArrayList();
     private String identifier;
+    
+    public static FileSystemDriver wrapDriver(FileSystemDriver driver, String identifier, List listeners) {
+        if (listeners == null || listeners.isEmpty()) {
+            return driver;
+        } else {
+            EventFileSystemDriver ret = new EventFileSystemDriver(driver, identifier);
+            ret.listeners = listeners;
+            return ret;
+        }
+    }
     
     public EventFileSystemDriver(FileSystemDriver predecessor, String identifier) {
         super();

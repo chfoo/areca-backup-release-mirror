@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import com.application.areca.AbstractMedium;
@@ -28,6 +29,7 @@ import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.indicator.Indicator;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.indicator.IndicatorTypes;
+import com.myJava.file.CompressionArguments;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -35,6 +37,7 @@ import com.myJava.file.driver.DriverAlreadySetException;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.driver.event.EventFileSystemDriver;
 import com.myJava.file.driver.event.LoggerFileSystemDriverListener;
+import com.myJava.file.driver.event.OpenFileMonitorDriverListener;
 import com.myJava.object.ToStringHelper;
 import com.myJava.util.errors.ActionError;
 import com.myJava.util.errors.ActionReport;
@@ -43,11 +46,10 @@ import com.myJava.util.history.History;
 import com.myJava.util.log.Logger;
 
 /**
- * Support de stockage s'appuyant sur un système de fichiers.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -75,6 +77,7 @@ implements TargetActions, IndicatorTypes {
 
     public static final boolean CHECK_DIRECTORY_CONSISTENCY = ArecaTechnicalConfiguration.get().isCheckRepositoryConsistency();
     private static final boolean REPOSITORY_ACCESS_DEBUG = ArecaTechnicalConfiguration.get().isRepositoryAccessDebugMode();
+    private static final boolean FILESTREAMS_DEBUG = ArecaTechnicalConfiguration.get().isFileStreamsDebugMode();
     private static final String REPOSITORY_ACCESS_DEBUG_ID = "Areca repository access";
     
 	protected static final String TMP_ARCHIVE_SUFFIX = ".not_commited";
@@ -85,7 +88,7 @@ implements TargetActions, IndicatorTypes {
 	protected static final String DATA_DIRECTORY_SUFFIX = "_data";
 	
     /**
-     * Nom du fichier de manifeste.
+     * Manifest name
      */
     protected static final String MANIFEST_FILE = "manifest";   
     protected static final String MANIFEST_FILE_OLD = "manifest.txt";   
@@ -97,7 +100,7 @@ implements TargetActions, IndicatorTypes {
     protected static final String TARGET_BACKUP_FILE_SUFFIX = ".xml";
     
     /**
-     * Filetool utilisé pour les manipulations sur fichiers
+     * File processing tool
      */
     protected static final FileTool tool = FileTool.getInstance();
 
@@ -106,31 +109,43 @@ implements TargetActions, IndicatorTypes {
      */
     protected EncryptionPolicy encryptionPolicy = null;
     
+    /**
+     * Base storage policy
+     */
     protected FileSystemPolicy fileSystemPolicy = null;
+    
+    /**
+     * Compression arguments
+     * <BR>These arguments may be interpreted specifically depending on the medium type.
+     */
+    protected CompressionArguments compressionArguments = new CompressionArguments();
     
     public void install() throws ApplicationException {
         super.install();
         
         File storageDir = new File(fileSystemPolicy.getBaseArchivePath()).getParentFile();
-        
-        FileSystemDriver baseDriver = this.fileSystemPolicy.initFileSystemDriver();
-        FileSystemDriver encryptedDriver = this.encryptionPolicy.initFileSystemDriver(storageDir, baseDriver);
+        FileSystemDriver baseDriver = this.buildBaseDriver(true);
+        FileSystemDriver storageDriver = this.buildStorageDriver(storageDir);
+
+        List listeners = new ArrayList();
+        if (REPOSITORY_ACCESS_DEBUG) {
+            listeners.add(new LoggerFileSystemDriverListener());
+        }
+        if (FILESTREAMS_DEBUG) {
+            listeners.add(new OpenFileMonitorDriverListener());
+        }
         
         try {
             try {
-                if (REPOSITORY_ACCESS_DEBUG) {
-                    baseDriver = new EventFileSystemDriver(baseDriver, REPOSITORY_ACCESS_DEBUG_ID, new LoggerFileSystemDriverListener());
-                }
+                baseDriver = EventFileSystemDriver.wrapDriver(baseDriver, REPOSITORY_ACCESS_DEBUG_ID, listeners);
                 FileSystemManager.getInstance().registerDriver(storageDir.getParentFile(), baseDriver);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 // Non-fatal error but DANGEROUS : It is highly advised to store archives in subdirectories - not at the root
                 Logger.defaultLogger().warn("Error trying to register a driver at [" + storageDir + "]'s parent directory. It is probably because you tried to store archives at the root directory (/ or c:\\). It is HIGHLY advised to use subdirectories.", e, "Driver initialization");
             }
             
-            if (REPOSITORY_ACCESS_DEBUG) {
-                encryptedDriver = new EventFileSystemDriver(encryptedDriver, REPOSITORY_ACCESS_DEBUG_ID, new LoggerFileSystemDriverListener());
-            }
-            FileSystemManager.getInstance().registerDriver(storageDir, encryptedDriver);
+            storageDriver = EventFileSystemDriver.wrapDriver(storageDriver, REPOSITORY_ACCESS_DEBUG_ID, listeners);
+            FileSystemManager.getInstance().registerDriver(storageDir, storageDriver);
         } catch (DriverAlreadySetException e) {
             Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
@@ -138,7 +153,15 @@ implements TargetActions, IndicatorTypes {
             Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         }
-    }    
+    }   
+    
+    protected FileSystemDriver buildBaseDriver(boolean main) throws ApplicationException {
+        return this.fileSystemPolicy.initFileSystemDriver();
+    }
+    
+    protected FileSystemDriver buildStorageDriver(File storageDir) throws ApplicationException {
+        return this.encryptionPolicy.initFileSystemDriver(storageDir, this.buildBaseDriver(false));
+    }
 
     public void setTarget(AbstractRecoveryTarget target, boolean revalidate) {
         super.setTarget(target, revalidate);
@@ -156,11 +179,20 @@ implements TargetActions, IndicatorTypes {
         this.fileSystemPolicy.setMedium(this);
     }
     
+    public CompressionArguments getCompressionArguments() {
+        return compressionArguments;
+    }
+
+    public void setCompressionArguments(CompressionArguments compressionArguments) {
+        this.compressionArguments = compressionArguments;
+    }
+    
     protected void copyAttributes(Object clone) {
         super.copyAttributes(clone);
         AbstractFileSystemMedium other = (AbstractFileSystemMedium)clone;
         other.encryptionPolicy = (EncryptionPolicy)this.encryptionPolicy.duplicate();
         other.setFileSystemPolicy((FileSystemPolicy)this.fileSystemPolicy.duplicate());
+        other.compressionArguments = (CompressionArguments)this.compressionArguments.duplicate();
     }
     
     public String getManifestName() {
@@ -379,9 +411,7 @@ implements TargetActions, IndicatorTypes {
 
 	public void doBeforeDelete() {
 	}
-    
-    public abstract boolean isCompressed();
-    
+
     protected void clearRelatedCaches() {
 		ArchiveManifestCache.getInstance().removeAllArchiveData(this);
 		ArchiveTraceCache.getInstance().removeAllArchiveData(this); 
@@ -636,6 +666,7 @@ implements TargetActions, IndicatorTypes {
         StringBuffer sb = ToStringHelper.init(this);
         ToStringHelper.append("FileSystemPolicy", this.fileSystemPolicy, sb);
         ToStringHelper.append("EncryptionPolicy", this.encryptionPolicy, sb);
+        ToStringHelper.append("CompressionArguments", this.compressionArguments, sb);
         return ToStringHelper.close(sb);
     }
 }

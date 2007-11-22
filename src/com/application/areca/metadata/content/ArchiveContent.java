@@ -19,7 +19,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6892146605129115786
+ * <BR>Areca Build ID : 2156529904998511409
  */
  
  /*
@@ -88,7 +88,7 @@ public class ArchiveContent {
         if (i == -1) {
             return null;
         }
-        String name = FileNameUtil.normalizePath(serialized.substring(0, i));
+        String name = serialized.substring(0, i);
         long length = Long.parseLong(serialized.substring(i + DATA_SEP.length()));
         
         return new FileSystemRecoveryEntry(defaultRootDirectory, new File(defaultRootDirectory, name), RecoveryEntry.STATUS_STORED, length); 
