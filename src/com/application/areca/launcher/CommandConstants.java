@@ -4,7 +4,7 @@ package com.application.areca.launcher;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -41,4 +41,6 @@ public interface CommandConstants {
     public static UserOption OPTION_TO = new UserOption("-to", 2);
     public static UserOption OPTION_DATE = new UserOption("-date", 2);    
     public static UserOption OPTION_KEEP_DELETED_ENTRIES = new UserOption("-k", 1);    
+    public static UserOption OPTION_FULL_BACKUP = new UserOption("-f", 1);
+    public static UserOption OPTION_DIFFERENTIAL_BACKUP = new UserOption("-d", 1);
 }

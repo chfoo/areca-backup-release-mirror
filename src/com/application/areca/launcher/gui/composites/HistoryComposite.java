@@ -32,7 +32,7 @@ import com.myJava.util.history.HistoryEntry;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -86,8 +86,8 @@ implements Listener, Refreshable, HistoryEntryTypes {
         
         table.getColumn(1).setText(RM.getLabel("history.datecolumn.label"));
         table.getColumn(0).setText(RM.getLabel("history.actioncolumn.label"));
-        table.getColumn(1).setWidth(300);
-        table.getColumn(0).setWidth(400);
+        table.getColumn(1).setWidth(AbstractWindow.computeWidth(300));
+        table.getColumn(0).setWidth(AbstractWindow.computeWidth(400));
 
         GridData dt1 = new GridData();
         dt1.grabExcessHorizontalSpace = true;

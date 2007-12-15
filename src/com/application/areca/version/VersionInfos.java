@@ -15,7 +15,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -57,7 +57,7 @@ public class VersionInfos {
     static {
         
         // INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-        BUILD_ID = 2156529904998511409L;
+        BUILD_ID = 3675112183502703626L;
         
         // INIT VERSION DATA
         VERSIONS.add(new VersionData("1.0", new GregorianCalendar(2005, 4, 1), "Backup engine implementation."));
@@ -125,7 +125,8 @@ public class VersionInfos {
         VERSIONS.add(new VersionData("5.4", new GregorianCalendar(2007, 9, 8), "Pre-processors; Filter enhancements; Minor bug fixes."));
         VERSIONS.add(new VersionData("5.5", new GregorianCalendar(2007, 9, 14), "Merge processor enhancements; New delete processor; Encryption enhancements; Bug Fixes."));
         VERSIONS.add(new VersionData("5.5.1", new GregorianCalendar(2007, 9, 27), "Recovery optimization; Backup strategy wizard."));
-        VERSIONS.add(new VersionData("5.5.2", new GregorianCalendar(2007, 10, 9), "Compression enhancements; Hungarian translation; Minor bugfixes."));        
+        VERSIONS.add(new VersionData("5.5.2", new GregorianCalendar(2007, 10, 9), "Compression enhancements; Hungarian translation; Minor bugfixes."));
+        VERSIONS.add(new VersionData("5.5.3", new GregorianCalendar(2007, 11, 2), "Full and differential backups support."));       
 
         Iterator iter = VERSIONS.iterator();
         while (iter.hasNext()) {

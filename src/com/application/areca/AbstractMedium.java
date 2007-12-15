@@ -3,8 +3,7 @@ package com.application.areca;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.application.areca.context.ProcessContext;
-import com.application.areca.metadata.manifest.Manifest;
+import com.application.areca.metadata.trace.ArchiveTrace;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.util.history.History;
@@ -14,7 +13,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -69,11 +68,6 @@ public abstract class AbstractMedium implements ArchiveMedium {
         return HISTORY_NAME;
     } 
     
-    public void open(Manifest manifest, ProcessContext context) throws ApplicationException {
-        context.setManifest(manifest);
-        this.open(context);
-    } 
-    
     /**
      * Construit une liste de EAD ordonnée et dont les status sont à jour
      * à partir de la liste d'entrée data.
@@ -84,49 +78,32 @@ public abstract class AbstractMedium implements ArchiveMedium {
     protected EntryArchiveData[] processEntryArchiveData(EntryArchiveData[] data) {
     	List list = new ArrayList();
     	
-    	short prevStatus;
+        String prevHash;
     	short status = EntryArchiveData.STATUS_UNKNOWN;
+        String hash = null;
     	for (int i=0; i<data.length; i++) {
-    		EntryArchiveData e = data[i];
-    		prevStatus = status;
+            EntryArchiveData e = data[i];
+            prevHash = hash;
     		status = e.getStatus();
+            hash = e.getHash();
     		
-    		if (status == EntryArchiveData.STATUS_EXISTANT || status == EntryArchiveData.STATUS_FIRST_BACKUP) {
-				list.add(e);
-    		} else {
-	    		if (i == 0) {
-	    			if (status == EntryArchiveData.STATUS_NONEXISTANT) {
-	    				// no store
-	    			} else if (status == EntryArchiveData.STATUS_CHANGED) {
-	    				e.setStatus(EntryArchiveData.STATUS_FIRST_BACKUP);
-	    				list.add(e);
-	    			} else if (status == EntryArchiveData.STATUS_UNCHANGED) {
-                        // Special case : Symlink management
-                        e.setStatus(EntryArchiveData.STATUS_FIRST_BACKUP);
-                        list.add(e);
-	    			}
-	    		} else {
-	    			if (status == EntryArchiveData.STATUS_NONEXISTANT) {
-	    				if (! (prevStatus == EntryArchiveData.STATUS_NONEXISTANT)) {
-	    					e.setStatus(EntryArchiveData.STATUS_DELETED);
-	    					list.add(e);
-	    				}
-	    			} else if (status == EntryArchiveData.STATUS_CHANGED) {
-	    				if (prevStatus == EntryArchiveData.STATUS_NONEXISTANT) {
-	    					e.setStatus(EntryArchiveData.STATUS_CREATED);
-	    				} else {
-	    					e.setStatus(EntryArchiveData.STATUS_MODIFIED);
-	    				}
-						list.add(e);
-	    			} else if (status == EntryArchiveData.STATUS_UNCHANGED) {
-                        if (prevStatus == EntryArchiveData.STATUS_NONEXISTANT) {
-                            // Special case : Symlink management
-                            e.setStatus(EntryArchiveData.STATUS_CREATED);
-                            list.add(e);
-                        }
-	    			}
-	    		}
-    		}
+            if (hash == null) {
+                if (prevHash != null) {
+                    e.setStatus(EntryArchiveData.STATUS_DELETED);
+                    list.add(e);
+                }
+            } else if (ArchiveTrace.hasBeenModified(hash, prevHash)) {
+                if (status != EntryArchiveData.STATUS_STORED) {
+                    e.setStatus(EntryArchiveData.STATUS_MISSING);
+                } else if (i == 0) {
+                    e.setStatus(EntryArchiveData.STATUS_FIRST_BACKUP);
+                } else if (prevHash == null) {
+                    e.setStatus(EntryArchiveData.STATUS_CREATED);
+                } else {
+                    e.setStatus(EntryArchiveData.STATUS_MODIFIED);
+                }
+                list.add(e);
+            }
     	}
     	
     	return (EntryArchiveData[])list.toArray(new EntryArchiveData[0]);

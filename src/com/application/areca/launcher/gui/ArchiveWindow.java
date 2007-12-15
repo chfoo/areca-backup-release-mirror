@@ -5,8 +5,6 @@ import java.util.Set;
 
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -22,7 +20,7 @@ import com.application.areca.ArchiveMedium;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ArecaImages;
+import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.composites.ArchiveExplorer;
 import com.application.areca.metadata.manifest.Manifest;
 
@@ -30,7 +28,7 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -73,23 +71,17 @@ extends AbstractWindow {
             GridLayout layout = new GridLayout(1, false);
             ret.setLayout(layout);
 
-            CTabFolder tabs = new CTabFolder(ret, SWT.BORDER);
-            tabs.setSimple(Application.SIMPLE_SUBTABS);
-            tabs.setLayout(new FillLayout());
+            ListPane tabs = new ListPane(ret, SWT.NONE, false);
             GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true);
-            dt.heightHint = computeHeight(350);
-            dt.widthHint = computeWidth(700);
+            dt.heightHint = computeHeight(400);
+            dt.widthHint = computeWidth(750);
             tabs.setLayoutData(dt);
 
-            CTabItem itm1 = new CTabItem(tabs, SWT.NONE);
-            Application.setTabLabel(itm1, RM.getLabel("archivedetail.manifest.label"), true);
-            itm1.setImage(ArecaImages.ICO_TARGET_NEW);
-            itm1.setControl(getDataPanel(tabs));
+            Composite itm1 = tabs.addElement("archivedetail.manifest.label", RM.getLabel("archivedetail.manifest.label"));
+            initDataPanel(itm1);
 
-            CTabItem itm2 = new CTabItem(tabs, SWT.NONE);
-            Application.setTabLabel(itm2, RM.getLabel("archivedetail.archivecontent.label"), true);
-            itm2.setImage(ArecaImages.ICO_REF_TARGET);
-            itm2.setControl(getContentPanel(tabs));
+            Composite itm2 = tabs.addElement("archivedetail.archivecontent.label", RM.getLabel("archivedetail.archivecontent.label"));
+            initContentPanel(itm2);
 
             if (currentEntry == null) {
                 tabs.setSelection(0);
@@ -102,14 +94,15 @@ extends AbstractWindow {
         return ret;
     }
 
-    private Composite getContentPanel(Composite parent) {
+    private void initContentPanel(Composite parent) {
+        parent.setLayout(new FillLayout());
         ArchiveExplorer explorer = new ArchiveExplorer(parent);
         explorer.setEntries(entries);
         explorer.setSelectedEntry(this.currentEntry);
-        return explorer;
     }
     
-    private Composite getDataPanel(Composite parent) {
+    private void initDataPanel(Composite parent) {
+        parent.setLayout(new FillLayout());
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(2, false);
         composite.setLayout(layout);
@@ -142,6 +135,7 @@ extends AbstractWindow {
         
         Text txtDescription = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
         GridData ldDescription = new GridData(SWT.FILL, SWT.FILL, true, true);
+        ldDescription.heightHint = computeHeight(70);
         ldDescription.minimumHeight = computeHeight(70);
         txtDescription.setLayoutData(ldDescription);
         txtDescription.setEditable(false);
@@ -162,11 +156,11 @@ extends AbstractWindow {
         ldProperties.minimumHeight = computeHeight(100);
         table.setLayoutData(ldProperties);
         TableColumn col1 = new TableColumn (table, SWT.NONE);
-        col1.setWidth(300);
+        col1.setWidth(AbstractWindow.computeWidth(300));
         col1.setText(RM.getLabel("archivedetail.propertycolumn.label"));
         col1.setMoveable(true);
         TableColumn col2 = new TableColumn (table, SWT.NONE);
-        col2.setWidth(100);
+        col2.setWidth(AbstractWindow.computeWidth(100));
         col2.setText(RM.getLabel("archivedetail.valuecolumn.label"));
         col2.setMoveable(true);
         
@@ -176,19 +170,24 @@ extends AbstractWindow {
             txtDate.setText(manifest.getDate() == null ? "" : Utils.formatDisplayDate(manifest.getDate()));
             txtDescription.setText(manifest.getDescription() == null ? "" : manifest.getDescription());
             
+            TableItem item0 = new TableItem(table, SWT.NONE);
+            item0.setText(0, " ** Type ** ");
+            item0.setText(1, manifest.getType() == Manifest.TYPE_BACKUP ? "Backup" : "Merge");
+            
             Iterator iter = this.manifest.propertyIterator();
             while (iter.hasNext()) {
                 String key = (String)iter.next();
-                TableItem item = new TableItem(table, SWT.NONE);
-                item.setText(0, key + " : ");
-                item.setText(1, manifest.getProperty(key));
+                if (! key.equals("Source")) { // Hide old properties
+                    TableItem item = new TableItem(table, SWT.NONE);
+                    item.setText(0, key + " : ");
+                    item.setText(1, manifest.getStringProperty(key));
+                }
             }
         }
         
         txtTitle.forceFocus();
         
         composite.pack();
-        return composite;
     }
 
     public void setCurrentEntry(RecoveryEntry currentEntry) {

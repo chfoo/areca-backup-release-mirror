@@ -36,7 +36,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -118,8 +118,8 @@ implements MouseListener, Refreshable, Listener {
         col2.setMoveable(true);
         col1.setText(RM.getLabel("archivecontent.actioncolumn.label"));
         col2.setText(RM.getLabel("archivecontent.datecolumn.label"));
-        col1.setWidth(150);
-        col2.setWidth(150);
+        col1.setWidth(AbstractWindow.computeWidth(150));
+        col2.setWidth(AbstractWindow.computeWidth(150));
         history.setHeaderVisible(true);
         history.setLinesVisible(AbstractWindow.getTableLinesVisible());
         history.addMouseListener(this);

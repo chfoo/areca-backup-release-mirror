@@ -13,7 +13,7 @@ import com.application.areca.launcher.tui.Launcher;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -42,6 +42,8 @@ public class UserCommandLine implements CommandConstants {
     static {
         Launcher.COMMAND_BACKUP.addMandatoryArgument(Launcher.OPTION_CONFIG);
         Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_TARGET);
+        Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_FULL_BACKUP);
+        Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_DIFFERENTIAL_BACKUP);
    
         Launcher.COMMAND_COMPACT.addMandatoryArgument(Launcher.OPTION_CONFIG);
         Launcher.COMMAND_COMPACT.addMandatoryArgument(Launcher.OPTION_TARGET);

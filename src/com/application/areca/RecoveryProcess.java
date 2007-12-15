@@ -20,7 +20,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -221,8 +221,8 @@ implements TargetActions, Identifiable {
      * @param target
      * @throws ApplicationException
      */
-    public void processBackupOnTarget(AbstractRecoveryTarget target, ProcessContext context) throws ApplicationException {
-        processBackupOnTarget(target, null, context);
+    public void processBackupOnTarget(AbstractRecoveryTarget target, ProcessContext context, String backupScheme) throws ApplicationException {
+        processBackupOnTarget(target, null, context, backupScheme);
     }
     
     /**
@@ -231,17 +231,17 @@ implements TargetActions, Identifiable {
      * @param target
      * @throws ApplicationException
      */
-    public void processBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest, ProcessContext context) throws ApplicationException {
+    public void processBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
         initProgress(context);
-        processBackupOnTargetImpl(target, manifest, context);
+        processBackupOnTargetImpl(target, manifest, context, backupScheme);
     }
     
-    private void processBackupOnTargetImpl(AbstractRecoveryTarget target, Manifest manifest, ProcessContext context) throws ApplicationException {
+    private void processBackupOnTargetImpl(AbstractRecoveryTarget target, Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
         checkTarget(target, ACTION_BACKUP);
         
         try {
             Logger.defaultLogger().info("Target processing : [Backup] - [" + target.getFullName() + "] - [" + target.getId() + "]");         
-            target.processBackup(manifest, context);
+            target.processBackup(manifest, context, backupScheme);
         } finally {
             Logger.defaultLogger().info("End of target processing : [Backup] - [" + target.getFullName() + "] - [" + target.getId() + "]");
         }

@@ -15,7 +15,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -73,9 +73,16 @@ public class ArchiveReader {
     
     public void injectIntoDirectory(File dir, String[] entriesToRecover, TaskMonitor monitor) 
     throws IOException, TaskCancelledException {
+        
+        String[] normalizedEntries = null;
+        boolean hasDirectories = false; /// Count the remaining entries only if there were only files to recover
         if (entriesToRecover != null) {
+            normalizedEntries = new String[entriesToRecover.length];
             for (int i=0; i<entriesToRecover.length; i++) {
-                entriesToRecover[i] = Util.trimSlashes(entriesToRecover[i]);
+                if (entriesToRecover[i].endsWith("/")) {
+                    hasDirectories = true;
+                }
+                normalizedEntries[i] = Util.trimSlashes(entriesToRecover[i]);
             }
         }
         
@@ -85,13 +92,20 @@ public class ArchiveReader {
         
         try {
             String fileName;
+            long remaining = (hasDirectories || entriesToRecover == null) ? -1 : entriesToRecover.length;
             while((fileName = adapter.getNextEntry()) != null) {
                 try {
+                    if (remaining == 0) {
+                        break;
+                    }
+                    
                     if (monitor != null) {
                         monitor.checkTaskCancellation();
                     }
                     
-                    if (entriesToRecover == null || Util.passFilter(Util.trimSlashes(fileName), entriesToRecover)) {
+                    if (normalizedEntries == null || Util.passFilter(Util.trimSlashes(fileName), normalizedEntries)) {
+                        remaining--;
+                        
                         File target = new File(dir, fileName);
 
 	                    if (FileSystemManager.exists(target)) {

@@ -36,7 +36,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -65,7 +65,6 @@ implements Listener {
     protected RecoveryEntry[] entries;
     
     protected Table table;
-    protected Button btnBackup;
     protected Button btnBackupManifest;
     protected Label lblCreated;
     protected Label lblModified;
@@ -105,11 +104,11 @@ implements Listener {
     private Table createTopComposite(Composite parent) {
         table = new Table(parent, SWT.BORDER);   
         TableColumn col1 = new TableColumn(table, SWT.NONE);
-        col1.setWidth(400);
+        col1.setWidth(AbstractWindow.computeWidth(400));
         col1.setMoveable(true);
         col1.setText(RM.getLabel("simulation.filecolumn.label"));
         TableColumn col2 = new TableColumn(table, SWT.NONE);
-        col2.setWidth(150);
+        col2.setWidth(AbstractWindow.computeWidth(150));
         col2.setMoveable(true);
         col2.setText(RM.getLabel("simulation.sizecolumn.label"));
 
@@ -160,27 +159,18 @@ implements Listener {
     private Composite createSaveComposite(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout();
-        layout.numColumns = 2;
+        layout.numColumns = 1;
         composite.setLayout(layout);
         
         GridData dt1 = new GridData();
         dt1.grabExcessHorizontalSpace = true;
         dt1.horizontalAlignment = SWT.RIGHT;
         
-        // BACKUP           
-        btnBackup = new Button(composite, SWT.PUSH);
-        btnBackup.setText(RM.getLabel("simulation.backupaction.label"));
-        btnBackup.addListener(SWT.Selection, this);
-        btnBackup.setLayoutData(dt1);
-     
-        GridData dt2 = new GridData();
-        dt2.horizontalAlignment = SWT.RIGHT;
-        
         // BACKUP MANIFEST       
         btnBackupManifest = new Button(composite, SWT.PUSH);
-        btnBackupManifest.setText(RM.getLabel("simulation.backupwmaction.label"));
+        btnBackupManifest.setText(RM.getLabel("simulation.backupaction.label"));
         btnBackupManifest.addListener(SWT.Selection, this);
-        btnBackupManifest.setLayoutData(dt2);
+        btnBackupManifest.setLayoutData(dt1);
         
         return composite;
     }
@@ -261,23 +251,15 @@ implements Listener {
     }
 
     public void handleEvent(Event event) {
-        if (event.widget == this.btnBackup) {
-            this.close();
-            Manifest mf = new Manifest();
-            mf.setType(Manifest.TYPE_BACKUP);
-            this.application.launchBackupOnTarget(target, mf);
-        } else {
-            this.close();
-            Manifest mf;
-            try {
-                mf = ((AbstractIncrementalFileSystemMedium)target.getMedium()).buildDefaultBackupManifest();
-            } catch (ApplicationException e1) {
-                Logger.defaultLogger().error(e1);
-                mf = new Manifest();
-                mf.setType(Manifest.TYPE_BACKUP);
-            }
-            
-            this.application.showManifestEditionFrame(false, target, mf);
+        this.close();
+        Manifest mf;
+        try {
+            mf = ((AbstractIncrementalFileSystemMedium)target.getMedium()).buildDefaultBackupManifest();
+        } catch (ApplicationException e1) {
+            Logger.defaultLogger().error(e1);
+            mf = new Manifest(Manifest.TYPE_BACKUP);
         }
+        
+        this.application.showBackupWindow(target, mf);
     }
 }

@@ -11,7 +11,7 @@ import com.application.areca.ResourceManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -73,7 +73,6 @@ extends AppActionReferenceHolder {
         Menu mnRun = buildSubMenu("menu.run", menu);
         add(AC_SIMULATE, mnRun);
         add(AC_BACKUP, mnRun);
-        add(AC_BACKUP_MANIFEST, mnRun);
         addSeparator(mnRun);
         add(AC_MERGE, mnRun);
         add(AC_DELETE_ARCHIVES, mnRun);
@@ -124,8 +123,7 @@ extends AppActionReferenceHolder {
         Menu menu = new Menu(parent, SWT.POP_UP);
 
         add(AC_SIMULATE, menu);
-        add(AC_BACKUP, menu);
-        add(AC_BACKUP_MANIFEST, menu);        
+        add(AC_BACKUP, menu);     
         addSeparator(menu);
         add(AC_NEW_TARGET, menu);    
         add(AC_EDIT_TARGET, menu);

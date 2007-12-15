@@ -13,9 +13,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -38,6 +40,7 @@ import com.application.areca.launcher.gui.common.Refreshable;
 import com.application.areca.metadata.content.ArchiveContent;
 import com.application.areca.metadata.content.ArchiveContentManager;
 import com.application.areca.metadata.manifest.Manifest;
+import com.application.areca.metadata.manifest.ManifestKeys;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.driver.FileSystemDriver;
@@ -46,7 +49,7 @@ import com.myJava.file.driver.FileSystemDriver;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -80,7 +83,12 @@ implements SelectionListener, Refreshable {
     
     public PhysicalViewComposite(final CTabFolder parent) {
         super(parent, SWT.NONE);
-        setLayout(new FillLayout());
+        GridLayout lyt = new GridLayout(6, false);
+        lyt.marginHeight = 0;
+        lyt.marginBottom = 2;
+        lyt.verticalSpacing = 2;
+        lyt.marginWidth = 0;
+        setLayout(lyt);
 
         viewer = new TableViewer(this, SWT.BORDER | SWT.MULTI);
         viewer.addDoubleClickListener(new IDoubleClickListener() {
@@ -89,8 +97,8 @@ implements SelectionListener, Refreshable {
             }
         });
        
-       
         table = viewer.getTable();
+        table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 6, 1));
         table.setLinesVisible(AbstractWindow.getTableLinesVisible());
         table.setHeaderVisible(true);
         String[] titles = new String[] {
@@ -105,14 +113,38 @@ implements SelectionListener, Refreshable {
             column.setMoveable(true);
         }
 
-        table.getColumn(1).setWidth(200);
-        table.getColumn(0).setWidth(500);
-        table.getColumn(2).setWidth(150);
+        table.getColumn(1).setWidth(AbstractWindow.computeWidth(200));
+        table.getColumn(0).setWidth(AbstractWindow.computeWidth(400));
+        table.getColumn(2).setWidth(AbstractWindow.computeWidth(150));
 
         table.getColumn(2).setAlignment(SWT.RIGHT);
         table.addSelectionListener(this);
 
         table.setMenu(Application.getInstance().getActionContextMenu());
+        
+        Label lblIncrementalImg = new Label(this, SWT.NONE);
+        lblIncrementalImg.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
+        lblIncrementalImg.setImage(ArecaImages.ICO_FS_FOLDER);
+        
+        Label lblIncremental = new Label(this, SWT.NONE);
+        lblIncremental.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+        lblIncremental.setText(ResourceManager.instance().getLabel("archivedetail.incremental.label"));
+        
+        Label lblDifferentialImg = new Label(this, SWT.NONE);
+        lblDifferentialImg.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
+        lblDifferentialImg.setImage(ArecaImages.ICO_FS_FOLDER_DIFFERENTIAL);
+        
+        Label lblDifferential = new Label(this, SWT.NONE);
+        lblDifferential.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+        lblDifferential.setText(ResourceManager.instance().getLabel("archivedetail.differential.label"));
+        
+        Label lblFullImg = new Label(this, SWT.NONE);
+        lblFullImg.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
+        lblFullImg.setImage(ArecaImages.ICO_FS_FOLDER_FULL);
+        
+        Label lblFull = new Label(this, SWT.NONE);
+        lblFull.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+        lblFull.setText(ResourceManager.instance().getLabel("archivedetail.full.label"));
         
         parent.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
@@ -159,7 +191,18 @@ implements SelectionListener, Refreshable {
                     initText(item, 0, manifest);
                 }
                 
-                item.setImage(0, ArecaImages.ICO_FS_FOLDER);
+                String prp = manifest.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME);
+                
+                if (
+                        (prp != null && prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL))
+                        || i == 0
+                ) {
+                    item.setImage(0, ArecaImages.ICO_FS_FOLDER_FULL);
+                } else if (prp != null && prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+                    item.setImage(0, ArecaImages.ICO_FS_FOLDER_DIFFERENTIAL);
+                } else {
+                    item.setImage(0, ArecaImages.ICO_FS_FOLDER);   
+                }
                 initSize(item, 2, archives[i], medium);
             } catch (ApplicationException e) {
                 application.handleException(e);

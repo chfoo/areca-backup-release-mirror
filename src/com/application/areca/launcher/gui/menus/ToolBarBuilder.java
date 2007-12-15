@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.ToolItem;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -59,7 +59,7 @@ extends AppActionReferenceHolder {
     }
     
     public static void addActionItems(ToolBar bar) {
-        buildToolItem(AC_BACKUP_MANIFEST, bar);
+        buildToolItem(AC_BACKUP, bar);
         buildToolItem(AC_MERGE, bar);
         buildToolItem(AC_DELETE_ARCHIVES, bar);
         buildToolItem(AC_RECOVER, bar);      

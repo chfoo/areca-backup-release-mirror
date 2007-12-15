@@ -24,7 +24,7 @@ import com.application.areca.processor.ShellScriptProcessor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -58,11 +58,11 @@ public class ProcessorRepository {
     public static List getProcessors(boolean preProcess) {
         ArrayList list = new ArrayList();
         list.add(K_SHELL);
-        list.add(K_MERGE);
 
         if (preProcess) {
             list.add(K_DELETE);            
         } else {
+            list.add(K_MERGE);
             list.add(K_DUMP);
             list.add(K_MAIL);
         }

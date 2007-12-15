@@ -49,6 +49,8 @@ import com.application.areca.launcher.gui.composites.InfoChannel;
 import com.application.areca.launcher.gui.composites.LogComposite;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.application.areca.launcher.gui.menus.MenuBuilder;
+import com.application.areca.launcher.gui.wizards.BackupShortcutWizardWindow;
+import com.application.areca.launcher.gui.wizards.BackupStrategyWizardWindow;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.search.SearchResultItem;
 import com.application.areca.version.VersionInfos;
@@ -65,7 +67,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -139,7 +141,7 @@ implements ActionConstants, Window.IExceptionHandler {
     private GregorianCalendar currentToDate;				// Fin de l'intervalle de dates en cours de sélection
     private RecoveryEntry currentEntry;						// Entrée en cours de sélection (utile pour le détail d'une archive)
     private EntryArchiveData currentEntryData;   		    // En cas d'affichage de l'historique d'une entrée, date en cours de sélection
-    private String[] currentFilter;									// En cas de sélection d'un noeud sur le panel de détail d'une archive (répertoire ou Entry réelle), nom de celui ci.
+    private RecoveryFilter currentFilter;									// En cas de sélection d'un noeud sur le panel de détail d'une archive (répertoire ou Entry réelle), nom de celui ci.
     private boolean latestVersionRecoveryMode;         // Indique si la recovery se fera en dernière version ou non
 
     private Set channels = new HashSet();
@@ -263,18 +265,26 @@ implements ActionConstants, Window.IExceptionHandler {
             // BACKUP
             if (RecoveryProcess.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                 RecoveryProcess process = (RecoveryProcess)this.getCurrentObject();
-                launchBackupOnProcess(process);
+                launchBackupOnProcess(process, AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);
             } else if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
-                launchBackupOnTarget(this.getCurrentTarget(), null);
+                // BACKUP WITH MANIFEST
+                Manifest mf;
+                try {
+                    mf = ((AbstractIncrementalFileSystemMedium)this.getCurrentTarget().getMedium()).buildDefaultBackupManifest();
+                } catch (ApplicationException e1) {
+                    Logger.defaultLogger().error(e1);
+                    mf = new Manifest(Manifest.TYPE_BACKUP);
+                }
+                this.showBackupWindow(this.getCurrentTarget(), mf);   
             }
-        } else if (command.equals(CMD_COMPACT)) {
-            // COMPACT
+        } else if (command.equals(CMD_MERGE)) {
+            // MERGE
             AbstractRecoveryTarget target = this.getCurrentTarget();
             ArchiveMedium medium = target.getMedium();
             if (! ((AbstractIncrementalFileSystemMedium)medium).isOverwrite()) {
                 try {
                     Manifest manifest = this.getCurrentTarget().buildDefaultMergeManifest(this.getCurrentFromDate(), this.getCurrentToDate());
-                    this.showManifestEditionFrame(true, target, manifest);
+                    this.showMergeWindow(target, manifest);
                 } catch (ApplicationException e1) {
                     handleException(e1);
                 }                
@@ -379,6 +389,7 @@ implements ActionConstants, Window.IExceptionHandler {
             final boolean recoverDeletedEntries;
             if (command.equals(CMD_RECOVER_FROM_LOGICAL)) {
                 RecoverWindow window = new RecoverWindow();
+                window.setRecoverDeletedEntries(this.currentFilter != null && this.currentFilter.isContainsDeletedDirectory());
                 this.showDialog(window);
                 path = window.getLocation();
                 recoverDeletedEntries = window.isRecoverDeletedEntries();
@@ -393,7 +404,7 @@ implements ActionConstants, Window.IExceptionHandler {
                     RecoveryProcess process = target.getProcess();
                     ProcessRunner rn = new ProcessRunner(target) {
                         public void runCommand() throws ApplicationException {
-                            rProcess.processRecoverOnTarget(rTarget, (String[])argument, rPath, rFromDate, recoverDeletedEntries, context);
+                            rProcess.processRecoverOnTarget(rTarget, ((RecoveryFilter)argument).getFilter(), rPath, rFromDate, recoverDeletedEntries, context);
                         }
                     };
                     rn.rProcess = process;
@@ -471,17 +482,6 @@ implements ActionConstants, Window.IExceptionHandler {
                     rn.launch();                    
                 }  
             }        
-        } else if (command.equals(CMD_BACKUP_MANIFEST)) {
-            // BACKUP WITH MANIFEST
-            Manifest mf;
-            try {
-                mf = ((AbstractIncrementalFileSystemMedium)this.getCurrentTarget().getMedium()).buildDefaultBackupManifest();
-            } catch (ApplicationException e1) {
-                Logger.defaultLogger().error(e1);
-                mf = new Manifest();
-                mf.setType(Manifest.TYPE_BACKUP);
-            }
-            this.showManifestEditionFrame(false, this.getCurrentTarget(), mf);
         }  else if (command.equals(CMD_VIEW_MANIFEST)) {
             this.showArchiveDetail(null);
         } 
@@ -535,7 +535,7 @@ implements ActionConstants, Window.IExceptionHandler {
         String prefix = Util.replace(this.getCurrentProcess().getSource(), ".xml", "").toLowerCase().replace(' ', '_');
         prefix += "_" + this.getCurrentTarget().getId()+ "_every_";
 
-        CreateStrategyWindow win = new CreateStrategyWindow(OSTool.getUserHome(), prefix);
+        BackupStrategyWizardWindow win = new BackupStrategyWizardWindow(OSTool.getUserHome());
         showDialog(win);
 
         String path = win.getSelectedPath();
@@ -631,10 +631,12 @@ implements ActionConstants, Window.IExceptionHandler {
             commandPrefix = "";
         }
 
-        CreateBackupShortcutWindow win = new CreateBackupShortcutWindow(OSTool.getUserHome(), fileNameSelected, fileNameAll);
+        BackupShortcutWizardWindow win = new BackupShortcutWizardWindow(OSTool.getUserHome(), fileNameSelected, fileNameAll);
         showDialog(win);
         String path = win.getSelectedPath();
         boolean forSelectedOnly = win.isForSelectedOnly();
+        boolean full = win.isFull();
+        boolean differential = win.isDifferential();
 
         if (path != null) {
             String content = commentPrefix + "Backup script generated by Areca v" + VersionInfos.getLastVersion().getVersionId() + " on " + Utils.formatDisplayDate(new GregorianCalendar()) + "\n\n";
@@ -652,8 +654,10 @@ implements ActionConstants, Window.IExceptionHandler {
                         executable, 
                         this.getCurrentProcess(), 
                         isCurrentObjectTarget() ? getCurrentTarget() : null, 
-                                commentPrefix, 
-                                commandPrefix);
+                        commentPrefix, 
+                        commandPrefix,
+                        full,
+                        differential);
             } else {
                 Iterator iter = this.workspace.getProcessIterator();
                 while (iter.hasNext()) {
@@ -663,7 +667,9 @@ implements ActionConstants, Window.IExceptionHandler {
                             process, 
                             null, 
                             commentPrefix, 
-                            commandPrefix);
+                            commandPrefix,
+                            full,
+                            differential);
                 }
             }
 
@@ -712,12 +718,21 @@ implements ActionConstants, Window.IExceptionHandler {
             RecoveryProcess process, 
             AbstractRecoveryTarget target,
             String commentPrefix,
-            String commandPrefix        
+            String commandPrefix,
+            boolean full,
+            boolean differential
     ) {
-
-        String comments = commentPrefix + "Target Group : \"" + process.getName() + "\"\n";
+        String type = full ? AbstractRecoveryTarget.BACKUP_SCHEME_FULL : (differential ? AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL : AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);
+        
+        String comments = commentPrefix + type + "\n" + commentPrefix + "Target Group : \"" + process.getName() + "\"\n";
         String configPath = FileSystemManager.getAbsolutePath(process.getSourceFile());
-        String command = "backup -config \"" + configPath + "\"";
+        String command = "backup ";
+        if (full) {
+            command = "-f ";
+        } else if (differential) {
+            command += "-d ";
+        }
+        command += "-config \"" + configPath + "\"";
         if (target != null) {
             command += " -target " + target.getId();
             comments += commentPrefix + "Target : \"" + target.getTargetName() + "\"\n";
@@ -817,10 +832,10 @@ implements ActionConstants, Window.IExceptionHandler {
 
         try {
             AbstractIncrementalFileSystemMedium fsMedium = (AbstractIncrementalFileSystemMedium)target.getMedium();
-            Manifest mf = ArchiveManifestCache.getInstance().getManifest(fsMedium, fsMedium.getLastArchive(currentFromDate));
+            Manifest mf = ArchiveManifestCache.getInstance().getManifest(fsMedium, fsMedium.getLastArchive(null, currentFromDate));
 
             if (mf == null) {
-                mf = new Manifest();
+                mf = new Manifest(Manifest.TYPE_BACKUP);
                 mf.setDate(currentFromDate);
             }
 
@@ -875,11 +890,11 @@ implements ActionConstants, Window.IExceptionHandler {
         }
     } 
 
-    public void launchBackupOnProcess(RecoveryProcess process) {
+    public void launchBackupOnProcess(RecoveryProcess process, String backupScheme) {
         Iterator iter = process.getTargetIterator();
         while (iter.hasNext()) {
             AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
-            this.launchBackupOnTarget(tg, null);
+            this.launchBackupOnTarget(tg, null, backupScheme);
         }
     }
 
@@ -887,15 +902,15 @@ implements ActionConstants, Window.IExceptionHandler {
         Iterator iter = this.workspace.getProcessIterator();
         while (iter.hasNext()) {
             RecoveryProcess process = (RecoveryProcess)iter.next();
-            this.launchBackupOnProcess(process);
+            this.launchBackupOnProcess(process, AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);
         }
     }
 
-    public void launchBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest) {
+    public void launchBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest, final String backupScheme) {
         RecoveryProcess process = target.getProcess();
         ProcessRunner rn = new ProcessRunner(target) {
             public void runCommand() throws ApplicationException {
-                rProcess.processBackupOnTarget(rTarget, rManifest, context);
+                rProcess.processBackupOnTarget(rTarget, rManifest, context, backupScheme);
             }
 
             protected void finishCommand() {
@@ -932,11 +947,17 @@ implements ActionConstants, Window.IExceptionHandler {
         rn.launch();                    
     }
 
-    public void showManifestEditionFrame(boolean isCompact, AbstractRecoveryTarget target, Manifest manifest) {
-        ManifestWindow frm = new ManifestWindow(
+    public void showBackupWindow(AbstractRecoveryTarget target, Manifest manifest) {
+        BackupWindow frm = new BackupWindow(
                 manifest, 
-                target,
-                isCompact);
+                target);
+        showDialog(frm);
+    }
+    
+    public void showMergeWindow(AbstractRecoveryTarget target, Manifest manifest) {
+        MergeWindow frm = new MergeWindow(
+                manifest, 
+                target);
         showDialog(frm);
     }
 
@@ -1049,25 +1070,17 @@ implements ActionConstants, Window.IExceptionHandler {
         return currentEntry;
     }
 
-    public String[] getCurrentFilter() {
-        return currentFilter;
-    }
-
-    public void setCurrentFilter(String[] argCurrentFilter) {
-        boolean containsRoot = false;
-        if (argCurrentFilter != null) {
-            for (int i=0; i<argCurrentFilter.length; i++) {
-                if (argCurrentFilter[i].equals("/") || argCurrentFilter[i].equals("\\")) {
-                    containsRoot = true;
+    public void setCurrentFilter(RecoveryFilter argCurrentFilter) {
+        if (argCurrentFilter != null && argCurrentFilter.getFilter() != null) {
+            for (int i=0; i<argCurrentFilter.getFilter().length; i++) {
+                if (argCurrentFilter.getFilter()[i].equals("/") || argCurrentFilter.getFilter()[i].equals("\\")) {
+                    argCurrentFilter.setFilter(null);
                     break;
                 }
             }
         } 
-        if (! containsRoot) {
-            this.currentFilter = argCurrentFilter;
-        } else {
-            this.currentFilter = null;
-        }
+
+        this.currentFilter = argCurrentFilter;
     }
 
     public GregorianCalendar getCurrentFromDate() {

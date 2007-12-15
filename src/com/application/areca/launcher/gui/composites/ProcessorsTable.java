@@ -32,7 +32,7 @@ import com.application.areca.processor.ProcessorList;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -80,12 +80,12 @@ public class ProcessorsTable {
         
         TableColumn col1 = new TableColumn(tblProc, SWT.NONE);
         col1.setText(RM.getLabel("targetedition.proctable.type.label"));
-        col1.setWidth(200);
+        col1.setWidth(AbstractWindow.computeWidth(200));
         col1.setMoveable(true);
 
         TableColumn col2 = new TableColumn(tblProc, SWT.NONE);
         col2.setText(RM.getLabel("targetedition.proctable.parameters.label"));
-        col2.setWidth(300);
+        col2.setWidth(AbstractWindow.computeWidth(300));
         col2.setMoveable(true);
 
         tblProc.setHeaderVisible(true);
@@ -145,9 +145,9 @@ public class ProcessorsTable {
 
     private GridLayout initLayout(int nbCols) {
         GridLayout layout = new GridLayout();
-        layout.marginWidth = 10;
+        layout.marginWidth = 0;
         layout.numColumns = nbCols;
-        layout.marginHeight = 10;
+        layout.marginHeight = 0;
         layout.verticalSpacing = 10;
         layout.horizontalSpacing = 10;
         return layout;

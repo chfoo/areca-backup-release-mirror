@@ -17,6 +17,7 @@ import com.application.areca.RecoveryEntry;
 import com.application.areca.TargetActions;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.metadata.manifest.Manifest;
+import com.application.areca.metadata.manifest.ManifestKeys;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -31,7 +32,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -61,6 +62,7 @@ implements TargetActions {
     
     protected String sourcesRoot = "";
     protected Set sources;
+    protected boolean followSubdirectories = true;
     
     /**
      * Tells wether symbolic are considered as normal files or as symbolic links
@@ -78,6 +80,7 @@ implements TargetActions {
         super.copyAttributes(other);
         other.sourcesRoot = sourcesRoot;
         other.trackSymlinks = trackSymlinks;
+        other.followSubdirectories = followSubdirectories;
         other.sources = DuplicateHelper.duplicate(sources, false);
     }
 
@@ -86,7 +89,15 @@ implements TargetActions {
         deduplicate(this.sources);
         this.computeSourceRoot();
     }
-    
+
+    public boolean isFollowSubdirectories() {
+        return followSubdirectories;
+    }
+
+    public void setFollowSubdirectories(boolean followSubdirectories) {
+        this.followSubdirectories = followSubdirectories;
+    }
+
     /**
      * Removes duplicate sources
      */
@@ -191,10 +202,10 @@ implements TargetActions {
     }
 
     public void commitBackup(ProcessContext context) throws ApplicationException {
-        context.getManifest().addProperty("Unfiltered directories", "" + context.getReport().getUnfilteredDirectories());
-        context.getManifest().addProperty("Unfiltered files", "" + context.getReport().getUnfilteredFiles());        
-        context.getManifest().addProperty("Scanned entries (files or directories)", "" + (context.getReport().getUnfilteredFiles() + context.getReport().getUnfilteredDirectories() + context.getReport().getFilteredEntries()));        
-        context.getManifest().addProperty("Source path", this.sourcesRoot);
+        context.getManifest().addProperty(ManifestKeys.UNFILTERED_DIRECTORIES, context.getReport().getUnfilteredDirectories());
+        context.getManifest().addProperty(ManifestKeys.UNFILTERED_FILES, context.getReport().getUnfilteredFiles());        
+        context.getManifest().addProperty(ManifestKeys.SCANNED_ENTRIES, context.getReport().getUnfilteredFiles() + context.getReport().getUnfilteredDirectories() + context.getReport().getFilteredEntries());        
+        context.getManifest().addProperty(ManifestKeys.SOURCE_PATH, this.sourcesRoot);
         
         super.commitBackup(context);
     }
@@ -218,11 +229,9 @@ implements TargetActions {
                 }
                 
                 try {
-                    if (
-                            FileSystemManager.isDirectory(f) && ((! trackSymlinks) || (! FileSystemManager.isLink(f)))
-                    ) {
+                    if (FileSystemManager.isDirectory(f) && ((! trackSymlinks) || (! FileSystemManager.isLink(f)))) {
                         // check if we can iterate on this directory
-                        if (this.acceptEntry(entry, false, context)) {
+                        if (followSubdirectories && this.acceptEntry(entry, false, context)) {
                             context.getFileSystemLevels().push(context.getCurrentLevel());
                             context.setCurrentLevel(new FileSystemLevel(f, context.getCurrentLevel()));
                             
@@ -294,11 +303,11 @@ implements TargetActions {
         return tName + (this.sourcesRoot.length() != 0 ? " - FileSystem (" + this.sourcesRoot + ")" : "");
     }
     
-    public void open(Manifest manifest, ProcessContext context) throws ApplicationException {
+    public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
         Logger.defaultLogger().info("Initializing backup context ...");
         Logger.defaultLogger().info("Global source root : " + this.sourcesRoot);
         
-        super.open(manifest, context);
+        super.open(manifest, context, backupScheme);
         initCurrentLevel(context);
         Logger.defaultLogger().info("Backup context initialized.");
     }   

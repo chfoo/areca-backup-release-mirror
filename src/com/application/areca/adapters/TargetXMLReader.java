@@ -44,7 +44,7 @@ import com.myJava.file.CompressionArguments;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -122,6 +122,13 @@ public class TargetXMLReader implements XMLTags {
             target.setTrackSymlinks(! Boolean.valueOf(followSymLinksNode.getNodeValue()).booleanValue());
         } else {
             target.setTrackSymlinks(false);
+        }
+        
+        Node followSubDirectoriesNode = targetNode.getAttributes().getNamedItem(XML_TARGET_FOLLOW_SUBDIRECTORIES);  
+        if (followSubDirectoriesNode != null) {
+            target.setFollowSubdirectories(! Boolean.valueOf(followSubDirectoriesNode.getNodeValue()).booleanValue());
+        } else {
+            target.setFollowSubdirectories(true);
         }
         
         HashSet sources = new HashSet();

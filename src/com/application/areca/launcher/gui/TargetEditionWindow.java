@@ -13,8 +13,6 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
@@ -64,6 +62,7 @@ import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.composites.ProcessorsTable;
@@ -82,7 +81,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -139,11 +138,12 @@ extends AbstractWindow {
     protected Button rdZip;
     protected Button rdZip64;
     protected Button chkTrackDirectories;
+    protected Button chkFollowSubDirectories;
     protected Button chkTrackPermissions;
     protected Button chkEncrypted;
     protected Button chkMultiVolumes;
     protected Button chkFollowLinks;
-    protected Button chkIncremental;
+    protected Button chkOverwrite;
     protected Text txtEncryptionKey;
     protected Text txtMultiVolumes;
     protected Combo cboEncryptionAlgorithm;
@@ -185,8 +185,7 @@ extends AbstractWindow {
             layout.numColumns = 1;
             ret.setLayout(layout);
 
-            CTabFolder tabs = new CTabFolder(ret, SWT.BORDER | SWT.VERTICAL);
-            tabs.setSimple(Application.SIMPLE_SUBTABS);
+            ListPane tabs = new ListPane(ret, SWT.NONE, false);
             GridData dt1 = new GridData();
             dt1.grabExcessHorizontalSpace = true;
             dt1.grabExcessVerticalSpace = true;
@@ -210,28 +209,25 @@ extends AbstractWindow {
             save.setLayoutData(dt2);
             btnSave = pnlSave.getBtnSave();
             
-            initValues();
-            
             tabs.setSelection(0);
+            ret.pack(true);
+            initValues();
         } finally {
             application.disableWaitCursor();
         }
         return ret;
     }
     
-    private Composite initTab(CTabFolder tabs, String title) {
-        CTabItem itm = new CTabItem(tabs, SWT.NONE);
-        Application.setTabLabel(itm, title, false);
-        Composite composite = new Composite(tabs, SWT.NONE);
-        itm.setControl(composite);
-        return composite;
+    private Composite initTab(ListPane tabs, String title) {
+        Composite itm = tabs.addElement(title, title);
+        return itm;
     }
     
     private GridLayout initLayout(int nbCols) {
         GridLayout layout = new GridLayout();
-        layout.marginWidth = 10;
+        layout.marginWidth = 0;
         layout.numColumns = nbCols;
-        layout.marginHeight = 10;
+        layout.marginHeight = 0;
         layout.verticalSpacing = 10;
         layout.horizontalSpacing = 10;
         return layout;
@@ -338,7 +334,7 @@ extends AbstractWindow {
             this.strButton.put(plugin.getId(), btn);
         }
         
-        txtTargetName.forceFocus();
+        //txtTargetName.forceFocus();
     }
     
     private void initSourcesTab(Composite composite) {
@@ -347,12 +343,12 @@ extends AbstractWindow {
         TableViewer viewer = new TableViewer(composite, SWT.BORDER | SWT.SINGLE);
         tblSources = viewer.getTable();
         GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1);
-        dt.heightHint = computeHeight(50);
+        dt.heightHint = computeHeight(100);
         tblSources.setLayoutData(dt);
         
         TableColumn col1 = new TableColumn(tblSources, SWT.NONE);
         col1.setText(RM.getLabel("targetedition.sourcedirfield.label"));
-        col1.setWidth(400);
+        col1.setWidth(AbstractWindow.computeWidth(400));
         col1.setMoveable(true);
         
         tblSources.setHeaderVisible(true);
@@ -545,10 +541,10 @@ extends AbstractWindow {
         grpFileManagement.setLayout(lytFileManagement);
         grpFileManagement.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true));
         
-        chkIncremental = new Button(grpFileManagement, SWT.CHECK);
-        monitorControl(chkIncremental);
-        chkIncremental.setText(RM.getLabel("targetedition.incremental.label"));
-        chkIncremental.setToolTipText(RM.getLabel("targetedition.incremental.tooltip"));
+        chkOverwrite = new Button(grpFileManagement, SWT.CHECK);
+        monitorControl(chkOverwrite);
+        chkOverwrite.setText(RM.getLabel("targetedition.overwrite.label"));
+        chkOverwrite.setToolTipText(RM.getLabel("targetedition.overwrite.tooltip"));
         
         chkTrackDirectories = new Button(grpFileManagement, SWT.CHECK);
         monitorControl(chkTrackDirectories);
@@ -559,6 +555,11 @@ extends AbstractWindow {
         monitorControl(chkTrackPermissions);
         chkTrackPermissions.setText(RM.getLabel("targetedition.trackperms.label"));
         chkTrackPermissions.setToolTipText(RM.getLabel("targetedition.trackperms.tooltip"));
+        
+        chkFollowSubDirectories = new Button(grpFileManagement, SWT.CHECK);
+        monitorControl(chkFollowSubDirectories);
+        chkFollowSubDirectories.setText(RM.getLabel("targetedition.followsubdirs.label"));
+        chkFollowSubDirectories.setToolTipText(RM.getLabel("targetedition.followsubdirs.tooltip"));
         
         chkFollowLinks = new Button(grpFileManagement, SWT.CHECK);
         monitorControl(chkFollowLinks);
@@ -629,17 +630,17 @@ extends AbstractWindow {
         
         TreeColumn col1 = new TreeColumn(treFilters, SWT.NONE);
         col1.setText(RM.getLabel("targetedition.filterstable.type.label"));
-        col1.setWidth(200);
+        col1.setWidth(computeWidth(200));
         col1.setMoveable(true);
         
         TreeColumn col2 = new TreeColumn(treFilters, SWT.NONE);
         col2.setText(RM.getLabel("targetedition.filterstable.parameters.label"));
-        col2.setWidth(200);
+        col2.setWidth(computeWidth(200));
         col2.setMoveable(true);
         
         TreeColumn col3 = new TreeColumn(treFilters, SWT.NONE);
         col3.setText(RM.getLabel("targetedition.filterstable.mode.label"));
-        col3.setWidth(100);
+        col3.setWidth(computeWidth(100));
         col3.setMoveable(true);
         
         treFilters.setHeaderVisible(true);
@@ -869,8 +870,9 @@ extends AbstractWindow {
             
             AbstractIncrementalFileSystemMedium fMedium = (AbstractIncrementalFileSystemMedium)target.getMedium();
             
-            chkIncremental.setSelection(! fMedium.isOverwrite());
+            chkOverwrite.setSelection(fMedium.isOverwrite());
             chkTrackDirectories.setSelection(fMedium.isTrackDirectories());
+            chkFollowSubDirectories.setSelection(((FileSystemRecoveryTarget)target).isFollowSubdirectories());
             chkTrackPermissions.setSelection(fMedium.isTrackPermissions());
             chkFollowLinks.setSelection( ! ((FileSystemRecoveryTarget)target).isTrackSymlinks());
             
@@ -961,7 +963,8 @@ extends AbstractWindow {
             // Default settings
             rdZip.setSelection(true);
             rdFile.setSelection(true);
-            chkIncremental.setSelection(true);
+            chkOverwrite.setSelection(false);
+            chkFollowSubDirectories.setSelection(true);
             chkTrackDirectories.setSelection(true);
             rdArchive.setSelection(true);
             selectEncoding(ZipConstants.DEFAULT_CHARSET);
@@ -1017,7 +1020,7 @@ extends AbstractWindow {
             rdZip64.setEnabled(false);
             chkEncrypted.setEnabled(false);
             chkMultiVolumes.setEnabled(false);
-            chkIncremental.setEnabled(false);
+            chkOverwrite.setEnabled(false);
             cboEncryptionAlgorithm.setEnabled(false);
             lblEncryptionAlgorithm.setEnabled(false);
             lblEncryptionKey.setEnabled(false);
@@ -1026,6 +1029,7 @@ extends AbstractWindow {
             txtMultiVolumes.setEnabled(false);
             lblMultiVolumesUnit.setEnabled(false);
             chkTrackDirectories.setEnabled(false);
+            chkFollowSubDirectories.setEnabled(false);
             chkTrackPermissions.setEnabled(false);
             chkFollowLinks.setEnabled(false);
             lblZipComment.setEnabled(false);
@@ -1351,6 +1355,7 @@ extends AbstractWindow {
             newTarget.setComments(this.txtDesc.getText());
             newTarget.setTargetName(txtTargetName.getText());
             newTarget.setTrackSymlinks( ! this.chkFollowLinks.getSelection());
+            newTarget.setFollowSubdirectories(this.chkFollowSubDirectories.getSelection());
             
             // Sources
             HashSet sources = new HashSet();
@@ -1425,7 +1430,7 @@ extends AbstractWindow {
                 medium.setCompressionArguments(compression);
                 medium.setFileSystemPolicy(storagePolicy);
                 medium.setEncryptionPolicy(encrArgs);
-                ((AbstractIncrementalFileSystemMedium)medium).setOverwrite(! this.chkIncremental.getSelection());
+                ((AbstractIncrementalFileSystemMedium)medium).setOverwrite(this.chkOverwrite.getSelection());
                 ((AbstractIncrementalFileSystemMedium)medium).setTrackDirectories(this.chkTrackDirectories.getSelection());
                 ((AbstractIncrementalFileSystemMedium)medium).setTrackPermissions(this.chkTrackPermissions.getSelection());
                

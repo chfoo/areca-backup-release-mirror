@@ -8,9 +8,6 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -27,6 +24,7 @@ import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
+import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
@@ -40,7 +38,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -64,8 +62,8 @@ This file is part of Areca.
  */
 public class AboutWindow
 extends AbstractWindow {
-    private static final int widthHint = computeWidth(450);
-    private static final int heightHint = computeHeight(140);
+    private static final int widthHint = computeWidth(400);
+    private static final int heightHint = computeHeight(250);
     
     private static final ResourceManager RM = ResourceManager.instance();
     private static final String CREDITS_TXT_WIN = RM.getLabel("about.creditswin.label", new Object[] {VersionInfos.APP_NAME});
@@ -74,65 +72,47 @@ extends AbstractWindow {
         application.enableWaitCursor();
         Composite ret = new Composite(parent, SWT.NONE);
         try {
-            FillLayout layout = new FillLayout();
+            GridLayout layout = new GridLayout(2, false);
             ret.setLayout(layout);
+            
+            Label icon = new Label(ret, SWT.NONE);
+            icon.setImage(ArecaImages.ICO_BIG);
+            GridData dt = new GridData(SWT.CENTER, SWT.TOP, false, false);
+            icon.setLayoutData(dt);
 
-            CTabFolder tabs = new CTabFolder(ret, SWT.BORDER);
-            tabs.setSimple(Application.SIMPLE_SUBTABS);
-
+            ListPane tabs = new ListPane(ret, SWT.NONE, true);
+            tabs.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 2));
             initAboutContent(addTab(tabs, RM.getLabel("about.abouttab.label", new Object[] {VersionInfos.APP_NAME})));
             initCreditsContent(addTab(tabs, RM.getLabel("about.creditstab.label")));
             initHistoryContent(addTab(tabs, RM.getLabel("about.historytab.label")));
             initLicenseContent(addTab(tabs, RM.getLabel("about.licensetab.label")));
             initSystemContent(addTab(tabs, RM.getLabel("about.systemtab.label")));
-
-            tabs.setSelection(0);
             
-            tabs.pack();
+            GridData dt3 = new GridData(SWT.CENTER, SWT.BOTTOM, false, true);
+            Link lnk = new Link(ret, SWT.NONE);
+            lnk.addListener (SWT.Selection, new Listener() {
+                public void handleEvent(Event event) {
+                    try {
+                        OSTool.launchBrowser(event.text);
+                    } catch (Exception e) {
+                        Logger.defaultLogger().error(e);
+                    }
+                }
+            });
+            lnk.setText("<A HREF=\"http://areca.sourceforge.net\">areca.sf.net</A>");
+            lnk.setLayoutData(dt3);
+            
+            tabs.setSelection(0);
+            ret.pack();
         } finally {
             application.disableWaitCursor();
         }
         return ret;
     }
     
-    private Composite addTab(CTabFolder tabs, String titleKey) {
-        CTabItem itm = new CTabItem(tabs, SWT.NONE);
-        Application.setTabLabel(itm, titleKey, false);
-        
-        Composite tab = new Composite(tabs, SWT.NONE);
-        GridLayout layout = new GridLayout();
-        layout.numColumns = 2;
-        tab.setLayout(layout);
-        layout.horizontalSpacing = 30;
-        layout.verticalSpacing = 30;
-        layout.marginHeight = 30;
-        layout.marginWidth = 30;
-        itm.setControl(tab);
-        Label icon = new Label(tab, SWT.NONE);
-        icon.setImage(ArecaImages.ICO_BIG);
-        GridData dt = new GridData(SWT.CENTER, SWT.TOP, false, false);
-        icon.setLayoutData(dt);
-        
-        Composite content = new Composite(tab, SWT.NONE);
-        GridData dt2 = new GridData(SWT.FILL, SWT.FILL, true, true);
-        dt2.verticalSpan = 2;
-        content.setLayoutData(dt2);
-        
-        GridData dt3 = new GridData(SWT.CENTER, SWT.BOTTOM, false, true);
-        Link lnk = new Link(tab, SWT.NONE);
-        lnk.addListener (SWT.Selection, new Listener() {
-            public void handleEvent(Event event) {
-                try {
-                    OSTool.launchBrowser(event.text);
-                } catch (Exception e) {
-                    Logger.defaultLogger().error(e);
-                }
-            }
-        });
-        lnk.setText("<A HREF=\"http://areca.sourceforge.net\">areca.sf.net</A>");
-        lnk.setLayoutData(dt3);
-        
-        return content;        
+    private Composite addTab(ListPane tabs, String titleKey) {
+        Composite tab = tabs.addElement(titleKey, titleKey);
+        return tab;        
     }
 
     private void initAboutContent(Composite composite) {
@@ -143,7 +123,6 @@ extends AbstractWindow {
                 "\n\n" + RM.getLabel("about.copyright.label");
         
         content.setText(txt);
-        content.forceFocus();
     }
     
     private void initCreditsContent(Composite composite) {

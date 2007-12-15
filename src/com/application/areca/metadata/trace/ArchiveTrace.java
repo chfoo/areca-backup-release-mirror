@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -81,6 +81,10 @@ public class ArchiveTrace {
         files = new HashMap();
         directories = new HashMap();
         symLinks = new HashMap();
+    }
+    
+    public boolean isEmpty() {
+        return files.isEmpty() && directories.isEmpty() && symLinks.isEmpty();
     }
     
     /**
@@ -433,20 +437,20 @@ public class ArchiveTrace {
      * Checks wether the entry has been modified
      */
     public boolean hasFileBeenModified(FileSystemRecoveryEntry fEntry) throws IOException {
-        return
-        ! (
-                ((String)files.get(fEntry.getName()) + INTERNAL_SEP)
-                .startsWith(hash(fEntry, false) + INTERNAL_SEP)
-        );
+        return hasBeenModified(hash(fEntry, false), (String)files.get(fEntry.getName()));
     }
     
     public boolean hasSymLinkBeenModified(FileSystemRecoveryEntry fEntry) throws IOException {
-        return
-        ! (
-                ((String)symLinks.get(fEntry.getName()) + INTERNAL_SEP)
-                .startsWith(hash(fEntry, true) + INTERNAL_SEP)
-        );
+        return hasBeenModified(hash(fEntry, true), (String)symLinks.get(fEntry.getName()));
     }
+    
+    /**
+     * Checks wether the entry has been modified
+     */
+    public static boolean hasBeenModified(String newHash, String oldHash) {
+        return ! (oldHash + INTERNAL_SEP).startsWith(newHash + INTERNAL_SEP);
+    }
+
     
     public ArchiveTrace cloneTrace() {
         ArchiveTrace ret = new ArchiveTrace();

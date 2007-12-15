@@ -1,16 +1,13 @@
-package com.application.areca.metadata.data;
+package com.application.areca.launcher.gui.common;
 
-import java.io.File;
-import java.io.IOException;
+import org.eclipse.swt.widgets.Composite;
 
-import com.application.areca.metadata.AbstractMetadataAdapter;
 
 /**
- * Adapter to read/write a MetaData
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -32,20 +29,25 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class MetaDataAdapter extends AbstractMetadataAdapter {
-
-    public MetaDataAdapter(File file) {
-        this.file = file;
+public class ListPaneElement {
+    private String key;
+    private String label;
+    private Composite composite;
+    
+    public ListPaneElement(String key, String label, Composite composite) {
+        super();
+        this.key = key;
+        this.label = label;
+        this.composite = composite;
     }
     
-    public MetaData readMetaData() throws IOException {
-        MetaData props = new MetaData();
-        props.getProperties().load(this.getInputStream());
-        return props;
+    public Composite getComposite() {
+        return composite;
     }
-    
-    public void writeMetaData(MetaData data) throws IOException {
-        this.initOutputStream();
-        data.getProperties().store(this.outputStream, "");
+    public String getKey() {
+        return key;
+    }
+    public String getLabel() {
+        return label;
     }
 }

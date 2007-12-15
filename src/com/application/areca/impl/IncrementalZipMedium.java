@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
+import com.application.areca.metadata.manifest.Manifest;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.archive.ArchiveAdapter;
 import com.myJava.file.archive.ArchiveReader;
@@ -22,7 +24,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -76,20 +78,26 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
         }
     }
 
-    public void open(ProcessContext context) throws ApplicationException {
+    public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
         if (overwrite) {
             // Delete all archives
             context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2, "backup-delete");
             this.deleteArchives(null, context);
             context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8, "backup-main");
         }
-        super.open(context);
+        super.open(manifest, context, backupScheme);
     }
     
     protected void closeArchive(ProcessContext context) throws IOException {
         if (context.getArchiveWriter() != null) {
             context.getArchiveWriter().close();
         }
+    }
+
+    public boolean supportsBackupScheme(String backupScheme) {
+        return 
+            super.supportsBackupScheme(backupScheme)
+            && ! (backupScheme.equals(AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL) && this.overwrite);
     }
 
     /**
@@ -156,7 +164,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
             
             for (int i=0; i<elementaryArchives.length; i++) {
                 context.getTaskMonitor().checkTaskCancellation();      
-                context.getInfoChannel().updateCurrentTask(i+1, elementaryArchives.length, "Processing " + FileSystemManager.getPath(elementaryArchives[i]) + " ...");
+                context.getInfoChannel().updateCurrentTask(i+1, elementaryArchives.length, "Recovering " + FileSystemManager.getPath(elementaryArchives[i]) + " ...");
                 
                 ArchiveReader zrElement = new ArchiveReader(buildArchiveAdapter(elementaryArchives[i], false));
 

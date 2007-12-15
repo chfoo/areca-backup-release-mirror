@@ -27,7 +27,7 @@ import com.application.areca.launcher.gui.common.Refreshable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -82,11 +82,11 @@ implements Listener, Refreshable, HistoryEntryTypes {
         new org.eclipse.swt.widgets.TableColumn(table, SWT.NONE);
         new org.eclipse.swt.widgets.TableColumn(table, SWT.NONE | SWT.WRAP);
 
-        table.getColumn(0).setWidth(300);
+        table.getColumn(0).setWidth(AbstractWindow.computeWidth(300));
         table.getColumn(0).setMoveable(true);
-        table.getColumn(1).setWidth(400);
+        table.getColumn(1).setWidth(AbstractWindow.computeWidth(400));
         table.getColumn(1).setMoveable(true);
-        table.getColumn(2).setWidth(100);
+        table.getColumn(2).setWidth(AbstractWindow.computeWidth(100));
         table.getColumn(2).setAlignment(SWT.RIGHT);
         table.getColumn(2).setMoveable(true);
 

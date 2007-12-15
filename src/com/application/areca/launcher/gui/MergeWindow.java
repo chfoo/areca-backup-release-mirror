@@ -18,7 +18,7 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -40,21 +40,19 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ManifestWindow 
+public class MergeWindow 
 extends AbstractWindow {
-    
+
     protected Manifest manifest;
-    protected boolean mergeMode;
     protected AbstractRecoveryTarget target;
-    
+
     protected Text txtTitle;
     protected Text txtDescription;
     protected Button btnKeepDeletedEntries;
-    
-    public ManifestWindow(Manifest manifest, AbstractRecoveryTarget target, boolean mergeMode) {
+
+    public MergeWindow(Manifest manifest, AbstractRecoveryTarget target) {
         super();
         this.manifest = manifest;
-        this.mergeMode = mergeMode;
         this.target = target;
     }
 
@@ -63,43 +61,39 @@ extends AbstractWindow {
         GridLayout layout = new GridLayout();
         layout.numColumns = 2;
         composite.setLayout(layout);
-        
+
         Label lblTitle = new Label(composite, SWT.NONE);
         lblTitle.setText(RM.getLabel("archivedetail.titlefield.label"));
-        
+
         txtTitle = new Text(composite, SWT.BORDER);
         GridData ldTitle = new GridData();
         ldTitle.grabExcessHorizontalSpace = true;
         ldTitle.horizontalAlignment = SWT.FILL;
         txtTitle.setLayoutData(ldTitle);
         monitorControl(txtTitle);
-        
+
         Label lblDescription = new Label(composite, SWT.NONE);
         lblDescription.setText(RM.getLabel("archivedetail.descriptionfield.label"));
-        
+
         txtDescription = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
         GridData ldDescription = new GridData(SWT.FILL, SWT.FILL, true, true);
         ldDescription.widthHint = computeWidth(400);
         ldDescription.heightHint = computeHeight(100);
         txtDescription.setLayoutData(ldDescription);
         monitorControl(txtDescription);
-        
-        if (mergeMode) {
-            new Label(composite, SWT.NONE);
-            btnKeepDeletedEntries = new Button(composite, SWT.CHECK);
-            btnKeepDeletedEntries.setSelection(false);
-            btnKeepDeletedEntries.setText(RM.getLabel("archivedetail.keepdeletedentries.label"));
-            btnKeepDeletedEntries.setToolTipText(RM.getLabel("archivedetail.keepdeletedentries.tt"));
-            btnKeepDeletedEntries.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-            monitorControl(btnKeepDeletedEntries);
-        }
-        
-        String saveLabel;
-        if (mergeMode) {
-            saveLabel = RM.getLabel("archivedetail.startmergeaction.label");
-        } else {
-            saveLabel = RM.getLabel("archivedetail.startbackupaction.label");
-        }
+
+
+        new Label(composite, SWT.NONE);
+        btnKeepDeletedEntries = new Button(composite, SWT.CHECK);
+        btnKeepDeletedEntries.setSelection(false);
+        btnKeepDeletedEntries.setText(RM.getLabel("archivedetail.keepdeletedentries.label"));
+        btnKeepDeletedEntries.setToolTipText(RM.getLabel("archivedetail.keepdeletedentries.tt"));
+        btnKeepDeletedEntries.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+        monitorControl(btnKeepDeletedEntries);
+
+
+        String saveLabel = RM.getLabel("archivedetail.startmergeaction.label");
+
         SavePanel pnlSave = new SavePanel(saveLabel, this);
         Composite pnl = pnlSave.buildComposite(composite);
         GridData ldPnl = new GridData();
@@ -107,22 +101,18 @@ extends AbstractWindow {
         ldPnl.horizontalAlignment = SWT.FILL;
         ldPnl.horizontalSpan = 2;
         pnl.setLayoutData(ldPnl);
-        
+
         if (manifest != null) {
             txtTitle.setText(manifest.getTitle() == null ? "" : manifest.getTitle());
             txtDescription.setText(manifest.getDescription() == null ? "" : manifest.getDescription());
         }
-        
+
         composite.pack();
         return composite;
     }
 
     public String getTitle() {
-        if (mergeMode) {
-            return RM.getLabel("archivedetail.merge.title");
-        } else {
-            return RM.getLabel("archivedetail.backup.title");
-        }
+        return RM.getLabel("archivedetail.merge.title");
     }
 
     protected boolean checkBusinessRules() {
@@ -132,13 +122,7 @@ extends AbstractWindow {
     protected void saveChanges() {
         this.manifest.setDescription(this.txtDescription.getText());
         this.manifest.setTitle(this.txtTitle.getText());        
-        
-        if (mergeMode) {
-            this.application.launchCompactOnTarget(btnKeepDeletedEntries.getSelection(), this.manifest);
-        } else {
-            this.application.launchBackupOnTarget(target, this.manifest);            
-        }
-        
+        this.application.launchCompactOnTarget(btnKeepDeletedEntries.getSelection(), this.manifest);
         this.hasBeenUpdated = false;
         this.close();
     }

@@ -15,6 +15,7 @@ import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.FilterGroup;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.metadata.manifest.Manifest;
+import com.application.areca.metadata.manifest.ManifestKeys;
 import com.application.areca.processor.ProcessorList;
 import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
@@ -22,6 +23,7 @@ import com.application.areca.version.VersionInfos;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.PublicClonable;
+import com.myJava.system.OSTool;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.History;
@@ -35,7 +37,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -61,6 +63,10 @@ public abstract class AbstractRecoveryTarget
 implements HistoryEntryTypes, PublicClonable, Identifiable {
     
     private static final String K_FILTERED = "filtered entries";
+    
+    public static final String BACKUP_SCHEME_FULL = "Full backup";
+    public static final String BACKUP_SCHEME_INCREMENTAL = "Incremental backup";
+    public static final String BACKUP_SCHEME_DIFFERENTIAL = "Differential backup";
     
     protected ArchiveMedium medium;
     protected FilterGroup filterGroup = new FilterGroup();
@@ -88,6 +94,10 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         other.postProcessors = (ProcessorList)postProcessors.duplicate();
         other.preProcessors = (ProcessorList)preProcessors.duplicate();
         other.setMedium((ArchiveMedium)medium.duplicate(), true);
+    }
+    
+    public boolean supportsBackupScheme(String backupScheme) {
+        return this.medium.supportsBackupScheme(backupScheme);
     }
     
     public ProcessorList getPostProcessors() {
@@ -220,29 +230,28 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     /**
      * Ouvre la target - prend le lock sur la target.
      */
-    protected void open(Manifest manifest, ProcessContext context) throws ApplicationException {   
-        medium.open(manifest, context);
+    protected void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {   
+        medium.open(manifest, context, backupScheme);
     }   
     
     /**
      * Lance le backup sur cette target.
      */
-    public synchronized void processBackup(Manifest manifest, ProcessContext context) throws ApplicationException {
+    public synchronized void processBackup(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
         boolean backupRequired = true;
         
         // Si requis, on pré-vérifie qu'au moins un fichier a été modifié avant de déclencher le backup.
         // 2 conditions :
         // - Le support requiert une pré-vérification
         // - Le manifeste est null (ie l'utilisateur n'en a pas fourni un explicitement) - Si un manifeste est renseigné, on fait tjs le backup.
-        if (this.medium.isPreBackupCheckUseful() && manifest == null) {
+        if (this.medium.isPreBackupCheckUseful() && manifest == null && backupScheme.equals(BACKUP_SCHEME_INCREMENTAL)) {
             context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.3, "pre-check");
             context.getInfoChannel().print("Pre-check in progress ...");
             this.processSimulateImpl(context, false);
             context.getInfoChannel().print("Pre-check completed.");
             backupRequired = (context.getReport().getSavedFiles() > 0 || context.getReport().getDeletedFiles() > 0);
             context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.7, "backup");
-            
-            context.getReport().reset();
+            context.reset(false);
         }
         
         if (backupRequired) {
@@ -263,16 +272,16 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
             }
             
             if (manifest == null) {
-                manifest = new Manifest();
-                manifest.setType(Manifest.TYPE_BACKUP);
+                manifest = new Manifest(Manifest.TYPE_BACKUP);
             }
 
             try {
                 // Lance le backup ...
+                context.reset(false);
                 context.getInfoChannel().print("Backup in progress ...");
                 context.getTaskMonitor().checkTaskCancellation();
                 context.getReport().startDataFlowTimer();
-                this.open(manifest, context);
+                this.open(manifest, context, backupScheme);
 
                 try {
                     HistoryEntry entry = new HistoryEntry(HISTO_BACKUP, "Backup.");
@@ -393,7 +402,11 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     }    
     
     public static void addBasicInformationsToManifest(Manifest mf) {
-        mf.addProperty("Version", VersionInfos.getLastVersion().getVersionId() + " (" + VersionInfos.formatVersionDate(VersionInfos.getLastVersion().getVersionDate()) + ")");
+        mf.addProperty(ManifestKeys.VERSION, VersionInfos.getLastVersion().getVersionId());
+        mf.addProperty(ManifestKeys.VERSION_DATE, VersionInfos.formatVersionDate(VersionInfos.getLastVersion().getVersionDate()));        
+        mf.addProperty(ManifestKeys.BUILD_ID, VersionInfos.getBuildId());
+        mf.addProperty(ManifestKeys.ENCODING, OSTool.getIANAFileEncoding());        
+        mf.addProperty(ManifestKeys.OS_NAME, OSTool.getOSDescription());
     }
     
     /**
@@ -404,9 +417,9 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     	try {
             context.getTaskMonitor().checkTaskCancellation();
             context.getTaskMonitor().setCancellable(false);
-        	context.getManifest().addProperty("Filtered entries", "" + context.getReport().getFilteredEntries());
-        	context.getManifest().addProperty("Backup duration", Utils.formatDuration(System.currentTimeMillis() - context.getReport().getStartMillis()));     
-        	context.getManifest().addProperty("Target ID", this.getUid());
+        	context.getManifest().addProperty(ManifestKeys.FILTERED_ENTRIES, context.getReport().getFilteredEntries());
+        	context.getManifest().addProperty(ManifestKeys.BACKUP_DURATION, Utils.formatDuration(System.currentTimeMillis() - context.getReport().getStartMillis()));     
+        	context.getManifest().addProperty(ManifestKeys.TARGET_ID, this.getUid());
         	addBasicInformationsToManifest(context.getManifest());
         	
     		medium.commitBackup(context);

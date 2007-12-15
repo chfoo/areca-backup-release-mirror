@@ -1,19 +1,23 @@
 package com.application.areca.metadata.manifest;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.Util;
+import com.myJava.util.collections.CollectionTools;
 
 /**
  * Classe définissant un manifeste d'archive
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -43,7 +47,7 @@ public class Manifest {
     private static final String HEADER = "|MFST_HDR|";
     
     public static final int TYPE_BACKUP = 0;
-    public static final int TYPE_COMPACT = 1;    
+    public static final int TYPE_MERGE = 1;   
     
     private String author;
     private GregorianCalendar date;
@@ -52,10 +56,14 @@ public class Manifest {
     private Map properties;
     private int type;
     
-    public Manifest() {
+    public Manifest(int type) {
         this.date = new GregorianCalendar();
         this.properties = new HashMap();
-        this.type = TYPE_BACKUP;
+        this.type = type;
+    }
+    
+    private Manifest() {
+        this(TYPE_BACKUP);
     }
     
     public String getAuthor() {
@@ -86,6 +94,14 @@ public class Manifest {
     public void addProperty(String name, String value) {
         this.properties.put(name, value);
     }
+    
+    public void addProperty(String name, boolean value) {
+        addProperty(name, "" + value);
+    }
+    
+    public void addProperty(String name, long value) {
+        addProperty(name, "" + value);
+    }
 
     public int getType() {
         return type;
@@ -95,12 +111,29 @@ public class Manifest {
         this.type = type;
     }
     
-    public String getProperty(String name) {
-        return (String)this.properties.get(name);
+    public String getStringProperty(String name) {
+        return getStringProperty(name, null);
+    }
+    public String getStringProperty(String name, String defaultValue) {        
+        String value = (String)this.properties.get(name);
+        return value == null ? defaultValue : value;
+    }
+    
+    public int getIntProperty(String name) {
+        return Integer.parseInt((String)this.properties.get(name));
+    }
+    
+    public boolean getBooleanProperty(String name) {
+        return Boolean.valueOf((String)this.properties.get(name)).booleanValue();
     }
     
     public Iterator propertyIterator() {
-        return this.properties.keySet().iterator();
+        ArrayList list = new ArrayList(this.properties.size());
+        list.addAll(properties.keySet());
+        Object[] objs = list.toArray();
+        Arrays.sort(objs);
+        List ret = CollectionTools.toList(objs);
+        return ret.iterator();
     }
     
     public static final long getCurrentVersion() {
@@ -128,7 +161,7 @@ public class Manifest {
             sb.append(SEPARATOR);            
             sb.append(encodeField(key));
             sb.append(SEPARATOR);            
-            sb.append(encodeField(getProperty(key)));            
+            sb.append(encodeField(getStringProperty(key)));            
         }
 
         return sb.toString();
@@ -178,7 +211,7 @@ public class Manifest {
         source = Util.replace(source, SEPARATOR, " " + SEPARATOR + " ");
         String[] tokens = source.split(SEPARATOR);
         
-        Manifest m = new Manifest();
+        Manifest m = new Manifest(TYPE_BACKUP);
         
         m.author = decodeField(tokens[0].trim());
         m.date = CalendarUtils.resolveDate(decodeField(tokens[1].trim()), null);

@@ -16,7 +16,6 @@ import com.application.areca.launcher.InvalidCommandException;
 import com.application.areca.launcher.UserCommandLine;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
-import com.myJava.file.FileTool;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.Util;
 import com.myJava.util.log.ConsoleLogProcessor;
@@ -29,7 +28,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -122,7 +121,7 @@ implements CommandConstants {
             channel.print("Syntax   : (command) (options)");
             channel.print("Commands : describe / backup / merge / delete / recover");
             channel.print("Options (describe): -config (your xml config file)");
-            channel.print("Options (backup)  : -config (your xml config file) [-target (specific target)]");
+            channel.print("Options (backup)  : -config (your xml config file) [-f] [-d] [-target (specific target)]");
             channel.print("Options (merge) : -config (your xml config file) -target (specific target)  [-k] -date (recovery date : YYYY-MM-DD) / -from (nr of days - 0='-infinity') -to (nr of days - 0='today')");
             channel.print("Options (delete) : -config (your xml config file) -target (specific target) [-date (recovery date : YYYY-MM-DD) / -delay (nr of days)]");
             channel.print("Options (recover) : -config (your xml config file) -target (specific target) -destination (destination folder) [-date (recovery date : YYYY-MM-DD)]");
@@ -154,11 +153,23 @@ implements CommandConstants {
      * @param process
      */
     private static void processBackup(UserCommandLine command, final RecoveryProcess process, final ProcessContext context) throws Exception {
+        final String backupScheme;
+        String fOption = command.getOption(OPTION_FULL_BACKUP);
+        String dOption = command.getOption(OPTION_DIFFERENTIAL_BACKUP);        
+        if (fOption != null && fOption.trim().length() != 0) {
+            backupScheme = AbstractRecoveryTarget.BACKUP_SCHEME_FULL;
+        } else if (dOption != null && dOption.trim().length() != 0) {
+            backupScheme = AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL;
+        } else {
+            backupScheme = AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL;
+        }
+        
         if (command.hasOption(OPTION_TARGET)) {
             AbstractRecoveryTarget target = getTarget(process, command.getOption(OPTION_TARGET));
             process.processBackupOnTarget(
                     target,
-                    context
+                    context,
+                    backupScheme
             );
         } else {
             List thList = new ArrayList();
@@ -172,7 +183,8 @@ implements CommandConstants {
                         try {
                             process.processBackupOnTarget(
                                     tg,
-                                    cloneCtx
+                                    cloneCtx,
+                                    backupScheme
                             );
                         } catch (Exception e) {
                             handleError(e);

@@ -12,7 +12,7 @@ import com.application.areca.AbstractRecoveryTarget;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -70,7 +70,7 @@ public class ProcessReport {
     /**
      * Archives which have been restored during the recovery/merge process
      */
-    protected File[] recoveredFiles;
+    protected RecoveryResult recoveryResult;
     
     /**
      * Process start date (ms)
@@ -120,18 +120,18 @@ public class ProcessReport {
         this.filteredEntriesData = new FilteredEntries();
         this.filteredEntries = 0;
         this.ignoredFiles = 0;
-        this.recoveredFiles = null;
+        this.recoveryResult = null;
         this.savedFiles = 0;
     }
-    
-    public File[] getRecoveredFiles() {
-        return recoveredFiles;
+
+    public RecoveryResult getRecoveryResult() {
+        return recoveryResult;
     }
-    
-    public void setRecoveredFiles(File[] recoveredFiles) {
-        this.recoveredFiles = recoveredFiles;
+
+    public void setRecoveryResult(RecoveryResult recoveryResult) {
+        this.recoveryResult = recoveryResult;
     }
-    
+
     public GregorianCalendar getStartDate() {
         Date d = new Date(this.startMillis);
         GregorianCalendar c = new GregorianCalendar();

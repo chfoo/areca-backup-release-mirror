@@ -18,7 +18,7 @@ import com.myJava.util.history.History;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -92,17 +92,12 @@ public interface ArchiveMedium extends PublicClonable {
     public void destroyRepository() throws ApplicationException;
     
     /**
-     * Ouvre le support afin qu'il puisse héberger par la suite des entrées.
-     */    
-    public void open(ProcessContext context) throws ApplicationException;
-    
-    /**
      * Ouvre le support avec le manifest spécifié.
      * Ceci signifie que les entrées ajoutées le seront avec ce manifest.
      * Selon le mode de traitement du support, ce manifest peut écraser un manifest éventuellement
      * existant, ou au contraire le compléter.
      */
-    public void open(Manifest manifest, ProcessContext context) throws ApplicationException;
+    public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException;
     
     /**
      * Valide le backup
@@ -138,11 +133,6 @@ public interface ArchiveMedium extends PublicClonable {
      * Retourne l'historique des opérations effectuées sur le support 
      */
     public History getHistory();
-    
-    /**
-     * Retourne le manifeste de l'archive correspondant à la date demandée. 
-     */
-    public Manifest getManifest(GregorianCalendar date) throws ApplicationException;
     
     /**
      * Retourne les entrées contenues dans l'archive pour la date donnée. (sous forme de RecoveryEntries)
@@ -207,4 +197,6 @@ public interface ArchiveMedium extends PublicClonable {
     public void install() throws ApplicationException;
     
     public void setTarget(AbstractRecoveryTarget target, boolean revalidate);
+    
+    public boolean supportsBackupScheme(String backupScheme);
 }

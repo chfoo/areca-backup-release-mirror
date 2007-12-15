@@ -34,7 +34,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -90,6 +90,11 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XML_TARGET_FOLLOW_SYMLINKS);
         sb.append("=");
         sb.append(encode("" + ! tg.isTrackSymlinks()));
+        
+        sb.append(" ");
+        sb.append(XML_TARGET_FOLLOW_SUBDIRECTORIES);
+        sb.append("=");
+        sb.append(encode("" + ! tg.isFollowSubdirectories()));
         
         sb.append(" ");
         sb.append(XML_TARGET_NAME);

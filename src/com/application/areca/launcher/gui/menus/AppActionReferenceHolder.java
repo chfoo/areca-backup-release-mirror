@@ -14,7 +14,7 @@ import com.application.areca.launcher.gui.common.SecuredRunner;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -59,8 +59,7 @@ public class AppActionReferenceHolder implements ActionConstants{
     public static AppAction AC_BACKUP_ALL = new AppAction("app.backupallaction", null, null, CMD_BACKUP_ALL);    
     public static AppAction AC_BUILD_BATCH = new AppAction("app.buildbatch", ArecaImages.ICO_FILTER, CMD_BUILD_BATCH);
     public static AppAction AC_BUILD_STRATEGY = new AppAction("app.strategy", ArecaImages.ICO_FILTER, CMD_BUILD_STRATEGY);    
-    public static AppAction AC_BACKUP_MANIFEST = new AppAction("app.backupwmaction", ArecaImages.ICO_ACT_ARCHIVE, ArecaImages.ICO_ACT_ARCHIVE_B, CMD_BACKUP_MANIFEST);
-    public static AppAction AC_MERGE = new AppAction("app.mergearchivesaction", ArecaImages.ICO_ACT_COMPACT, ArecaImages.ICO_ACT_COMPACT_B, CMD_COMPACT);
+    public static AppAction AC_MERGE = new AppAction("app.mergearchivesaction", ArecaImages.ICO_ACT_COMPACT, ArecaImages.ICO_ACT_COMPACT_B, CMD_MERGE);
     public static AppAction AC_DELETE_ARCHIVES = new AppAction("app.deletearchivesaction", ArecaImages.ICO_ACT_DELETE, ArecaImages.ICO_ACT_DELETE_B, CMD_DELETE_ARCHIVES);
     public static AppAction AC_RECOVER = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, ArecaImages.ICO_ACT_RESTAURE_B, CMD_RECOVER);
 
@@ -101,8 +100,7 @@ public class AppActionReferenceHolder implements ActionConstants{
                     AC_DEL_PROCESS.setEnabled(available);
                     AC_BACKUP.setEnabled(available);
                     
-                    AC_SIMULATE.setEnabled(false);
-                    AC_BACKUP_MANIFEST.setEnabled(false);            
+                    AC_SIMULATE.setEnabled(false);        
                     AC_MERGE.setEnabled(false);
                     AC_DELETE_ARCHIVES.setEnabled(false);
                     AC_RECOVER.setEnabled(false);
@@ -125,8 +123,7 @@ public class AppActionReferenceHolder implements ActionConstants{
                     
                     AC_SIMULATE.setEnabled(available);
                     AC_BACKUP.setEnabled(available);
-                    AC_BACKUP_ALL.setEnabled(available);
-                    AC_BACKUP_MANIFEST.setEnabled(available);    
+                    AC_BACKUP_ALL.setEnabled(available); 
                     AC_INDICATORS.setEnabled(available);         
                     AC_MERGE.setEnabled(
                             available 
@@ -154,6 +151,7 @@ public class AppActionReferenceHolder implements ActionConstants{
                             available
                             && application.getCurrentEntryData() != null
                             && application.getCurrentEntryData().getStatus() != EntryArchiveData.STATUS_DELETED
+                            && application.getCurrentEntryData().getStatus() != EntryArchiveData.STATUS_MISSING                    
                     );
                     String cmd = ArecaPreferences.getEditionCommand();
                     AC_TEXTEDIT_HISTORY.setEnabled(
@@ -166,6 +164,7 @@ public class AppActionReferenceHolder implements ActionConstants{
                             )
                             && application.getCurrentEntryData() != null
                             && application.getCurrentEntryData().getStatus() != EntryArchiveData.STATUS_DELETED
+                            && application.getCurrentEntryData().getStatus() != EntryArchiveData.STATUS_MISSING
                     );
                 } else {
                     enableCommands(false);
@@ -180,8 +179,7 @@ public class AppActionReferenceHolder implements ActionConstants{
         AC_BACKUP.setEnabled(enabled);
         AC_BACKUP_ALL.setEnabled(enabled);
         AC_BUILD_BATCH.setEnabled(enabled);
-        AC_BUILD_STRATEGY.setEnabled(enabled);
-        AC_BACKUP_MANIFEST.setEnabled(enabled);        
+        AC_BUILD_STRATEGY.setEnabled(enabled);    
         AC_MERGE.setEnabled(enabled);
         AC_DELETE_ARCHIVES.setEnabled(enabled);        
         AC_RECOVER.setEnabled(enabled);

@@ -18,7 +18,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -103,6 +103,19 @@ public class ProcessContext {
      */
     private UserInformationChannel infoChannel;
 
+    public void reset(boolean operationalOnly) {
+        this.rootCount = 0;
+        this.manifest = null;
+        this.archiveWriter = null;
+        this.contentAdapter = null;
+        this.isInitialized = false;
+        this.previousTrace = null;
+        this.traceAdapter = null;
+        if (! operationalOnly) {
+            this.getReport().reset();
+        }
+    }
+    
     public ProcessContext(AbstractRecoveryTarget target, UserInformationChannel channel) {
         this(target, channel, null);
     }

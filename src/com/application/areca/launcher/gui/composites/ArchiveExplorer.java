@@ -29,6 +29,7 @@ import com.application.areca.RecoveryEntry;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.Application;
+import com.application.areca.launcher.gui.RecoveryFilter;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
@@ -38,7 +39,7 @@ import com.myJava.file.FileNameUtil;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -86,10 +87,10 @@ implements MouseListener, Listener
         
         TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
         column1.setText(RM.getLabel("mainpanel.name.label"));
-        column1.setWidth(400);
+        column1.setWidth(AbstractWindow.computeWidth(400));
         TreeColumn column2 = new TreeColumn(tree, SWT.LEFT);
         column2.setText(RM.getLabel("mainpanel.size.label"));
-        column2.setWidth(200);
+        column2.setWidth(AbstractWindow.computeWidth(200));
         
         viewer.addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {
@@ -303,7 +304,9 @@ implements MouseListener, Listener
         return null;
     }
 
-    private String[] buildFilter(TreeItem[] nodes) {
+    private RecoveryFilter buildFilter(TreeItem[] nodes) {
+        RecoveryFilter ret = new RecoveryFilter();
+        
         String[] filter = new String[nodes.length];
         for (int i=0; i<nodes.length; i++) {
             TreeItem current = nodes[i];
@@ -311,13 +314,22 @@ implements MouseListener, Listener
                 NodeData data = (NodeData)current.getData();
                 filter[i] = data.name + (filter[i] == null ? "" : filter[i]); 
                 current = (TreeItem)current.getParentItem();
+                
+                if (data.status != RecoveryEntry.STATUS_STORED) {
+                    ret.setContainsDeletedDirectory(true);
+                }
             }
         }
-        return filter;
+        
+        ret.setFilter(filter);
+        return ret;
     }
     
-    private String[] buildFilter(RecoveryEntry entry) {
-        return new String[] {entry.getName()};
+    private RecoveryFilter buildFilter(RecoveryEntry entry) {
+        RecoveryFilter filter = new RecoveryFilter();
+        filter.setContainsDeletedDirectory(false);
+        filter.setFilter(new String[] {entry.getName()});
+        return filter;
     }
     
     public void mouseDoubleClick(MouseEvent e) {}

@@ -49,7 +49,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -359,10 +359,14 @@ implements TargetActions, IndicatorTypes {
     
     public abstract File[] listArchives(GregorianCalendar fromDate, GregorianCalendar toDate);
     
+    public File getLastArchive() throws ApplicationException {
+        return getLastArchive(null, null);
+    }
+    
     /**
      * Retourne la dernière archive précédant une date donnée
      */
-    public abstract File getLastArchive(GregorianCalendar date) throws ApplicationException;
+    public abstract File getLastArchive(String backupScheme, GregorianCalendar date) throws ApplicationException;
     
     
     /**
@@ -461,7 +465,7 @@ implements TargetActions, IndicatorTypes {
     protected abstract void deleteArchive(File archive) throws IOException;
     
 	public Set getEntries(GregorianCalendar date) throws ApplicationException {
-	    return getEntries(getLastArchive(date));
+	    return getEntries(getLastArchive(null, date));
 	}
     
     /**
@@ -543,7 +547,7 @@ implements TargetActions, IndicatorTypes {
         indicators.addIndicator(aps);
         
         // SFS
-        File archive = this.getLastArchive(null);
+        File archive = this.getLastArchive();
         if (archive != null) {
 
             Set entries = this.getEntries(archive);

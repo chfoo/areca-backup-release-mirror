@@ -18,7 +18,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -89,7 +89,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
             for (int i=0; i<elementaryArchives.length; i++) {
                 context.getTaskMonitor().checkTaskCancellation();
                 context.getInfoChannel().updateCurrentTask(i+1, elementaryArchives.length, FileSystemManager.getPath(elementaryArchives[i]));
-                Logger.defaultLogger().info("Archive recovery : " + FileSystemManager.getPath(elementaryArchives[i]) + " ...");                
+                Logger.defaultLogger().info("Recovering " + FileSystemManager.getPath(elementaryArchives[i]) + " ...");                
                 
                 // Copie de l'élément en cours.
                 if (entriesToRecover == null) {
@@ -136,7 +136,6 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
                         new File(computeFinalArchivePath()),
                         ArchiveTraceCache.getInstance().getTrace(this, context.getFinalArchiveFile()),
                         false,
-                        null,
                         false,
                         context); // --> Call to "clean" in "cancel unsensitive" mode
             } catch (IOException e) {

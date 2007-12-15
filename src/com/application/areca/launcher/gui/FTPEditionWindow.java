@@ -1,8 +1,6 @@
 package com.application.areca.launcher.gui;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -19,6 +17,7 @@ import org.eclipse.swt.widgets.Text;
 import com.application.areca.ResourceManager;
 import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
+import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.driver.ftp.SecuredSocketFactory;
@@ -29,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -92,23 +91,20 @@ extends AbstractWindow {
         Composite ret = new Composite(parent, SWT.NONE);
         ret.setLayout(new GridLayout(1, false));
 
-        CTabFolder tabs = new CTabFolder(ret, SWT.BORDER);
-        tabs.setSimple(Application.SIMPLE_SUBTABS);
-        tabs.setLayout(new FillLayout());
+        ListPane tabs = new ListPane(ret, SWT.NONE, false);
         GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true);
         tabs.setLayoutData(dt);
 
-        CTabItem itm1 = new CTabItem(tabs, SWT.NONE);
-        Application.setTabLabel(itm1, RM.getLabel("ftpedition.main.title"), false);
-        itm1.setControl(getMainPanel(tabs));
+        Composite itm1 = tabs.addElement("ftpedition.main.title", RM.getLabel("ftpedition.main.title"));
+        initMainPanel(itm1);
 
-        CTabItem itm2 = new CTabItem(tabs, SWT.NONE);
-        Application.setTabLabel(itm2, RM.getLabel("ftpedition.ftps.label"), false);
-        itm2.setControl(getFTPsPanel(tabs));
+        Composite itm2 = tabs.addElement("ftpedition.ftps.label", RM.getLabel("ftpedition.ftps.label"));
+        initFTPsPanel(itm2);
         
         buildSaveComposite(ret);
         initValues();
         
+        tabs.setSelection(0);
         ret.pack();
         return ret;
     }
@@ -149,15 +145,16 @@ extends AbstractWindow {
     
     private GridLayout initLayout(int nbCols) {
         GridLayout layout = new GridLayout();
-        layout.marginWidth = 10;
+        layout.marginWidth = 0;
         layout.numColumns = nbCols;
-        layout.marginHeight = 10;
+        layout.marginHeight = 0;
         layout.verticalSpacing = 10;
         layout.horizontalSpacing = 10;
         return layout;
     }
     
-    private Composite getMainPanel(Composite parent) {
+    private Composite initMainPanel(Composite parent) {
+        parent.setLayout(new FillLayout());
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(initLayout(1));
         
@@ -213,7 +210,8 @@ extends AbstractWindow {
         return composite;
     }
     
-    private Composite getFTPsPanel(Composite parent) {
+    private Composite initFTPsPanel(Composite parent) {
+        parent.setLayout(new FillLayout());
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(initLayout(3));
 

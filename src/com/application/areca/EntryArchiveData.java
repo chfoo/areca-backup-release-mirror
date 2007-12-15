@@ -2,12 +2,13 @@ package com.application.areca;
 
 import com.application.areca.metadata.manifest.Manifest;
 
+
 /**
  * Données pour une version historisée d'une RecoveryEntry
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -41,26 +42,33 @@ public class EntryArchiveData {
 	public static final short STATUS_DELETED = 4;
 
 	// status binaires : existe / n'existe pas (archives non incrémentales)
-	public static final short STATUS_NONEXISTANT = 5;
-	public static final short STATUS_EXISTANT = 6;
+	public static final short STATUS_NOT_STORED = 6;
+	public static final short STATUS_STORED = 7;
 
-	// status binaires : modifié / non modifié (archives incrémentales, avec STATUS_NONEXISTANT)
-	public static final short STATUS_UNCHANGED = 7;
-	public static final short STATUS_CHANGED = 8;
-	
-	protected Manifest manifest;
-	protected short status;
+	protected short status;    
+    protected Manifest manifest;
+    protected String hash;
+
+    public Manifest getManifest() {
+        return manifest;
+    }
+    
+    public void setManifest(Manifest manifest) {
+        this.manifest = manifest;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String trace) {
+        this.hash = trace;
+    }
 	
 	public EntryArchiveData() {
 		this.status = STATUS_UNKNOWN;
 	}
 	
-	public Manifest getManifest() {
-		return manifest;
-	}
-	public void setManifest(Manifest manifest) {
-		this.manifest = manifest;
-	}
 	public short getStatus() {
 		return status;
 	}

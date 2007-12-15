@@ -1,10 +1,13 @@
-package com.application.areca.metadata.data;
+package com.myJava.util.collections;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -26,9 +29,13 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public interface MetaDataKeys {
-    public static final String META_VERSION = "engine.version";
-    public static final String META_ENCODING = "filename.encoding";
-    public static final String META_OS = "os.name";
-    public static final String META_BUILD_ID = "engine.build.id";    
+public class CollectionTools {
+
+    public static List toList(Object[] data) {
+        ArrayList list = new ArrayList(data.length);
+        for (int i=0; i<data.length; i++) {
+            list.add(data[i]);
+        }
+        return list;
+    }
 }

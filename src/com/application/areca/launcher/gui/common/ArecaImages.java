@@ -11,7 +11,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -81,6 +81,8 @@ public class ArecaImages {
     // FILESYSTEM
     public static Image ICO_FS_FILE = loadImage("binary.png");
     public static Image ICO_FS_FOLDER = ICO_REF_PROCESS;
+    public static Image ICO_FS_FOLDER_FULL = loadImage("folder_red.png");
+    public static Image ICO_FS_FOLDER_DIFFERENTIAL = loadImage("folder_green.png");   
     public static Image ICO_FILTER = loadImage("run.png");
     
     // Historique

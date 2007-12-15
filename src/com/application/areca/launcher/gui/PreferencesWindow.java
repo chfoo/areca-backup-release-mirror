@@ -1,5 +1,7 @@
 package com.application.areca.launcher.gui;
 
+import java.util.Arrays;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -8,7 +10,6 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
@@ -17,13 +18,14 @@ import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.SavePanel;
 
 /**
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -61,36 +63,29 @@ extends AbstractWindow {
     private Button btnSave;
 
     protected Control createContents(Composite parent) {
-        Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout();
-        layout.numColumns = 1;
-        layout.verticalSpacing = 20;
-        composite.setLayout(layout);
         
-        GridData mainData1 = new GridData(SWT.FILL, SWT.FILL, true, false);
-        mainData1.widthHint = computeWidth(600);
+        Composite composite = new Composite(parent, SWT.NONE);
+        composite.setLayout(new GridLayout(1, false));
+        
+        ListPane pane = new ListPane(composite, SWT.BORDER, true);
+        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true);
+        dt.heightHint = computeHeight(200);
+        dt.widthHint = computeWidth(650);
+        pane.setLayoutData(dt);
+        Composite grpDisp = pane.addElement("appearence", RM.getLabel("preferences.appearence.title"));
+        Composite grpStart = pane.addElement("startup", RM.getLabel("preferences.startup.title"));
+        Composite grpArchives = pane.addElement("workspace", RM.getLabel("preferences.workspace.title"));
 
-        Group grpDisp = new Group(composite, SWT.NONE);
-        grpDisp.setLayoutData(mainData1);
-        grpDisp.setText(RM.getLabel("preferences.appearence.title"));
         GridLayout layDisp = new GridLayout();
         layDisp.numColumns = 2;
         grpDisp.setLayout(layDisp);
         buildAppearenceComposite(grpDisp);
-        
-        GridData mainData2 = new GridData(SWT.FILL, SWT.FILL, true, false);       
-        Group grpStart = new Group(composite, SWT.NONE);
-        grpStart.setLayoutData(mainData2);
-        grpStart.setText(RM.getLabel("preferences.startup.title"));
+             
         GridLayout layStart = new GridLayout();
         layStart.numColumns = 3;
         grpStart.setLayout(layStart);
         buildStartupComposite(grpStart);
-        
-        GridData mainData3 = new GridData(SWT.FILL, SWT.FILL, true, false);
-        Group grpArchives = new Group(composite, SWT.NONE);
-        grpArchives.setLayoutData(mainData3);
-        grpArchives.setText(RM.getLabel("preferences.workspace.title"));
+       
         GridLayout layArchives = new GridLayout();
         layArchives.numColumns = 3;
         grpArchives.setLayout(layArchives);
@@ -101,6 +96,7 @@ extends AbstractWindow {
         pnlSave.buildComposite(composite).setLayoutData(saveData);
         btnSave = pnlSave.getBtnSave();
         
+        pane.setSelection(0);
         composite.pack();
         return composite;
     }
@@ -212,6 +208,7 @@ extends AbstractWindow {
     private void fillLangCombo() {
         try {
             String[] lges = Utils.getTranslations();
+            Arrays.sort(lges);
             for (int i=0; i<lges.length; i++) {
                 langCombo.add(lges[i]);
                 

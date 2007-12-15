@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui;
+package com.application.areca.launcher.gui.wizards;
 
 import java.io.File;
 
@@ -22,7 +22,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -44,7 +44,7 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class CreateBackupShortcutWindow 
+public class BackupShortcutWizardWindow 
 extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
    
@@ -54,13 +54,18 @@ extends AbstractWindow {
     
     private String selectedPath = null;
     private boolean forSelectedOnly = true;
+    private boolean differential;
+    private boolean full;
     
     private Text location;
     private Button radSelectedOnly;
     private Button radAll;
     private Button saveButton;
+    private Button radFull;
+    private Button radIncremental;
+    private Button radDifferential;
 
-    public CreateBackupShortcutWindow(String initialDirectory, String initialFileNameSelected, String initialFileNameAll) {
+    public BackupShortcutWizardWindow(String initialDirectory, String initialFileNameSelected, String initialFileNameAll) {
         super();
         this.initialFileNameSelected = initialFileNameSelected;
         this.initialFileNameAll = initialFileNameAll;
@@ -92,7 +97,7 @@ extends AbstractWindow {
         btnBrowse.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
                 File f = new File(location.getText());
-                String path = application.showFileDialog(FileSystemManager.getParent(f), CreateBackupShortcutWindow.this, FileSystemManager.getName(f), RM.getLabel("app.buildbatch.label"), SWT.SAVE);
+                String path = application.showFileDialog(FileSystemManager.getParent(f), BackupShortcutWizardWindow.this, FileSystemManager.getName(f), RM.getLabel("app.buildbatch.label"), SWT.SAVE);
                 if (path != null) {
                     location.setText(path);
                 }
@@ -102,7 +107,30 @@ extends AbstractWindow {
         mainData3.horizontalAlignment = SWT.FILL;
         btnBrowse.setLayoutData(mainData3);
 
-        radSelectedOnly = new Button(composite, SWT.RADIO);
+        Group grpType = new Group(composite, SWT.NONE);
+        grpType.setText(RM.getLabel("shrtc.type.label"));
+        grpType.setLayout(new GridLayout(1, false));
+        grpType.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        
+        radIncremental = new Button(grpType, SWT.RADIO);
+        radIncremental.setText(RM.getLabel("archivedetail.incremental.label"));
+        radIncremental.setToolTipText(RM.getLabel("archivedetail.incremental.tooltip"));
+        radIncremental.setSelection(true);
+        
+        radDifferential = new Button(grpType, SWT.RADIO);
+        radDifferential.setText(RM.getLabel("archivedetail.differential.label"));
+        radDifferential.setToolTipText(RM.getLabel("archivedetail.differential.tooltip"));
+        
+        radFull = new Button(grpType, SWT.RADIO);
+        radFull.setText(RM.getLabel("archivedetail.full.label"));
+        radFull.setToolTipText(RM.getLabel("archivedetail.full.tooltip"));
+        
+        Group grpScope = new Group(composite, SWT.NONE);
+        grpScope.setText(RM.getLabel("shrtc.scope.label"));
+        grpScope.setLayout(new GridLayout(1, false));
+        grpScope.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        
+        radSelectedOnly = new Button(grpScope, SWT.RADIO);
         radSelectedOnly.setText(RM.getLabel("shrtc.forselected.label"));
         radSelectedOnly.setLayoutData(new GridData());
         radSelectedOnly.setSelection(true);
@@ -116,7 +144,7 @@ extends AbstractWindow {
         });
         monitorControl(SWT.Selection, radSelectedOnly);
 
-        radAll = new Button(composite, SWT.RADIO);
+        radAll = new Button(grpScope, SWT.RADIO);
         radAll.setText(RM.getLabel("shrtc.forall.label"));
         radAll.setLayoutData(new GridData());
         radAll.addListener(SWT.Selection, new Listener(){
@@ -157,6 +185,8 @@ extends AbstractWindow {
     protected void saveChanges() {       
         this.selectedPath = location.getText();
         this.forSelectedOnly = radSelectedOnly.getSelection();
+        this.full = radFull.getSelection();
+        this.differential = radDifferential.getSelection();
         
         this.hasBeenUpdated = false;
         this.close();
@@ -172,5 +202,13 @@ extends AbstractWindow {
 
     public boolean isForSelectedOnly() {
         return forSelectedOnly;
+    }
+
+    public boolean isDifferential() {
+        return differential;
+    }
+
+    public boolean isFull() {
+        return full;
     }
 }

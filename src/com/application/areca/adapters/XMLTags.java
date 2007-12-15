@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -41,6 +41,7 @@ public interface XMLTags {
     public static final String XML_TARGET_UID = "uid";    
     public static final String XML_TARGET_NAME = "name";    
     public static final String XML_TARGET_FOLLOW_SYMLINKS = "follow_symlinks";    
+    public static final String XML_TARGET_FOLLOW_SUBDIRECTORIES = "follow_subdirectories";    
     public static final String XML_TARGET_DESCRIPTION = "description";    
     
     public static final String XML_SOURCE = "source";

@@ -1,15 +1,10 @@
-package com.application.areca.metadata.data;
-
-import java.io.File;
-import java.io.IOException;
-
-import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
-import com.myJava.file.FileSystemManager;
+package com.application.areca.launcher.gui;
 
 /**
+ * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -31,17 +26,19 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class MetaDataManager {
-
-    public static MetaData getMetaDataForArchive(AbstractIncrementalFileSystemMedium medium, File archive) throws IOException {
-        File metadataDir = medium.getDataDirectory(archive);
-        File metadataFile = new File(metadataDir, medium.getMetaDataFileName());
-        
-        if (FileSystemManager.exists(metadataFile)) {
-            MetaDataAdapter dataAdapter = new MetaDataAdapter(metadataFile);
-            return dataAdapter.readMetaData();
-        } else {
-            return new MetaData();
-        }
+public class RecoveryFilter {
+    private String[] filter;
+    private boolean containsDeletedDirectory;
+    public boolean isContainsDeletedDirectory() {
+        return containsDeletedDirectory;
+    }
+    public void setContainsDeletedDirectory(boolean containsDeletedDirectory) {
+        this.containsDeletedDirectory = containsDeletedDirectory;
+    }
+    public String[] getFilter() {
+        return filter;
+    }
+    public void setFilter(String[] filter) {
+        this.filter = filter;
     }
 }

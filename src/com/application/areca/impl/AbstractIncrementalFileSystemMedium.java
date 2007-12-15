@@ -26,14 +26,14 @@ import com.application.areca.Utils;
 import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.cache.ArchiveTraceCache;
 import com.application.areca.context.ProcessContext;
+import com.application.areca.context.RecoveryResult;
 import com.application.areca.impl.tools.ArchiveComparator;
 import com.application.areca.impl.tools.ArchiveNameFilter;
 import com.application.areca.metadata.content.ArchiveContent;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.content.ArchiveContentManager;
-import com.application.areca.metadata.data.MetaData;
-import com.application.areca.metadata.data.MetaDataAdapter;
 import com.application.areca.metadata.manifest.Manifest;
+import com.application.areca.metadata.manifest.ManifestKeys;
 import com.application.areca.metadata.manifest.ManifestManager;
 import com.application.areca.metadata.trace.ArchiveTrace;
 import com.application.areca.metadata.trace.ArchiveTraceAdapter;
@@ -42,13 +42,11 @@ import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.SearchMatcher;
 import com.application.areca.search.SearchResultItem;
 import com.application.areca.search.TargetSearchResult;
-import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemIterator;
 import com.myJava.file.FileSystemManager;
-import com.myJava.file.FileTool;
 import com.myJava.file.attributes.Attributes;
-import com.myJava.system.OSTool;
+import com.myJava.util.CalendarUtils;
 import com.myJava.util.Util;
 import com.myJava.util.errors.ActionError;
 import com.myJava.util.errors.ActionReport;
@@ -64,7 +62,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -157,10 +155,6 @@ implements TargetActions {
     public void setOverwrite(boolean overwrite) {
         this.overwrite = overwrite;
     }
-
-    public Manifest getManifest(GregorianCalendar date) throws ApplicationException {
-        return ManifestManager.readManifestForArchive(this, getLastArchive(date));
-    }
     
     public boolean isOverwrite() {
         return this.overwrite;
@@ -209,23 +203,43 @@ implements TargetActions {
      * Ouvre le fichier de trace permettant de déterminer quels fichiers ont été modifiés
      * depuis la dernière exécution.
      */
-    public void open(ProcessContext context) throws ApplicationException {      
+    public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {      
         try {  
             this.checkRepository();
             
+            Logger.defaultLogger().info("Opening medium (Backup scheme = '" + backupScheme + "') ...");
+            LogHelper.logFileInformations("Backup location :", new File(this.getArchivePath()));  
+            
             // Lecture trace précédente
-            File lastArchive = this.getLastArchive(null);
-            if (lastArchive != null && FileSystemManager.exists(lastArchive)) {
-                // Lecture du fichier
-                context.setPreviousTrace(ArchiveTraceCache.getInstance().getTrace(this, lastArchive));
-            } else {
-                // Construction trace vide
+            if (backupScheme.equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL)) {
+                Logger.defaultLogger().info("Using an empty archive as reference.");
                 context.setPreviousTrace(new ArchiveTrace());
-            } 
+            } else {
+                File lastArchive;
+                if (backupScheme.equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+                    lastArchive = this.getLastArchive(AbstractRecoveryTarget.BACKUP_SCHEME_FULL, null);
+                } else {
+                    lastArchive = this.getLastArchive();
+                }
+                
+                if (lastArchive != null && FileSystemManager.exists(lastArchive)) {
+                    // Lecture du fichier
+                    Logger.defaultLogger().info("Using the following archive as reference : " + FileSystemManager.getAbsolutePath(lastArchive) + ".");
+                    context.setPreviousTrace(ArchiveTraceCache.getInstance().getTrace(this, lastArchive));
+                } else {
+                    // Construction trace vide
+                    Logger.defaultLogger().info("Using an empty archive as reference.");
+                    context.setPreviousTrace(new ArchiveTrace());
+                } 
+            }
+            
+            context.setManifest(manifest);
+            manifest.addProperty(
+                    ManifestKeys.OPTION_BACKUP_SCHEME, 
+                    context.getPreviousTrace().isEmpty() ? AbstractRecoveryTarget.BACKUP_SCHEME_FULL : backupScheme
+            );
             
             // Empty archive creation
-            Logger.defaultLogger().info("Opening medium ...");
-            LogHelper.logFileInformations("Backup location :", new File(this.getArchivePath()));  
             this.buildArchive(context);      
             
             // TraceWriter creation
@@ -307,7 +321,15 @@ implements TargetActions {
     public void setTrackPermissions(boolean trackPermissions) {
         this.trackPermissions = trackPermissions;
     }
-    
+
+    public boolean supportsBackupScheme(String backupScheme) {
+        if (overwrite && backupScheme.equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     /**
      * Stores an entry
      */
@@ -370,7 +392,7 @@ implements TargetActions {
             return;
         }
 
-        File archive = this.getLastArchive(date);
+        File archive = this.getLastArchive(null, date);
         try {
             FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)entryToRecover;
             if (! FileSystemManager.exists((File)destination)) {
@@ -410,9 +432,7 @@ implements TargetActions {
     public void commitBackup(ProcessContext context) throws ApplicationException {
         this.target.secureUpdateCurrentTask("Commiting backup ...", context);
         long entries = context.getTraceAdapter().getWritten();
-        try {  
-            writeMetaData(context);
-            
+        try {             
             // Fermeture de la trace
             if (context.getTraceAdapter() != null) {
                 context.getTraceAdapter().close();
@@ -426,8 +446,8 @@ implements TargetActions {
             }
             
             // Ajout propriétés au manifeste
-            context.getManifest().addProperty("Unmodified files (not stored)", "" + context.getReport().getIgnoredFiles());            
-            context.getManifest().addProperty("Stored files", "" + context.getReport().getSavedFiles());
+            context.getManifest().addProperty("Unmodified files (not stored)", context.getReport().getIgnoredFiles());            
+            context.getManifest().addProperty("Stored files", context.getReport().getSavedFiles());
             
             // Ajout éventuel du manifeste
             this.storeManifest(context);     
@@ -455,7 +475,7 @@ implements TargetActions {
                 throw new ApplicationException(e);
             }
         } finally {
-    	    File archive = this.getLastArchive(null);
+    	    File archive = this.getLastArchive();
 
     	    // Just for security reasons : in some cases (Directory non incremental mediums in particular)
     	    // the data caches won't detect that the archive content has changed and won't refrech their data
@@ -473,23 +493,6 @@ implements TargetActions {
     		}
         }
     } 
-    
-    protected MetaData buildMetaData() {
-        MetaData data = new MetaData();
-        data.setEngineVersionId(VersionInfos.getLastVersion().getVersionId());
-        data.setFileEncoding(OSTool.getIANAFileEncoding());
-        data.setEngineBuildId("" + VersionInfos.getBuildId());
-        data.setOSName(OSTool.getOSDescription());
-        return data;
-    }
-    
-    private void writeMetaData(ProcessContext context) throws IOException {
-        // write MetaData
-        File metaDataFile = new File(getDataDirectory(context.getCurrentArchiveFile()), getMetaDataFileName());
-        MetaDataAdapter adapter = new MetaDataAdapter(metaDataFile);
-        adapter.writeMetaData(buildMetaData());
-        adapter.close();
-    }
     
     protected void convertArchiveToFinal(ProcessContext context) throws IOException, ApplicationException {
         if (context.getFinalArchiveFile() != null) {
@@ -600,10 +603,10 @@ implements TargetActions {
         if (recoverDeletedEntries) {
             trace = this.buildAggregatedTrace(null, date);
         } else {
-            trace = ArchiveTraceCache.getInstance().getTrace(this, getLastArchive(date));
+            trace = ArchiveTraceCache.getInstance().getTrace(this, getLastArchive(null, date));
         }
         
-        recover(destination, filter, 1, null, date, true, trace, context);
+        recover(destination, filter, 1, null, date, true, trace, recoverDeletedEntries, context);
         rebuidDirectories((File)destination, filter, trace);
         rebuildSymLinks((File)destination, filter, trace);
     }
@@ -638,11 +641,13 @@ implements TargetActions {
      */
     private void rebuidDirectories(File destination, String[] filters, ArchiveTrace trace) throws ApplicationException {
         try {
+            String[] normalizedFilters = null;
             if (filters != null) {
+                normalizedFilters = new String[filters.length];
                 for (int i=0; i<filters.length; i++) {
-                    filters[i] = FileSystemManager.getAbsolutePath(new File(destination, filters[i]));
-                    if (FileNameUtil.endsWithSeparator(filters[i])) {
-                        filters[i] = filters[i].substring(0, filters[i].length() - 1);
+                    normalizedFilters[i] = FileSystemManager.getAbsolutePath(new File(destination, filters[i]));
+                    if (FileNameUtil.endsWithSeparator(normalizedFilters[i])) {
+                        normalizedFilters[i] = normalizedFilters[i].substring(0, normalizedFilters[i].length() - 1);
                     }
                 }
             }
@@ -651,7 +656,7 @@ implements TargetActions {
             while (iter.hasNext()) {
                 String key = (String)iter.next();
                 File dir = new File(destination, key);
-                if (matchFilters(dir, filters)) {
+                if (matchFilters(dir, normalizedFilters)) {
 	                if (! FileSystemManager.exists(dir)) {
 	                    AbstractFileSystemMedium.tool.createDir(dir);
 	                }
@@ -740,7 +745,7 @@ implements TargetActions {
             if (! overwrite) { // No "compact" if "overwrite" = true
                 Logger.defaultLogger().info(
                         "Starting merge from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate)
-                         + ". 'keep' option set to '" + keepDeletedFiles + "'."
+                         + ". 'Preserve Deleted Entries' option set to '" + keepDeletedFiles + "'."
                 );
                 
                 // Init des archives
@@ -757,10 +762,10 @@ implements TargetActions {
                 if (keepDeletedFiles) {
                     trace = this.buildAggregatedTrace(fromDate, toDate);
                 } else {
-                    trace = ArchiveTraceCache.getInstance().getTrace(this, getLastArchive(toDate));
+                    trace = ArchiveTraceCache.getInstance().getTrace(this, getLastArchive(null, toDate));
                 }
 
-                context.getReport().setRecoveredFiles(recover(
+                context.getReport().setRecoveryResult(recover(
                         tmpDestination, 
                         null, 
                         2,
@@ -768,6 +773,7 @@ implements TargetActions {
                         toDate, 
                         false, 
                         keepDeletedFiles ? null : trace, 
+                        keepDeletedFiles,        
                         context
                 ));
 
@@ -786,8 +792,10 @@ implements TargetActions {
                 
                 context.getTaskMonitor().checkTaskCancellation();
                 
-                if (context.getReport().getRecoveredFiles().length >= 2) {
-                    GregorianCalendar lastArchiveDate = ArchiveManifestCache.getInstance().getManifest(this, context.getReport().getRecoveredFiles()[context.getReport().getRecoveredFiles().length - 1]).getDate();
+                File[] recoveredFiles = context.getReport().getRecoveryResult().getRecoveredArchivesAsArray();
+                File[] processedFiles = context.getReport().getRecoveryResult().getProcessedArchivesAsArray();
+                if (recoveredFiles.length >= 2) {
+                    GregorianCalendar lastArchiveDate = ArchiveManifestCache.getInstance().getManifest(this, recoveredFiles[recoveredFiles.length - 1]).getDate();
                     context.setFinalArchiveFile(new File(computeArchivePath(lastArchiveDate)));
                     
 	                // Construction de l'archive à un emplacement temporaire
@@ -795,38 +803,35 @@ implements TargetActions {
 	                
 	                // Construction du manifeste, suite à la fusion
 	                if (mfToInsert == null) {
-	                    mfToInsert = this.buildDefaultMergeManifest(context.getReport().getRecoveredFiles(), fromDate, toDate);
+	                    mfToInsert = this.buildDefaultMergeManifest(processedFiles, fromDate, toDate);
 	                }
 	                context.setManifest(mfToInsert);
-	                context.getManifest().setType(Manifest.TYPE_COMPACT);
 	                context.getManifest().setDate(lastArchiveDate);
-	                context.getManifest().addProperty("Source", "Archive merge");
-	                context.getManifest().addProperty("Merge start date", Utils.formatDisplayDate(fromDate));
-	                context.getManifest().addProperty("Merge end date", Utils.formatDisplayDate(toDate));
-	                
+                    context.getManifest().addProperty(ManifestKeys.OPTION_KEEP_DELETED_ENTRIES, keepDeletedFiles);
+	                context.getManifest().addProperty(ManifestKeys.MERGE_START, Utils.formatDisplayDate(fromDate));
+	                context.getManifest().addProperty(ManifestKeys.MERGE_END, Utils.formatDisplayDate(toDate));
+                    context.getManifest().addProperty(ManifestKeys.MERGED_ARCHIVES, processedFiles.length);
+                    
 	                AbstractRecoveryTarget.addBasicInformationsToManifest(context.getManifest());
 	                this.storeManifest(context);
 	                
 	                // Stockage de la trace
 	                File target = new File(getDataDirectory(context.getCurrentArchiveFile()), getTraceFileName(false));
-	                context.setTraceAdapter(new ArchiveTraceAdapter(this, target));
-	                context.getTraceAdapter().writeTrace(trace);
-	                context.getTraceAdapter().close();
+	                ArchiveTraceAdapter traceAdapter = new ArchiveTraceAdapter(this, target);
+                    traceAdapter.writeTrace(trace);
+                    traceAdapter.close();
 	                
 	                // Stockage du contenu fusionné
 	                ArchiveContent merged = new ArchiveContent();
-	                for (int i=0; i<context.getReport().getRecoveredFiles().length; i++) {
-	                    merged.override(ArchiveContentManager.getContentForArchive(this, context.getReport().getRecoveredFiles()[i]));
+	                for (int i=0; i<recoveredFiles.length; i++) {
+	                    merged.override(ArchiveContentManager.getContentForArchive(this, recoveredFiles[i]));
 	                }
 	                merged.clean(trace);
 	                
 	                target = new File(getDataDirectory(context.getCurrentArchiveFile()), getContentFileName(false));
-	                ArchiveContentAdapter adapter = new ArchiveContentAdapter(target);
-	                adapter.writeContent(merged);
-	                adapter.close();
-	                
-	                // Write MetaData
-	                writeMetaData(context);
+	                ArchiveContentAdapter contentAdapter = new ArchiveContentAdapter(target);
+	                contentAdapter.writeContent(merged);
+	                contentAdapter.close();
                 }
             }
         } catch (ApplicationException e) {
@@ -876,16 +881,27 @@ implements TargetActions {
                 // Fermeture de l'archive
                 this.closeArchive(context); 
                 
-                if (context.getReport().getRecoveredFiles() != null && context.getReport().getRecoveredFiles().length >= 2) {
-                    // Suppression des archives compactées
-                    for (int i=0; i<context.getReport().getRecoveredFiles().length; i++) {
-                        this.deleteArchive(context.getReport().getRecoveredFiles()[i]);                       
+                File[] recoveredFiles = context.getReport().getRecoveryResult().getRecoveredArchivesAsArray();
+                File[] ignoredFiles = context.getReport().getRecoveryResult().getIgnoredArchivesAsArray();
+                
+                // Suppression des archives ignorées
+                Logger.defaultLogger().info("Deleting unnecessary archives : " + ignoredFiles.length + " archives.");
+                for (int i=0; i<ignoredFiles.length; i++) {
+                    Logger.defaultLogger().info("Deleting " + FileSystemManager.getAbsolutePath(ignoredFiles[i]) + " ...");
+                    this.deleteArchive(ignoredFiles[i]);                       
+                }
+                    
+                if (recoveredFiles.length >= 2) {
+                    // Suppression des archives restaurées
+                    Logger.defaultLogger().info("Deleting recovered archives : " + recoveredFiles.length + " archives.");
+                    for (int i=0; i<recoveredFiles.length; i++) {
+                        Logger.defaultLogger().info("Deleting " + FileSystemManager.getAbsolutePath(recoveredFiles[i]) + " ...");
+                        this.deleteArchive(recoveredFiles[i]);                       
                     }
-
+                    
                     // conversion de l'archive
                     this.convertArchiveToFinal(context);
-
-                    this.target.secureUpdateCurrentTask("Merge completed - " + context.getReport().getRecoveredFiles().length + " archives merged.", context);
+                    this.target.secureUpdateCurrentTask("Merge completed - " + context.getReport().getRecoveryResult().getProcessedArchives().size() + " archives merged.", context);
                 } else {
                     this.target.secureUpdateCurrentTask("Merge completed - No archive merged.", context);
                 }
@@ -931,15 +947,16 @@ implements TargetActions {
      * <BR>'filters' may be null ...
      * <BR>The recovery is actually made if there are at least <code>minimumArchiveNumber</code> archives to recover
      */
-    protected File[] recover(
-            Object destination, 
-            String[] filters,
-            int minimumArchiveNumber,
-            GregorianCalendar fromDate, 
-            GregorianCalendar toDate, 
-            boolean applyAttributes,
-            ArchiveTrace trace,
-            ProcessContext context            
+    protected RecoveryResult recover(
+            Object destination,                         // Where to recover
+            String[] filters,                                // Filters the recovered entries
+            int minimumArchiveNumber,           // The recovery is done only if there are at least this number of archives to recover
+            GregorianCalendar fromDate,          // Recovery from date
+            GregorianCalendar toDate,             // Recovery to date
+            boolean applyAttributes,              // Tells whether the attributes must be applied or not
+            ArchiveTrace trace,                       // Optional trace to apply to the recovered data
+            boolean forceAllEntriesRecovery,  // Tells whether all entries will be recovered or not
+            ProcessContext context               // Execution context
     ) throws ApplicationException {
         if (toDate != null) {
             toDate = (GregorianCalendar)toDate.clone();
@@ -949,14 +966,60 @@ implements TargetActions {
             fromDate = (GregorianCalendar)fromDate.clone();
             fromDate.add(GregorianCalendar.MILLISECOND, -1);
         }
-        File[] recoveredArchives = null;
+        RecoveryResult result = new RecoveryResult();
         try {
             File targetFile = (File)destination;
             
             // Première étape : on recopie l'ensemble des archives
-            recoveredArchives = this.listArchives(fromDate, toDate);
+            File[] listedArchives = this.listArchives(fromDate, toDate);
             
-            if (recoveredArchives.length >= minimumArchiveNumber) {
+            // Optimisation des archives à récupérer
+            result.addProcessedArchives(listedArchives);
+            if (! forceAllEntriesRecovery) {
+                boolean ignoreIncrementalAndDifferentialArchives = false;
+                boolean ignoreAllArchives = false;
+                
+                // BACKWARD COMPATIBILITY
+                // Necessary because previous versions of Areca (before 5.3.3) didn't store the backup scheme in the manifest
+                // So we have to assume that the first archive is a full backup
+                boolean fullArchiveScope = (fromDate == null);
+                if (! fullArchiveScope) {
+                    File[] previousArchives = listArchives(null, fromDate);
+                    fullArchiveScope = (previousArchives == null || previousArchives.length == 0);                    
+                }
+                // EOF BACKWARD COMPATIBILITY
+                
+                for (int i=listedArchives.length - 1; i>=0; i--) {
+                    Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, listedArchives[i]);
+                    String prp = mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);
+                    if (i == 0 && fullArchiveScope) {
+                        // Force "full backup" scheme for the first archive
+                        prp = AbstractRecoveryTarget.BACKUP_SCHEME_FULL;
+                    }
+                    
+                    if (prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL) && ! ignoreAllArchives) {
+                        Logger.defaultLogger().info("Adding " + FileSystemManager.getAbsolutePath(listedArchives[i]) + " (" + prp + ") to recovery list.");
+                        result.getRecoveredArchives().add(0, listedArchives[i]);
+                        ignoreAllArchives = true;
+                        Logger.defaultLogger().info("Previous archives will be ignored.");
+                    } else if (prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)  && ! ignoreIncrementalAndDifferentialArchives && ! ignoreAllArchives) {
+                        Logger.defaultLogger().info("Adding " + FileSystemManager.getAbsolutePath(listedArchives[i]) + " (" + prp + ") to recovery list.");
+                        result.getRecoveredArchives().add(0, listedArchives[i]);
+                        ignoreIncrementalAndDifferentialArchives = true;
+                        Logger.defaultLogger().info("Previous incremental and differential archives will be ignored.");                            
+                    } else if (prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL) && ! ignoreIncrementalAndDifferentialArchives && ! ignoreAllArchives) {
+                        Logger.defaultLogger().info("Adding " + FileSystemManager.getAbsolutePath(listedArchives[i]) + " (" + prp + ") to recovery list.");
+                        result.getRecoveredArchives().add(0, listedArchives[i]);
+                    } else {
+                        Logger.defaultLogger().info("Adding " + FileSystemManager.getAbsolutePath(listedArchives[i]) + " (" + prp + ") to ignore list.");
+                        result.getIgnoredArchives().add(0, listedArchives[i]);
+                    }
+                }
+            } else {
+                result.addRecoveredArchives(listedArchives);
+            }
+            
+            if (result.getRecoveredArchives().size() >= minimumArchiveNumber) {
                 context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.9, "recover");
 
                 // Process Recovery
@@ -972,11 +1035,14 @@ implements TargetActions {
                     useDummyMode = true;
                 }
                 
+                File[] optimizedArchives = result.getRecoveredArchivesAsArray();
                 if (useDummyMode) {
                     // Dummy mode : recover all archives
-                    this.archiveRawRecover(recoveredArchives, filters, targetFile, context);
+                    Logger.defaultLogger().info("Recovery in standard mode.");
+                    this.archiveRawRecover(optimizedArchives, filters, targetFile, context);
                 } else {
                     // Smart mode : iterate on each entry and recover its latest version only
+                    Logger.defaultLogger().info("Recovery in opmimized mode.");
                     String root = ((FileSystemRecoveryTarget)this.getTarget()).getSourceDirectory();
                     Map entriesByArchive = new HashMap();
                     
@@ -986,17 +1052,17 @@ implements TargetActions {
                     }
                     
                     // Build a list of entries to recover indexed by archive
-                    for (int i=recoveredArchives.length - 1; i>=0 && entriesToDispatch.size() > 0; i--) {
-                        ArchiveContent content = ArchiveContentManager.getContentForArchive(this, recoveredArchives[i]);
+                    for (int i=optimizedArchives.length - 1; i>=0 && entriesToDispatch.size() > 0; i--) {
+                        ArchiveContent content = ArchiveContentManager.getContentForArchive(this, optimizedArchives[i]);
                         Iterator iter = entriesToDispatch.iterator();
                         Set toRemove = new HashSet();
                         while (iter.hasNext()) {
                             FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)iter.next();
                             if (content.contains(entry)) {
-                                List entries = (List)entriesByArchive.get(recoveredArchives[i]);
+                                List entries = (List)entriesByArchive.get(optimizedArchives[i]);
                                 if (entries == null) {
                                     entries = new ArrayList();
-                                    entriesByArchive.put(recoveredArchives[i], entries);
+                                    entriesByArchive.put(optimizedArchives[i], entries);
                                 }
                                 entries.add(entry);
                                 toRemove.add(entry);
@@ -1031,14 +1097,13 @@ implements TargetActions {
                             targetFile, 
                             trace,
                             applyAttributes,
-                            filters,
                             true,
                             context);
                 }
             }
             
-            // On retourne pour info la liste des fichiers restaurés
-            return recoveredArchives;
+            // On retourne pour info le résultat de la restauration
+            return result;
             
         } catch (IOException e) {
             throw new ApplicationException(e);
@@ -1056,7 +1121,6 @@ implements TargetActions {
             File targetFile, 
             ArchiveTrace trace,
             boolean applyAttributes,
-            String[] filters,
             boolean cancelSensitive,
             ProcessContext context
     ) throws IOException, TaskCancelledException {      
@@ -1180,7 +1244,7 @@ implements TargetActions {
     
     public Set getLogicalView() throws ApplicationException {
         ArchiveTrace mergedTrace = buildAggregatedTrace(null, null);
-        ArchiveTrace latestTrace = ArchiveTraceCache.getInstance().getTrace(this, this.getLastArchive(null));
+        ArchiveTrace latestTrace = ArchiveTraceCache.getInstance().getTrace(this, this.getLastArchive());
         
         Map latestContent = new HashMap();
         if (latestTrace != null) {
@@ -1251,21 +1315,48 @@ implements TargetActions {
         return elements;
     }
     
+    private boolean hasBackupScheme(File archive, String backupScheme) throws ApplicationException {
+        if (backupScheme == null) {
+            return true;
+        } else  {
+            Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, archive);
+            if (mf == null) {
+                return false;
+            } else {
+                String tested = mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME);
+                return tested != null && tested.equals(backupScheme);
+            }
+        }
+    }
+    
     /**
      * Retourne la dernière archive précédant une date donnée
      */
-    public File getLastArchive(GregorianCalendar date) {
+    public File getLastArchive(String backupScheme, GregorianCalendar date) throws ApplicationException {
         String defaultName = computeArchivePath(date);
         File defaultFile = new File(defaultName);
         
-        if (FileSystemManager.exists(defaultFile)) {
+        if (FileSystemManager.exists(defaultFile) && hasBackupScheme(defaultFile, backupScheme)) {
             return defaultFile;
         } else {
             File[] archives = listArchives(null, date);
-            if (archives.length == 0) {
+            if (archives == null || archives.length == 0) {
                 return null;
             } else {
-                return archives[archives.length - 1];    
+                // First attempt : rely on the archive's "backup scheme" flag
+                for (int i=archives.length - 1; i>=0; i--) {
+                    if (hasBackupScheme(archives[i], backupScheme)) {
+                        return archives[i];    
+                    }
+                }
+                
+                // Special case : if we are looking for a full backup then 
+                //                       the first archive must be a full backup
+                if (backupScheme != null && backupScheme.equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL)) {
+                    return archives[0];
+                }
+                
+                return null;
             }
         }
     }
@@ -1275,7 +1366,7 @@ implements TargetActions {
         
         // Init du contexte
         if (! context.isInitialized()) {
-            File archive = this.getLastArchive(null);
+            File archive = this.getLastArchive();
             ArchiveTrace trace = ArchiveTraceCache.getInstance().getTrace(this, archive);
             ArchiveTrace cloned = null;
             if (trace != null) {
@@ -1356,28 +1447,48 @@ implements TargetActions {
     }
     
     public Manifest buildDefaultBackupManifest() throws ApplicationException {
-        Manifest manifest = new Manifest();
+        Manifest manifest = new Manifest(Manifest.TYPE_BACKUP);
         
-        Manifest lastMf = ArchiveManifestCache.getInstance().getManifest(this, this.getLastArchive(null));
+        Manifest lastMf = ArchiveManifestCache.getInstance().getManifest(this, this.getLastArchive());
         if (lastMf != null) {
             manifest.setAuthor(lastMf.getAuthor());
         	manifest.setTitle(lastMf.getTitle());
         }
-        manifest.setType(Manifest.TYPE_BACKUP);
         
         return manifest;
     }
     
     public Manifest buildDefaultMergeManifest(File[] recoveredArchives, GregorianCalendar fromDate, GregorianCalendar toDate) throws ApplicationException {
-        Manifest manifest = new Manifest();
-        manifest.setType(Manifest.TYPE_COMPACT);
+        if (toDate != null) {
+            toDate = (GregorianCalendar)toDate.clone();
+            toDate.add(GregorianCalendar.MILLISECOND, 1);
+        }
+        if (fromDate != null) {
+            fromDate = (GregorianCalendar)fromDate.clone();
+            fromDate.add(GregorianCalendar.MILLISECOND, -1);
+        }
+        
+        Manifest manifest = new Manifest(Manifest.TYPE_MERGE);
         manifest.setDate(toDate);
         if (fromDate == null) {
-            manifest.setTitle("Merge as of " + Utils.formatDisplayDate(toDate));            
+            manifest.setTitle("Merge as of " + CalendarUtils.getDateToString(toDate));            
         } else {
-            manifest.setTitle("Merge from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate));
+            manifest.setTitle("Merge from " + CalendarUtils.getDateToString(fromDate) + " to " + CalendarUtils.getDateToString(toDate));
         }
         StringBuffer sb = new StringBuffer();
+        boolean hasFullBackup = false;
+        boolean hasDifferentialBackup = false;
+
+        // BACKWARD COMPATIBILITY
+        // Necessary because previous versions of Areca (before 5.3.3) didn't store the backup scheme in the manifest
+        // So we have to assume that the first archive is a full backup
+        boolean fullArchiveScope = (fromDate == null);
+        if (! fullArchiveScope) {
+            File[] previousArchives = listArchives(null, fromDate);
+            fullArchiveScope = (previousArchives == null || previousArchives.length == 0);                    
+        }
+        // EOF BACKWARD COMPATIBILITY
+        
         for (int i = recoveredArchives.length - 1; i>=0; i--) {
             Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, recoveredArchives[i]);
             if (mf != null) {
@@ -1401,9 +1512,25 @@ implements TargetActions {
                     sb.append("\n");
                     sb.append(mf.getDescription());
                 }
+                
+                String prp = mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME);
+                if (prp == null || prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL)) {
+                    // do nothing
+                } else if (prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+                    hasDifferentialBackup = true;
+                } else if (prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL)) {
+                    hasFullBackup = true;
+                }
             }
         }
         manifest.setDescription(sb.toString());    
+        if (hasFullBackup || fullArchiveScope) {
+            manifest.addProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractRecoveryTarget.BACKUP_SCHEME_FULL);
+        } else if (hasDifferentialBackup) {
+            manifest.addProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL);            
+        } else {
+            manifest.addProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);            
+        }
         return manifest;
     }
     
@@ -1436,30 +1563,27 @@ implements TargetActions {
      */
 	protected EntryArchiveData getArchiveData(FileSystemRecoveryEntry entry, File archive) throws ApplicationException {
 		try {
-			EntryArchiveData ead = new EntryArchiveData();
+            ArchiveTrace trace = ArchiveTraceCache.getInstance().getTrace(this, archive);
+            ArchiveContent content = ArchiveContentManager.getContentForArchive(this, archive);
+            
+            EntryArchiveData ead = new EntryArchiveData();
 			Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, archive);
 			ead.setManifest(mf);
-			
-			ArchiveContent content = ArchiveContentManager.getContentForArchive(this, archive);
-			ArchiveTrace trace = ArchiveTraceCache.getInstance().getTrace(this, archive);
-			
+            ead.setHash(trace.getFileHash(entry));
+
             if (entry.isLink()) {
                 // LINK
                 if (trace.containsSymLink(entry)) {
-                    ead.setStatus(EntryArchiveData.STATUS_UNCHANGED);
+                    ead.setStatus(EntryArchiveData.STATUS_STORED);
                 } else {
-                    ead.setStatus(EntryArchiveData.STATUS_NONEXISTANT);
+                    ead.setStatus(EntryArchiveData.STATUS_NOT_STORED);
                 }
             } else {
-                // STANDARD FILE / DIRECTORY
+                // STANDARD FILE
     			if (content.contains(entry)) {
-    				ead.setStatus(EntryArchiveData.STATUS_CHANGED);
+    				ead.setStatus(EntryArchiveData.STATUS_STORED);
     			} else {
-    				if (trace.containsFile(entry)) {
-    					ead.setStatus(EntryArchiveData.STATUS_UNCHANGED);
-    				} else {
-    					ead.setStatus(EntryArchiveData.STATUS_NONEXISTANT);
-    				}
+    			    ead.setStatus(EntryArchiveData.STATUS_NOT_STORED);
     			}
             }
             
@@ -1474,7 +1598,7 @@ implements TargetActions {
         DefaultSearchCriteria dCriteria = (DefaultSearchCriteria)criteria;
         
         if (dCriteria.isRestrictLatestArchive()) {
-            File lastArchive = this.getLastArchive(null);
+            File lastArchive = this.getLastArchive();
             if (lastArchive != null) {
                 this.searchWithinArchive(criteria, lastArchive, result);
             }

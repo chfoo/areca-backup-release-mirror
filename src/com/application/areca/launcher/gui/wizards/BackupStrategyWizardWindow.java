@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui;
+package com.application.areca.launcher.gui.wizards;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import com.myJava.util.CommonRules;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2156529904998511409
+ * <BR>Areca Build ID : 3675112183502703626
  */
  
  /*
@@ -51,12 +51,11 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class CreateStrategyWindow 
+public class BackupStrategyWizardWindow 
 extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
     private static final int ITERATIONS = 6;
     
-    private String prefix;
     private String initialDirectory;
     
     private String selectedPath = null;
@@ -69,9 +68,8 @@ extends AbstractWindow {
     private List lTxtTimes = new ArrayList();
     
 
-    public CreateStrategyWindow(String initialDirectory, String prefix) {
+    public BackupStrategyWizardWindow(String initialDirectory) {
         super();
-        this.prefix = prefix;
         this.initialDirectory = initialDirectory;
     }
 
@@ -100,7 +98,7 @@ extends AbstractWindow {
         btnBrowse.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
                 File f = new File(location.getText());
-                String path = application.showDirectoryDialog(FileSystemManager.getParent(f), CreateStrategyWindow.this);
+                String path = application.showDirectoryDialog(FileSystemManager.getParent(f), BackupStrategyWizardWindow.this);
                 if (path != null) {
                     location.setText(path);
                 }
