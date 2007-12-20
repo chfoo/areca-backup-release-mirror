@@ -81,7 +81,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3675112183502703626
+ * <BR>Areca Build ID : 4331497872542711431
  */
  
  /*
@@ -333,8 +333,6 @@ extends AbstractWindow {
             });
             this.strButton.put(plugin.getId(), btn);
         }
-        
-        //txtTargetName.forceFocus();
     }
     
     private void initSourcesTab(Composite composite) {

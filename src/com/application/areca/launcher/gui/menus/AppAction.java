@@ -21,7 +21,7 @@ import com.application.areca.launcher.gui.Application;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 3675112183502703626
+ * <BR>Areca Build ID : 4331497872542711431
  */
  
  /*

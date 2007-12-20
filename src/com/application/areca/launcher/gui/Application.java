@@ -67,7 +67,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3675112183502703626
+ * <BR>Areca Build ID : 4331497872542711431
  */
  
  /*
@@ -404,7 +404,13 @@ implements ActionConstants, Window.IExceptionHandler {
                     RecoveryProcess process = target.getProcess();
                     ProcessRunner rn = new ProcessRunner(target) {
                         public void runCommand() throws ApplicationException {
-                            rProcess.processRecoverOnTarget(rTarget, ((RecoveryFilter)argument).getFilter(), rPath, rFromDate, recoverDeletedEntries, context);
+                            rProcess.processRecoverOnTarget(
+                                    rTarget, 
+                                    argument == null ? null : ((RecoveryFilter)argument).getFilter(), 
+                                    rPath, 
+                                    rFromDate, 
+                                    recoverDeletedEntries, 
+                                    context);
                         }
                     };
                     rn.rProcess = process;

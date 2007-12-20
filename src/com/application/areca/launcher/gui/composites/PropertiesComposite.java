@@ -19,7 +19,7 @@ import com.application.areca.launcher.gui.common.AbstractWindow;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3675112183502703626
+ * <BR>Areca Build ID : 4331497872542711431
  */
  
  /*
@@ -63,7 +63,7 @@ extends Composite {
         col1.setWidth(AbstractWindow.computeWidth(100));
         col1.setMoveable(true);
         TableColumn col2 = new TableColumn (table, SWT.NONE);
-        col2.setWidth(AbstractWindow.computeWidth(200));
+        col2.setWidth(AbstractWindow.computeWidth(250));
         col2.setMoveable(true);
         
         // REFRESH DATA

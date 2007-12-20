@@ -28,7 +28,7 @@ import com.myJava.util.log.Logger;
  * implemented by these classes when "read/writeObject" is called (which results in a growing HashTable)
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3675112183502703626
+ * <BR>Areca Build ID : 4331497872542711431
  */
  
  /*

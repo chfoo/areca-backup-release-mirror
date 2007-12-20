@@ -28,7 +28,7 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 3675112183502703626
+ * <BR>Areca Build ID : 4331497872542711431
  */
  
  /*
@@ -160,7 +160,7 @@ extends AbstractWindow {
         col1.setText(RM.getLabel("archivedetail.propertycolumn.label"));
         col1.setMoveable(true);
         TableColumn col2 = new TableColumn (table, SWT.NONE);
-        col2.setWidth(AbstractWindow.computeWidth(100));
+        col2.setWidth(AbstractWindow.computeWidth(150));
         col2.setText(RM.getLabel("archivedetail.valuecolumn.label"));
         col2.setMoveable(true);
         
