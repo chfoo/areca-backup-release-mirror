@@ -9,6 +9,7 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.PublicClonable;
+import com.myJava.util.log.Logger;
 
 /**
  * Vérifie si l'entrée est bien contenue (directement ou indirectement) dans le répertoire
@@ -16,7 +17,7 @@ import com.myJava.object.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -49,6 +50,10 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
             throw new IllegalArgumentException("Invalid directory : " + parameters);
         }
         this.directory = new File(parameters);
+        
+        if (! FileSystemManager.exists(directory)) {
+            Logger.defaultLogger().warn("Caution : The filtered directory does not exist. (" + FileSystemManager.getAbsolutePath(directory) + ")");
+        }
     }
     
     public boolean acceptIteration(RecoveryEntry entry) {

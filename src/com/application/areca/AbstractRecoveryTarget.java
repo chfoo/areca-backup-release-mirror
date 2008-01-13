@@ -37,7 +37,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -78,6 +78,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     protected ProcessorList postProcessors = new ProcessorList();
     protected ProcessorList preProcessors = new ProcessorList();
     protected boolean running;
+    protected boolean createSecurityCopyOnBackup = true;
      
     public void setProcess(RecoveryProcess process) {
         this.process = process;
@@ -94,6 +95,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         other.postProcessors = (ProcessorList)postProcessors.duplicate();
         other.preProcessors = (ProcessorList)preProcessors.duplicate();
         other.setMedium((ArchiveMedium)medium.duplicate(), true);
+        other.createSecurityCopyOnBackup = this.createSecurityCopyOnBackup;
     }
     
     public boolean supportsBackupScheme(String backupScheme) {
@@ -110,6 +112,14 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
 
     public boolean isRunning() {
         return running;
+    }
+
+    public boolean isCreateSecurityCopyOnBackup() {
+        return createSecurityCopyOnBackup;
+    }
+
+    public void setCreateSecurityCopyOnBackup(boolean createSecurityCopyOnBackup) {
+        this.createSecurityCopyOnBackup = createSecurityCopyOnBackup;
     }
 
     public void setRunning(boolean running) {

@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -43,6 +43,7 @@ public interface XMLTags {
     public static final String XML_TARGET_FOLLOW_SYMLINKS = "follow_symlinks";    
     public static final String XML_TARGET_FOLLOW_SUBDIRECTORIES = "follow_subdirectories";    
     public static final String XML_TARGET_DESCRIPTION = "description";    
+    public static final String XML_TARGET_CREATE_XML_SECURITY_COPY = "xml_security_copy";   
     
     public static final String XML_SOURCE = "source";
     public static final String XML_SOURCE_PATH = "path";

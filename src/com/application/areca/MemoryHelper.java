@@ -7,7 +7,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -65,14 +65,19 @@ public class MemoryHelper {
     
     public static String getMemoryMessage(AbstractRecoveryTarget target, long entries) {
         return 
-	        "Only " + OSTool.getMaxMemoryMB() + " MBytes have been allocated to Areca" + 
-	        ", which may be insufficient to securely manage this target (" + target.getTargetName() + "),\nregarding its size (approximately " + entries + " files).\n\n" +
-	        "You can either :\n" +
-	        "- split this target into smaller ones (it is advised that your target's size does not overcome " + MemoryHelper.getMaxManageableEntries() + " files), or \n" +
-	        "- increase the memory that is allocated to Areca (in your case, it is advised to allocate at least " + MemoryHelper.getTheoreticalMemoryMB(entries) + " MBytes).\n" + 
-	        "You will find more informations on how to increase the memory dedicated to Areca on Areca's Website.";        
+                "Areca's current settings only allocate a maximum of " 
+                + OSTool.getMaxMemoryMB() 
+                + " MBytes to process this backup target (" 
+                + target.getTargetName() 
+                + "). This may be insufficient to securely process this target (approximately " 
+                + entries 
+                + " files).\n\nYou can either:\n- split this target into smaller targets (it is advisable that your target's size does not exceed " 
+                + MemoryHelper.getMaxManageableEntries() 
+                + " files for the current maximum memory), or\n- increase the amount of memory that Areca allocates (for a target of this size, it is advisable to allocate at least " 
+                + MemoryHelper.getTheoreticalMemoryMB(entries) 
+                + " MBytes).\n\nFurther information on how to increase the memory Areca allocates may be found within the FAQ on Areca's Website.";       
     }
-    
+
     /**
      * Returns the ratio of memory which is kept free for Areca.
      * <BR>For instance a ratio of 0.3 means that Areca's caching strategy will always attempts to keep 30% of

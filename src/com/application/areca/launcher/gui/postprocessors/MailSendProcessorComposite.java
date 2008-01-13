@@ -24,7 +24,7 @@ import com.application.areca.processor.Processor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -148,7 +148,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
                 try {
                     MailSendProcessor testProc = new MailSendProcessor();
                     initProcessor(testProc);
-                    testProc.sendMail("Areca mail report test", "Areca mail report test successfull !", ps);
+                    testProc.sendMail("Areca mail report test", "Areca mail report test successfull !", ps, null);
                     
                     Application.getInstance().showInformationDialog(baos.toString(), RM.getLabel("procedition.ok.label"), true);                
                 } catch (ApplicationException e1) {

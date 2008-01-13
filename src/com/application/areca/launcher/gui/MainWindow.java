@@ -40,7 +40,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -95,6 +95,7 @@ public class MainWindow extends AbstractWindow {
         shell.addListener(SWT.Show, new Listener() {
             public void handleEvent(Event event) {
                 application.checkSystem();
+                application.checkVersion(false);
             }
         });
     }

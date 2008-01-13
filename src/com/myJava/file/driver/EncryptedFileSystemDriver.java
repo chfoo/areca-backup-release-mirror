@@ -10,6 +10,7 @@ import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.AlgorithmParameterSpec;
+import java.util.ArrayList;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -33,7 +34,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -212,37 +213,37 @@ extends AbstractLinkableFileSystemDriver {
         }
     }
     
+    private File[] parseFiles(File[] files) {
+        ArrayList ret = new ArrayList();
+        
+        if (files == null) {
+            return null;
+        } else {
+            for (int i=0; i<files.length; i++) {
+                try {
+                    ret.add(this.decryptFileName(files[i]));
+                } catch (Throwable e) {
+                    Logger.defaultLogger().error("Error parsing file " + predecessor.getAbsolutePath(files[i]) + ". This file will be refused.", e);
+                }
+            }
+            
+            return (File[])ret.toArray(new File[ret.size()]);   
+        }
+    }
+    
     public File[] listFiles(File file, FileFilter filter) {
         File[] files = this.predecessor.listFiles(this.encryptFileName(file), new FileFilterAdapter(filter, this));
-        if (files != null) {
-            for (int i=0; i<files.length; i++) {
-                files[i] = this.decryptFileName(files[i]);
-            }
-        }
-        
-        return files;
+        return parseFiles(files);
     }
     
     public File[] listFiles(File file, FilenameFilter filter) {
         File[] files = this.predecessor.listFiles(this.encryptFileName(file), new FilenameFilterAdapter(filter, this));
-        if (files != null) {
-            for (int i=0; i<files.length; i++) {
-                files[i] = this.decryptFileName(files[i]);
-            }
-        }
-        
-        return files;
+        return parseFiles(files);
     }
     
     public File[] listFiles(File file) {
         File[] files = this.predecessor.listFiles(this.encryptFileName(file));
-        if (files != null) {
-            for (int i=0; i<files.length; i++) {
-                files[i] = this.decryptFileName(files[i]);
-            }
-        }
-        
-        return files;
+        return parseFiles(files);
     }
     
     public boolean mkdir(File file) {
@@ -452,10 +453,15 @@ extends AbstractLinkableFileSystemDriver {
         }
 
         public boolean accept(File dir, String name) {
-            File targetDirectory = driver.decryptFileName(dir);
-            String targetName = driver.decryptFileName(name);
-            
-            return filter.accept(targetDirectory, targetName);
+            try {
+                File targetDirectory = driver.decryptFileName(dir);
+                String targetName = driver.decryptFileName(name);
+                
+                return filter.accept(targetDirectory, targetName);
+            } catch (Throwable e) {
+                Logger.defaultLogger().error("Error filtering file " + driver.predecessor.getAbsolutePath(dir) + "/" + name + ". This file will be refused.", e);
+                return false;
+            }
         }
         
         public boolean equals(Object obj) {
@@ -499,8 +505,13 @@ extends AbstractLinkableFileSystemDriver {
         }
 
         public boolean accept(File filename) {
-            File target = driver.decryptFileName(filename);
-            return filter.accept(target);
+            try {
+                File target = driver.decryptFileName(filename);
+                return filter.accept(target);
+            } catch (Throwable e) {
+                Logger.defaultLogger().error("Error filtering file " + driver.predecessor.getAbsolutePath(filename) + ". This file will be refused.", e);
+                return false;
+            }
         }
         
         public boolean equals(Object obj) {

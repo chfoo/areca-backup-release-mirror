@@ -10,7 +10,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -36,6 +36,7 @@ public class VolumeInputStream extends InputStream {
 
     protected VolumeStrategy strategy;
     protected InputStream in;
+    protected byte[] singleByteBuffer = new byte[1];
 
     public VolumeInputStream(VolumeStrategy strategy) {
         this.strategy = strategy;
@@ -54,12 +55,11 @@ public class VolumeInputStream extends InputStream {
     }
 
     public int read() throws IOException {
-        byte[] b = new byte[1];
-        int ret = read(b);
+        int ret = read(singleByteBuffer);
         if (ret == -1) {
             return -1;
         } else {
-            return b[0]& 0xff;
+            return singleByteBuffer[0]& 0xff;
         }
     }
 

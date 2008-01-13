@@ -21,16 +21,20 @@ import java.util.zip.Deflater;
  * @author 	David Connelly
  * 
  * <BR>This class was derived from the original java.util.zip.DeflaterOutputStream.
- * <BR>No modifications were made except package change.
+ * <BR>Modifications :
+ * <BR>Package change.
+ * <BR>in / out fields
  * <BR>
  * <BR>CAUTION :
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
 public
 class DeflaterOutputStream extends FilterOutputStream {
+    protected byte[] tmp = new byte[1];
+    
     /**
      * Compressor for this stream.
      */
@@ -46,6 +50,10 @@ class DeflaterOutputStream extends FilterOutputStream {
      */
     
     private boolean closed = false;
+    
+    private long inCount;
+    
+    private long outCount;
     
     /**
      * Creates a new output stream with the specified compressor and
@@ -86,7 +94,21 @@ class DeflaterOutputStream extends FilterOutputStream {
         this(out, new Deflater());
         usesDefaultDeflater = true;
     }
+
+    public long getTotalIn() {
+        return inCount;
+    }
+
+    public long getTotalOut() {
+        return outCount;
+    }
     
+    public void resetDeflater() {
+        def.reset();
+        inCount = 0;
+        outCount= 0;
+    }
+
     /**
      * Writes a byte to the compressed output stream. This method will
      * block until the byte can be written.
@@ -94,9 +116,8 @@ class DeflaterOutputStream extends FilterOutputStream {
      * @exception IOException if an I/O error has occurred
      */
     public void write(int b) throws IOException {
-        byte[] buf = new byte[1];
-        buf[0] = (byte)(b & 0xff);
-        write(buf, 0, 1);
+        tmp[0] = (byte)(b & 0xff);
+        write(tmp, 0, 1);
     }
     
     /**
@@ -107,7 +128,7 @@ class DeflaterOutputStream extends FilterOutputStream {
      * @param len the length of the data
      * @exception IOException if an I/O error has occurred
      */
-    public void write(byte[] b, int off, int len) throws IOException {
+    public void write(byte[] b, int off, int len) throws IOException {       
         if (def.finished()) {
             throw new IOException("write beyond end of stream");
         }
@@ -117,6 +138,7 @@ class DeflaterOutputStream extends FilterOutputStream {
             return;
         }
         if (!def.finished()) {
+            inCount += len;
             def.setInput(b, off, len);
             while (!def.needsInput()) {
                 deflate();
@@ -161,6 +183,7 @@ class DeflaterOutputStream extends FilterOutputStream {
     protected void deflate() throws IOException {
         int len = def.deflate(buf, 0, buf.length);
         if (len > 0) {
+            outCount += len;
             out.write(buf, 0, len);
         }
     }

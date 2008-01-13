@@ -23,6 +23,7 @@ import com.application.areca.context.ProcessContext;
 import com.application.areca.context.ProcessReport;
 import com.application.areca.context.ProcessReportWriter;
 import com.application.areca.impl.TagHelper;
+import com.application.areca.version.VersionInfos;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.PublicClonable;
@@ -35,7 +36,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -68,7 +69,7 @@ public class MailSendProcessor extends AbstractProcessor {
     private boolean onlyIfError;
     private boolean listFiltered = true;
     private String title = "Areca : backup report for target %TARGET_NAME%.";
-    private String intro = "ARECA : Backup Report";
+    private String intro = "Backup report :";
 
     public MailSendProcessor() {
         super();
@@ -209,9 +210,12 @@ public class MailSendProcessor extends AbstractProcessor {
                 sendMail(
                         subject,
                         content,
-                        str
+                        str,
+                        context
                 );
-            } catch (IOException e) {
+                
+                System.out.println(content);
+            } catch (Exception e) {
                 Logger.defaultLogger().error("Error during mail processing", e);
                 throw new ApplicationException("Error during mail processing", e);
             } finally {
@@ -228,7 +232,8 @@ public class MailSendProcessor extends AbstractProcessor {
     public void sendMail(
             String subject,
             String content,
-            PrintStream debugStream
+            PrintStream debugStream,
+            ProcessContext context
     ) throws ApplicationException {       
     	Properties props = System.getProperties();
     	props.put("mail.smtp.host", getSmtpServerName());
@@ -241,7 +246,7 @@ public class MailSendProcessor extends AbstractProcessor {
     	}
     	
     	try {
-    	    List recp = getAddressesAsList();;
+    	    List recp = getAddressesAsList();
     	    InternetAddress[] addresses = new InternetAddress[recp.size()];
     	    for (int i=0; i<addresses.length; i++) {
     	        addresses[i] = new InternetAddress((String)recp.get(i));
@@ -249,12 +254,18 @@ public class MailSendProcessor extends AbstractProcessor {
     	    
     	    MimeMessage msg = new MimeMessage(session);
 
-    	    msg.setFrom((this.from == null || this.from.trim().length() == 0) ? addresses[0] : new InternetAddress(this.from));
+            InternetAddress fromAddress = (this.from == null || this.from.trim().length() == 0) ? addresses[0] : new InternetAddress(this.from);
+            
+    	    msg.setFrom(fromAddress);
     	    msg.setRecipients(Message.RecipientType.TO, addresses);
+            msg.setReplyTo(new InternetAddress[] {fromAddress});
     	    msg.setSubject(subject);
     	    msg.setText(content, OSTool.getIANAFileEncoding());
     	    msg.setSentDate(new Date());
-                	    
+            msg.setSender(fromAddress);
+            msg.setSentDate(new Date());
+            msg.setHeader("X-Areca-Target", context.getReport().getTarget().getUid());
+            msg.setHeader("X-Areca-Version", VersionInfos.getLastVersion().getVersionId());
     	    if (isAuthenticated()) {
                 Transport tr;
                 if (isSmtps()) {

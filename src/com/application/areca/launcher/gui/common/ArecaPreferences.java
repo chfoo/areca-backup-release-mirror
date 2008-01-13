@@ -8,7 +8,7 @@ import com.application.areca.context.ReportingConfiguration;
 /**
  * @author Stephane Brunel
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -40,12 +40,12 @@ public final class ArecaPreferences {
 	private static final String DISPLAY_REPORT = "archive.displayreport";
 	private static final String LAST_WORKSPACE_COPY_LOCATION = "workspace.last.copy.location";
 	private static final String LAST_WORKSPACE_COPY_MASK = "workspace.last.copy.mask";
-	private static final String DISPLAY_LOG = "log.display";
     private static final String TEXT_EDITOR = "editor.text";
     private static final String INFO_SYNTHETIC = "info.channel.synthetic";
     private static final String DATE_FORMAT = "date.format";
     private static final String DISPLAY_JAVA_VENDOR_MESSAGE = "display.java.vendor.message";
-	
+	private static final String CHECK_NEW_VERSIONS = "check.new.versions";
+    
 	public static final int UNDEFINED = -1;
 	public static final int LAST_WORKSPACE_MODE = 0;
 	public static final int DEFAULT_WORKSPACE_MODE = 1;
@@ -71,6 +71,11 @@ public final class ArecaPreferences {
 	    LocalPreferences.instance().set(ARCHIVE_STORAGE, dir);
 	    synchronizeClientConfigurations();
 	}
+    
+    public static void setCheckNewVersion(boolean b) {
+        LocalPreferences.instance().set(CHECK_NEW_VERSIONS, b);
+        synchronizeClientConfigurations();
+    }
     
     public static void setDisplayJavaVendorMessage(boolean b) {
         LocalPreferences.instance().set(DISPLAY_JAVA_VENDOR_MESSAGE, b);
@@ -117,6 +122,10 @@ public final class ArecaPreferences {
         return LocalPreferences.instance().getBoolean(INFO_SYNTHETIC, false);
     }
     
+    public static boolean isCheckNewVersions() {
+        return LocalPreferences.instance().getBoolean(CHECK_NEW_VERSIONS, false);
+    }
+    
     public static boolean isDisplayJavaVendorMessage() {
         return LocalPreferences.instance().getBoolean(DISPLAY_JAVA_VENDOR_MESSAGE, true);
     }
@@ -157,15 +166,6 @@ public final class ArecaPreferences {
 	public static void setLnF(String lnf) {
 	    LocalPreferences.instance().set(LNF, lnf);
 	    synchronizeClientConfigurations();
-	}
-	
-	public static void setDisplayLog(boolean displayLog) {
-	    LocalPreferences.instance().set(DISPLAY_LOG, displayLog);
-	    synchronizeClientConfigurations();
-	}
-	
-	public static boolean getDisplayLog() {
-	    return LocalPreferences.instance().getBoolean(DISPLAY_LOG);
 	}
 	
 	public static String getLang() {

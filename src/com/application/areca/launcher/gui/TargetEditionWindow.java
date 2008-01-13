@@ -81,7 +81,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -131,6 +131,7 @@ extends AbstractWindow {
     
     protected Group grpCompression;
     protected Group grpEncryption;
+    protected Group grpConfiguration;
     protected Group grpFileManagement;
     protected Group grpStorage;
     protected Group grpZipOptions;
@@ -140,6 +141,7 @@ extends AbstractWindow {
     protected Button chkTrackDirectories;
     protected Button chkFollowSubDirectories;
     protected Button chkTrackPermissions;
+    protected Button chkNoXMLCopy;
     protected Button chkEncrypted;
     protected Button chkMultiVolumes;
     protected Button chkFollowLinks;
@@ -612,7 +614,19 @@ extends AbstractWindow {
         txtEncryptionKey.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         new Label(grpEncryption, SWT.NONE);
         lblEncryptionExample = new Label(grpEncryption, SWT.NONE);
-        lblEncryptionExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));      
+        lblEncryptionExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));    
+        
+        // CONFIG
+        grpConfiguration = new Group(composite, SWT.NONE);
+        grpConfiguration.setText(RM.getLabel("targetedition.configuration.label"));
+        grpConfiguration.setLayout(new GridLayout(1, false));
+        grpConfiguration.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+        
+        chkNoXMLCopy = new Button(grpConfiguration, SWT.CHECK);
+        chkNoXMLCopy.setText(RM.getLabel("targetedition.noxmlbackup.label"));
+        chkNoXMLCopy.setToolTipText(RM.getLabel("targetedition.noxmlbackup.tooltip"));
+        monitorControl(chkNoXMLCopy);
+        chkNoXMLCopy.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
     }
     
     private TreeItem transfered;
@@ -872,6 +886,7 @@ extends AbstractWindow {
             chkTrackDirectories.setSelection(fMedium.isTrackDirectories());
             chkFollowSubDirectories.setSelection(((FileSystemRecoveryTarget)target).isFollowSubdirectories());
             chkTrackPermissions.setSelection(fMedium.isTrackPermissions());
+            chkNoXMLCopy.setSelection(! target.isCreateSecurityCopyOnBackup());
             chkFollowLinks.setSelection( ! ((FileSystemRecoveryTarget)target).isTrackSymlinks());
             
             if (fMedium.getCompressionArguments().isCompressed()) {
@@ -1012,6 +1027,7 @@ extends AbstractWindow {
             grpZipOptions.setEnabled(false);
             grpStorage.setEnabled(false);
             grpFileManagement.setEnabled(false);
+            grpConfiguration.setEnabled(false);
             
             rdDir.setEnabled(false);
             rdZip.setEnabled(false);
@@ -1029,6 +1045,7 @@ extends AbstractWindow {
             chkTrackDirectories.setEnabled(false);
             chkFollowSubDirectories.setEnabled(false);
             chkTrackPermissions.setEnabled(false);
+            chkNoXMLCopy.setEnabled(false);
             chkFollowLinks.setEnabled(false);
             lblZipComment.setEnabled(false);
             txtZipComment.setEnabled(false);
@@ -1352,6 +1369,7 @@ extends AbstractWindow {
             
             newTarget.setComments(this.txtDesc.getText());
             newTarget.setTargetName(txtTargetName.getText());
+            newTarget.setCreateSecurityCopyOnBackup(! chkNoXMLCopy.getSelection());
             newTarget.setTrackSymlinks( ! this.chkFollowLinks.getSelection());
             newTarget.setFollowSubdirectories(this.chkFollowSubDirectories.getSelection());
             
@@ -1435,12 +1453,12 @@ extends AbstractWindow {
                 newTarget.setMedium(medium, false);
                 medium.install();
                 
-                if (historyBck != null) {
+                if (historyBck != null && ! historyBck.isEmpty()) {
                     // Réécriture de l'historique
                     try {
                         newTarget.getHistory().importHistory(historyBck);
                     } catch (Throwable e) {
-                        Logger.defaultLogger().error("Error during user action history import.", e);
+                        Logger.defaultLogger().error("Error during user history import.", e);
                     }
                 }
             }

@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.attributes.Attributes;
@@ -32,7 +33,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -176,42 +177,38 @@ extends AbstractLinkableFileSystemDriver {
 
         return ret;
     }
+    
+    private File[] parseFiles(File[] files) {
+        ArrayList ret = new ArrayList();
+        
+        if (files == null) {
+            return null;
+        } else {
+            for (int i=0; i<files.length; i++) {
+                try {
+                    ret.add(this.decodeFileName(files[i]));
+                } catch (Throwable e) {
+                    Logger.defaultLogger().error("Error parsing file " + predecessor.getAbsolutePath(files[i]) + ". This file will be refused.", e);
+                }
+            }
+            
+            return (File[])ret.toArray(new File[ret.size()]);   
+        }
+    }
 
     public File[] listFiles(File file, FileFilter filter) {
         File[] files = this.predecessor.listFiles(this.encodeFileName(file), new FileFilterAdapter(filter, this));
-        if (files == null) {
-            return null;
-        }
-        for (int i=0; i<files.length; i++) {
-            files[i] = this.decodeFileName(files[i]);
-        }
-
-        return files;
+        return parseFiles(files);
     }
 
     public File[] listFiles(File file, FilenameFilter filter) {
         File[] files = this.predecessor.listFiles(this.encodeFileName(file), new FilenameFilterAdapter(filter, this));
-        if (files == null) {
-            return null;
-        }
-        for (int i=0; i<files.length; i++) {
-            files[i] = this.decodeFileName(files[i]);
-        }
-
-        return files;
+        return parseFiles(files);
     }
 
     public File[] listFiles(File file) {
         File[] files = this.predecessor.listFiles(this.encodeFileName(file), new FileFilterAdapter(this));
-        if (files == null) {
-            return null;
-        }
-
-        for (int i=0; i<files.length; i++) {
-            files[i] = this.decodeFileName(files[i]);
-        }
-
-        return files;
+        return parseFiles(files);
     }
 
     public boolean mkdir(File file) {
@@ -231,6 +228,7 @@ extends AbstractLinkableFileSystemDriver {
                 return false;
             }
         } catch (IOException e) {
+            Logger.defaultLogger().error(e);
             throw new IllegalArgumentException("IllegalArgumentException : " + e.getMessage());
         }
     }
@@ -317,22 +315,7 @@ extends AbstractLinkableFileSystemDriver {
                 return new File(encodedParent, this.encodeFileName(encodedParent, orig.getName()));
             }
         } catch (IOException e) {
-            throw new IllegalArgumentException(e.getMessage());
-        }
-    }
-
-    /**
-     * Reads the companion file to decode the hashed name
-     */
-    protected File decodeFileName(File file) {
-        try {
-            File orig = file.getCanonicalFile();
-            if (orig.equals(this.directoryRoot)) {
-                return orig;
-            } else {
-                return new File(this.decodeFileName(orig.getParentFile()), this.decodeFileName(orig.getParentFile(), orig.getName()));
-            }
-        } catch (IOException e) {
+            Logger.defaultLogger().error(e);
             throw new IllegalArgumentException(e.getMessage());
         }
     }
@@ -343,7 +326,8 @@ extends AbstractLinkableFileSystemDriver {
      * - length (hexadecimal) of  the original name
      * - Java hashCode (see String class) of the original name
      */
-    protected String encodeFileName(File encodedParent, String shortName) throws HashCollisionException {
+    protected String encodeFileName(File encodedParent, String shortName) 
+    throws HashCollisionException, IOException {
         if (shortName == null) {
             return null;
         }
@@ -365,7 +349,8 @@ extends AbstractLinkableFileSystemDriver {
         return validateEncodedName(encodedParent, shortName, sb.toString());
     }
 
-    private String validateEncodedName(File encodedParent, String decodedName, String encodedName) throws HashCollisionException {        
+    private String validateEncodedName(File encodedParent, String decodedName, String encodedName) 
+    throws HashCollisionException, IOException {        
         // Check wether the hash has been used
         File decoding = new File(encodedParent, encodedName + DECODED_SUFF);
 
@@ -379,19 +364,11 @@ extends AbstractLinkableFileSystemDriver {
                     reader = new BufferedReader(new InputStreamReader(in));
                     fullName = reader.readLine();
                     this.cache.registerFullName(predecessor.getAbsolutePath(decoding), fullName);
-                } catch (FileNotFoundException e) {
-                    throw new IllegalArgumentException("FileNotFoundException : " + e.getMessage());
-                } catch (IOException e) {
-                    throw new IllegalArgumentException("IOException : " + e.getClass().getName() + " : " + e.getMessage());
                 } finally {
-                    try {
-                        if (reader != null) {
-                            reader.close();
-                        } else if (in != null) {
-                            in.close();
-                        }
-                    } catch (IOException e1) {
-                        throw new IllegalArgumentException("IOException : " + e1.getMessage());
+                    if (reader != null) {
+                        reader.close();
+                    } else if (in != null) {
+                        in.close();
                     }
                 }
             }
@@ -404,10 +381,23 @@ extends AbstractLinkableFileSystemDriver {
         return encodedName; // The encoded name has not already been used for a different file --> OK
     }
 
+
     /**
      * Reads the companion file to decode the hashed name
      */
-    protected String decodeFileName(File parent, String shortName) {
+    protected File decodeFileName(File file) throws IOException {
+        File orig = file.getCanonicalFile();
+        if (orig.equals(this.directoryRoot)) {
+            return orig;
+        } else {
+            return new File(this.decodeFileName(orig.getParentFile()), this.decodeFileName(orig.getParentFile(), orig.getName()));
+        }
+    }
+    
+    /**
+     * Reads the companion file to decode the hashed name
+     */
+    protected String decodeFileName(File parent, String shortName) throws IOException {
         File decoding = new File(parent, shortName + DECODED_SUFF);
 
         String fullName = this.cache.getFullName(predecessor.getAbsolutePath(decoding));
@@ -420,22 +410,11 @@ extends AbstractLinkableFileSystemDriver {
                 fullName = reader.readLine();
                 this.cache.registerFullName(predecessor.getAbsolutePath(decoding), fullName);
                 return fullName;
-            } catch (FileNotFoundException e) {
-                Logger.defaultLogger().error(e);
-                throw new IllegalArgumentException("FileNotFoundException : " + e.getMessage());
-            } catch (IOException e) {
-                Logger.defaultLogger().error(e);
-                throw new IllegalArgumentException("IOException : " + e.getMessage());
             } finally {
-                try {
-                    if (reader != null) {
-                        reader.close();
-                    } else if (in != null) {
-                        in.close();
-                    }
-                } catch (IOException e) {
-                    Logger.defaultLogger().error(e);
-                    throw new IllegalArgumentException("IOException : " + e.getMessage());
+                if (reader != null) {
+                    reader.close();
+                } else if (in != null) {
+                    in.close();
                 }
             }
         }
@@ -522,13 +501,18 @@ extends AbstractLinkableFileSystemDriver {
         }
 
         public boolean accept(File dir, String name) {
-            if (driver.isDecodingFile(name)) {
-                return false;
-            } else {
-                File targetDirectory = driver.decodeFileName(dir);
-                String targetName = driver.decodeFileName(dir, name);
+            try {
+                if (driver.isDecodingFile(name)) {
+                    return false;
+                } else {
+                    File targetDirectory = driver.decodeFileName(dir);
+                    String targetName = driver.decodeFileName(dir, name);
 
-                return filter.accept(targetDirectory, targetName);
+                    return filter.accept(targetDirectory, targetName);
+                }
+            } catch (Throwable e) {
+                Logger.defaultLogger().error("Error parsing file " + driver.predecessor.getAbsolutePath(dir) + "/" + name + ". This file will be refused.", e);
+                return false;
             }
         }
         
@@ -580,15 +564,20 @@ extends AbstractLinkableFileSystemDriver {
         }
 
         public boolean accept(File file) {
-            if (driver.isDecodingFile(file)) {
-                return false;
-            } else {
-                if (filter != null) {
-                    File target = driver.decodeFileName(file);
-                    return filter.accept(target);
+            try {
+                if (driver.isDecodingFile(file)) {
+                    return false;
                 } else {
-                    return true;
+                    if (filter != null) {
+                        File target = driver.decodeFileName(file);
+                        return filter.accept(target);
+                    } else {
+                        return true;
+                    }
                 }
+            } catch (Throwable e) {
+                Logger.defaultLogger().error("Error parsing file " + driver.predecessor.getAbsolutePath(file) + ". This file will be refused.", e);
+                return false;
             }
         }
         

@@ -43,13 +43,14 @@ import com.myJava.util.log.Logger;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
 public class ZipInputStream 
 extends InflaterInputStream 
 implements ZipConstants {
 
     private static final int ZIP_BUFFER_SIZE = FrameworkConfiguration.getInstance().getZipBufferSize();
+    private static final boolean ZIP_ENABLE_ENTRY_CHECK = FrameworkConfiguration.getInstance().isZipEntryCheckEnabled();
     
     private ZipEntry entry;
     private CRC32 crc = new CRC32();
@@ -80,8 +81,10 @@ implements ZipConstants {
         if (entry != null) {
             closeEntry();
         }
-        crc.reset();
-        inf.reset();
+        if (ZIP_ENABLE_ENTRY_CHECK) {
+            crc.reset();
+        }
+        resetInflater();
         if ((entry = readLOC()) == null) {
             return null;
         }
@@ -132,7 +135,7 @@ implements ZipConstants {
                 readEnd(entry);
                 entryEOF = true;
                 entry = null;
-            } else {
+            } else if (ZIP_ENABLE_ENTRY_CHECK) {
                 crc.update(b, off, len);
             }
             return len;
@@ -270,20 +273,18 @@ implements ZipConstants {
                 e.size = get64(tmpbuf, EXTLEN64);
             }
         }
-        if (e.csize != inf.getTotalIn()) {
-            throw new ZipException(
-                    "invalid entry compressed size (expected " + e.csize +
-                    " but got " + inf.getTotalIn() + " bytes)");
-        }
-        if (e.crc != crc.getValue()) {
+        if ((ZIP_ENABLE_ENTRY_CHECK) && (e.crc != crc.getValue())) {
             throw new ZipException(
                     "invalid entry CRC (expected 0x" + Long.toHexString(e.crc) +
                     " but got 0x" + Long.toHexString(crc.getValue()) + ")");
         }
-        if (e.size != inf.getTotalOut()) {
+        if ((ZIP_ENABLE_ENTRY_CHECK) && (
+                e.size != getTotalOut())
+                && (Integer.MIN_VALUE + (e.size%Integer.MAX_VALUE) - 1 != getTotalOut())     // Backward compatibility
+        ) {
             throw new ZipException(
                     "invalid entry size (expected " + e.size + " but got " +
-                    inf.getTotalOut() + " bytes)");
+                    getTotalOut() + " bytes)");
         }
     }
 

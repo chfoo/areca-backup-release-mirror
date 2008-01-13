@@ -4,7 +4,7 @@ package com.application.areca.launcher.gui.common;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -44,6 +44,7 @@ public interface ActionConstants {
     public static final String CMD_MERGE = "merge";
     public static final String CMD_DELETE_ARCHIVES = "delete archives";
     public static final String CMD_ABOUT = "about";
+    public static final String CMD_CHECK_VERSION = "check version";
     public static final String CMD_HELP = "help";    
     public static final String CMD_HISTORY = "history";
     public static final String CMD_VIEW_MANIFEST = "view manifest"; 

@@ -25,7 +25,7 @@ import com.application.areca.launcher.gui.common.SavePanel;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -61,6 +61,7 @@ extends AbstractWindow {
     private Text editor;
     private Text dateFormat;
     private Button btnSave;
+    private Button checkNewVersions;
 
     protected Control createContents(Composite parent) {
         
@@ -163,6 +164,13 @@ extends AbstractWindow {
                 }
             }
         });
+        
+        checkNewVersions = new Button(parent, SWT.CHECK);
+        checkNewVersions.setText(RM.getLabel("preferences.checkversions.label"));
+        checkNewVersions.setToolTipText(RM.getLabel("preferences.checkversions.tt"));    
+        checkNewVersions.setSelection(ArecaPreferences.isCheckNewVersions());
+        checkNewVersions.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
+        monitorControl(checkNewVersions);   
     }
     
     private void buildArchivesComposite(Composite parent) {
@@ -202,6 +210,7 @@ extends AbstractWindow {
         displayReport = new Button(parent, SWT.CHECK);
         displayReport.setText(RM.getLabel("preferences.displayreport.label"));
         displayReport.setSelection(ArecaPreferences.getDisplayReport());
+        displayReport.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
         monitorControl(displayReport);
     }
     
@@ -246,6 +255,7 @@ extends AbstractWindow {
         ArecaPreferences.setEditionCommand(editor.getText());
         ArecaPreferences.setInformationSynthetic(informationSynthetic.getSelection());
         ArecaPreferences.setDateFormat(dateFormat.getText());
+        ArecaPreferences.setCheckNewVersion(checkNewVersions.getSelection());
         
         this.hasBeenUpdated = false;
         this.close();

@@ -49,7 +49,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -486,31 +486,35 @@ implements TargetActions, IndicatorTypes {
      * <BR>This copy can be used later - in case of computer crash. 
      */
     protected void storeTargetConfigBackup(ProcessContext context) throws ApplicationException {
-        File storageDir = FileSystemManager.getParentFile(context.getFinalArchiveFile());
-        boolean ok = false;
-        
-        if (storageDir != null && FileSystemManager.exists(storageDir)) {
-            File rootDir = FileSystemManager.getParentFile(storageDir);
-            if (rootDir != null && FileSystemManager.exists(rootDir)) {
-                File targetFile = new File(
-                        rootDir,
-                        TARGET_BACKUP_FILE_PREFIX + this.target.getUid() + TARGET_BACKUP_FILE_SUFFIX
-                );
-
-                Logger.defaultLogger().info("Creating a XML backup copy of target \"" + this.target.getTargetName() + "\" on : " + FileSystemManager.getAbsolutePath(targetFile));
-                RecoveryProcess process = new RecoveryProcess(targetFile);
-                process.addTarget(this.target);
-                process.setComments("This group contains a backup copy of your target : \"" + this.target.getTargetName() + "\". It can be used in case of computer crash.\nDo not modify it as is will be automatically updated during backup processes.");
-                
-                ProcessXMLWriter writer = new ProcessXMLWriter(true);
-                writer.serializeProcess(process);
-                
-                ok = true;
+       if (this.target.isCreateSecurityCopyOnBackup()) {
+            File storageDir = FileSystemManager.getParentFile(context.getFinalArchiveFile());
+            boolean ok = false;
+            
+            if (storageDir != null && FileSystemManager.exists(storageDir)) {
+                File rootDir = FileSystemManager.getParentFile(storageDir);
+                if (rootDir != null && FileSystemManager.exists(rootDir)) {
+                    File targetFile = new File(
+                            rootDir,
+                            TARGET_BACKUP_FILE_PREFIX + this.target.getUid() + TARGET_BACKUP_FILE_SUFFIX
+                    );
+    
+                    Logger.defaultLogger().info("Creating a XML backup copy of target \"" + this.target.getTargetName() + "\" on : " + FileSystemManager.getAbsolutePath(targetFile));
+                    RecoveryProcess process = new RecoveryProcess(targetFile);
+                    process.addTarget(this.target);
+                    process.setComments("This group contains a backup copy of your target : \"" + this.target.getTargetName() + "\". It can be used in case of computer crash.\nDo not modify it as is will be automatically updated during backup processes.");
+                    
+                    ProcessXMLWriter writer = new ProcessXMLWriter(true);
+                    writer.serializeProcess(process);
+                    
+                    ok = true;
+                }
             }
-        }
-        
-        if (!ok) {
-            Logger.defaultLogger().warn("Improper backup location : " + FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()) + " - Could not create an XML configuration backup");
+            
+            if (!ok) {
+                Logger.defaultLogger().warn("Improper backup location : " + FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()) + " - Could not create an XML configuration backup");
+            }
+        } else {
+            Logger.defaultLogger().warn("Configuration security copy has been disabled for this target. No XML configuration copy will be created !");
         }
     }
     

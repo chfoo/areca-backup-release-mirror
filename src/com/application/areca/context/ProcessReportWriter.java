@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -45,14 +45,10 @@ public class ProcessReportWriter {
         this.writeFilteredEntries = writeFilteredEntries;
         this.writer = writer;
     }
-    
-    
 
     public void writeReport(ProcessReport report) throws IOException {
         writeSeparator();
-        write("Target : " + report.getTarget().getTargetName() + " (#" + report.getTarget().getId() + ")");
-        write("UID : " + report.getTarget().getUid());
-        write("Start date : " + Utils.formatDisplayDate(report.getStartDate()));        
+        write("" + report.getTarget().getTargetName() + " (" + report.getTarget().getUid() + ") on " + Utils.formatDisplayDate(report.getStartDate()));
         long dur = System.currentTimeMillis() - report.getStartMillis();
         write("Duration : " + Utils.formatDuration(dur));
         
@@ -100,7 +96,6 @@ public class ProcessReportWriter {
     }
     
     private void writeSeparator() throws IOException {
-        write("_________________________________________________");
         write(" ");
     }
 

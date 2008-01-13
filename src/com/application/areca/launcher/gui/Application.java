@@ -53,21 +53,25 @@ import com.application.areca.launcher.gui.wizards.BackupShortcutWizardWindow;
 import com.application.areca.launcher.gui.wizards.BackupStrategyWizardWindow;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.search.SearchResultItem;
+import com.application.areca.version.VersionChecker;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.system.NoBrowserFoundException;
 import com.myJava.system.OSTool;
+import com.myJava.system.OSToolException;
 import com.myJava.util.Util;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 import com.myJava.util.taskmonitor.TaskMonitor;
+import com.myJava.util.version.VersionData;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -429,6 +433,9 @@ implements ActionConstants, Window.IExceptionHandler {
         } else if (command.equals(CMD_BUILD_BATCH)) {
             // BUILD BATCH
             buildBatch();
+        } else if (command.equals(CMD_CHECK_VERSION)) {
+            // CHECK VERSION
+            checkVersion(true);
         } else if (command.equals(CMD_BUILD_STRATEGY)) {
             // BUILD STRATEGY
             buildStrategy();            
@@ -533,6 +540,58 @@ implements ActionConstants, Window.IExceptionHandler {
                         e
                 );
             }                  
+        }
+    }
+    
+    public void checkVersion(final boolean explicit) {
+        if (explicit || ArecaPreferences.isCheckNewVersions()) {
+            Runnable rn = new Runnable() {
+                public void run() {
+                    try {
+                        Logger.defaultLogger().info("Checking new version of Areca ...");
+                        final VersionData data = VersionChecker.getInstance().checkForNewVersion();
+                        VersionData currentVersion = VersionInfos.getLastVersion();
+                        
+                        if (currentVersion.equals(data)) {
+                            Logger.defaultLogger().info("No new version found : v" + data.getVersionId() + " is the latest version.");
+                            if (explicit) {
+                                SecuredRunner.execute(new Runnable() {
+                                    public void run() {
+                                        showConfirmDialog(RM.getLabel("common.versionok.message", new Object[] {data.getVersionId(), VersionInfos.formatVersionDate(data.getVersionDate()), data.getDownloadUrl(), data.getDescription()}), RM.getLabel("common.versionok.title"), SWT.OK);
+                                    }
+                                });
+                            }
+                        } else {
+                            Logger.defaultLogger().info("New version found : " + data.toString());
+                            SecuredRunner.execute(new Runnable() {
+                                public void run() {
+                                    NewVersionWindow win = new NewVersionWindow(
+                                            RM.getLabel("common.newversion.message", new Object[] {data.getVersionId(), VersionInfos.formatVersionDate(data.getVersionDate()), data.getDownloadUrl(), data.getDescription()}), 
+                                            RM.getLabel("common.newversion.title")   
+                                    );                                    
+                                    showDialog(win);
+                                    if (win.isValidated()) {
+                                        try {
+                                            OSTool.launchBrowser(data.getDownloadUrl());
+                                        } catch (OSToolException e1) {
+                                            Logger.defaultLogger().error(e1);
+                                        } catch (NoBrowserFoundException e1) {
+                                            Logger.defaultLogger().error("Error connecting to : " + data.getDownloadUrl() + " - No web browser could be found.", e1);
+                                        }
+                                        
+                                        Application.this.processExit();
+                                    }
+                                }
+                            });
+                        }
+                    } catch (Throwable e) {
+                        handleException("An error occured during version verification : " + e.getMessage(), e);
+                    }  
+                }
+            };
+ 
+            Thread th = new Thread(rn);
+            th.start();
         }
     }
 
@@ -734,7 +793,7 @@ implements ActionConstants, Window.IExceptionHandler {
         String configPath = FileSystemManager.getAbsolutePath(process.getSourceFile());
         String command = "backup ";
         if (full) {
-            command = "-f ";
+            command += "-f ";
         } else if (differential) {
             command += "-d ";
         }
@@ -1167,7 +1226,7 @@ implements ActionConstants, Window.IExceptionHandler {
             String title,
             boolean longMessage
     ) {
-        showDialog(message, title, SWT.OK, SWT.ICON_INFORMATION, longMessage);
+        showDialog(message, title, true, SWT.ICON_INFORMATION, longMessage);
     }
 
     public void showWarningDialog(
@@ -1175,7 +1234,7 @@ implements ActionConstants, Window.IExceptionHandler {
             String title,
             boolean longMessage
     ) {
-        showDialog(message, title, SWT.OK, SWT.ICON_WARNING, longMessage);
+        showDialog(message, title, true,SWT.ICON_WARNING, longMessage);
     }
 
     public void showErrorDialog(
@@ -1183,7 +1242,7 @@ implements ActionConstants, Window.IExceptionHandler {
             String title,
             boolean longMessage
     ) {
-        showDialog(message, title, SWT.OK, SWT.ICON_ERROR, longMessage);
+        showDialog(message, title, true, SWT.ICON_ERROR, longMessage);
     }
 
     public int showConfirmDialog(
@@ -1207,14 +1266,19 @@ implements ActionConstants, Window.IExceptionHandler {
     private int showDialog(
             String message,
             String title,
-            int buttons,
+            boolean closeOnly,
             int type,
             boolean longMessage
     ) {
         if (mainWindow != null) {
             if (longMessage) {
-                LongMessageWindow msg = new LongMessageWindow(title, message, type);
-                return msg.open();
+                LongMessageWindow msg = new LongMessageWindow(title, message, closeOnly, type);
+                showDialog(msg);
+                if (msg.isValidated()) {
+                    return SWT.YES;
+                } else {
+                    return SWT.NO;
+                }
             } else {
                 MessageBox msg = new MessageBox(this.mainWindow.getShell(), SWT.OK | type);
                 msg.setText(title);

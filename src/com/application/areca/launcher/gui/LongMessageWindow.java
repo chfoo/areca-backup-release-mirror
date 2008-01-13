@@ -16,7 +16,7 @@ import com.application.areca.launcher.gui.common.SavePanel;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -43,13 +43,21 @@ extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
 
     private String title;
+    private boolean closeOnly;
     private String message;
     private int image;
     
+    private boolean validated = false;
+    
     public LongMessageWindow(String title, String message, int image) {
+        this(title, message, true, image);
+    }
+    
+    public LongMessageWindow(String title, String message, boolean closeOnly, int image) {
         super();
-        
+
         this.title = title;
+        this.closeOnly = closeOnly;
         this.message = message;
         this.image = image;
     }
@@ -72,8 +80,15 @@ extends AbstractWindow {
         dt.heightHint = AbstractWindow.computeWidth(150);
         content.setLayoutData(dt);
 
-        SavePanel pnlSave = new SavePanel(RM.getLabel("common.close.label"), this);
-        pnlSave.setShowCancel(false);
+        SavePanel pnlSave;
+        if (closeOnly) {
+            pnlSave = new SavePanel(RM.getLabel("common.close.label"), this);
+            pnlSave.setShowCancel(false);
+        } else {
+            pnlSave = new SavePanel(RM.getLabel("common.yes.label"), RM.getLabel("common.no.label"), this);    
+            pnlSave.setShowCancel(true);
+        }
+
         pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));        
         
         composite.pack();
@@ -89,9 +104,14 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() {    
+        validated = true;
         this.close();
     }
 
     protected void updateState(boolean rulesSatisfied) {
+    }
+
+    public boolean isValidated() {
+        return validated;
     }
 }

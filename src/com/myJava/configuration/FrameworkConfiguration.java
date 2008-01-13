@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -61,7 +61,8 @@ public class FrameworkConfiguration {
     private static String KEY_FS_CACHE_DEBUG = "fs.cache.debug";    
     private static String KEY_LAUNCHER_IH = "launcher.initialheap";  
     private static String KEY_LAUNCHER_MH = "launcher.maxheap";   
-    private static String KEY_LAUNCHER_WAITFOR = "launcher.waitfor";   
+    private static String KEY_LAUNCHER_WAITFOR = "launcher.waitfor"; 
+    private static String KEY_ZIP_ENTRY_CHECK_ENABLE = "zip.crc.enable";   
     
     private static int DEF_FTP_MAX_PROXIES = 3;
     private static long DEF_FTP_NOOP_DELAY = 30000;    
@@ -83,6 +84,7 @@ public class FrameworkConfiguration {
     private static int DEF_LAUNCHER_IH = -1;  
     private static int DEF_LAUNCHER_MH = -1;   
     private static boolean DEF_LAUNCHER_WAITFOR = true;  
+    private static boolean DEF_ZIP_ENTRY_CHECK_ENABLE = true;  
 
     private static String VM_PROPS_PREFIX = "launcher.d.";
     
@@ -180,6 +182,10 @@ public class FrameworkConfiguration {
     
     public boolean isHashCacheMode() {
         return getProperty(KEY_HASH_USE_CACHE, DEF_HASH_USE_CACHE);
+    }
+    
+    public boolean isZipEntryCheckEnabled() {
+        return getProperty(KEY_ZIP_ENTRY_CHECK_ENABLE, DEF_ZIP_ENTRY_CHECK_ENABLE);
     }
     
     public int getZipMvDigits() {

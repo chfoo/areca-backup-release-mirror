@@ -25,13 +25,15 @@ import java.util.zip.ZipException;
  * @author 	David Connelly
  * 
  * <BR>This class was derived from the original java.util.zip.InflaterInputStream.
- * <BR>No modifications were made except package change.
+ * <BR>Modifications :
+ * <BR>Package change.
+ * <BR>in / out fields
  * <BR>
  * <BR>CAUTION :
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
 public
 class InflaterInputStream extends FilterInputStream {
@@ -49,6 +51,8 @@ class InflaterInputStream extends FilterInputStream {
      * Length of input buffer.
      */
     protected int len;
+    
+    private long outCount;
 
     private boolean closed = false;
     // this flag is set to true after EOF has reached
@@ -146,6 +150,8 @@ class InflaterInputStream extends FilterInputStream {
 		    fill();
 		}
 	    }
+        
+        outCount += n;
 	    return n;
 	} catch (DataFormatException e) {
 	    String s = e.getMessage();
@@ -201,6 +207,15 @@ class InflaterInputStream extends FilterInputStream {
 	    total += len;
 	}
 	return total;
+    }
+
+    public long getTotalOut() {
+        return outCount;
+    }
+    
+    public void resetInflater() {
+        inf.reset();
+        outCount= 0;
     }
 
     /**

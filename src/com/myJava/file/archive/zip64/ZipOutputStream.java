@@ -40,7 +40,7 @@ import com.myJava.util.log.Logger;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
 public class ZipOutputStream 
 extends DeflaterOutputStream 
@@ -191,8 +191,8 @@ implements ZipConstants {
                 deflate();
             }
 
-            e.size = def.getTotalIn();
-            e.csize = def.getTotalOut();
+            e.size = getTotalIn();
+            e.csize = getTotalOut();
             e.crc = crc.getValue();
             
             if ((!useZip64) && e.size > ZIP32_ENTRY_SIZE_LIMIT) {
@@ -201,7 +201,7 @@ implements ZipConstants {
             
             writeEXT(e);
 
-            def.reset();
+            resetDeflater();
             totalWritten += e.csize;
             crc.reset();
             entry = null;

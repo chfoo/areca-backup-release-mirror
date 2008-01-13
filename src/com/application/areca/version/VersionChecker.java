@@ -3,6 +3,7 @@ package com.application.areca.version;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.myJava.util.log.Logger;
 import com.myJava.util.version.OnlineVersionDataAdapter;
 import com.myJava.util.version.VersionData;
 import com.myJava.util.version.VersionDataAdapterException;
@@ -12,7 +13,7 @@ import com.myJava.util.version.VersionDataAdapterException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4331497872542711431
+ * <BR>Areca Build ID : 2367131098465853703
  */
  
  /*
@@ -77,10 +78,14 @@ public class VersionChecker {
     public VersionData checkForNewVersion() throws VersionDataAdapterException {
         OnlineVersionDataAdapter adapter = new OnlineVersionDataAdapter();
         adapter.setCheckUrl(this.chekUrl);
-        
+
+        Logger.defaultLogger().info("Opening url : " + this.chekUrl.toExternalForm());
         VersionData newVersion = adapter.readVersionData();
         if (newVersion == null) {
+            Logger.defaultLogger().error("Error : No version information found.");
             throw new VersionDataAdapterException("Unable to retrieve version informations from url : " + chekUrl.toExternalForm());
+        } else {
+            Logger.defaultLogger().info("Version information retrieved : " + newVersion.getVersionId());
         }
         return newVersion;
     }
