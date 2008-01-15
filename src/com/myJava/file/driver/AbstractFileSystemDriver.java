@@ -5,8 +5,10 @@ import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.attributes.Attributes;
+import com.myJava.system.OSTool;
 
 /**
  * Implémentation abstraite de l'interface FileSystemDriver
@@ -14,7 +16,7 @@ import com.myJava.file.attributes.Attributes;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2367131098465853703
+ * <BR>Areca Build ID : 1926729655347670856
  */
  
  /*
@@ -38,6 +40,14 @@ This file is part of Areca.
  */
 public abstract class AbstractFileSystemDriver 
 implements FileSystemDriver {
+    private static long MAX_FILEPATH = FrameworkConfiguration.getInstance().getMaxFilePath();
+    private static int FORCE_MAX_FILEPATH_CHECK = FrameworkConfiguration.getInstance().getForceMaxFilePathCheck();    
+    private static boolean CHECK_PATH = 
+        MAX_FILEPATH != 0 
+        && (
+                FORCE_MAX_FILEPATH_CHECK == 1 || 
+                (FORCE_MAX_FILEPATH_CHECK == -1 && OSTool.isSystemWindows())
+        );
     
     public boolean createNewFile(File file) throws IOException {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
@@ -168,6 +178,15 @@ implements FileSystemDriver {
             return FileNameUtil.normalizePath(path);
         } else {
             return path;
+        }
+    }
+    
+    protected void checkFilePath(File f) throws IOException {
+        if (CHECK_PATH) {
+            String p = getAbsolutePath(f);
+            if (p != null && p.length() > MAX_FILEPATH) {
+                throw new IOException("File path (" + p + ") exceeds maximum length (" + MAX_FILEPATH + ")");
+            }
         }
     }
 }

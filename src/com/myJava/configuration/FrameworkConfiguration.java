@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2367131098465853703
+ * <BR>Areca Build ID : 1926729655347670856
  */
  
  /*
@@ -63,6 +63,8 @@ public class FrameworkConfiguration {
     private static String KEY_LAUNCHER_MH = "launcher.maxheap";   
     private static String KEY_LAUNCHER_WAITFOR = "launcher.waitfor"; 
     private static String KEY_ZIP_ENTRY_CHECK_ENABLE = "zip.crc.enable";   
+    private static String KEY_MAX_FILEPATH_LENGTH = "fs.max.filepath";   
+    private static String KEY_FORCE_FILEPATH_LENGTH_CHECK = "fs.max.filepath.check.force";   
     
     private static int DEF_FTP_MAX_PROXIES = 3;
     private static long DEF_FTP_NOOP_DELAY = 30000;    
@@ -85,6 +87,8 @@ public class FrameworkConfiguration {
     private static int DEF_LAUNCHER_MH = -1;   
     private static boolean DEF_LAUNCHER_WAITFOR = true;  
     private static boolean DEF_ZIP_ENTRY_CHECK_ENABLE = true;  
+    private static long DEF_MAX_FILEPATH_LENGTH = 256;   
+    private static int DEF_FORCE_FILEPATH_LENGTH_CHECK = -1;   // -1 = UNSET, 0 = FORCE DISABLE, 1 = FORCE ENABLE
 
     private static String VM_PROPS_PREFIX = "launcher.d.";
     
@@ -170,6 +174,14 @@ public class FrameworkConfiguration {
     
     public boolean isLauncherWaitFor() {
         return getProperty(KEY_LAUNCHER_WAITFOR, DEF_LAUNCHER_WAITFOR);
+    }
+    
+    public long getMaxFilePath() {
+        return getProperty(KEY_MAX_FILEPATH_LENGTH, DEF_MAX_FILEPATH_LENGTH);
+    }
+    
+    public int getForceMaxFilePathCheck() {
+        return getProperty(KEY_FORCE_FILEPATH_LENGTH_CHECK, DEF_FORCE_FILEPATH_LENGTH_CHECK);
     }
     
     public int getLauncherInitialHeap() {

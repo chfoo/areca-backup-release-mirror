@@ -71,7 +71,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2367131098465853703
+ * <BR>Areca Build ID : 1926729655347670856
  */
  
  /*
@@ -557,7 +557,11 @@ implements ActionConstants, Window.IExceptionHandler {
                             if (explicit) {
                                 SecuredRunner.execute(new Runnable() {
                                     public void run() {
-                                        showConfirmDialog(RM.getLabel("common.versionok.message", new Object[] {data.getVersionId(), VersionInfos.formatVersionDate(data.getVersionDate()), data.getDownloadUrl(), data.getDescription()}), RM.getLabel("common.versionok.title"), SWT.OK);
+                                        NewVersionWindow win = new NewVersionWindow(
+                                                RM.getLabel("common.versionok.message", new Object[] {data.getVersionId(), VersionInfos.formatVersionDate(data.getVersionDate()), data.getDownloadUrl(), data.getDescription()}),
+                                                false   
+                                        );                                    
+                                        showDialog(win);
                                     }
                                 });
                             }
@@ -567,7 +571,7 @@ implements ActionConstants, Window.IExceptionHandler {
                                 public void run() {
                                     NewVersionWindow win = new NewVersionWindow(
                                             RM.getLabel("common.newversion.message", new Object[] {data.getVersionId(), VersionInfos.formatVersionDate(data.getVersionDate()), data.getDownloadUrl(), data.getDescription()}), 
-                                            RM.getLabel("common.newversion.title")   
+                                            true   
                                     );                                    
                                     showDialog(win);
                                     if (win.isValidated()) {

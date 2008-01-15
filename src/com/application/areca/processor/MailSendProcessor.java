@@ -36,7 +36,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2367131098465853703
+ * <BR>Areca Build ID : 1926729655347670856
  */
  
  /*
@@ -264,7 +264,9 @@ public class MailSendProcessor extends AbstractProcessor {
     	    msg.setSentDate(new Date());
             msg.setSender(fromAddress);
             msg.setSentDate(new Date());
-            msg.setHeader("X-Areca-Target", context.getReport().getTarget().getUid());
+            if (context != null && context.getReport() != null) {
+                msg.setHeader("X-Areca-Target", context.getReport().getTarget().getUid());
+            }
             msg.setHeader("X-Areca-Version", VersionInfos.getLastVersion().getVersionId());
     	    if (isAuthenticated()) {
                 Transport tr;

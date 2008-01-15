@@ -62,7 +62,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2367131098465853703
+ * <BR>Areca Build ID : 1926729655347670856
  */
  
  /*
@@ -111,7 +111,8 @@ implements TargetActions {
      * Suffixe ajouté pour construire l'emplacement temporaire de restauration
      * utilisé pour la fusion des archives.
      */
-    protected static final String TMP_COMPACT_LOCATION_SUFFIX = ".compact.tmp";
+    protected static final String TMP_COMPACT_LOCATION_SUFFIX = ".mtmp";
+    protected static final String TMP_COMPACT_LOCATION_SUFFIX_DEPRECATED = ".compact.tmp";
     
     /**
      * Préfixe du fichier d'archive (nom court du fichier, sans répertoire)
@@ -854,7 +855,7 @@ implements TargetActions {
             // Additional check : merge temporary directories
             if (            
                     archivePath.startsWith(basePath + Utils.FILE_DATE_SEPARATOR)
-                    && archivePath.endsWith(TMP_COMPACT_LOCATION_SUFFIX)
+                    && (archivePath.endsWith(TMP_COMPACT_LOCATION_SUFFIX) || archivePath.endsWith(TMP_COMPACT_LOCATION_SUFFIX_DEPRECATED))
                     && FileSystemManager.isDirectory(archive)
             ) {     
                 destroyTemporaryFile(archive);

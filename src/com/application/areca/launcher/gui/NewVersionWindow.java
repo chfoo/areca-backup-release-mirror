@@ -24,7 +24,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2367131098465853703
+ * <BR>Areca Build ID : 1926729655347670856
  */
  
  /*
@@ -55,13 +55,21 @@ extends AbstractWindow {
 
     private String message;
     private String title;
+    private boolean locked;
     private boolean validated= false;
     private Button checkNewVersions;
     
-    public NewVersionWindow(String message, String title) {
+    public NewVersionWindow(String message, boolean newVersion) {
         super();
         this.message = message;
-        this.title = title;
+        
+        if (newVersion) {
+            this.title = RM.getLabel("common.newversion.title");      
+            locked = false;
+        } else {
+            this.title = RM.getLabel("common.versionok.title");
+            locked = true;            
+        }
     }
 
     protected Control createContents(Composite parent) {
@@ -101,8 +109,14 @@ extends AbstractWindow {
             lnk.setText("<A HREF=\"http://areca.sourceforge.net\">areca.sf.net</A>");
             lnk.setLayoutData(dt3);
             
-            SavePanel pnlSave = new SavePanel(RM.getLabel("common.yes.label"), RM.getLabel("common.no.label"), this);    
-            pnlSave.setShowCancel(true);
+            SavePanel pnlSave;
+            if (! locked) {
+                pnlSave = new SavePanel(RM.getLabel("common.yes.label"), RM.getLabel("common.no.label"), this);    
+                pnlSave.setShowCancel(true);
+            } else {
+                pnlSave = new SavePanel(RM.getLabel("common.close.label"), this);    
+                pnlSave.setShowCancel(false);
+            }
             pnlSave.buildComposite(ret).setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));    
             
             ret.pack();
@@ -148,7 +162,7 @@ extends AbstractWindow {
 
     protected void saveChanges() {
         ArecaPreferences.setCheckNewVersion(checkNewVersions.getSelection());
-        validated = true;
+        validated = ! locked;
         this.close();
     }
 

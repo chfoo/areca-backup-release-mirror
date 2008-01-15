@@ -41,7 +41,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2367131098465853703
+ * <BR>Areca Build ID : 1926729655347670856
  */
  
  /*
@@ -185,6 +185,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public boolean createNewFile(File file) throws IOException {
+        checkFilePath(file);
         String owner = this.buildNewOwnerId("createNewFile");
         FTPProxy proxy = this.getAvailableProxy(owner);
         boolean res = false;
@@ -228,6 +229,13 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public boolean mkdir(File file) {
+        try {
+            checkFilePath(file);
+        } catch (IOException e) {
+            Logger.defaultLogger().error(e);
+            throw new IllegalArgumentException(e.getMessage());
+        }
+        
         String owner = this.buildNewOwnerId("mkdir");
         FTPProxy proxy = this.getAvailableProxy(owner);
         boolean res = false;
@@ -243,6 +251,13 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public boolean renameTo(File source, File dest) {
+        try {
+            checkFilePath(dest);
+        } catch (IOException e) {
+            Logger.defaultLogger().error(e);
+            throw new IllegalArgumentException(e.getMessage());
+        }
+        
         String owner = this.buildNewOwnerId("renameTo");
         FTPProxy proxy = this.getAvailableProxy(owner);
         boolean res = false;
@@ -280,6 +295,8 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public synchronized OutputStream getCachedFileOutputStream(File file) throws IOException {
+        checkFilePath(file);
+        
         long rnd = Util.getRndLong();
         File localFile = new File(System.getProperty("user.home"), "java_ftp_driver_local_file" + rnd + ".tmp");
         FileSystemManager.deleteOnExit(localFile);
@@ -294,6 +311,8 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
+        checkFilePath(file);
+        
         String owner = this.buildNewOwnerId("getFileOutputStream");
         FTPProxy proxy = this.getAvailableProxy(owner);
 
@@ -316,6 +335,8 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public OutputStream getFileOutputStream(File file) throws IOException {
+        checkFilePath(file);
+        
         return getFileOutputStream(file, false);
     }
 

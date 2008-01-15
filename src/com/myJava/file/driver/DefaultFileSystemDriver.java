@@ -9,7 +9,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashSet;
 
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.attributes.Attributes;
@@ -24,7 +23,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2367131098465853703
+ * <BR>Areca Build ID : 1926729655347670856
  */
  
  /*
@@ -60,6 +59,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public boolean createNewFile(File file) throws IOException {
+        checkFilePath(file);
         return file.createNewFile();
     }
     
@@ -100,6 +100,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
+        checkFilePath(symlink);
         return AttributesHelper.createSymbolicLink(symlink, realPath);
     }
   
@@ -227,15 +228,33 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public boolean mkdir(File file) {
-        return file.mkdir();
+        try {
+            checkFilePath(file);
+            return file.mkdir();
+        } catch (IOException e) {
+            Logger.defaultLogger().error(e);
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
     
     public boolean mkdirs(File file) {
-        return file.mkdirs();
+        try {
+            checkFilePath(file);
+            return file.mkdirs();
+        } catch (IOException e) {
+            Logger.defaultLogger().error(e);
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
     
     public boolean renameTo(File source, File dest) {
-        return source.renameTo(dest);
+        try {
+            checkFilePath(dest);
+            return source.renameTo(dest);
+        } catch (IOException e) {
+            Logger.defaultLogger().error(e);
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
     
     public boolean setLastModified(File file, long time) {
@@ -259,10 +278,12 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public OutputStream getCachedFileOutputStream(File file) throws IOException {
+        checkFilePath(file);
         return getFileOutputStream(file);
     }
     
     public OutputStream getFileOutputStream(File file) throws IOException {
+        checkFilePath(file);
         if (USE_BUFFER) {
             return new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
         } else {
@@ -271,6 +292,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
+        checkFilePath(file);
         if (USE_BUFFER) {
             return new BufferedOutputStream(new FileOutputStream(file, append), BUFFER_SIZE);
         } else {

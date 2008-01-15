@@ -49,7 +49,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2367131098465853703
+ * <BR>Areca Build ID : 1926729655347670856
  */
  
  /*
@@ -80,7 +80,8 @@ implements TargetActions, IndicatorTypes {
     private static final boolean FILESTREAMS_DEBUG = ArecaTechnicalConfiguration.get().isFileStreamsDebugMode();
     private static final String REPOSITORY_ACCESS_DEBUG_ID = "Areca repository access";
     
-	protected static final String TMP_ARCHIVE_SUFFIX = ".not_commited";
+	protected static final String TMP_ARCHIVE_SUFFIX = ".nc";
+    protected static final String TMP_ARCHIVE_SUFFIX_DEPRECATED = ".not_commited";
 
     /**
      * Suffix added to the archive name to create the data directory (containing the manifest and trace)
@@ -231,6 +232,7 @@ implements TargetActions, IndicatorTypes {
         	|| (
         		archivePath.startsWith(basePath)
         		&& (! archivePath.endsWith(TMP_ARCHIVE_SUFFIX))
+                && (! archivePath.endsWith(TMP_ARCHIVE_SUFFIX_DEPRECATED))
         		&& (! archivePath.endsWith(DATA_DIRECTORY_SUFFIX))        		
         	)
         ;
@@ -318,10 +320,15 @@ implements TargetActions, IndicatorTypes {
         // Check wether the archive has been commited or not
         if (            
                 archivePath.equals(basePath + TMP_ARCHIVE_SUFFIX)
+                || archivePath.equals(basePath + TMP_ARCHIVE_SUFFIX_DEPRECATED)
                 || (
                         archivePath.startsWith(basePath + Utils.FILE_DATE_SEPARATOR)
                         && archivePath.endsWith(TMP_ARCHIVE_SUFFIX)
                 )
+                || (
+                        archivePath.startsWith(basePath + Utils.FILE_DATE_SEPARATOR)
+                        && archivePath.endsWith(TMP_ARCHIVE_SUFFIX_DEPRECATED)
+                )                
         ) {
             // If it has not been commited - destroy it            
             destroyTemporaryFile(archive);
