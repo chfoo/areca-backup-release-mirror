@@ -57,6 +57,7 @@ import com.application.areca.impl.EncryptionConfiguration;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.impl.IncrementalDirectoryMedium;
 import com.application.areca.impl.IncrementalZipMedium;
+import com.application.areca.impl.handler.DefaultArchiveHandler;
 import com.application.areca.impl.policy.DefaultFileSystemPolicy;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
@@ -81,7 +82,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -1393,7 +1394,7 @@ extends AbstractWindow {
                     encrArgs.setEncryptionKey(encryptionKey);
                 }
 
-                AbstractFileSystemMedium medium = null;
+                AbstractIncrementalFileSystemMedium medium = null;
                 FileSystemPolicy storagePolicy;
                 if (this.currentPolicy != null) {
                     storagePolicy = this.currentPolicy;
@@ -1446,9 +1447,10 @@ extends AbstractWindow {
                 medium.setCompressionArguments(compression);
                 medium.setFileSystemPolicy(storagePolicy);
                 medium.setEncryptionPolicy(encrArgs);
-                ((AbstractIncrementalFileSystemMedium)medium).setOverwrite(this.chkOverwrite.getSelection());
-                ((AbstractIncrementalFileSystemMedium)medium).setTrackDirectories(this.chkTrackDirectories.getSelection());
-                ((AbstractIncrementalFileSystemMedium)medium).setTrackPermissions(this.chkTrackPermissions.getSelection());
+                medium.setOverwrite(this.chkOverwrite.getSelection());
+                medium.setTrackDirectories(this.chkTrackDirectories.getSelection());
+                medium.setTrackPermissions(this.chkTrackPermissions.getSelection());
+                medium.setHandler(new DefaultArchiveHandler());
                
                 newTarget.setMedium(medium, false);
                 medium.install();

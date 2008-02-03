@@ -31,7 +31,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -404,6 +404,10 @@ public class FileSystemManager {
     
     public static boolean directFileAccessSupported(File file) {
         return getInstance().getDriver(file).directFileAccessSupported();
+    }
+    
+    public static InputStream getCachedFileInputStream(File file) throws IOException {
+        return getInstance().getDriver(file).getCachedFileInputStream(file);
     }
     
     public static Attributes getAttributes(File file) throws IOException {

@@ -2,7 +2,6 @@ package com.myJava.file.driver.hash;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +32,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*

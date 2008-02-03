@@ -27,6 +27,9 @@ import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.impl.IncrementalDirectoryMedium;
 import com.application.areca.impl.IncrementalZipMedium;
+import com.application.areca.impl.handler.ArchiveHandler;
+import com.application.areca.impl.handler.DefaultArchiveHandler;
+import com.application.areca.impl.handler.DeltaArchiveHandler;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.plugins.StoragePlugin;
@@ -44,7 +47,7 @@ import com.myJava.file.CompressionArguments;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -430,6 +433,23 @@ public class TargetXMLReader implements XMLTags {
             throw new AdapterException("Unknown medium : " + typeNode.getNodeValue());
         }
         
+        NodeList children = mediumNode.getChildNodes();
+        for (int i=0; i<children.getLength(); i++) {
+            String child = children.item(i).getNodeName();
+            
+            if (child.equalsIgnoreCase(XML_HANDLER)) {
+                if (medium.getHandler() != null) {
+                    throw new AdapterException("Handler already set. You can't define more than one handler per medium.");
+                }
+                medium.setHandler(readHandler(children.item(i)));
+            }
+        }
+        
+        // Default handler
+        if (medium.getHandler() == null) {
+            medium.setHandler(new DefaultArchiveHandler());
+        }
+        
         medium.setCompressionArguments(compression);
         medium.setFileSystemPolicy(storage);
         medium.setEncryptionPolicy(encrArgs);
@@ -439,6 +459,18 @@ public class TargetXMLReader implements XMLTags {
         
         return medium;
     }
+    
+    protected ArchiveHandler readHandler(Node handlerNode) throws AdapterException {
+        Node typeNode = handlerNode.getAttributes().getNamedItem(XML_HANDLER_TYPE);
+        if (typeNode == null || XML_HANDLER_TYPE_STANDARD.equals(typeNode.getNodeValue())) {
+            return new DefaultArchiveHandler();
+        } else if (XML_HANDLER_TYPE_DELTA.equals(typeNode.getNodeValue())) {
+            return new DeltaArchiveHandler();
+        } else {
+            throw new AdapterException("Unsupported archive handler : " + typeNode.getNodeValue());
+        }
+    }
+    
     
     protected FileSystemPolicy readFileSystemPolicy(Node mediumNode) throws IOException, AdapterException, ApplicationException {
         Node policyNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_POLICY);

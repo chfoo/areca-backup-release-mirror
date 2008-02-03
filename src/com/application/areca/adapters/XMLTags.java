@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -65,6 +65,11 @@ public interface XMLTags {
     public static final String XML_FILTER_RG_PATTERN = "rgpattern";
     public static final String XML_FILTER_PARAM = "param";    
     public static final String XML_FILTER_EXTENSION = "ext";  
+    
+    public static final String XML_HANDLER = "handler";
+    public static final String XML_HANDLER_TYPE = "type";
+    public static final String XML_HANDLER_TYPE_STANDARD = "standard";
+    public static final String XML_HANDLER_TYPE_DELTA = "delta";
 
     public static final String XML_MEDIUM = "medium";    
     public static final String XML_MEDIUM_ARCHIVEPATH = "archive_path";   

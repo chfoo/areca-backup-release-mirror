@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -42,11 +42,12 @@ This file is part of Areca.
 public class DefaultFileSystemPolicy 
 extends AbstractFileSystemPolicy
 implements FileSystemPolicy {
+    public static final String STORAGE_DIRECTORY_PREFIX = "";
+    
     private static final boolean CACHE = ArecaTechnicalConfiguration.get().isRepositoryHDCache();
     private static final int CACHE_DEPTH = ArecaTechnicalConfiguration.get().getRepositoryHDCacheDepth();
     
-    public static final String STORAGE_DIRECTORY_PREFIX = "storage_";
-    public static final String DEFAULT_ARCHIVE_NAME = "bck";
+    public static final String DEFAULT_ARCHIVE_NAME = "b";
     
     /**
      * Chemin ou seront stockées les archives (zip, sous répertoires, etc.)

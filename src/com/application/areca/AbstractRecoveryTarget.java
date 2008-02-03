@@ -37,7 +37,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -240,7 +240,8 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     /**
      * Ouvre la target - prend le lock sur la target.
      */
-    protected void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {   
+    protected void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
+        context.setBackupScheme(backupScheme);
         medium.open(manifest, context, backupScheme);
     }   
     

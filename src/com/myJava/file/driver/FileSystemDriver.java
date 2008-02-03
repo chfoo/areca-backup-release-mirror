@@ -19,7 +19,7 @@ import com.myJava.file.attributes.Attributes;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -107,6 +107,11 @@ public interface FileSystemDriver {
      * <BR>This outputStream will be cached, and written only during call to "flush" 
      */
     public OutputStream getCachedFileOutputStream(File file) throws IOException;
+    
+    /**
+     * Ensures that a local copy of the file exists and return an InputStream on this file
+     */
+    public InputStream getCachedFileInputStream(File file) throws IOException;
     
     /**
      * Ouvre un flux de sortie sur le fichier 

@@ -17,6 +17,8 @@ import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.impl.IncrementalDirectoryMedium;
 import com.application.areca.impl.IncrementalZipMedium;
+import com.application.areca.impl.handler.DefaultArchiveHandler;
+import com.application.areca.impl.handler.DeltaArchiveHandler;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.plugins.StoragePlugin;
@@ -34,7 +36,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -416,10 +418,8 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XML_MEDIUM_TYPE);
         sb.append("=");
         sb.append(encode(XML_MEDIUM_TYPE_ZIP));
-        sb.append(" ");
         
-        this.serializeMediumGeneralData(medium);     
-        sb.append("/>");   
+        this.endMedium(medium);     
     } 
     
     protected void serializeMedium(IncrementalDirectoryMedium medium) {
@@ -437,12 +437,11 @@ public class TargetXMLWriter extends AbstractXMLWriter {
             sb.append(encode("true"));
         }
         
-        sb.append(" ");
-        this.serializeMediumGeneralData(medium);
-        sb.append("/>");   
+        this.endMedium(medium); 
     }   
     
-    protected void serializeMediumGeneralData(AbstractIncrementalFileSystemMedium medium) {
+    protected void endMedium(AbstractIncrementalFileSystemMedium medium) {
+        sb.append(" ");
         serializeFileSystemPolicy(medium.getFileSystemPolicy());
         serializeEncryptionPolicy(medium.getEncryptionPolicy());
         
@@ -490,6 +489,35 @@ public class TargetXMLWriter extends AbstractXMLWriter {
                 sb.append(encode("true"));
             }
         }
+        sb.append(">");
+        if (medium.getHandler() instanceof DefaultArchiveHandler) {
+            serializeHandler((DefaultArchiveHandler)medium.getHandler());
+        } else if (medium.getHandler() instanceof DeltaArchiveHandler) {
+            serializeHandler((DeltaArchiveHandler)medium.getHandler()); 
+        } else {
+            throw new IllegalArgumentException("Unknown handler type : " + medium.getHandler().getClass().getName());
+        }
+        sb.append("\n</" + XML_MEDIUM + ">");
+        
+    }
+    
+    protected void startHandler(String type) {
+        sb.append("\n<");
+        sb.append(XML_HANDLER);
+        sb.append(" ");
+        sb.append(XML_HANDLER_TYPE);
+        sb.append("=");
+        sb.append(encode(type));
+    }
+    
+    protected void serializeHandler(DefaultArchiveHandler handler) {
+        startHandler(XML_HANDLER_TYPE_STANDARD);
+        sb.append("/>");
+    }
+    
+    protected void serializeHandler(DeltaArchiveHandler handler) {
+        startHandler(XML_HANDLER_TYPE_DELTA);
+        sb.append("/>");
     }
     
     protected void serializeEncryptionPolicy(EncryptionPolicy policy) {

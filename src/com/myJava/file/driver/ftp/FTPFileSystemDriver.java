@@ -41,7 +41,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -298,7 +298,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
         checkFilePath(file);
         
         long rnd = Util.getRndLong();
-        File localFile = new File(System.getProperty("user.home"), "java_ftp_driver_local_file" + rnd + ".tmp");
+        File localFile = new File(System.getProperty("user.home"), "java_ftp_local_file_out" + rnd + ".tmp");
         FileSystemManager.deleteOnExit(localFile);
         this.localFiles.put(translateToRemote(file), localFile);
         OutputStream raw = FileSystemManager.getFileOutputStream(localFile);
@@ -308,6 +308,14 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
         } else {
             return raw;
         }
+    }
+
+    public InputStream getCachedFileInputStream(File file) throws IOException {
+        long rnd = Util.getRndLong();
+        File localFile = new File(System.getProperty("user.home"), "java_ftp_local_file_in" + rnd + ".tmp");
+        FileSystemManager.deleteOnExit(localFile);
+        FileTool.getInstance().copy(getFileInputStream(file), FileSystemManager.getFileOutputStream(localFile), true, true);
+        return new LocalInputStream(localFile);
     }
 
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException {

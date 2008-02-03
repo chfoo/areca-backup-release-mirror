@@ -28,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -553,8 +553,9 @@ public class FTPProxy {
             }
             
             if (result == null) {
-                Logger.defaultLogger().error("Error trying to get an outputstream on " + file + " : got FTP return message : " + client.getReplyString(), "FTPProxy.getFileOutputStream()");
-                throw new FTPConnectionException("Unable to write file : No response from FTP server.");
+                String rep = client.getReplyString();
+                Logger.defaultLogger().error("Error trying to get an outputstream on " + file + " : got FTP return message : " + rep, "FTPProxy.getFileOutputStream()");
+                throw new FTPConnectionException("Unable to write file : Response received from FTP server was : [" + rep + "]");
             }
             
             this.updateOpTime();

@@ -8,6 +8,7 @@ import com.application.areca.AbstractArecaLauncher;
 import com.myJava.commandline.CmdLineParserException;
 import com.myJava.commandline.CommandLineParser;
 import com.myJava.commandline.StringCmdLineOption;
+import com.myJava.file.CompressionArguments;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.archive.ArchiveReader;
@@ -18,7 +19,7 @@ import com.myJava.file.archive.zip64.ZipVolumeStrategy;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -96,13 +97,18 @@ extends AbstractArecaLauncher {
         } else {
             boolean multivolume = false;
             String name = FileSystemManager.getName(archive);
-            if (name.endsWith(".zip")) {
+            int index = name.lastIndexOf('.');
+            if (index != -1) {
+                String baseName = name.substring(0, index);
+                String ext = name.substring(index + 1);
                 ZipVolumeStrategy strat = new ZipVolumeStrategy(
-                        new File(FileSystemManager.getParentFile(archive), name.substring(0, name.length() - 4))
+                        new File(FileSystemManager.getParentFile(archive), baseName),
+                        ext
                 );
                 multivolume = FileSystemManager.exists(strat.getFirstVolume());
                 
                 if (multivolume) {
+                    System.out.println(" * Multi-volumes archive * ");
                     adapter = new ZipArchiveAdapter(strat);
                 } 
             }

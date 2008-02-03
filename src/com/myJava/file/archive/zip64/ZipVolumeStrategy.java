@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import com.myJava.configuration.FrameworkConfiguration;
+import com.myJava.file.CompressionArguments;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.multivolumes.VolumeStrategy;
@@ -14,7 +15,7 @@ import com.myJava.file.multivolumes.VolumeStrategy;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -37,29 +38,35 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ZipVolumeStrategy implements VolumeStrategy {
-
-    private static final int ZIP_MV_DIGITS = FrameworkConfiguration.getInstance().getZipMvDigits();
-    private static String VOLUME_SUFFIX = ".z";
-    private static String LAST_VOLUME_SUFFIX = ".zip";
+    private static final String DEFAULT_VOLUME_SUFFIX = CompressionArguments.ZIP_EXTENSION.substring(0, 2);
     
+    protected int mvDigits = FrameworkConfiguration.getInstance().getZipMvDigits();
     protected File file;
     protected int currentVolume = -1;
     protected boolean endReached = false;
     protected FileSystemDriver driver;
     protected boolean cached = false;
+    protected String lastExtension;
+    protected String volumeSuffix;
 
-
-    public ZipVolumeStrategy(File file) {
-        this(file, null, false);
+    public ZipVolumeStrategy(File file, String lastExtension) {
+        this(file, null, false, lastExtension);
     }
     
     /**
      * If no explicit driver is set, the strategy will use the filesystemmanager.
      */
-    public ZipVolumeStrategy(File file, FileSystemDriver driver, boolean cached) {
+    public ZipVolumeStrategy(File file, FileSystemDriver driver, boolean cached, String lastExtension) {
         this.file = file;
         this.driver = driver;
         this.cached = cached;
+        this.lastExtension = lastExtension;
+        
+        if (lastExtension.length() >= 2) {
+            this.volumeSuffix = lastExtension.substring(0, 2);
+        } else {
+            this.volumeSuffix = DEFAULT_VOLUME_SUFFIX;
+        }
     }
 
     public int getCurrentVolumeNumber() {
@@ -70,9 +77,16 @@ public class ZipVolumeStrategy implements VolumeStrategy {
         return driver;
     }
 
+    public int getMvDigits() {
+        return mvDigits;
+    }
+
+    public void setMvDigits(int mv_digits) {
+        this.mvDigits = mv_digits;
+    }
+
     public OutputStream getNextOutputStream() throws IOException {
         File f = getNextFile();
-        //Logger.defaultLogger().info("Opening next zip volume : " + getAbsolutePath(f));
         if (driver == null) {
             return cached ? FileSystemManager.getCachedFileOutputStream(f) : FileSystemManager.getFileOutputStream(f);
         } else {
@@ -86,7 +100,6 @@ public class ZipVolumeStrategy implements VolumeStrategy {
         } else {
             File f =getNextFile();
             if (exists(f)) {
-                //Logger.defaultLogger().info("Opening next zip volume : " + getAbsolutePath(f));
                 if (driver == null) {
                     return FileSystemManager.getFileInputStream(f);
                 } else {
@@ -96,7 +109,6 @@ public class ZipVolumeStrategy implements VolumeStrategy {
                 f = getFinalArchive();
                 endReached = true;
                 if (exists(f)) {
-                    //Logger.defaultLogger().info("Opening next zip volume : " + getAbsolutePath(f));
                     if (driver == null) {
                         return FileSystemManager.getFileInputStream(f);
                     } else {
@@ -115,14 +127,14 @@ public class ZipVolumeStrategy implements VolumeStrategy {
     }
     
     private File getVolume(int vol) {
-        String suffix = VOLUME_SUFFIX;
+        String suffix = volumeSuffix;
         String nb = "" + (vol+1);
-        while (nb.length() < ZIP_MV_DIGITS) {
+        while (nb.length() < mvDigits) {
             nb = "0" + nb;
         }
 
-        if (nb.length() > ZIP_MV_DIGITS) {
-            throw new IllegalStateException("Unable to handle more than " + ((int)Math.pow(10, ZIP_MV_DIGITS)) + " zip volumes.");
+        if (nb.length() > mvDigits) {
+            throw new IllegalStateException("Unable to handle more than " + ((int)Math.pow(10, mvDigits)) + " zip volumes.");
         }
         
         return new File(getParentFile(file), getName(file) + suffix + nb);
@@ -133,7 +145,7 @@ public class ZipVolumeStrategy implements VolumeStrategy {
     }
     
     public File getFinalArchive() {
-        return new File(getParentFile(file), getName(file) + LAST_VOLUME_SUFFIX);
+        return new File(getParentFile(file), getName(file) + lastExtension);
     }
     
     public File getFirstVolume() {

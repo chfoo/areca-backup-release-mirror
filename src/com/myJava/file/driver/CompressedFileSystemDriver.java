@@ -23,7 +23,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -50,7 +50,6 @@ extends AbstractLinkableFileSystemDriver {
 
     private CompressionArguments compression = new CompressionArguments();
     private File root;
-    private static final String SUFFIX = ".zip";
     
     /**
      * @param directoryRoot
@@ -96,7 +95,6 @@ extends AbstractLinkableFileSystemDriver {
 
     public FileInformations getInformations(File file) {
         File[] f = resolveFiles(file);
-        boolean bool = true;
         FileInformations fi = null;
         long length = -1;
         for (int i=0; i<f.length; i++) {
@@ -173,7 +171,7 @@ extends AbstractLinkableFileSystemDriver {
         if (files != null) {
             ArrayList list = new ArrayList();
             for (int i=0; i<files.length; i++) {
-                if (files[i].getName().endsWith(SUFFIX)) {
+                if ((! compression.isExtensionEnabled()) || files[i].getName().endsWith(compression.getExtension())) {
                     list.add(this.decode(files[i]));
                 }
             }
@@ -211,7 +209,7 @@ extends AbstractLinkableFileSystemDriver {
         boolean bool = true;
         
         File target = new File(encode(predecessor.getParentFile(dest)), predecessor.getName(dest));
-        ZipVolumeStrategy vol = new ZipVolumeStrategy(target);
+        ZipVolumeStrategy vol = new ZipVolumeStrategy(target, compression.getExtension());
         for (int i=0; i<f.length; i++) {
             File encodedDest;
             if (i == f.length - 1) {
@@ -256,7 +254,7 @@ extends AbstractLinkableFileSystemDriver {
         ZipInputStream zin;
         if (compression.isMultiVolumes()) {
             File target = new File(encode(predecessor.getParentFile(file)), predecessor.getName(file));
-            ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, false);
+            ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, false, compression.getExtension());
             zin = new ZipInputStream(new VolumeInputStream(strategy));
         } else {
             zin = new ZipInputStream(predecessor.getFileInputStream(encode(file)));
@@ -280,7 +278,7 @@ extends AbstractLinkableFileSystemDriver {
         ZipOutputStream zout;
         if (compression.isMultiVolumes()) {
             File target = new File(encode(predecessor.getParentFile(file)), predecessor.getName(file));
-            ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, cached);
+            ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, cached, compression.getExtension());
             zout = new ZipOutputStream(strategy, compression.getVolumeSize() * 1024 * 1024, compression.isUseZip64());
         } else {
             zout = new ZipOutputStream(predecessor.getFileOutputStream(encode(file)), compression.isUseZip64());
@@ -371,7 +369,7 @@ extends AbstractLinkableFileSystemDriver {
         } else {
             if (compression.isMultiVolumes()) {
                 File target = new File(encode(predecessor.getParentFile(orig)), predecessor.getName(orig));
-                ZipVolumeStrategy vol = new ZipVolumeStrategy(target);
+                ZipVolumeStrategy vol = new ZipVolumeStrategy(target, compression.getExtension());
                 ArrayList list = new ArrayList(1);
                 while (true) {
                     File f = vol.getNextFile();
@@ -399,14 +397,14 @@ extends AbstractLinkableFileSystemDriver {
     }
     
     private String encode(String name) {
-        return name + SUFFIX;
+        return compression.isExtensionEnabled() ? name + compression.getExtension() : name;
     }
     
     private String decode(String name) {
-        if (! name.endsWith(SUFFIX)) {
-            throw new IllegalArgumentException("Illegal file name : " + name + ". It is expected to end with '" + SUFFIX + "'");
+        if (compression.isExtensionEnabled() && (! name.endsWith(compression.getExtension()))) {
+            throw new IllegalArgumentException("Illegal file name : " + name + ". It is expected to end with '" + compression.getExtension() + "'");
         }
-        return name.substring(0, name.length() - SUFFIX.length());
+        return compression.isExtensionEnabled() ? name.substring(0, name.length() - compression.getExtension().length()) : name;
     }
     
     protected static class FilenameFilterAdapter implements FilenameFilter {

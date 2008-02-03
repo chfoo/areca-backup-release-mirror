@@ -2,7 +2,6 @@ package com.myJava.file.archive;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
@@ -14,7 +13,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -40,7 +39,6 @@ public class ArchiveWriter {
 
     private ArchiveAdapter adapter;
     private FileTool tool;
-    private long entries = 0;
     
     public ArchiveWriter(ArchiveAdapter adapter) throws IOException {
         this.tool = FileTool.getInstance();  
@@ -67,7 +65,6 @@ public class ArchiveWriter {
             this.adapter.addEntry(fullName, length);            
             this.tool.copyFile(file, this.adapter.getArchiveOutputStream(), false, monitor);
             this.adapter.closeEntry();
-            this.entries++;
         } else {
             File[] children = FileSystemManager.listFiles(file);
             for (int i=0; i<children.length; i++) {
@@ -108,16 +105,12 @@ public class ArchiveWriter {
     throws IOException, TaskCancelledException {
         this.addFile(new File(file), monitor);
     }
-    
-    public OutputStream getOutputStream() {
-        return this.adapter.getArchiveOutputStream();
+
+    public ArchiveAdapter getAdapter() {
+        return adapter;
     }
 
     public void close() throws IOException {
         this.adapter.close();
-    }
-    
-    public boolean isEmpty() {
-        return (this.entries == 0);
     }
 }

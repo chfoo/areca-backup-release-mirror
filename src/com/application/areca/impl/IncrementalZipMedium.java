@@ -3,13 +3,15 @@ package com.application.areca.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.List;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.metadata.manifest.Manifest;
+import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.FileTool;
 import com.myJava.file.archive.ArchiveAdapter;
 import com.myJava.file.archive.ArchiveReader;
 import com.myJava.file.archive.ArchiveWriter;
@@ -17,6 +19,7 @@ import com.myJava.file.archive.zip64.ZipArchiveAdapter;
 import com.myJava.file.archive.zip64.ZipVolumeStrategy;
 import com.myJava.file.multivolumes.VolumeStrategy;
 import com.myJava.object.PublicClonable;
+import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
@@ -24,7 +27,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -66,17 +69,33 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
         File archive = context.getCurrentArchiveFile();
         context.setArchiveWriter(new ArchiveWriter(buildArchiveAdapter(archive, true)));
     }
-    
-    protected void storeFileInArchive(File file, String path, ProcessContext context) 
+
+    protected void storeFileInArchive(FileSystemRecoveryEntry entry, ProcessContext context) 
     throws ApplicationException {
         try {
-            context.getArchiveWriter().addFile(file, path, context.getTaskMonitor());
+            File file = entry.getFile();
+            String path = entry.getName();
+            
+            if (context.getTaskMonitor() != null) {
+                context.getTaskMonitor().checkTaskCancellation();
+            }
+
+            if (FileNameUtil.startsWithSeparator(path)) {
+                path = path.substring(1);
+            }
+            
+            long length = FileSystemManager.length(file);
+            context.getArchiveWriter().getAdapter().addEntry(path, length);            
+            InputStream in = FileSystemManager.getFileInputStream(entry.getFile());
+            this.handler.store(entry, in, context.getArchiveWriter().getAdapter().getArchiveOutputStream(), context);
+            context.getArchiveWriter().getAdapter().closeEntry();
         } catch (IOException e) {
+            Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         } catch (TaskCancelledException e) {
             throw new ApplicationException(e);
         }
-    }
+    }  
 
     public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
         if (overwrite) {
@@ -139,7 +158,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
         if (write) {
             AbstractFileSystemMedium.tool.createDir(f);
         }
-        return new ZipVolumeStrategy(new File(f, MV_ARCHIVE_NAME));
+        return new ZipVolumeStrategy(new File(f, MV_ARCHIVE_NAME), compressionArguments.getExtension());
     }
     
     public PublicClonable duplicate() {
@@ -149,36 +168,58 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
     }
 
     protected String getArchiveExtension() {
-        return compressionArguments.isMultiVolumes() ? "" : ".zip";
+        return compressionArguments.isMultiVolumes() ? "" : compressionArguments.getExtension();
     }
 
-
-    protected void archiveRawRecover(
-            File[] elementaryArchives, 
-            String[] entriesToRecover, 
-            File targetFile,
+    public File[] ensureLocalCopy(
+            File[] archivesToProcess, 
+            boolean overrideRecoveredFiles, 
+            File destination, 
+            String[] filters, 
             ProcessContext context
-    ) throws ApplicationException {
+    ) throws IOException, ApplicationException {
         try {
-            context.getInfoChannel().print("Data recovery ...");          
+            context.getInfoChannel().print("Data recovery ...");   
+            File[] ret = new File[overrideRecoveredFiles ? 1 : archivesToProcess.length];
             
-            for (int i=0; i<elementaryArchives.length; i++) {
+            for (int i=0; i<archivesToProcess.length; i++) {
                 context.getTaskMonitor().checkTaskCancellation();      
-                context.getInfoChannel().updateCurrentTask(i+1, elementaryArchives.length, "Recovering " + FileSystemManager.getPath(elementaryArchives[i]) + " ...");
+                context.getInfoChannel().updateCurrentTask(i+1, archivesToProcess.length, "Recovering " + FileSystemManager.getPath(archivesToProcess[i]) + " ...");
                 
-                ArchiveReader zrElement = new ArchiveReader(buildArchiveAdapter(elementaryArchives[i], false));
+                ArchiveReader zrElement = new ArchiveReader(buildArchiveAdapter(archivesToProcess[i], false));
 
                 // Copie de l'élément en cours.
-                zrElement.injectIntoDirectory(targetFile, entriesToRecover, context.getTaskMonitor());
+                File realDestination;
+                if (overrideRecoveredFiles) {
+                    realDestination = destination;
+                    ret[0] = destination;
+                } else {
+                    realDestination = new File(destination, FileSystemManager.getName(archivesToProcess[i]));
+                    ret[i] = realDestination;
+                }
+                zrElement.injectIntoDirectory(realDestination, filters, context.getTaskMonitor());
                 zrElement.close();
                 
-                context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, elementaryArchives.length);  
+                context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, archivesToProcess.length);  
             }
+            
+            return ret;
         } catch (Throwable e) {
             throw new ApplicationException(e);
         }    
-    }    
-    
+    }
+
+    public void completeLocalCopyCleaning(File copy, ProcessContext context) throws IOException, ApplicationException {
+        FileTool.getInstance().delete(copy, true);
+    }
+
+    public void cleanLocalCopies(List copies, ProcessContext context) throws IOException, ApplicationException {
+        for (int i=0; i<copies.size(); i++) {
+            File loc = (File)copies.get(i);
+            FileSystemManager.delete(loc);
+        }
+    }
+
     protected void buildArchiveFromDirectory(File sourceDir, File destination, ProcessContext context) 
     throws ApplicationException {
         try {
@@ -190,24 +231,6 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
             throw new ApplicationException(e);
         } catch (TaskCancelledException e) {
             throw new ApplicationException(e);
-        }
-    }    
-	
-    public void recoverEntryImpl(
-            File archive,
-            FileSystemRecoveryEntry entry, 
-            Object destination,
-            ProcessContext context            
-    ) throws IOException, TaskCancelledException, ApplicationException {       
-        String fileName = entry.getName();
-        File tmp = new File(fileName);
-        File targetFile = new File((File)destination, FileSystemManager.getName(tmp));
-        ArchiveReader zf = new ArchiveReader(buildArchiveAdapter(archive, false));           
-        InputStream zin = zf.getInputStream(entry.getName(), context.getTaskMonitor());
-        
-        if (zin != null) {
-            OutputStream fout = FileSystemManager.getFileOutputStream(targetFile);
-            tool.copy(zin, fout, true, true);
         }
     }
 

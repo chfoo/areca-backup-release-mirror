@@ -10,7 +10,6 @@ import com.application.areca.ArchiveMedium;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
-import com.myJava.file.FileTool;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.driver.cache.CachedFileSystemDriver;
 import com.myJava.file.driver.ftp.FTPFileInfoCache;
@@ -26,7 +25,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -51,6 +50,8 @@ This file is part of Areca.
 public class FTPFileSystemPolicy 
 extends AbstractFileSystemPolicy
 implements FileSystemPolicy {
+    public static final String STORAGE_DIRECTORY_PREFIX = "storage_";
+    
     private static final boolean CACHE = ArecaTechnicalConfiguration.get().isRepositoryFTPCache();
     private static final int CACHE_DEPTH = ArecaTechnicalConfiguration.get().getRepositoryFTPCacheDepth();
     
@@ -262,7 +263,7 @@ implements FileSystemPolicy {
     }
     
     public String getBaseArchivePath() {
-        return LOCAL_DIR_PREFIX + getUid() + "/storage_" + getUid() + "/" + getArchivePrefix();
+        return LOCAL_DIR_PREFIX + getUid() + "/" + STORAGE_DIRECTORY_PREFIX + getUid() + "/" + getArchivePrefix();
     }
     
     public boolean isSecured() {

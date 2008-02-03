@@ -71,7 +71,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -1430,18 +1430,18 @@ implements ActionConstants, Window.IExceptionHandler {
                             mainWindow.refresh(false, false);  
                         }
                     });
-                } else {
-                    AppActionReferenceHolder.refresh();
                 }
                 finishCommand();
             } catch (Exception e) {
                 registerState(false);
                 try {
-                    SecuredRunner.execute(mainWindow, new Runnable() {
-                        public void run() {
-                            mainWindow.refresh(false, false);  
-                        }
-                    });
+                    if (refreshAfterProcess) {
+                        SecuredRunner.execute(mainWindow, new Runnable() {
+                            public void run() {
+                                mainWindow.refresh(false, false);  
+                            }
+                        });
+                    }
                 } finally {
                     if (! TaskCancelledException.isTaskCancellation(e)) {
                         handleException(e);
@@ -1453,6 +1453,7 @@ implements ActionConstants, Window.IExceptionHandler {
             } finally {
                 channel.stopRunning(); 
                 removeChannel(channel);
+                AppActionReferenceHolder.refresh();
             }
         }
 

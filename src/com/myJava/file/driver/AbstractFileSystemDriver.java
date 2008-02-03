@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileNameUtil;
@@ -16,7 +17,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -188,5 +189,9 @@ implements FileSystemDriver {
                 throw new IOException("File path (" + p + ") exceeds maximum length (" + MAX_FILEPATH + ")");
             }
         }
+    }
+    
+    public InputStream getCachedFileInputStream(File file) throws IOException {
+        return getFileInputStream(file);
     }
 }

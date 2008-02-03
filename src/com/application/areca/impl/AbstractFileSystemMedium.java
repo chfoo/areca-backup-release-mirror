@@ -49,7 +49,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -362,7 +362,7 @@ implements TargetActions, IndicatorTypes {
      * (indépendemment des filtres, ou politique de stockage; il s'agit là d'une
      * méthode purement utilitaire; en pratique : zip ou répertoire) 
      */
-    protected abstract void storeFileInArchive(File file, String entryName, ProcessContext context) throws ApplicationException;
+    protected abstract void storeFileInArchive(FileSystemRecoveryEntry entry, ProcessContext context) throws ApplicationException;
     
     public abstract File[] listArchives(GregorianCalendar fromDate, GregorianCalendar toDate);
     

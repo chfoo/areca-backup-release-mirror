@@ -25,7 +25,7 @@ import com.application.areca.launcher.gui.filters.AbstractFilterComposite;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*

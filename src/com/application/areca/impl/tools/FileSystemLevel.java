@@ -1,4 +1,4 @@
-package com.application.areca.impl;
+package com.application.areca.impl.tools;
 
 import java.io.File;
 
@@ -9,7 +9,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*

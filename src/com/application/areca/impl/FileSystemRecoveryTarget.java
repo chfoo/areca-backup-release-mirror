@@ -16,6 +16,7 @@ import com.application.areca.Errors;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.TargetActions;
 import com.application.areca.context.ProcessContext;
+import com.application.areca.impl.tools.FileSystemLevel;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
 import com.myJava.file.FileNameUtil;
@@ -32,7 +33,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -58,7 +59,7 @@ public class FileSystemRecoveryTarget
 extends AbstractRecoveryTarget 
 implements TargetActions {
 
-    public static final String RECOVERY_LOCATION_SUFFIX = "recovered_data";
+    public static final String RECOVERY_LOCATION_SUFFIX = "rcv";
     
     protected String sourcesRoot = "";
     protected Set sources;
@@ -217,6 +218,10 @@ implements TargetActions {
      */
     public RecoveryEntry nextElement(ProcessContext context) throws ApplicationException {
 
+        if (context.getCurrentLevel() == null) {
+            return null;
+        }
+        
         while (true) {
             // Locate the first storable file
             while (context.getCurrentLevel().hasMoreElements()) {
@@ -321,7 +326,12 @@ implements TargetActions {
             context.getFileSystemLevels().push(new FileSystemLevel(source, null));
         }
         context.setRootCount(this.sources.size());
-        context.setCurrentLevel((FileSystemLevel)context.getFileSystemLevels().pop()); 
+        if (! context.getFileSystemLevels().isEmpty()) {
+            context.setCurrentLevel((FileSystemLevel)context.getFileSystemLevels().pop());
+        } else {
+            Logger.defaultLogger().warn("No source directory has been set for target \"" + getTargetName() + "\".");
+            context.setCurrentLevel(null);
+        }
     }
     
 
@@ -332,12 +342,20 @@ implements TargetActions {
         return super.processSimulateImpl(context, returnDetailedResults);
     }
     
+    private File buildRecoveryFile(String destination) {
+        File f = new File(normalizeDestination(destination), RECOVERY_LOCATION_SUFFIX);
+        for (int i=2; FileSystemManager.exists(f); i++) {
+            f = new File(normalizeDestination(destination), RECOVERY_LOCATION_SUFFIX + i);
+        }
+        return f;
+    }
+    
     /**
      * Lance le recover sur la target
      */    
     public void processRecoverImpl(String destination, String[] filters, GregorianCalendar date, boolean recoverDeletedEntries, ProcessContext context) throws ApplicationException {
         this.medium.recover(
-                new File(normalizeDestination(destination), RECOVERY_LOCATION_SUFFIX), 
+                buildRecoveryFile(destination), 
                 filters, 
                 date, 
                 recoverDeletedEntries, 
@@ -349,7 +367,25 @@ implements TargetActions {
      * Lance le recover sur la target
      */    
     public void processRecoverImpl(String destination, GregorianCalendar date, RecoveryEntry entry, ProcessContext context) throws ApplicationException {
-        this.medium.recoverEntry(date, entry, new File(normalizeDestination(destination)), context);
+        File dest = buildRecoveryFile(destination);
+        this.medium.recover(
+                dest, 
+                new String[] {entry.getName()}, 
+                date, 
+                false, 
+                context);
+        
+        File recoveredFile = new File(dest, entry.getName());
+        File targetFile = new File(normalizeDestination(destination), FileSystemManager.getName(recoveredFile));
+        
+        Logger.defaultLogger().info("Moving " + FileSystemManager.getAbsolutePath(recoveredFile) + " to " + FileSystemManager.getAbsolutePath(targetFile));
+        FileSystemManager.renameTo(recoveredFile, targetFile);
+        try {
+            FileTool.getInstance().delete(dest, true);
+        } catch (IOException e) {
+            Logger.defaultLogger().error(e);
+            throw new ApplicationException(e);
+        }
     } 
     
     private static String normalizeDestination(String destination) {

@@ -1,0 +1,103 @@
+package com.myJava.file.delta;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import com.myJava.file.delta.bucket.Bucket;
+import com.myJava.file.delta.bucket.NewBytesBucket;
+import com.myJava.file.delta.bucket.ReadPreviousBucket;
+import com.myJava.file.delta.tools.IOHelper;
+
+/**
+ * Implements a diff layer over the original file.
+ * <BR>Diff layers only store differences between the original file and the current file.
+ * <BR>
+ * @author Olivier PETRUCCI
+ * <BR>
+ * <BR>Areca Build ID : 8290826359148479344
+ */
+ 
+ /*
+ Copyright 2005-2007, Olivier PETRUCCI.
+ 
+This file is part of Areca.
+
+    Areca is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    Areca is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Areca; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+public class DeltaLayer 
+implements Constants {
+    
+    private byte[] tmpBytes = new byte[8];
+    private NewBytesBucket tmpOverride = new NewBytesBucket();
+    private ReadPreviousBucket tmpPrevious = new ReadPreviousBucket();
+    private long tmpFrom = 0;
+    
+    private InputStream stream;
+    private Bucket currentBucket;
+
+    public DeltaLayer(InputStream stream) {
+        this.stream = stream;
+    }
+
+    public InputStream getStream() {
+        return stream;
+    }
+    
+    public void close() throws IOException {
+        stream.close();
+    }
+    
+    public Bucket getCurrentBucket() {
+        return currentBucket;
+    }
+    
+    /**
+     * Read the next bucket from the stream.
+     * <BR>This bucket can be accessed by the "getCurrentBucket()" method.
+     */
+    public void readNextBucket() throws IOException {
+        int read = stream.read(tmpBytes);
+        
+        if (read == -1) {
+            currentBucket = null;
+        } else {
+            long sig = IOHelper.get64(tmpBytes, 0);
+            if (sig == SIG_NEW) {
+                currentBucket = tmpOverride;
+            } else {
+                currentBucket = tmpPrevious;            
+            }
+            currentBucket.init(stream);
+            currentBucket.setFrom(tmpFrom);
+            tmpFrom += currentBucket.getLength();
+        }
+    }
+    
+    /**
+     * Read the whole content of the underlying stream and generates a String.
+     */
+    public String traverse() throws IOException {
+        StringBuffer sb = new StringBuffer();
+        readNextBucket();
+        while (currentBucket != null) {
+            sb.append("\n").append(currentBucket.toString());
+            if (currentBucket.getSignature() == SIG_NEW) {
+                stream.skip(currentBucket.getLength());
+            }
+            readNextBucket();
+        }
+        return sb.toString();
+    }
+}

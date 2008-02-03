@@ -1,12 +1,15 @@
 package com.application.areca.context;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Stack;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.UserInformationChannel;
-import com.application.areca.impl.FileSystemLevel;
+import com.application.areca.impl.tools.FileSystemLevel;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.trace.ArchiveTrace;
@@ -18,7 +21,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -98,6 +101,15 @@ public class ProcessContext {
     protected Stack fileSystemLevels;
     protected FileSystemLevel currentLevel;    
     
+    protected ArrayList previousContents = new ArrayList();
+    protected ArrayList previousArchives = new ArrayList();
+    
+    protected String backupScheme;
+    
+    protected Map sequenceRoots = new HashMap();
+    
+    protected File recoveryDestination;
+    
     /**
      * Logger spécifique utilisé pour les retours utilisateur (typiquement : affichage à l'écran)
      */
@@ -132,7 +144,35 @@ public class ProcessContext {
     public ArchiveContentAdapter getContentAdapter() {
         return contentAdapter;
     }
-    
+
+    public File getRecoveryDestination() {
+        return recoveryDestination;
+    }
+
+    public void setRecoveryDestination(File recoveryDestination) {
+        this.recoveryDestination = recoveryDestination;
+    }
+
+    public ArrayList getPreviousArchives() {
+        return previousArchives;
+    }
+
+    public Map getSequenceRoots() {
+        return sequenceRoots;
+    }
+
+    public ArrayList getPreviousContents() {
+        return previousContents;
+    }
+
+    public String getBackupScheme() {
+        return backupScheme;
+    }
+
+    public void setBackupScheme(String backupScheme) {
+        this.backupScheme = backupScheme;
+    }
+
     public void setContentAdapter(ArchiveContentAdapter contentAdapter) {
         this.contentAdapter = contentAdapter;
     }

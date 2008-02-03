@@ -8,7 +8,7 @@ import com.application.areca.context.ReportingConfiguration;
 /**
  * @author Stephane Brunel
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -123,7 +123,7 @@ public final class ArecaPreferences {
     }
     
     public static boolean isCheckNewVersions() {
-        return LocalPreferences.instance().getBoolean(CHECK_NEW_VERSIONS, false);
+        return LocalPreferences.instance().getBoolean(CHECK_NEW_VERSIONS, true);
     }
     
     public static boolean isDisplayJavaVendorMessage() {

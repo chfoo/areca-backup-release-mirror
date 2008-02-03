@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -65,6 +65,7 @@ public class FrameworkConfiguration {
     private static String KEY_ZIP_ENTRY_CHECK_ENABLE = "zip.crc.enable";   
     private static String KEY_MAX_FILEPATH_LENGTH = "fs.max.filepath";   
     private static String KEY_FORCE_FILEPATH_LENGTH_CHECK = "fs.max.filepath.check.force";   
+    private static String KEY_DEFAULT_LOG_HISTORY = "log.default.history";   
     
     private static int DEF_FTP_MAX_PROXIES = 3;
     private static long DEF_FTP_NOOP_DELAY = 30000;    
@@ -89,6 +90,7 @@ public class FrameworkConfiguration {
     private static boolean DEF_ZIP_ENTRY_CHECK_ENABLE = true;  
     private static long DEF_MAX_FILEPATH_LENGTH = 256;   
     private static int DEF_FORCE_FILEPATH_LENGTH_CHECK = -1;   // -1 = UNSET, 0 = FORCE DISABLE, 1 = FORCE ENABLE
+    private static int DEF_DEFAULT_LOG_HISTORY = 10;  
 
     private static String VM_PROPS_PREFIX = "launcher.d.";
     
@@ -145,10 +147,10 @@ public class FrameworkConfiguration {
     }
     
     private Map getPropertiesMap(String prefix) {
-        Enumeration enum = this.props.keys();
+        Enumeration en = this.props.keys();
         HashMap map = new HashMap();
-        while (enum.hasMoreElements()) {
-            String key = (String)enum.nextElement();
+        while (en.hasMoreElements()) {
+            String key = (String)en.nextElement();
             if (key.startsWith(prefix)) {
                 map.put(key.substring(prefix.length()), props.get(key));
             }
@@ -190,6 +192,10 @@ public class FrameworkConfiguration {
     
     public int getLauncherMaxHeap() {
         return getProperty(KEY_LAUNCHER_MH, DEF_LAUNCHER_MH);
+    }
+    
+    public int getDefaultLogHistory() {
+        return getProperty(KEY_DEFAULT_LOG_HISTORY, DEF_DEFAULT_LOG_HISTORY);
     }
     
     public boolean isHashCacheMode() {

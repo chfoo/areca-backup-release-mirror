@@ -10,7 +10,6 @@ import java.util.Set;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.metadata.trace.ArchiveTrace;
-import com.myJava.file.FileNameUtil;
 import com.myJava.system.OSTool;
 
 /**
@@ -19,7 +18,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*

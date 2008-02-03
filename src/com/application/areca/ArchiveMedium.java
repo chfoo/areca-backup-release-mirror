@@ -18,7 +18,7 @@ import com.myJava.util.history.History;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -166,16 +166,6 @@ public interface ArchiveMedium extends PublicClonable {
      * Closes the simulation and returns all unprocessed entries (ie entries which have been deleted). 
      */
     public List closeSimulation(ProcessContext context) throws ApplicationException;
-    
-    /**
-     * Restaure la version demandée (identifiée par sa date) de l'entrée spécifiée à l'emplacement spécifié  
-     */
-    public void recoverEntry(
-            GregorianCalendar date, 
-            RecoveryEntry entryToRecover, 
-            Object destination,
-            ProcessContext context            
-    ) throws ApplicationException;
 
     /**
      * Indique s'il est utile de faire une prévérification avant de déclencher le backup.

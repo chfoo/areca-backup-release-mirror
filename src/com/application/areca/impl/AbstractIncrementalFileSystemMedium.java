@@ -27,6 +27,7 @@ import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.cache.ArchiveTraceCache;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.context.RecoveryResult;
+import com.application.areca.impl.handler.ArchiveHandler;
 import com.application.areca.impl.tools.ArchiveComparator;
 import com.application.areca.impl.tools.ArchiveNameFilter;
 import com.application.areca.metadata.content.ArchiveContent;
@@ -62,7 +63,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -135,6 +136,11 @@ implements TargetActions {
      */
     protected boolean overwrite = false;
     
+    /**
+     * Handler for archive processing
+     */
+    protected ArchiveHandler handler;
+    
     public void install() throws ApplicationException {
         super.install();
         this.archiveFilePrefix = FileSystemManager.getName(new File(fileSystemPolicy.getBaseArchivePath()));
@@ -147,6 +153,7 @@ implements TargetActions {
         other.overwrite = this.overwrite;
         other.trackDirectories = this.trackDirectories;
         other.trackPermissions = this.trackPermissions;
+        other.setHandler((ArchiveHandler)this.handler.duplicate());
     }
     
     public String getArchiveFilePrefix() {
@@ -160,7 +167,16 @@ implements TargetActions {
     public boolean isOverwrite() {
         return this.overwrite;
     }
-    
+
+    public ArchiveHandler getHandler() {
+        return handler;
+    }
+
+    public void setHandler(ArchiveHandler handler) {
+        this.handler = handler;
+        handler.setMedium(this);
+    }
+
     public ActionReport checkMediumState(int action) {
         ActionReport report = super.checkMediumState(action);
         
@@ -252,6 +268,7 @@ implements TargetActions {
             context.setContentAdapter(new ArchiveContentAdapter(contentFile));            
             
         } catch (Exception e) {
+            Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         }
     }
@@ -270,6 +287,7 @@ implements TargetActions {
             
             FileSystemManager.createSymbolicLink(targetFile, path);
         } catch (IOException e) {
+            Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         }
     }
@@ -353,7 +371,7 @@ implements TargetActions {
                         if (DEBUG_MODE) {
                             Logger.defaultLogger().fine("[" + FileSystemManager.getAbsolutePath(fEntry.getFile()) + "] : Backup in progress ...");
                         }
-                        this.storeFileInArchive(fEntry.getFile(), fEntry.getName(), context);
+                        this.storeFileInArchive(fEntry, context);
                         context.getReport().addWritten(FileSystemManager.length(fEntry.getFile()));
                         this.registerStoredEntry(fEntry, context);
 
@@ -366,6 +384,7 @@ implements TargetActions {
                     }
                 }
             } catch (IOException e) {
+                Logger.defaultLogger().error(e);
                 throw new StoreException("Error during storage.", e);
             }
         }
@@ -382,51 +401,7 @@ implements TargetActions {
      * Registers an entry after it has passed the filters. (hence a stored entry) 
      */
     protected abstract void registerStoredEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException;
-    
-    public void recoverEntry(
-            GregorianCalendar date, 
-            RecoveryEntry entryToRecover, 
-            Object destination,
-            ProcessContext context            
-    ) throws ApplicationException {
-        if (destination == null || entryToRecover == null) {
-            return;
-        }
 
-        File archive = this.getLastArchive(null, date);
-        try {
-            FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)entryToRecover;
-            if (! FileSystemManager.exists((File)destination)) {
-                tool.createDir((File)destination);
-            }
-            
-            if (entry.isLink()) {
-                recoverSymLink(entry, archive, (File)destination);
-            } else {            
-                File tmp = new File(entry.getName());
-                File targetFile = new File((File)destination, FileSystemManager.getName(tmp));
-                
-                recoverEntryImpl(archive, entry, destination, context);
-
-                String hash = ArchiveTraceCache.getInstance().getTrace(this, archive).getFileHash(entry);
-                if (hash != null) {
-                    FileSystemManager.setLastModified(targetFile, ArchiveTrace.extractFileModificationDateFromTrace(hash));
-                }
-            }
-        } catch (ApplicationException e) {
-            throw e;            
-        } catch (Throwable e) {
-            throw new ApplicationException(e);
-        }
-    }
-    
-    public abstract void recoverEntryImpl(
-            File archive,
-            FileSystemRecoveryEntry entry, 
-            Object destination,
-            ProcessContext context            
-    ) throws IOException, TaskCancelledException, ApplicationException;
-    
     /**
      * Fermeture de l'archive
      */
@@ -470,6 +445,7 @@ implements TargetActions {
             
             this.target.secureUpdateCurrentTask("Commit completed.", context);
         } catch (Exception e) {
+            Logger.defaultLogger().error(e);
             if (e instanceof ApplicationException) {
                 throw (ApplicationException)e;
             } else {
@@ -586,6 +562,7 @@ implements TargetActions {
                 }
             }
         } catch (IOException e) {
+            Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         }
     }
@@ -607,7 +584,7 @@ implements TargetActions {
             trace = ArchiveTraceCache.getInstance().getTrace(this, getLastArchive(null, date));
         }
         
-        recover(destination, filter, 1, null, date, true, trace, recoverDeletedEntries, context);
+        recover(destination, filter, 1, null, date, true, trace, recoverDeletedEntries, ArchiveHandler.MODE_RECOVER, context);
         rebuidDirectories((File)destination, filter, trace);
         rebuildSymLinks((File)destination, filter, trace);
     }
@@ -632,6 +609,7 @@ implements TargetActions {
                 }
             }
         } catch (IOException e) {
+            Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         }
     }
@@ -665,6 +643,7 @@ implements TargetActions {
                 }
             }
         } catch (IOException e) {
+            Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         }
     }
@@ -774,7 +753,8 @@ implements TargetActions {
                         toDate, 
                         false, 
                         keepDeletedFiles ? null : trace, 
-                        keepDeletedFiles,        
+                        keepDeletedFiles,    
+                        ArchiveHandler.MODE_MERGE,
                         context
                 ));
 
@@ -836,14 +816,19 @@ implements TargetActions {
                 }
             }
         } catch (ApplicationException e) {
+            Logger.defaultLogger().error(e);
             throw e;
         } catch (Exception e) {
+            Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         } finally {
             context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);     
             try {
-                FileSystemManager.getInstance().flush(context.getCurrentArchiveFile());
+                if (context.getCurrentArchiveFile() != null) {
+                    FileSystemManager.getInstance().flush(context.getCurrentArchiveFile());
+                }
             } catch (IOException e) {
+                Logger.defaultLogger().error(e);
                 throw new ApplicationException(e);
             }
         }
@@ -935,6 +920,7 @@ implements TargetActions {
                     }
                 }
             } catch (IOException e) {
+                Logger.defaultLogger().error(e);
                 throw new ApplicationException(e);
             }
         }
@@ -957,7 +943,8 @@ implements TargetActions {
             boolean applyAttributes,              // Tells whether the attributes must be applied or not
             ArchiveTrace trace,                       // Optional trace to apply to the recovered data
             boolean forceAllEntriesRecovery,  // Tells whether all entries will be recovered or not
-            ProcessContext context               // Execution context
+            short mode,                                 // Recovery mode : see ArchiveHandler.MODE_MERGE / MODE_RECOVER
+            ProcessContext context                // Execution context
     ) throws ApplicationException {
         if (toDate != null) {
             toDate = (GregorianCalendar)toDate.clone();
@@ -970,6 +957,7 @@ implements TargetActions {
         RecoveryResult result = new RecoveryResult();
         try {
             File targetFile = (File)destination;
+            context.setRecoveryDestination(targetFile);
             
             // Première étape : on recopie l'ensemble des archives
             File[] listedArchives = this.listArchives(fromDate, toDate);
@@ -1024,8 +1012,8 @@ implements TargetActions {
                 context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.9, "recover");
 
                 // Process Recovery
-                boolean useDummyMode = false;
-                if (filters != null && filters.length != 0) {
+                boolean useDummyMode = handler.providesAutonomousArchives();
+                if ((! useDummyMode) && filters != null && filters.length != 0) {
                     for (int i=0; i<filters.length; i++) {
                         if (FileNameUtil.endsWithSeparator(filters[i])) {
                             useDummyMode = true;
@@ -1039,11 +1027,11 @@ implements TargetActions {
                 File[] optimizedArchives = result.getRecoveredArchivesAsArray();
                 if (useDummyMode) {
                     // Dummy mode : recover all archives
-                    Logger.defaultLogger().info("Recovery in standard mode.");
-                    this.archiveRawRecover(optimizedArchives, filters, targetFile, context);
+                    Logger.defaultLogger().info("Recovering in standard mode.");
+                    handler.recoverRawData(optimizedArchives, filters, mode, context);
                 } else {
                     // Smart mode : iterate on each entry and recover its latest version only
-                    Logger.defaultLogger().info("Recovery in opmimized mode.");
+                    Logger.defaultLogger().info("Recovering in optimized mode.");
                     String root = ((FileSystemRecoveryTarget)this.getTarget()).getSourceDirectory();
                     Map entriesByArchive = new HashMap();
                     
@@ -1085,11 +1073,12 @@ implements TargetActions {
                         }
                         
                         context.getInfoChannel().getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(share, FileSystemManager.getAbsolutePath(archive));
-                        this.archiveRawRecover(new File[] {archive}, filtersForArchive, targetFile, context);
+                       
+                        handler.recoverRawData(new File[] {archive}, filtersForArchive, mode, context);
                     }
                     context.getInfoChannel().getTaskMonitor().getCurrentActiveSubTask().enforceCompletion();
                 }
-                
+
                 context.getTaskMonitor().checkTaskCancellation();
                 
                 // Deuxième étape : on nettoie le répertoire cible.
@@ -1107,6 +1096,7 @@ implements TargetActions {
             return result;
             
         } catch (IOException e) {
+            Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         } catch (TaskCancelledException e) {
             throw new ApplicationException(e);
@@ -1114,6 +1104,29 @@ implements TargetActions {
             context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);            
         }
     } 
+    
+    /**
+     * Ensures that the stored files are present on the local disk. Useful for some archive handlers that need
+     * to ensure this before processing the archives.
+     * <BR>Returns a set of directories where local copies can be found.
+     */
+    public abstract File[] ensureLocalCopy(
+            File[] archivesToProcess, 
+            boolean overrideRecoveredFiles,
+            File destination,
+            String[] filters,
+            ProcessContext context
+    ) throws IOException, ApplicationException;
+    
+    public abstract void cleanLocalCopies(
+            List copies, 
+            ProcessContext context
+    ) throws IOException, ApplicationException;
+    
+    public abstract void completeLocalCopyCleaning(
+            File copy, 
+            ProcessContext context
+    ) throws IOException, ApplicationException;
     
     /**
      * Applique le fichier de trace.
@@ -1168,18 +1181,7 @@ implements TargetActions {
             }
         }
     }
-    
-    /**
-     * Récupération brute du contenu de l'archive sans trace, ni suppression des fichiers obsolètes. 
-     * <BR>'filters' can be null ...
-     */
-    protected abstract void archiveRawRecover(
-            File[] elementaryArchives, 
-            String[] filters, 
-            File targetFile,
-            ProcessContext context
-    ) throws ApplicationException;
-    
+
     /**
      * Indique si l'entrée a été modifiée depuis la dernière exécution 
      */
@@ -1218,6 +1220,7 @@ implements TargetActions {
         
             return getEntrySetFromTrace(trace, storedFiles);
         } catch (IOException e) {
+            Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         }
     }
@@ -1413,6 +1416,7 @@ implements TargetActions {
                 fEntry.setStatus(RecoveryEntry.STATUS_NOT_STORED);
             }
         } catch (IOException e) {
+            Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         }
     }
@@ -1590,6 +1594,7 @@ implements TargetActions {
             
 			return ead;
 		} catch (IOException e) {
+            Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
 		}
 	}

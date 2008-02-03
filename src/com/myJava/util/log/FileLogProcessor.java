@@ -7,13 +7,15 @@ import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileSystemManager;
+import com.myJava.system.OSTool;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -39,6 +41,7 @@ public class FileLogProcessor
 implements LogProcessor {
     
     private static SimpleDateFormat DF = new SimpleDateFormat("yy-MM-dd");
+    private static int DEFAULT_LOG_HISTORY = FrameworkConfiguration.getInstance().getDefaultLogHistory();
     
     /**
      *  Booléen indiquant si on utilise un fichier unique ou si on utilise un fichier par jour
@@ -56,7 +59,7 @@ implements LogProcessor {
     protected LogCleaner cleaner;
     
     private FileLogProcessor() {
-        this.enableLogHistory(10);
+        this.enableLogHistory(DEFAULT_LOG_HISTORY);
     }
     
     public FileLogProcessor(String file) {
@@ -113,7 +116,7 @@ implements LogProcessor {
             String tgFile = getCurrentLogFile();
             synchronized(this) { 
                 Writer fw = FileSystemManager.getWriter(tgFile, true);
-                fw.write("\n" + logCt);
+                fw.write(OSTool.getLineSeparator() + logCt);
                 fw.flush();
                 if (e != null) {
                     fw.write(" - ");

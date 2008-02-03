@@ -4,7 +4,7 @@ package com.application.areca.impl.policy;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -27,7 +27,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public abstract class AbstractFileSystemPolicy 
-implements FileSystemPolicy {
+implements FileSystemPolicy {    
     protected String id;
 
     public String getId() {

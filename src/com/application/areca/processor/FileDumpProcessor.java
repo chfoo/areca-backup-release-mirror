@@ -8,7 +8,7 @@ import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.context.ProcessReport;
 import com.application.areca.context.ProcessReportWriter;
-import com.application.areca.impl.TagHelper;
+import com.application.areca.impl.tools.TagHelper;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.object.EqualsHelper;
@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*

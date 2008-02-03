@@ -19,7 +19,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -59,6 +59,7 @@ public class OSTool {
     private static String USER_HOME;
     private static String USER_NAME;
     private static String TMP_DIR;
+    private static String LINE_SEPARATOR = System.getProperty("line.separator");
     
     private static Charset[] CHARSETS;
     
@@ -124,6 +125,10 @@ public class OSTool {
     
     public static String getUserLanguage() {
         return System.getProperty("user.language");
+    }
+    
+    public static String getLineSeparator() {
+        return LINE_SEPARATOR;
     }
     
     public static String getUserHome() {

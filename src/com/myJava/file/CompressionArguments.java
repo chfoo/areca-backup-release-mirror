@@ -9,7 +9,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -32,11 +32,39 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class CompressionArguments implements PublicClonable {
+    public static final String ZIP_EXTENSION = ".zip";
+    
     protected boolean isCompressed = false;
     protected long volumeSize = -1;
     protected Charset charset = null;
     protected String comment = null;
     protected boolean useZip64 = false;
+    protected boolean extensionEnabled;
+    protected String extension;
+
+    public CompressionArguments() {
+        setExtensionEnabled(true);
+    }
+    
+    public void setExtensionEnabled(boolean b) {
+        extensionEnabled = b;
+        extension = extensionEnabled ? ZIP_EXTENSION : "";
+        checkMV();
+    }
+    
+    private void checkMV() {
+        if (isMultiVolumes() && (! extensionEnabled)) {
+            throw new IllegalArgumentException("Zip extension MUST be enabled if multivolume archives are used");
+        }
+    }
+
+    public String getExtension() {
+        return extension;
+    }
+
+    public boolean isExtensionEnabled() {
+        return extensionEnabled;
+    }
 
     public Charset getCharset() {
         return charset;
@@ -80,6 +108,7 @@ public class CompressionArguments implements PublicClonable {
 
     public void setVolumeSize(long volumeSize) {
         this.volumeSize = volumeSize;
+        checkMV();
     }
     
     public boolean isMultiVolumes() {
@@ -93,6 +122,8 @@ public class CompressionArguments implements PublicClonable {
         clone.setCompressed(isCompressed);
         clone.setUseZip64(useZip64);
         clone.setVolumeSize(volumeSize);
+        clone.extension = extension;
+        clone.extensionEnabled = extensionEnabled;
         return clone;
     }
     
@@ -104,6 +135,7 @@ public class CompressionArguments implements PublicClonable {
             ToStringHelper.append("Charset", this.charset != null ? this.charset.displayName() : null, sb);
             ToStringHelper.append("Comment", this.comment, sb);
             ToStringHelper.append("VolumeSize", this.volumeSize, sb);
+            ToStringHelper.append("Extension", this.extension, sb);            
         }
         return ToStringHelper.close(sb);
     }

@@ -3,7 +3,6 @@ package com.myJava.file.archive;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -15,7 +14,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1926729655347670856
+ * <BR>Areca Build ID : 8290826359148479344
  */
  
  /*
@@ -45,22 +44,6 @@ public class ArchiveReader {
     public ArchiveReader(ArchiveAdapter adapter) throws IOException, FileNotFoundException {      
         this.adapter = adapter;
         this.tool = FileTool.getInstance();
-    }
-
-    public InputStream getInputStream(String entry, TaskMonitor monitor) 
-    throws IOException, TaskCancelledException {
-      String entr;
-        while((entr = adapter.getNextEntry()) != null) {
-            if (monitor != null) {
-                monitor.checkTaskCancellation();
-            }
-            
-            if (entr.equals(entry)) {
-                return adapter.getArchiveInputStream();
-            }
-        }
-
-        return null;
     }
     
     public void injectIntoDirectory(File dir) throws IOException {
