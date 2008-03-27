@@ -8,7 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 
 import com.application.areca.ApplicationException;
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -18,7 +18,7 @@ import com.myJava.file.FileTool;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -41,7 +41,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ProcessXMLWriter extends AbstractXMLWriter { 
-
+	public static final int CURRENT_VERSION = 2;
+	
     private TargetXMLWriter targetWriter;
     
     public ProcessXMLWriter() {
@@ -54,11 +55,11 @@ public class ProcessXMLWriter extends AbstractXMLWriter {
         targetWriter.setRemoveEncryptionData(removeEncryptionData);
     }
     
-    public void serializeProcess(RecoveryProcess process) throws ApplicationException {
+    public void serializeProcess(TargetGroup process) throws ApplicationException {
         serializeProcess(process, process.getSourceFile());
     }
     
-    public void serializeProcess(RecoveryProcess process, File targetFile) throws ApplicationException {
+    public void serializeProcess(TargetGroup process, File targetFile) throws ApplicationException {
         try {
             FileTool tool = FileTool.getInstance();
             
@@ -74,12 +75,16 @@ public class ProcessXMLWriter extends AbstractXMLWriter {
             }
             
             writeHeader();
-            sb.append("<");
+            sb.append("\n<");
             sb.append(XML_PROCESS);
             sb.append(" ");
             sb.append(XML_PROCESS_DESCRIPTION);
             sb.append("=");
-            sb.append(encode(process.getComments()));       
+            sb.append(encode(process.getComments()));      
+            sb.append(" ");
+            sb.append(XML_VERSION);
+            sb.append("=");
+            sb.append(encode(CURRENT_VERSION));   
             sb.append(">");
             
             // Targets

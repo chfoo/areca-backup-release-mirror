@@ -8,11 +8,11 @@ import java.lang.reflect.Method;
 import java.util.Hashtable;
 
 /**
- * Classe destinée à gérer les inputs de ligne de commande.
+ * Classe destinï¿½e ï¿½ gï¿½rer les inputs de ligne de commande.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -55,7 +55,7 @@ public class CommandLineManager {
     }
 
     /**
-     * Spécifie le prompt
+     * Spï¿½cifie le prompt
      */
     public void setPrompt(String prompt) {
         this.clmPrompt = prompt;
@@ -63,7 +63,7 @@ public class CommandLineManager {
 
     /**
      * Ajoute une commande au gestionnaire.
-     * La méthode doit avoir pour signature :
+     * La mï¿½thode doit avoir pour signature :
      * void myMethod(String, String)
      */
     public void addCommand(String command, String method) {
@@ -78,7 +78,7 @@ public class CommandLineManager {
 
         while(! this.clmShallStop) {
 
-            // On affiche le prompt et on lit l'entrée
+            // On affiche le prompt et on lit l'entrï¿½e
             this.nl();
             this.nl();
             this.display(this.clmPrompt);
@@ -121,7 +121,7 @@ public class CommandLineManager {
     }
 
     /**
-     * Arrête le manager
+     * Arrï¿½te le manager
      * Respecte la signature d'une LineCommand
      */
     public void cmdExit() {
@@ -145,8 +145,8 @@ public class CommandLineManager {
     }
 
     /**
-     * Retourne la méthode qui va traiter la commande
-     * Recherche tout d'abord une méthode avec la signature
+     * Retourne la mï¿½thode qui va traiter la commande
+     * Recherche tout d'abord une mï¿½thode avec la signature
      * void myMethod(String)
      *
      * Puis
@@ -173,7 +173,7 @@ public class CommandLineManager {
     }
 
     /**
-     * Lecture d'une entrée user
+     * Lecture d'une entrï¿½e user
      */
     protected String readCommand() {
         try {

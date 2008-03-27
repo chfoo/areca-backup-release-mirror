@@ -23,15 +23,15 @@ import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.util.log.Logger;
 
 /**
- * Gestionnaire de système de fichiers.
- * <BR>Ce gestionnaire référence des FileSystemDrivers pour différents points de montage (répertoires) et route les
- * demandes d'accès (réplication des méthodes de la classe File) au driver approprié.
+ * Gestionnaire de systï¿½me de fichiers.
+ * <BR>Ce gestionnaire rï¿½fï¿½rence des FileSystemDrivers pour diffï¿½rents points de montage (rï¿½pertoires) et route les
+ * demandes d'accï¿½s (rï¿½plication des mï¿½thodes de la classe File) au driver appropriï¿½.
  * <BR>
- * <BR>Par défaut, un DefaultFileSystemDriver est utilisé. 
+ * <BR>Par dï¿½faut, un DefaultFileSystemDriver est utilisï¿½. 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -58,20 +58,20 @@ public class FileSystemManager {
     protected static FileSystemManager instance = new FileSystemManager();
     
     /**
-     * Drivers indexés par point de montage
+     * Drivers indexï¿½s par point de montage
      */
     protected Map drivers = new HashMap();
     
     /**
-     * Drivers indexés par point de montage.
-     * <BR>Contrairement à la map "drivers", cette map ne contient que les drivers
-     * qui ont été explicitement enregistrés par la méthode "registerDriver".
-     * <BR>Elle sert à réinitialiser la map "drivers" suite à l'appel à la méthode "unregisterDriver"
+     * Drivers indexï¿½s par point de montage.
+     * <BR>Contrairement ï¿½ la map "drivers", cette map ne contient que les drivers
+     * qui ont ï¿½tï¿½ explicitement enregistrï¿½s par la mï¿½thode "registerDriver".
+     * <BR>Elle sert ï¿½ rï¿½initialiser la map "drivers" suite ï¿½ l'appel ï¿½ la mï¿½thode "unregisterDriver"
      */
     protected Map driversReference = new HashMap();
     
     /**
-     * Driver par défaut.
+     * Driver par dï¿½faut.
      */
     protected FileSystemDriver defaultDriver = new DefaultFileSystemDriver();
     
@@ -81,9 +81,9 @@ public class FileSystemManager {
     protected Set roots = new HashSet();
     
     /**
-     * Optimisation : ce flag est à "true" si aucun driver spécifique n'a été enregistré.
-     * <BR>On évite ainsi des recherches dans la Map des drivers : le driver par défaut
-     * est systématiquement retourné.
+     * Optimisation : ce flag est ï¿½ "true" si aucun driver spï¿½cifique n'a ï¿½tï¿½ enregistrï¿½.
+     * <BR>On ï¿½vite ainsi des recherches dans la Map des drivers : le driver par dï¿½faut
+     * est systï¿½matiquement retournï¿½.
      */
     protected boolean hasOnlyDefaultDriver = true;
     
@@ -100,11 +100,11 @@ public class FileSystemManager {
     }
 
     /**
-     * Enregistre un driver pour le point de montage spécifié. 
+     * Enregistre un driver pour le point de montage specifie. 
      */
     public synchronized void registerDriver(File mountPoint, FileSystemDriver driver) throws DriverAlreadySetException, IOException {
-        FileSystemDriver existing = this.getDriverAtMountPoint(mountPoint);
-        if (existing != null && ! existing.equals(driver)) {
+    	FileSystemDriver existing = this.getDriverAtMountPoint(mountPoint);
+        if (existing != null && existing != driver) {    // Yes, it's really an instance check !
             if (driver.isContentSensitive()) {
                 File[] files = null;
                 try {
@@ -119,7 +119,10 @@ public class FileSystemManager {
             }
             
             // Si un autre driver existait pour ce point de montage, on tente de le supprimer.
+            driver.mount();
             unregisterDriver(mountPoint);
+        } else {
+            driver.mount();
         }
        
         Logger.defaultLogger().info("Registring a new file system driver : Mount Point = " + mountPoint + ", Driver = " + driver);
@@ -139,17 +142,17 @@ public class FileSystemManager {
             Logger.defaultLogger().error(e);
         }
         
-        // Suppression du driver de la map de référence
+        // Suppression du driver de la map de rï¿½fï¿½rence
         this.driversReference.remove(mountPoint);
         
-        // Réinitialisation de la map de drivers
+        // Rï¿½initialisation de la map de drivers
         this.drivers.clear();
         this.drivers.putAll(this.driversReference);
     }
 
     /**
-     * Retourne le driver enregistré pour le point de montage passé en argument.
-     * <BR>Il n'y a pas de recherche récursive dans les répertoires parents; la méthode retourne null si aucun driver n'a été enregistré pour ce point de montage. 
+     * Retourne le driver enregistrï¿½ pour le point de montage passï¿½ en argument.
+     * <BR>Il n'y a pas de recherche rï¿½cursive dans les rï¿½pertoires parents; la mï¿½thode retourne null si aucun driver n'a ï¿½tï¿½ enregistrï¿½ pour ce point de montage. 
      */
     public synchronized FileSystemDriver getDriverAtMountPoint(File mountPoint) {
         return (FileSystemDriver)this.drivers.get(mountPoint);
@@ -161,11 +164,11 @@ public class FileSystemManager {
     }
     
     /**
-     * Retourne le driver approprié pour le fichier spécifié.
-     * <BR>Si aucun driver n'est trouvé, le driver par défaut est retourné. 
+     * Retourne le driver appropriï¿½ pour le fichier spï¿½cifiï¿½.
+     * <BR>Si aucun driver n'est trouvï¿½, le driver par dï¿½faut est retournï¿½. 
      */
     public synchronized FileSystemDriver getDriver(File file) {
-        // Si aucun driver n'a été enregistré, on retourne le driver par défaut
+        // Si aucun driver n'a ï¿½tï¿½ enregistrï¿½, on retourne le driver par dï¿½faut
         if (this.hasOnlyDefaultDriver) {
             return this.defaultDriver;
         }
@@ -179,14 +182,14 @@ public class FileSystemManager {
     }
     
     /**
-     * Spécifie le driver par défaut (celui qui est utilisé si aucun driver n'a été enregistré pour un chemin donné).
+     * Spï¿½cifie le driver par dï¿½faut (celui qui est utilisï¿½ si aucun driver n'a ï¿½tï¿½ enregistrï¿½ pour un chemin donnï¿½).
      */
     public synchronized void setDefaultDriver(FileSystemDriver defaultDriver) {
         this.defaultDriver = defaultDriver;
     }
     
     /**
-     * Enregistre le driver sans vérifier qu'aucun driver n'a été préalablement spécifié (à utiliser avec précautions !) 
+     * Enregistre le driver sans vï¿½rifier qu'aucun driver n'a ï¿½tï¿½ prï¿½alablement spï¿½cifiï¿½ (ï¿½ utiliser avec prï¿½cautions !) 
      */
     private Object registerDriverWithoutCheck(File mountPoint, FileSystemDriver driver) {
         this.hasOnlyDefaultDriver = false;
@@ -200,7 +203,7 @@ public class FileSystemManager {
             if (this.isRoot(file)) {
                 return this.defaultDriver;
             } else {
-                // Recherche du driver par le répertoire parent
+                // Recherche du driver par le rï¿½pertoire parent
                 File parent = file.getParentFile();
                 FileSystemDriver returned = this.lookupDriver(parent, false);
 
@@ -376,7 +379,11 @@ public class FileSystemManager {
     
     public static OutputStream getFileOutputStream(File file) throws IOException {
         return getInstance().getDriver(file).getFileOutputStream(file);
-    }   
+    } 
+    
+    public static OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException {
+        return getInstance().getDriver(file).getFileOutputStream(file, append, listener);
+    }  
     
     public static OutputStream getFileOutputStream(File file, boolean append) throws IOException {
         return getInstance().getDriver(file).getFileOutputStream(file, append);
@@ -466,27 +473,6 @@ public class FileSystemManager {
             } else {
                 return true;
             }
-
-            /*
-            boolean isLocked = false;
-            InputStream str = null;
-            try {
-                str = getFileInputStream(file);
-                str.read();
-            } catch (Exception e) {
-                isLocked = true;	    
-                Logger.defaultLogger().info("The following file is locked by the system : " + FileSystemManager.getAbsolutePath(file));
-            } finally {
-                if (str != null) {
-                    try {
-                        str.close();
-                    } catch (IOException ignored) {
-                    }
-                }
-            }
-
-            return ! isLocked;
-            */
         }
     }
 }

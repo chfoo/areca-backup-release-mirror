@@ -25,7 +25,7 @@ import com.application.areca.launcher.gui.common.SavePanel;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -216,12 +216,14 @@ extends AbstractWindow {
     
     private void fillLangCombo() {
         try {
+        	String currentLg = ArecaPreferences.resolveLanguage();
+        	
             String[] lges = Utils.getTranslations();
             Arrays.sort(lges);
             for (int i=0; i<lges.length; i++) {
                 langCombo.add(lges[i]);
                 
-                if (lges[i].equals(ArecaPreferences.getLang())) {
+                if (lges[i].equals(currentLg)) {
                     langCombo.select(i);
                 }
             }

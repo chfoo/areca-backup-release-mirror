@@ -12,7 +12,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -46,7 +46,7 @@ implements Bucket, Constants {
     }
 
     public void init(InputStream in) throws IOException {
-        in.read(tmp);
+        IOHelper.readFully(in, tmp);
         this.readOffset = 0;
         this.length = IOHelper.get32(tmp, 0);
     }
@@ -65,9 +65,10 @@ implements Bucket, Constants {
     
     public String toString() {
         StringBuffer sb = ToStringHelper.init(this);
-        ToStringHelper.append("ReadOffset", readOffset, sb);
         ToStringHelper.append("From", from, sb);
+        ToStringHelper.append("To", from + getLength() - 1, sb);
         ToStringHelper.append("Length", length, sb);
+        ToStringHelper.append("ReadOffset", readOffset, sb);
         return ToStringHelper.close(sb);
     }
 }

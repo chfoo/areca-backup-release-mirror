@@ -6,11 +6,11 @@ import java.util.HashMap;
 
 
 /**
- * Interface définisant un historique d'événements.
+ * Interface dï¿½finisant un historique d'ï¿½vï¿½nements.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -39,7 +39,7 @@ public interface History {
     public void addEntry(HistoryEntry entry) throws IOException;
     
     /**
-     * Retourne une map clef/valeur où :
+     * Retourne une map clef/valeur oï¿½ :
      * <BR>- Clef = GregorianCalendar
      * <BR>- Valeur = HistoryEntry (entry)
      */
@@ -50,7 +50,7 @@ public interface History {
     public HistoryEntry getEntry(GregorianCalendar date);
     
     /**
-     * Force l'écriture de l'historique sur le disque 
+     * Force l'ï¿½criture de l'historique sur le disque 
      */
     public void flush() throws IOException;
     
@@ -60,20 +60,20 @@ public interface History {
     public void clear();
     
     /**
-     * Ne modifie pas le contenu de l'historique; se contente de supprimer les données éventuellement écrites sur le support (fichier, base de données).
-     * <BR>Ces données peuvent donc être réécrites par appel à la méthode "flush()" 
+     * Ne modifie pas le contenu de l'historique; se contente de supprimer les donnï¿½es ï¿½ventuellement ï¿½crites sur le support (fichier, base de donnï¿½es).
+     * <BR>Ces donnï¿½es peuvent donc ï¿½tre rï¿½ï¿½crites par appel ï¿½ la mï¿½thode "flush()" 
      */
     public void clearData();
     
     /**
-     * Charge l'historique à partir du support (par ex disque ou base de données) 
+     * Charge l'historique ï¿½ partir du support (par ex disque ou base de donnï¿½es) 
      */
     public void load() throws IOException;
     
     public void updateLocation(Object newLocation) throws IOException;
     
     /**
-     * Retourne la date de la dernière entrée enregistrée dans l'historique 
+     * Retourne la date de la derniï¿½re entrï¿½e enregistrï¿½e dans l'historique 
      */
     public GregorianCalendar getLastEntryDate();
     

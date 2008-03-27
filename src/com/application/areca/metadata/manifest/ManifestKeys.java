@@ -4,7 +4,7 @@ package com.application.areca.metadata.manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -37,6 +37,10 @@ public interface ManifestKeys {
     public static final String MERGE_START = "Merge start date";
     public static final String MERGE_END = "Merge end date";
     public static final String MERGED_ARCHIVES = "Merged archives";
+    public static final String ARCHIVE_NAME = "Archive name";
+    public static final String STORED_FILES = "Stored files";
+    public static final String UNMODIFIED_FILES = "Unmodified files (not stored)";
+    public static final String ARCHIVE_SIZE = "Archive size";
     public static final String UNFILTERED_DIRECTORIES = "Unfiltered directories";
     public static final String UNFILTERED_FILES = "Unfiltered files";
     public static final String SCANNED_ENTRIES = "Scanned entries (files or directories)";
@@ -45,6 +49,7 @@ public interface ManifestKeys {
     public static final String OS_NAME = "Operating system";
     
     public static final String OPTION_PREFIX = "Option [";
-    public static final String OPTION_KEEP_DELETED_ENTRIES = OPTION_PREFIX + "preserve deleted entries]";
-    public static final String OPTION_BACKUP_SCHEME = OPTION_PREFIX + "backup scheme]";
+    public static final String OPTION_SUFFIX = "]";
+    public static final String OPTION_KEEP_DELETED_ENTRIES = OPTION_PREFIX + "preserve deleted entries" + OPTION_SUFFIX;
+    public static final String OPTION_BACKUP_SCHEME = OPTION_PREFIX + "backup scheme" + OPTION_SUFFIX;
 }

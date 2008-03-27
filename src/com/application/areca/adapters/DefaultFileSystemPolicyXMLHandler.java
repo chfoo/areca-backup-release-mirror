@@ -1,16 +1,18 @@
 package com.application.areca.adapters;
 
+import java.io.File;
+
 import org.w3c.dom.Node;
 
 import com.application.areca.impl.policy.DefaultFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
-import com.application.areca.plugins.FileSystemPolicyXMLHandler;
+import com.myJava.file.FileSystemManager;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -33,21 +35,33 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class DefaultFileSystemPolicyXMLHandler
-implements FileSystemPolicyXMLHandler, XMLTags {
-
-    public FileSystemPolicy read(Node mediumNode) throws AdapterException {
-        Node pathNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVEPATH);
+extends AbstractFileSystemPolicyXMLHandler {
+	public FileSystemPolicy read(Node mediumNode) throws AdapterException {
         DefaultFileSystemPolicy policy = new DefaultFileSystemPolicy();
-        policy.setBaseArchivePath(pathNode.getNodeValue());
         policy.setId(POLICY_HD);
+		if (version == 1) {
+	        Node pathNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVEPATH_DEPRECATED);
+	        File f = new File(pathNode.getNodeValue());
+	        policy.setArchivePath(FileSystemManager.getParent(f));
+	        policy.setArchiveName(buildDeprecatedArchiveName(FileSystemManager.getName(f)));
+		} else {
+	        Node pathNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_PATH);
+	        Node nameNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVENAME);
+	        policy.setArchivePath(pathNode.getNodeValue());
+	        policy.setArchiveName(nameNode.getNodeValue());
+		}
         return policy;
     }
 
     public void write(FileSystemPolicy policy, StringBuffer sb) {
         sb.append(" ");
-        sb.append(XML_MEDIUM_ARCHIVEPATH);
+        sb.append(XML_MEDIUM_PATH);
         sb.append("=");
-        sb.append(AbstractXMLWriter.encode(policy.getBaseArchivePath()));   
-    }
+        sb.append(AbstractXMLWriter.encode(policy.getArchivePath()));   
 
+        sb.append(" ");
+        sb.append(XML_MEDIUM_ARCHIVENAME);
+        sb.append("=");
+        sb.append(AbstractXMLWriter.encode(policy.getArchiveName()));
+    }
 }

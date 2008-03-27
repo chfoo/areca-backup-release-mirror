@@ -10,7 +10,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -65,7 +65,7 @@ implements StoragePlugin {
         return VersionInfos.getLastVersion();
     }
     
-    public FileSystemPolicyXMLHandler getFileSystemPolicyXMLHandler() {
+    public FileSystemPolicyXMLHandler buildFileSystemPolicyXMLHandler() {
         return new FTPFileSystemPolicyXMLHandler();
     }
     

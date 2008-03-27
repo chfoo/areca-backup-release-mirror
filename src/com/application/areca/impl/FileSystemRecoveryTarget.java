@@ -29,11 +29,11 @@ import com.myJava.util.errors.ActionReport;
 import com.myJava.util.log.Logger;
 
 /**
- * Type de cible dédiée au backup de fichiers.
+ * Target implementation that handles files.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -66,7 +66,7 @@ implements TargetActions {
     protected boolean followSubdirectories = true;
     
     /**
-     * Tells wether symbolic are considered as normal files or as symbolic links
+     * Tells whether symbolic are considered as normal files or as symbolic links
      */
     protected boolean trackSymlinks = false;
     
@@ -212,16 +212,16 @@ implements TargetActions {
     }
     
     /**
-     * Retourne le prochain élément.
-     * Attention : ca peut être un fichier ou un répertoire.
-     * Cet élément est filtré par appel aux filtres.
+     * Retourne le prochain ï¿½lï¿½ment.
+     * Attention : ca peut ï¿½tre un fichier ou un rï¿½pertoire.
+     * Cet ï¿½lï¿½ment est filtrï¿½ par appel aux filtres.
      */
     public RecoveryEntry nextElement(ProcessContext context) throws ApplicationException {
 
-        if (context.getCurrentLevel() == null) {
-            return null;
-        }
-        
+    	if (context.getCurrentLevel() == null) {
+    		return null;
+    	}
+    	
         while (true) {
             // Locate the first storable file
             while (context.getCurrentLevel().hasMoreElements()) {
@@ -327,10 +327,7 @@ implements TargetActions {
         }
         context.setRootCount(this.sources.size());
         if (! context.getFileSystemLevels().isEmpty()) {
-            context.setCurrentLevel((FileSystemLevel)context.getFileSystemLevels().pop());
-        } else {
-            Logger.defaultLogger().warn("No source directory has been set for target \"" + getTargetName() + "\".");
-            context.setCurrentLevel(null);
+        	context.setCurrentLevel((FileSystemLevel)context.getFileSystemLevels().pop());
         }
     }
     
@@ -344,7 +341,7 @@ implements TargetActions {
     
     private File buildRecoveryFile(String destination) {
         File f = new File(normalizeDestination(destination), RECOVERY_LOCATION_SUFFIX);
-        for (int i=2; FileSystemManager.exists(f); i++) {
+        for (int i=0; FileSystemManager.exists(f); i++) {
             f = new File(normalizeDestination(destination), RECOVERY_LOCATION_SUFFIX + i);
         }
         return f;
@@ -398,22 +395,19 @@ implements TargetActions {
         }
     }
     
-    /**
-     * @see AbstractRecoveryTarget#getSpecificTargetDescription()
-     */
     protected String getSpecificTargetDescription() {
-        return "Target" + (this.sourcesRoot.length() != 0 ? " - FileSystem (" + this.sourcesRoot + ")" : "");
+        return "Root : " + (this.sourcesRoot.length() != 0 ? this.sourcesRoot: "");
     }
 
     /**
-     * Valide l'état de la target
+     * Valide l'ï¿½tat de la target
      */
     public ActionReport checkTargetState(int action) {
         
         // Validation
         ActionReport result = super.checkTargetState(action);
         
-        if (action != ACTION_RECOVER && action != ACTION_COMPACT_OR_DELETE) {
+        if (action != ACTION_RECOVER && action != ACTION_MERGE_OR_DELETE) {
             Iterator iter = this.sources.iterator();
             while (iter.hasNext()) {
                 File src = (File)iter.next();

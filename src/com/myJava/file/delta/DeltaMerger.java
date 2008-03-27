@@ -9,13 +9,15 @@ import java.util.List;
 import com.myJava.file.delta.bucket.Bucket;
 import com.myJava.file.delta.bucket.NewBytesBucket;
 import com.myJava.file.delta.bucket.ReadPreviousBucket;
+import com.myJava.file.delta.tools.IOHelper;
 import com.myJava.util.log.Logger;
 
 /**
+ * To refactor : should be mutualized with the DeltaInputStream
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -61,8 +63,8 @@ implements Constants, LayerHandler {
         this.proc = proc;
     }
 
-    public void addInputStream(InputStream stream) {
-        layers.add(new DeltaLayer(stream));
+    public void addInputStream(InputStream stream, String name) {
+        layers.add(new DeltaLayer(stream, name));
     }
 
     public void close() throws IOException {
@@ -78,11 +80,11 @@ implements Constants, LayerHandler {
     }
     
     public void merge() throws IOException, DeltaProcessorException {
-        for (long i = 0; merge(i); i+=BUFFER_SIZE) {
-        }
+        while(mergeImpl()) {}
+        proc.end();
     }
 
-    private boolean merge(long fromIndex) throws IOException, DeltaProcessorException {
+    private boolean mergeImpl() throws IOException, DeltaProcessorException {
         int read = 0;
         int highWaterMark = 0;
 
@@ -106,13 +108,17 @@ implements Constants, LayerHandler {
                 long to = instruction.getReadTo();
                 int writeOffset = instruction.getWriteOffset();
 
+                if (layer.getCurrentBucket() == null) {
+                	return false;
+                }
+                
                 // Skip all buckets until we find an appropriate one
-                while (! (layer.getCurrentBucket().getFrom() <= from && layer.getCurrentBucket().getTo() >= from )) {
+                while (layer.getCurrentBucket() != null && (! (layer.getCurrentBucket().getFrom() <= from && layer.getCurrentBucket().getTo() >= from ))) {
                     Bucket bucket = layer.getCurrentBucket();
                     if (bucket.getSignature() == SIG_NEW) {
                         // If it is a "new bytes" bucket, skip the remaining bytes
                         NewBytesBucket current = (NewBytesBucket)bucket;
-                        layer.getStream().skip(bucket.getLength() - current.getReadOffset());
+                        IOHelper.skipFully(layer.getStream(), bucket.getLength() - current.getReadOffset());
                     }
 
                     layer.readNextBucket();
@@ -128,8 +134,8 @@ implements Constants, LayerHandler {
                         // Read the data from the stream
                         NewBytesBucket current = (NewBytesBucket)bucket;
                         toSkip -= current.getReadOffset();
-                        layer.getStream().skip(toSkip);
-                        int readBytes = layer.getStream().read(buff, writeOffset, toWrite);                   // Read the data from the bucket's stream
+                        IOHelper.skipFully(layer.getStream(), toSkip);
+                        int readBytes = IOHelper.readFully(layer.getStream(), buff, writeOffset, toWrite);                   // Read the data from the bucket's stream
                         if (readBytes != toWrite) {
                             Logger.defaultLogger().error("Error processing instruction : " + instruction.toString() + ". Bucket is : " + current.toString());
                             throw new DeltaException("Incoherent read length : expected " + toWrite + ", got " + readBytes + " for diff-layer #" + i);
@@ -137,7 +143,7 @@ implements Constants, LayerHandler {
                         highWaterMark = Math.max(highWaterMark, writeOffset + toWrite);
                         
                         read += toWrite;
-                        current.setReadOffset(current.getReadOffset() + toWrite);
+                        current.setReadOffset(current.getReadOffset() + toWrite + toSkip);
                     } else {
                         // Read the data from underlying layer
                         ReadPreviousBucket current = (ReadPreviousBucket)bucket;
@@ -162,7 +168,7 @@ implements Constants, LayerHandler {
                 }
             }
 
-            instructionsToProcess = tmp; // go to te next list of instructions to process
+            instructionsToProcess = tmp; // go to the next list of instructions to process
             tmp = new ArrayList();
         }
 
@@ -176,12 +182,12 @@ implements Constants, LayerHandler {
     
                 // Skip unnecessary bytes
                 long toSkip = from - baseStreamPosition;
-                in.skip(toSkip);
+                IOHelper.skipFully(in, toSkip);
                 baseStreamPosition += toSkip;
     
                 // Read the required bytes
                 int toWrite = (int)(to - from + 1);
-                int readBytes = in.read(buff, writeOffset, toWrite);
+                int readBytes = IOHelper.readFully(in, buff, writeOffset, toWrite);
                 if (readBytes != toWrite) {
                     Logger.defaultLogger().error("Error processing instruction : " + instruction.toString() + ". Current base stream position is : " + baseStreamPosition + ". Current position is : " + position);
                     throw new DeltaException("Incoherent read length : expected " + toWrite + ", got " + readBytes + " for base stream.");
@@ -198,21 +204,19 @@ implements Constants, LayerHandler {
         for (int b = 0; b<instructionsToProcess.size(); b++) {
             DeltaReadInstruction instruction = (DeltaReadInstruction)instructionsToProcess.get(b);
             // Build a previous "new bytes" bucket
-            if (instruction.getWriteOffset() > lastOffset) {
-                proc.newBytes(buff, lastOffset, instruction.getWriteOffset() - lastOffset);
-            }
+            proc.newBytes(buff, lastOffset, instruction.getWriteOffset() - lastOffset);
             
             // Build the "read previous layer" bucket
             proc.blockFound(instruction.getReadFrom(), instruction.getReadTo());
             
             lastOffset = (int)(instruction.getWriteOffset() + instruction.getReadTo() - instruction.getReadFrom() + 1);
         }
-        if (highWaterMark > lastOffset) {
+        if (highWaterMark >= lastOffset) {
             proc.newBytes(buff, lastOffset, highWaterMark - lastOffset);
         }
         
-        position += read;
+        position += BUFFER_SIZE;
 
-        return (read != 0);
+        return true;
     }    
 }

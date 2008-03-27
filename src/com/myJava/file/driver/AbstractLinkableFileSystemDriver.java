@@ -2,18 +2,20 @@ package com.myJava.file.driver;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 
+import com.myJava.file.OutputStreamListener;
 import com.myJava.object.ToStringHelper;
 
 
 /**
- * Classe dérivée de l'AbstractFileSystemDriver.
- * <BR>Définit un driver pouvant être chaîné, c'est à dire se reposant sur un autre
- * FileSystemDriver (son "prédécesseur") pour les accès.
+ * Classe dï¿½rivï¿½e de l'AbstractFileSystemDriver.
+ * <BR>Dï¿½finit un driver pouvant ï¿½tre chaï¿½nï¿½, c'est ï¿½ dire se reposant sur un autre
+ * FileSystemDriver (son "prï¿½dï¿½cesseur") pour les accï¿½s.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -40,8 +42,8 @@ extends AbstractFileSystemDriver
 implements LinkableFileSystemDriver {
 
     /**
-     * Le driver prédécesseur.
-     * <BR>C'est sur ce driver que s'appuiera le driver pour les accès au FileSystem.
+     * Le driver prï¿½dï¿½cesseur.
+     * <BR>C'est sur ce driver que s'appuiera le driver pour les accï¿½s au FileSystem.
      */
     protected FileSystemDriver predecessor;
     
@@ -59,6 +61,10 @@ implements LinkableFileSystemDriver {
 
     public void flush() throws IOException {
         predecessor.flush();
+    }
+    
+    public void mount() throws IOException {
+        predecessor.mount();
     }
 
     public void unmount() throws IOException {
@@ -78,8 +84,8 @@ implements LinkableFileSystemDriver {
     public File getAbsoluteFile(File file) {
         return this.predecessor.getAbsoluteFile(file);
     }
-    
-    public String getAbsolutePath(File file) {
+
+	public String getAbsolutePath(File file) {
         return this.predecessor.getAbsolutePath(file);
     }
     

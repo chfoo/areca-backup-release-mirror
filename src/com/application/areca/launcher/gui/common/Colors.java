@@ -10,7 +10,7 @@ import com.application.areca.launcher.gui.Application;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -41,6 +41,7 @@ public interface Colors {
     public static final org.eclipse.swt.graphics.Color C_FINISHED = new org.eclipse.swt.graphics.Color(Application.getInstance().getDisplay(), 170, 208, 253);
     
     public static final org.eclipse.swt.graphics.Color C_FLD_ERROR = new org.eclipse.swt.graphics.Color(Application.getInstance().getDisplay(), 170, 208, 253);
+    //public static final org.eclipse.swt.graphics.Color C_FLD_ERROR = new org.eclipse.swt.graphics.Color(Application.getInstance().getDisplay(), 255, 50, 50);
     
     public static final org.eclipse.swt.graphics.Color C_BLACK = Application.getInstance().getDisplay().getSystemColor(SWT.COLOR_BLACK);
     public static final org.eclipse.swt.graphics.Color C_GRAY = Application.getInstance().getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY);

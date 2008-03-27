@@ -1,10 +1,13 @@
 package com.application.areca.launcher.gui;
 
+import java.io.File;
+
 import javax.swing.JOptionPane;
 
 import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.version.VersionInfos;
+import com.myJava.file.FileTool;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 
@@ -12,7 +15,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -54,10 +57,10 @@ public class Launcher extends AbstractArecaLauncher {
                 break;
             }
             if (workspace == null) {
-                if (args.length != 0) {
+                if (args.length != 0 && args[0].trim().length() != 0) {
                     workspace = args[0];
                 } else {
-                    workspace = System.getProperty("user.dir");
+                    workspace = System.getProperty("user.home") + "/Areca/Workspace";
                 }
             }
 

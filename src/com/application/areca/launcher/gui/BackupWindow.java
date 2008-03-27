@@ -21,7 +21,7 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -120,7 +120,7 @@ extends AbstractWindow {
 
         new Label(grpManifest, SWT.NONE);
 
-        txtDescription = new Text(grpManifest, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+        txtDescription = new Text(grpManifest, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
         GridData ldDescription = new GridData(SWT.FILL, SWT.FILL, true, true);
         ldDescription.widthHint = computeWidth(350);
         ldDescription.heightHint = computeHeight(70);

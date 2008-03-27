@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -122,21 +122,21 @@ public class Utils {
     }
     
     /**
-     * Intègre la date courante au nom de fichier 
+     * Integre la date courante au nom de fichier 
      */
     public static String dateTimeFileName(String originalFileName, String ext) {
         return dateTimeFileName(originalFileName, new GregorianCalendar(), ext);
     }      
     
     /**
-     * Intègre la date/heure au nom de fichier 
+     * Integre la date/heure au nom de fichier 
      */
     public static String dateTimeFileName(String originalFileName, GregorianCalendar cal, String ext) {
         return originalFileName + FILE_DATE_SEPARATOR + CalendarUtils.getDateToString(cal) + FILE_DATE_SEPARATOR + CalendarUtils.getTimeToString(cal) + ext;
     }    
     
     /**
-     * Retourne le chemin relatif de l'entry par rapport à sa racine. 
+     * Retourne le chemin relatif de l'entry par rapport a sa racine. 
      */
     public static String extractShortFilePath(File fileDir, File baseDir) {
         return extractShortFilePath(fileDir, FileSystemManager.getAbsolutePath(baseDir));
@@ -201,7 +201,7 @@ public class Utils {
     }
     
     /**
-     * Retourne le nombre de millisecondes sous forme d'une durée. 
+     * Retourne le nombre de millisecondes sous forme d'une durï¿½e. 
      */
     public static String formatDuration(long ms) {
         if (ms < 1000) {

@@ -9,7 +9,7 @@ import java.util.StringTokenizer;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -88,7 +88,7 @@ public class CalendarUtils {
     
     
     /**
-     * Retourne l'heure formattée <HH>h<mm> 
+     * Retourne l'heure formattee <HH>h<mm> 
      */
     public static String getTimeToString(GregorianCalendar argCal) {
         GregorianCalendar cal = argCal;
@@ -111,7 +111,7 @@ public class CalendarUtils {
     }
     
     /**
-     * Retourne l'heure formattée <HH>h<mm>-<ss>-<ms> 
+     * Retourne l'heure formattee <HH>h<mm>-<ss>-<ms> 
      */
     public static String getFullTimeToString(GregorianCalendar argCal) {
         GregorianCalendar cal = argCal;
@@ -137,7 +137,7 @@ public class CalendarUtils {
     }    
     
     /**
-     * Retourne la date formattée YYYY_MM_DD 
+     * Retourne la date formattee YYYYMMDD 
      */
     public static String getDateToString(GregorianCalendar argCal) {
         GregorianCalendar cal = argCal;
@@ -159,7 +159,7 @@ public class CalendarUtils {
     }
     
     /**
-     * Retourne la date et heure formattée 
+     * Retourne la date et heure formattee 
      */
     public static String getFullDateToString(GregorianCalendar cal) {
         return getDateToString(cal) + " " + getFullTimeToString(cal);
@@ -167,14 +167,14 @@ public class CalendarUtils {
     
     
     /**
-     * Retourne la date courante formattée 
+     * Retourne la date courante formattee 
      */
     public static String getDateToString() {
         return getDateToString(null);
     }
     
     /**
-     * Retourne l'heure courante formattée
+     * Retourne l'heure courante formattee
      */
     public static String getTimeToString() {
         return getTimeToString(null);

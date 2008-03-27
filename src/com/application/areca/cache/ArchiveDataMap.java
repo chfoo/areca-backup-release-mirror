@@ -17,7 +17,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -102,8 +102,8 @@ public class ArchiveDataMap
     }
     
     /**
-     * Supprime l'objet correspondant à l'archive passée en argument.
-     * <BR>L'objet éventuellement supprimé est retourné par la méthode.
+     * Supprime l'objet correspondant ï¿½ l'archive passï¿½e en argument.
+     * <BR>L'objet ï¿½ventuellement supprimï¿½ est retournï¿½ par la mï¿½thode.
      */
     public Object remove(File key) {
         CachedData data = (CachedData)this.content.remove(key);

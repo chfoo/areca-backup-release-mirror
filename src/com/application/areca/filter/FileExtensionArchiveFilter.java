@@ -13,11 +13,11 @@ import com.myJava.object.HashHelper;
 import com.myJava.object.PublicClonable;
 
 /**
- * Vérifie si le fichier contient bien l'une au moins des extensions proposées.
+ * Vï¿½rifie si le fichier contient bien l'une au moins des extensions proposï¿½es.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*

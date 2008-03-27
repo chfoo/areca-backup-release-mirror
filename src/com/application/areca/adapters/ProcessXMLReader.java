@@ -10,15 +10,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.myJava.file.FileSystemManager;
 
 /**
- * Adaptateur pour la sérialisation / désérialisation XML.
+ * Adapter for process serialization / deserialization
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -67,7 +67,7 @@ public class ProcessXMLReader implements XMLTags {
         this.missingDataListener = missingDataListener;
     }
     
-    public RecoveryProcess load() throws AdapterException {
+    public TargetGroup load() throws AdapterException {
         try {
             Element root = this.xmlConfig.getDocumentElement();
             
@@ -75,16 +75,25 @@ public class ProcessXMLReader implements XMLTags {
                 throw new AdapterException("Group not found : your configuration file must have a group root : '" + XML_PROCESS + "'.");
             }
             
-            RecoveryProcess process = new RecoveryProcess(this.configurationFile);        
+            TargetGroup process = new TargetGroup(this.configurationFile);        
             
             Node commentsNode = root.getAttributes().getNamedItem(XML_PROCESS_DESCRIPTION);
             if (commentsNode != null) {
                 process.setComments(commentsNode.getNodeValue());
-            }            
+            }     
+            
+            Node versionNode = root.getAttributes().getNamedItem(XML_VERSION);
+            int version = 1;
+            if (versionNode != null) {
+                version = Integer.parseInt(versionNode.getNodeValue());
+            }  
+            if (version > ProcessXMLWriter.CURRENT_VERSION) {
+            	throw new AdapterException("Invalid XML version : This version of Areca can't handle XML versions above " + ProcessXMLWriter.CURRENT_VERSION + ". You are trying to read a version " + version);
+            }
             
             NodeList targets = root.getElementsByTagName(XML_TARGET);
             for (int i=0; i<targets.getLength(); i++) {
-                TargetXMLReader targetAdapter = new TargetXMLReader(targets.item(i), process);
+                TargetXMLReader targetAdapter = new TargetXMLReader(targets.item(i), process, version);
                 targetAdapter.setMissingDataListener(missingDataListener);
                 process.addTarget(targetAdapter.readTarget());
             }

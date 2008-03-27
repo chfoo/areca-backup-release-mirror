@@ -3,11 +3,11 @@ package com.myJava.util.schedule;
 import java.util.Vector;
 
 /**
- * Classe permettant de gérer des tâches planifiées.
+ * Classe permettant de gï¿½rer des tï¿½ches planifiï¿½es.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -33,12 +33,12 @@ This file is part of Areca.
 public class Scheduler {
 
     /**
-     * Scheduler par défaut
+     * Scheduler par dï¿½faut
      */
     protected static Scheduler defaultScheduler = new Scheduler();
 
     /**
-     * Liste des tâches
+     * Liste des tï¿½ches
      */
     protected Vector scdTasks;
 
@@ -50,7 +50,7 @@ public class Scheduler {
     }
 
     /**
-     * Ajout d'une tâche
+     * Ajout d'une tï¿½che
      */
     public void addTask(ScheduledTask task) {
         this.scdTasks.add(task);
@@ -58,21 +58,21 @@ public class Scheduler {
     }
 
     /**
-     * Retourne le nombre de tâches
+     * Retourne le nombre de tï¿½ches
      */
     public int getTaskCount() {
         return this.scdTasks.size();
     }
 
     /**
-     * Retourne la tâche demandée
+     * Retourne la tï¿½che demandï¿½e
      */
     public ScheduledTask getTask(int i) {
         return (ScheduledTask)this.scdTasks.elementAt(i);
     }
 
     /**
-     * Arrête les tâches
+     * Arrï¿½te les tï¿½ches
      */
     public void stopAllTasks() {
         for (int i=0; i<this.getTaskCount(); i++) {
@@ -81,7 +81,7 @@ public class Scheduler {
     }
 
     /**
-     * Retourne le scheduler par défaut.
+     * Retourne le scheduler par dï¿½faut.
      */
     public static Scheduler getDefaultScheduler() {
         return Scheduler.defaultScheduler;

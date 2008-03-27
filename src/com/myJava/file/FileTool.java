@@ -18,11 +18,11 @@ import com.myJava.util.taskmonitor.TaskMonitor;
 
 
 /**
- * Outil dédié à la manipulation de fichiers
+ * Outil dï¿½diï¿½ ï¿½ la manipulation de fichiers
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -63,16 +63,16 @@ public class FileTool {
     
     public void copy(File sourceFileOrDirectory, File targetParentDirectory) throws IOException {
         try {
-            copy(sourceFileOrDirectory, targetParentDirectory, null);
+            copy(sourceFileOrDirectory, targetParentDirectory, null, null);
         } catch (TaskCancelledException ignored) {
             // Never happens since no monitor is set.
         }
     }
     
     /**
-     * Copie le fichier ou répertoire source dans le répertoire parent destination.
+     * Copie le fichier ou rï¿½pertoire source dans le rï¿½pertoire parent destination.
      */
-    public void copy(File sourceFileOrDirectory, File targetParentDirectory, TaskMonitor monitor) 
+    public void copy(File sourceFileOrDirectory, File targetParentDirectory, TaskMonitor monitor, OutputStreamListener listener) 
     throws IOException, TaskCancelledException {
         if (sourceFileOrDirectory == null || targetParentDirectory == null) {
             throw new IllegalArgumentException("Source : " + sourceFileOrDirectory + ", Destination : " + targetParentDirectory);
@@ -83,47 +83,47 @@ public class FileTool {
         }
         
         if (FileSystemManager.isFile(sourceFileOrDirectory)) {
-        	this.copyFile(sourceFileOrDirectory, targetParentDirectory, monitor);
+        	this.copyFile(sourceFileOrDirectory, targetParentDirectory, monitor, listener);
         } else {
-            // Création du répertoire
+            // Crï¿½ation du rï¿½pertoire
             File td = new File(targetParentDirectory, FileSystemManager.getName(sourceFileOrDirectory));
             this.createDir(td);
             
-            // Copie du contenu de la source dans le répertoire nouvellement créé.
-            this.copyDirectoryContent(sourceFileOrDirectory, td, monitor);
+            // Copie du contenu de la source dans le rï¿½pertoire nouvellement crï¿½ï¿½.
+            this.copyDirectoryContent(sourceFileOrDirectory, td, monitor, listener);
         }
     }
     
     /**
-     * Copie le fichier sourceFile vers le répertoire targetDirectory.
-     * <BR>Le fichier est détruit s'il existe déjà.
+     * Copie le fichier sourceFile vers le rï¿½pertoire targetDirectory.
+     * <BR>Le fichier est dï¿½truit s'il existe dï¿½jï¿½.
      * <BR>
-     * @param sourceFile Pointeur sur le fichier à copier
-     * @param targetDirectory Répertoire cible. Si ce répertoire n'existe pas, il est créé (récursivement).
+     * @param sourceFile Pointeur sur le fichier ï¿½ copier
+     * @param targetDirectory Rï¿½pertoire cible. Si ce rï¿½pertoire n'existe pas, il est crï¿½ï¿½ (rï¿½cursivement).
      */
-    private void copyFile(File sourceFile, File targetDirectory, TaskMonitor monitor) 
+    private void copyFile(File sourceFile, File targetDirectory, TaskMonitor monitor, OutputStreamListener listener) 
     throws IOException, TaskCancelledException {
-        copyFile(sourceFile, targetDirectory, FileSystemManager.getName(sourceFile), monitor);
+        copyFile(sourceFile, targetDirectory, FileSystemManager.getName(sourceFile), monitor, listener);
     }
     
     /**
-     * Copie le fichier sourceFile vers le répertoire targetDirectory, sous le nom targetShortFileName.
-     * <BR>Le fichier est détruit s'il existe déjà.
+     * Copie le fichier sourceFile vers le rï¿½pertoire targetDirectory, sous le nom targetShortFileName.
+     * <BR>Le fichier est dï¿½truit s'il existe dï¿½jï¿½.
      * <BR>
-     * @param sourceFile Pointeur sur le fichier à copier
-     * @param targetDirectory Répertoire cible. Si ce répertoire n'existe pas, il est créé (récursivement).
+     * @param sourceFile Pointeur sur le fichier ï¿½ copier
+     * @param targetDirectory Rï¿½pertoire cible. Si ce rï¿½pertoire n'existe pas, il est crï¿½ï¿½ (rï¿½cursivement).
      */
-    public void copyFile(File sourceFile, File targetDirectory, String targetShortFileName, TaskMonitor monitor) 
+    public void copyFile(File sourceFile, File targetDirectory, String targetShortFileName, TaskMonitor monitor, OutputStreamListener listener) 
     throws IOException, TaskCancelledException {
         
-        // Vérifications préalables
+        // Vï¿½rifications prï¿½alables
         if (! FileSystemManager.exists(targetDirectory)) {
             this.createDir(targetDirectory);
         }
         
         // Construction du fileOutputStream
         File tf = new File(targetDirectory, targetShortFileName);
-        OutputStream outStream = FileSystemManager.getFileOutputStream(tf);
+        OutputStream outStream = FileSystemManager.getFileOutputStream(tf, false, listener);
         
         // Copie
         this.copyFile(sourceFile, outStream, true, monitor);
@@ -131,7 +131,7 @@ public class FileTool {
     
     /**
      * Copie le fichier sourceFile vers le flux outStream.
-     * <BR>closeStream détermine si le flux de sortie sera fermé après la copie ou non
+     * <BR>closeStream dï¿½termine si le flux de sortie sera fermï¿½ aprï¿½s la copie ou non
      */
     public void copyFile(File sourceFile, OutputStream outStream, boolean closeStream, TaskMonitor monitor) 
     throws IOException, TaskCancelledException  {      
@@ -148,9 +148,7 @@ public class FileTool {
     }
     
     /**
-     * Copie le flux inStream vers le flux outStream.
-     * <BR>inStream est fermé après copie.
-     * <BR>closeStream détermine si le flux de sortie sera fermé après la copie ou non
+     * Copies inStream into outStream.
      */
     public void copy(InputStream inStream, OutputStream outStream, boolean closeInputStream, boolean closeOutputStream, TaskMonitor monitor) 
     throws IOException, TaskCancelledException {
@@ -186,16 +184,17 @@ public class FileTool {
     }
     
     /**
-     * Copie le contenu du répertoire sourceDirectory dans le répertoire targetDirectory.
+     * Copie le contenu du rï¿½pertoire sourceDirectory dans le rï¿½pertoire targetDirectory.
      * <BR>Exemple :
      * <BR>Si :
      * <BR>- sourceDirectory = c:\toto\sourceDir
      * <BR>- targetDirectory = d:\myDir
      * <BR>
-     * <BR>Alors après la copie, le contenu de c:\toto\sourceDir sera copié dans d:\myDir
-     * <BR>targetDirectory est créé (récursivement) s'il n'existe pas.
+     * <BR>Alors aprï¿½s la copie, le contenu de c:\toto\sourceDir sera copiï¿½ dans d:\myDir
+     * <BR>targetDirectory est crï¿½ï¿½ (rï¿½cursivement) s'il n'existe pas.
      */
-    public void copyDirectoryContent(File sourceDirectory, File targetDirectory, TaskMonitor monitor) throws IOException, TaskCancelledException {
+    public void copyDirectoryContent(File sourceDirectory, File targetDirectory, TaskMonitor monitor, OutputStreamListener listener) 
+    throws IOException, TaskCancelledException {
         if (! FileSystemManager.exists(targetDirectory)) {
             this.createDir(targetDirectory);
         }
@@ -203,17 +202,17 @@ public class FileTool {
         // Copie du contenu
         File[] files = FileSystemManager.listFiles(sourceDirectory);
         for (int i=0; i<files.length; i++) {
-        	this.copy(files[i], targetDirectory, monitor);
+        	this.copy(files[i], targetDirectory, monitor, listener);
         }
     }
     
     /**
-     * DEPLACE le contenu du répertoire source vers le répertoire destination
-     * (tous les fichiers et sous répertoires de la source sont déplacés
-     * dans le répertoire destination).
-     * <BR>Les fichiers existants sont écrasés.
-     * <BR>Si le booléen "waitForAvailability" est activé, le processus attendra, pour chaque fichier ou répertoire
-     * que celui ci soit disponible pour le déplacer (mise en attente du thread).
+     * DEPLACE le contenu du rï¿½pertoire source vers le rï¿½pertoire destination
+     * (tous les fichiers et sous rï¿½pertoires de la source sont dï¿½placï¿½s
+     * dans le rï¿½pertoire destination).
+     * <BR>Les fichiers existants sont ï¿½crasï¿½s.
+     * <BR>Si le boolï¿½en "waitForAvailability" est activï¿½, le processus attendra, pour chaque fichier ou rï¿½pertoire
+     * que celui ci soit disponible pour le dï¿½placer (mise en attente du thread).
      * 
      * @param sourceDirectory
      * @param destinationDirectory
@@ -225,7 +224,7 @@ public class FileTool {
             this.createDir(destinationDirectory);
         }
         
-        // Déplacement du contenu
+        // Dï¿½placement du contenu
         File[] files = FileSystemManager.listFiles(sourceDirectory);
         for (int i=0; i<files.length; i++) {
             this.move(files[i], destinationDirectory, waitForAvailability, monitor);
@@ -234,25 +233,25 @@ public class FileTool {
     
     public void move(File sourceFileOrDirectory, File targetParentDirectory, boolean waitForAvailability, TaskMonitor monitor) 
     throws IOException, TaskCancelledException {
-        // Création du répertoire d'accueil si nécessaire
+        // Crï¿½ation du rï¿½pertoire d'accueil si nï¿½cessaire
         if (! FileSystemManager.exists(targetParentDirectory)) {
             this.createDir(targetParentDirectory);
         }
         
         File destFile = new File(targetParentDirectory, FileSystemManager.getName(sourceFileOrDirectory));
         
-        // Déplacement
+        // Dï¿½placement
         if (! FileSystemManager.renameTo(sourceFileOrDirectory, destFile)) {
 
-        	// Si la tentative standard échoue (méthode "renameTo"), on tente une copie, puis suppression
-        	this.copy(sourceFileOrDirectory, targetParentDirectory, monitor);
+        	// Si la tentative standard ï¿½choue (mï¿½thode "renameTo"), on tente une copie, puis suppression
+        	this.copy(sourceFileOrDirectory, targetParentDirectory, monitor, null);
         	this.delete(sourceFileOrDirectory, waitForAvailability, monitor);
         }
     }
     
     /**
-     * Supprime le répertoire et tout son contenu, récursivement, ou le fichier s'il s'agit d'un fichier.
-     * <BR>Si le booléen "waitForAvailability" est activé, le processus attendra, pour chaque fichier ou répertoire
+     * Supprime le rï¿½pertoire et tout son contenu, rï¿½cursivement, ou le fichier s'il s'agit d'un fichier.
+     * <BR>Si le boolï¿½en "waitForAvailability" est activï¿½, le processus attendra, pour chaque fichier ou rï¿½pertoire
      * que celui ci soit disponible pour le supprimer (mise en attente du thread).
      * <BR>Une tentative de suppression sera faite toutes les "deletionDelay" millisecondes.
      */
@@ -325,8 +324,8 @@ public class FileTool {
     }
     
     /**
-     * Retourne le contenu intégral du fichier passé en argument sous forme de chaîne de
-     * caractères.
+     * Retourne le contenu intï¿½gral du fichier passï¿½ en argument sous forme de chaï¿½ne de
+     * caractï¿½res.
      */
     public String getFileContent(File sourceFile) throws IOException {
         InputStream inStream = FileSystemManager.getFileInputStream(sourceFile);
@@ -339,8 +338,8 @@ public class FileTool {
     }
     
     /**
-     * Retourne le contenu intégral du stream passé en argument sous forme de chaîne de
-     * caractères.
+     * Retourne le contenu intï¿½gral du stream passï¿½ en argument sous forme de chaï¿½ne de
+     * caractï¿½res.
      */
     public String getInputStreamContent(InputStream inStream, String encoding, boolean closeStreamOnExit) throws IOException {
     	if (inStream == null) {
@@ -371,7 +370,7 @@ public class FileTool {
     /**
      * Retourne le contenu du fichier sous forme de tableau de String.
      * <BR>Un String par ligne.
-     * <BR>Les espaces superflus sont supprimés et les lignes vides sont ignorées.
+     * <BR>Les espaces superflus sont supprimï¿½s et les lignes vides sont ignorï¿½es.
      */
     public String[] getFileRows(File sourceFile) throws IOException {
         return getInputStreamRows(FileSystemManager.getFileInputStream(sourceFile), null, true);
@@ -380,7 +379,7 @@ public class FileTool {
     /**
      * Retourne le contenu du flux sous forme de tableau de String.
      * <BR>Un String par ligne.
-     * <BR>Les espaces superflus sont supprimés et les lignes vides sont ignorées.
+     * <BR>Les espaces superflus sont supprimï¿½s et les lignes vides sont ignorï¿½es.
      */
     public String[] getInputStreamRows(InputStream inStream, String encoding, boolean closeStreamOnExit) throws IOException {
         if (inStream == null) {
@@ -425,7 +424,7 @@ public class FileTool {
     }
     
     /**
-     * Remplace toutes les occurences de "searchString" par "newString" dans le fichier spécifié
+     * Remplace toutes les occurences de "searchString" par "newString" dans le fichier spï¿½cifiï¿½
      */
     public void replaceInFile(File baseFile, String searchString, String newString) throws IOException {
         String content = this.getFileContent(baseFile);
@@ -486,7 +485,7 @@ public class FileTool {
     }
     
     /**
-     * Création récursive d'un répertoire
+     * Crï¿½ation rï¿½cursive d'un rï¿½pertoire
      * 
      * @param directory
      * @throws IOException
@@ -498,5 +497,15 @@ public class FileTool {
             createDir(FileSystemManager.getParentFile(directory));
             FileSystemManager.mkdir(directory);
         }
+    }
+    
+    public static void main(String[] args) {
+    	try {
+			File f = new File("/home/olivier/Bureau/1770909091/bck_sources_0803192134");
+			System.out.println(instance.getSize(f));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 }

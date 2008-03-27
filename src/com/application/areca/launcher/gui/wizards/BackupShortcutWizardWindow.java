@@ -22,7 +22,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -84,10 +84,8 @@ extends AbstractWindow {
         grpLocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         
         location = new Text(grpLocation, SWT.BORDER);
-        GridData mainData2 = new GridData();
-        mainData2.grabExcessHorizontalSpace = true;
-        mainData2.horizontalAlignment = SWT.FILL;
-        mainData2.widthHint = AbstractWindow.computeWidth(300);
+        GridData mainData2 = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        mainData2.widthHint = AbstractWindow.computeWidth(400);
         location.setLayoutData(mainData2);
         location.setText(FileSystemManager.getAbsolutePath(new File(initialDirectory, initialFileNameSelected)));
         monitorControl(location);
@@ -103,9 +101,7 @@ extends AbstractWindow {
                 }
             }
         });
-        GridData mainData3 = new GridData();
-        mainData3.horizontalAlignment = SWT.FILL;
-        btnBrowse.setLayoutData(mainData3);
+        btnBrowse.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 
         Group grpType = new Group(composite, SWT.NONE);
         grpType.setText(RM.getLabel("shrtc.type.label"));
@@ -158,10 +154,7 @@ extends AbstractWindow {
         monitorControl(SWT.Selection, radAll);
         
         SavePanel pnlSave = new SavePanel(this);
-        GridData saveData = new GridData();
-        saveData.grabExcessHorizontalSpace = true;
-        saveData.horizontalAlignment = SWT.FILL;
-        pnlSave.buildComposite(composite).setLayoutData(saveData);        
+        pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true));        
         saveButton = pnlSave.getBtnSave();
         
         composite.pack();

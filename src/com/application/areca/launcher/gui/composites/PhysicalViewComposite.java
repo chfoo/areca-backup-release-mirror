@@ -2,9 +2,7 @@ package com.application.areca.launcher.gui.composites;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.GregorianCalendar;
-import java.util.Iterator;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -25,31 +23,27 @@ import org.eclipse.swt.widgets.TableItem;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
-import com.application.areca.RecoveryEntry;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
-import com.application.areca.impl.IncrementalDirectoryMedium;
-import com.application.areca.impl.IncrementalZipMedium;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.Refreshable;
-import com.application.areca.metadata.content.ArchiveContent;
-import com.application.areca.metadata.content.ArchiveContentManager;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.driver.FileSystemDriver;
+import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -213,48 +207,23 @@ implements SelectionListener, Refreshable {
     private void initText(TableItem item, int column, Manifest manifest) {
         if (manifest == null || manifest.getTitle() == null || manifest.getTitle().trim().length() == 0) {
             item.setForeground(column, Colors.C_LIGHT_GRAY);
-            //item.setFont(column, italic);
             item.setText(column, ResourceManager.instance().getLabel("mainpanel.nodesc.label"));
         } else {
             item.setForeground(column, Colors.C_BLACK);
-            //item.setFont(column, normal);
             item.setText(column, manifest.getTitle());
         }   
     }
     
-    private void initSize(TableItem item, int column, File archive, AbstractIncrementalFileSystemMedium medium) {
-        if (FileSystemManager.isFile(archive)) {
-            item.setForeground(column, Colors.C_BLACK);
-            item.setText(column, Utils.formatFileSize(FileSystemManager.length(archive)));
-        } else if (FileSystemManager.getAccessEfficiency(archive) > FileSystemDriver.ACCESS_EFFICIENCY_POOR) {
-            if (medium instanceof IncrementalDirectoryMedium) {
-                try {
-                    ArchiveContent ctn = ArchiveContentManager.getContentForArchive(medium, archive);
-                    Iterator iter = ctn.getContent();
-                    long size = 0;
-                    while (iter.hasNext()) {
-                        RecoveryEntry entry = (RecoveryEntry)iter.next();
-                        size += entry.getSize();
-                    }
-                    item.setForeground(column, Colors.C_BLACK);
-                    item.setText(column, Utils.formatFileSize(size));
-                } catch (IOException e) {
-                    item.setText(column, e.getMessage());
-                }
-            } else if (medium instanceof IncrementalZipMedium) {
-                item.setForeground(column, Colors.C_BLACK);
-                try {
-                    item.setText(column, Utils.formatFileSize(TOOL.getSize(archive)));
-                } catch (FileNotFoundException e) {
-                    item.setText(column, Utils.formatFileSize(0));
-                }
-            } else {
-                throw new IllegalArgumentException("Unsupported medium implementation");
-            }
-        } else {
-            item.setForeground(column, Colors.C_LIGHT_GRAY);
-            item.setText(column, ResourceManager.instance().getLabel("mainpanel.nosize.label"));
-        }
+    private void initSize(TableItem item, int column, File archive, AbstractIncrementalFileSystemMedium medium) throws ApplicationException {
+		long prp = medium.getArchiveSize(archive, false);
+		
+		if (prp >= 0) {
+			item.setForeground(column, Colors.C_BLACK);
+			item.setText(column, Utils.formatFileSize(prp));
+    	} else {
+    		item.setForeground(column, Colors.C_LIGHT_GRAY);
+    		item.setText(column, ResourceManager.instance().getLabel("mainpanel.nosize.label"));
+    	}
     }
 
     public void widgetDefaultSelected(SelectionEvent e) {

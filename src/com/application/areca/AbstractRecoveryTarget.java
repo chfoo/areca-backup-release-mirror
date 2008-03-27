@@ -37,7 +37,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -73,14 +73,14 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     protected int id; // Numeric unique id of the target within its process
     protected String uid; // Unique identifier
     protected String targetName; // Name of the target
-    protected RecoveryProcess process;
+    protected TargetGroup process;
     protected String comments;
     protected ProcessorList postProcessors = new ProcessorList();
     protected ProcessorList preProcessors = new ProcessorList();
     protected boolean running;
     protected boolean createSecurityCopyOnBackup = true;
      
-    public void setProcess(RecoveryProcess process) {
+    public void setProcess(TargetGroup process) {
         this.process = process;
     }
     
@@ -166,21 +166,23 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     public String getDescription() {
         StringBuffer buf = new StringBuffer("Target #");
         buf.append(this.id);
-        buf.append("\n");
+        buf.append("\n\tName : ");
+        buf.append(getTargetName());
+        buf.append("\n\t");
         buf.append(this.getSpecificTargetDescription());
-        buf.append("\nMedium : ");
+        buf.append("\n\tMedium : ");
         buf.append(medium.getDescription());
         return new String(buf);
     }
     
     protected abstract String getSpecificTargetDescription();
     
-    public RecoveryProcess getProcess() {
+    public TargetGroup getProcess() {
         return this.process;
     }
     
     /**
-     * Vérifie l'état du système avant toute action (archivage, backup, fusion) 
+     * Vï¿½rifie l'ï¿½tat du systï¿½me avant toute action (archivage, backup, fusion) 
      */
     public ActionReport checkTargetState(int action) {
         return this.medium.checkMediumState(action);
@@ -251,10 +253,10 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     public synchronized void processBackup(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
         boolean backupRequired = true;
         
-        // Si requis, on pré-vérifie qu'au moins un fichier a été modifié avant de déclencher le backup.
+        // Si requis, on pre-verifie qu'au moins un fichier a ete modifie avant de declencher le backup.
         // 2 conditions :
-        // - Le support requiert une pré-vérification
-        // - Le manifeste est null (ie l'utilisateur n'en a pas fourni un explicitement) - Si un manifeste est renseigné, on fait tjs le backup.
+        // - Le support requiert une pre-verification
+        // - Le manifeste est null (ie l'utilisateur n'en a pas fourni un explicitement) - Si un manifeste est renseigne, on fait tjs le backup.
         if (this.medium.isPreBackupCheckUseful() && manifest == null && backupScheme.equals(BACKUP_SCHEME_INCREMENTAL)) {
             context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.3, "pre-check");
             context.getInfoChannel().print("Pre-check in progress ...");
@@ -321,8 +323,10 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                 }
                 this.commitBackup(context);
                 context.getReport().stopDataFlowTimer();
-                Logger.defaultLogger().info(Utils.formatLong(context.getReport().getWrittenInKB()) + " kb stored in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
-                Logger.defaultLogger().info("Average data output : " + Utils.formatLong(context.getReport().getDataFlowInKBPerSecond()) + " kb/second.");
+                Logger.defaultLogger().info(Utils.formatLong(context.getInputBytesInKB()) + " kb read in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
+                Logger.defaultLogger().info("Average data input : " + Utils.formatLong(context.getInputBytesInKBPerSecond()) + " kb/second.");
+                Logger.defaultLogger().info(Utils.formatLong(context.getOutputBytesInKB()) + " kb written in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
+                Logger.defaultLogger().info("Average data output : " + Utils.formatLong(context.getOutputBytesInKBPerSecond()) + " kb/second.");
             } catch (Exception e) {
                 Logger.defaultLogger().error(e);
                 this.rollbackBackup(context);
@@ -344,7 +348,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                 context.getInfoChannel().print("Backup completed."); 
             }
         } else {
-            // Aucun backup nécessaire : on termine directement la tâche.
+            // Aucun backup nï¿½cessaire : on termine directement la tï¿½che.
             context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
             context.getInfoChannel().print("No backup required - Operation completed.");     
         }
@@ -422,7 +426,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     
     /**
      * Validation du backup
-     * <BR>Relache également le lock sur la target, afin que d'autres opérations puissent être effectuées.
+     * <BR>Relache ï¿½galement le lock sur la target, afin que d'autres opï¿½rations puissent ï¿½tre effectuï¿½es.
      */
     protected void commitBackup(ProcessContext context) throws ApplicationException {
     	try {
@@ -449,7 +453,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     
     /**
      * Annulation du backup
-     * <BR>Relache également le lock sur la target, afin que d'autres opérations puissent être effectuées.
+     * <BR>Relache egalement le lock sur la target, afin que d'autres operations puissent etre effectuees.
      */
     protected void rollbackBackup(ProcessContext context) throws ApplicationException {
 		try {
@@ -466,7 +470,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
 		}
     }
     
-    public void processMerge(int fromDelay, int toDelay, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
+    public void processMerge(int fromDelay, int toDelay, boolean keepDeletedEntries, Manifest manifest, ProcessContext context) throws ApplicationException {
         if (fromDelay != 0 && toDelay != 0 && fromDelay < toDelay) {
             // switch from/to
             int tmp = toDelay;
@@ -486,14 +490,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
         toDate.add(Calendar.DATE, -1 * toDelay);
         
         // Go !
-        processMerge(fromDate, toDate, keepDeletedEntries, null, context);
-    }
-    
-    /**
-     * Lance la fusion sur la target
-     */
-    public void processMerge(String date, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
-        processMerge(null, CalendarUtils.resolveDate(date, null), keepDeletedEntries, null, context);
+        processMerge(fromDate, toDate, keepDeletedEntries, manifest, context);
     }
     
     /**
@@ -613,7 +610,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     }
     
     /**
-     * Rétablit l'archive
+     * Rï¿½tablit l'archive
      */
     public void processRecover(String destination, String[] filters, GregorianCalendar date, boolean recoverDeletedEntries, ProcessContext context) throws ApplicationException {
         TaskMonitor globalMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
@@ -653,7 +650,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     }
     
     /**
-     * Rétablit une version d'une élément d'archive
+     * Recovers a specific version of a given file
      */
     public void processRecover(String destination, GregorianCalendar date, RecoveryEntry entry, ProcessContext context) throws ApplicationException {
         TaskMonitor globalMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
@@ -669,17 +666,17 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     }
     
     /**
-     * Rétablit l'archive
+     * Rï¿½tablit l'archive
      */
     protected abstract void processRecoverImpl(String destination, String[] filters, GregorianCalendar date, boolean recoverDeletedEntries, ProcessContext context) throws ApplicationException;    
     
     /**
-     * Rétablit la version de l'archive
+     * Rï¿½tablit la version de l'archive
      */
     protected abstract void processRecoverImpl(String destination, GregorianCalendar date, RecoveryEntry entry, ProcessContext context) throws ApplicationException;    
     
     /**
-     * Méthode à surcharger ... appelée avant suppression de la target
+     * Mï¿½thode ï¿½ surcharger ... appelï¿½e avant suppression de la target
      */
     public void doBeforeDelete() {
     	if (this.getMedium() != null) {
@@ -688,7 +685,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     }
     
     /**
-     * Méthode à surcharger ... appelée après suppression de la target
+     * Mï¿½thode ï¿½ surcharger ... appelï¿½e aprï¿½s suppression de la target
      */
     public void doAfterDelete() {
     	if (this.getMedium() != null) {
@@ -697,7 +694,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     }
     
     /**
-     * Exécute l'ensemble des filtres sur la target
+     * Exï¿½cute l'ensemble des filtres sur la target
      * @param entry
      * @return
      */
@@ -723,21 +720,21 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     }
     
     /**
-     * Retourne la prochaine entry à stocker.
-     * Attention : c'est cette méthode qui a la charge d'appeler la méthode
+     * Retourne la prochaine entry ï¿½ stocker.
+     * Attention : c'est cette mï¿½thode qui a la charge d'appeler la mï¿½thode
      * de filtre "acceptEntry".
      *  
-     * @return La prochaine Entry, filtrée.
+     * @return La prochaine Entry, filtrï¿½e.
      */
     public abstract RecoveryEntry nextElement(ProcessContext context) throws ApplicationException;
     
     /**
-     * Construit un manifeste par défaut pour le merge d'archives (utile pour le préremplissage du manifeste) 
+     * Construit un manifeste par dï¿½faut pour le merge d'archives (utile pour le prï¿½remplissage du manifeste) 
      */
     public abstract Manifest buildDefaultMergeManifest(GregorianCalendar fromDate, GregorianCalendar toDate) throws ApplicationException;
     
     /**
-     * A surcharger éventuellement. 
+     * A surcharger ï¿½ventuellement. 
      * @param entry
      * @return
      */
@@ -747,7 +744,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     
     public String toString() {
         if (this.targetName == null) {
-            return "Elément " + this.id;
+            return "Elï¿½ment " + this.id;
         } else {
             return this.targetName;
         }
@@ -773,7 +770,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
 	}
     
     /**
-     * Génération d'un identifiant de target.
+     * Gï¿½nï¿½ration d'un identifiant de target.
      * Utile pour la log. 
      */
     public abstract String getFullName();

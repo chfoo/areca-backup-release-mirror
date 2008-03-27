@@ -1,9 +1,9 @@
 /**
- * Classe hébergeant des fonctions utilitaires.
+ * Classe hï¿½bergeant des fonctions utilitaires.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -121,14 +121,14 @@ public abstract class Util {
     }
 
     /**
-     * Retourne un nombre aléatoire entre -1 et 1
+     * Retourne un nombre alï¿½atoire entre -1 et 1
      */
     public static double getRnd() {
         return ((rndGenerator.nextDouble() - .5) * 2.);
     }
 
     /**
-     * Retourne un entier long aléatoire
+     * Retourne un entier long alï¿½atoire
      */
     public static long getRndLong() {
         return (rndGenerator.nextLong());
@@ -161,7 +161,7 @@ public abstract class Util {
             if (found) {
                 return orig.substring(i1, i2);
             } else {
-                Logger.defaultLogger().warn("Element [" + balise1 + "], [" + offset + "], [" + balise2 + "] non trouvé dans [" + orig + "]", "Utilitaire.subString()");
+                Logger.defaultLogger().warn("Element [" + balise1 + "], [" + offset + "], [" + balise2 + "] non trouvï¿½ dans [" + orig + "]", "Utilitaire.subString()");
                 return "";
             }
         } else {
@@ -195,7 +195,7 @@ public abstract class Util {
     }
 
     /**
-     * Trim Left sur un caractère générique
+     * Trim Left sur un caractï¿½re gï¿½nï¿½rique
      */
     public static String gLTrim(String str, char c) {
         if (str == null) {
@@ -215,7 +215,7 @@ public abstract class Util {
     }
 
     /**
-     * Extrait le nom d'une classe à partir de son chemin complet
+     * Extrait le nom d'une classe ï¿½ partir de son chemin complet
      * (package.souspackage.nomClasse)
      */
     public static String getClassName(String path) {
@@ -231,9 +231,9 @@ public abstract class Util {
     }
 
     /**
-     * Méthode utilitaire permettant de logger l'intégralité de ce qui est
-     * émis sur un flux d'entrée.
-     * Utile pour le débuggage.
+     * Mï¿½thode utilitaire permettant de logger l'intï¿½gralitï¿½ de ce qui est
+     * ï¿½mis sur un flux d'entrï¿½e.
+     * Utile pour le dï¿½buggage.
      */
     public static void logStreamContent(InputStream is) {
         String content = "";
@@ -257,7 +257,7 @@ public abstract class Util {
 
     /**
      * Retourne les clefs de la hashtable sous forme de liste
-     * [1 2 6 9] donnera la chaîne "1,2,6,9" si le séparateur
+     * [1 2 6 9] donnera la chaï¿½ne "1,2,6,9" si le sï¿½parateur
      * fourni est ",".
      */
     public static String getContentList(Hashtable values, String separator) {
@@ -277,18 +277,18 @@ public abstract class Util {
     
     /**
      * Retourne le contenu sous forme de liste
-     * Séparateur = ","
+     * Sï¿½parateur = ","
      */
     public static String getContentList(Hashtable values) {
         return Util.getContentList(values, ",");
     } 
     
     /**
-     * Ajuste la taille du String s à la taille spécifiée (size)
-     * - Si la taille de s est inférieure à la taille spécifiée, s est tronqué
-     * - Sinon, s est complété à l'aide du nombre de caractères "completion" nécessaires pour atteindre s
+     * Ajuste la taille du String s ï¿½ la taille spï¿½cifiï¿½e (size)
+     * - Si la taille de s est infï¿½rieure ï¿½ la taille spï¿½cifiï¿½e, s est tronquï¿½
+     * - Sinon, s est complï¿½tï¿½ ï¿½ l'aide du nombre de caractï¿½res "completion" nï¿½cessaires pour atteindre s
      * 
-     * "dockRight" indique si c'est la partie gauche ou droite de s qui est conservée.
+     * "dockRight" indique si c'est la partie gauche ou droite de s qui est conservï¿½e.
      */
     public static String adjustSize(String s, int size, char completion, boolean dockRight) {
         String ret;
@@ -331,8 +331,8 @@ public abstract class Util {
 
     /**
      * Normalise le nom du fichier.
-     * Tous les caractères ne faisant pas partie de acceptedChars sont
-     * remplacés par replacementChar.
+     * Tous les caractï¿½res ne faisant pas partie de acceptedChars sont
+     * remplacï¿½s par replacementChar.
      * La comparaison ne tient pas compte de la casse.
      * 
      * @param fileName
@@ -354,7 +354,7 @@ public abstract class Util {
     }
     
     /**
-     * Supprime les "/" en début et fin de nom de fichier
+     * Supprime les "/" en dï¿½but et fin de nom de fichier
      */
     public static String trimSlashes(String orig) {
         if (orig == null || orig.length() == 0) {
@@ -390,8 +390,8 @@ public abstract class Util {
     }
     
     /**
-     * Identique à normalizeFileName à ceci près que les parties existantes du nom de fichier
-     * (répertoires existant déjà sur le disque) ne sont pas impactés
+     * Identique ï¿½ normalizeFileName ï¿½ ceci prï¿½s que les parties existantes du nom de fichier
+     * (rï¿½pertoires existant dï¿½jï¿½ sur le disque) ne sont pas impactï¿½s
      *  
      * @param fileName
      * @param acceptedChars
@@ -408,8 +408,8 @@ public abstract class Util {
     
 
     /**
-     * Fonction utilitaire : lit le flux d'entrée jusqu'à tomber sur un CRLF (13-10)
-     * OU jusqu'à atteindre la limite du buffer.
+     * Fonction utilitaire : lit le flux d'entrï¿½e jusqu'ï¿½ tomber sur un CRLF (13-10)
+     * OU jusqu'ï¿½ atteindre la limite du buffer.
      *
      * Retourne -1 si la fin du flux est atteinte ou le nombre de bytes lus.
      */
@@ -422,7 +422,7 @@ public abstract class Util {
             v = is.read();
             if (v == -1) {
                 if (offset == 0) {
-                    // Fin de stream atteint dès le début de la lecture
+                    // Fin de stream atteint dï¿½s le dï¿½but de la lecture
                     return -1;
                 } else {
                     // Fin de stream attteint en cours de lecture
@@ -433,7 +433,7 @@ public abstract class Util {
                 buff[offset++] = b;
 
 
-                // On est tombé sur un CRLF ou on atteint la fin du buffer
+                // On est tombï¿½ sur un CRLF ou on atteint la fin du buffer
                 if ((pb == 13 && b == 10) || offset == buff.length) {
                     return offset;
                 }
@@ -466,8 +466,8 @@ public abstract class Util {
     }
 
     /**
-     * Lit le flux d'entrée et retourne les données sous forme de string
-     * la lecture s'arrête dès que la fin du flux est rencontrée ou qu'un CRLF est rencontré.
+     * Lit le flux d'entrï¿½e et retourne les donnï¿½es sous forme de string
+     * la lecture s'arrï¿½te dï¿½s que la fin du flux est rencontrï¿½e ou qu'un CRLF est rencontrï¿½.
      */
     public static String readLineString(InputStream is) throws IOException {
         String ret = "";

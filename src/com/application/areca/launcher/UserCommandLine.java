@@ -9,11 +9,11 @@ import com.application.areca.launcher.tui.Launcher;
 
 
 /**
- * Classe implémentant une commande utilisateur 
+ * Classe implementant une commande utilisateur 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -44,14 +44,16 @@ public class UserCommandLine implements CommandConstants {
         Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_TARGET);
         Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_FULL_BACKUP);
         Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_DIFFERENTIAL_BACKUP);
+        Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_TITLE);
    
-        Launcher.COMMAND_COMPACT.addMandatoryArgument(Launcher.OPTION_CONFIG);
-        Launcher.COMMAND_COMPACT.addMandatoryArgument(Launcher.OPTION_TARGET);
-        Launcher.COMMAND_COMPACT.addOptionalArgument(Launcher.OPTION_DATE);
-        Launcher.COMMAND_COMPACT.addOptionalArgument(Launcher.OPTION_DELAY);
-        Launcher.COMMAND_COMPACT.addOptionalArgument(Launcher.OPTION_FROM);
-        Launcher.COMMAND_COMPACT.addOptionalArgument(Launcher.OPTION_TO);
-        Launcher.COMMAND_COMPACT.addOptionalArgument(Launcher.OPTION_KEEP_DELETED_ENTRIES);
+        Launcher.COMMAND_MERGE.addMandatoryArgument(Launcher.OPTION_CONFIG);
+        Launcher.COMMAND_MERGE.addMandatoryArgument(Launcher.OPTION_TARGET);
+        Launcher.COMMAND_MERGE.addOptionalArgument(Launcher.OPTION_DATE);
+        Launcher.COMMAND_MERGE.addOptionalArgument(Launcher.OPTION_DELAY);
+        Launcher.COMMAND_MERGE.addOptionalArgument(Launcher.OPTION_FROM);
+        Launcher.COMMAND_MERGE.addOptionalArgument(Launcher.OPTION_TO);
+        Launcher.COMMAND_MERGE.addOptionalArgument(Launcher.OPTION_KEEP_DELETED_ENTRIES);
+        Launcher.COMMAND_MERGE.addOptionalArgument(Launcher.OPTION_TITLE);
         
         Launcher.COMMAND_RECOVER.addMandatoryArgument(Launcher.OPTION_CONFIG);
         Launcher.COMMAND_RECOVER.addMandatoryArgument(Launcher.OPTION_TARGET);
@@ -67,7 +69,7 @@ public class UserCommandLine implements CommandConstants {
         
         ACCEPTED_COMMANDS = new HashMap();
         ACCEPTED_COMMANDS.put(Launcher.COMMAND_BACKUP.getName(), Launcher.COMMAND_BACKUP);
-        ACCEPTED_COMMANDS.put(Launcher.COMMAND_COMPACT.getName(), Launcher.COMMAND_COMPACT);
+        ACCEPTED_COMMANDS.put(Launcher.COMMAND_MERGE.getName(), Launcher.COMMAND_MERGE);
         ACCEPTED_COMMANDS.put(Launcher.COMMAND_RECOVER.getName(), Launcher.COMMAND_RECOVER);
         ACCEPTED_COMMANDS.put(Launcher.COMMAND_DESCRIBE.getName(), Launcher.COMMAND_DESCRIBE);
         ACCEPTED_COMMANDS.put(Launcher.COMMAND_DELETE.getName(), Launcher.COMMAND_DELETE);

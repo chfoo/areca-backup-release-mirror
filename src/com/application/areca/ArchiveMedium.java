@@ -14,11 +14,11 @@ import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.History;
 
 /**
- * <BR>Interface définissant un support de stockage et pouvant héberger des archives.
+ * <BR>Interface dï¿½finissant un support de stockage et pouvant hï¿½berger des archives.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -43,19 +43,19 @@ This file is part of Areca.
 public interface ArchiveMedium extends PublicClonable {
 
     /**
-     * Vérifie l'état du système avant l'action spécifiée (archivage, backup, fusion) 
+     * Vï¿½rifie l'ï¿½tat du systï¿½me avant l'action spï¿½cifiï¿½e (archivage, backup, fusion) 
      */
     public ActionReport checkMediumState(int action);
     
     /**
-     * Stocke une entrée sur le support
+     * Stocke une entree sur le support
      */
     public void store(RecoveryEntry entry, ProcessContext context) throws StoreException, ApplicationException;
     
     /**
-     * Fusionne les archives jusqu'à la date donnée.
-     * <BR>Le comportement de cette méthode varie avec l'implémentation.
-     * <BR>Cette méthode sert à éliminer des informations redondantes éventuellement stockées au
+     * Fusionne les archives jusqu'a la date donnee.
+     * <BR>Le comportement de cette methode varie avec l'implementation.
+     * <BR>Cette methode sert a eliminer des informations redondantes eventuellement stockees au
      * fil des archivages. 
      */
     public void merge(
@@ -75,8 +75,8 @@ public interface ArchiveMedium extends PublicClonable {
     ) throws ApplicationException;
     
     /**
-     * Restaure l'archive correspondant à la date. Les informations sont restaurées à l'emplacement
-     * désigné par "destination". 
+     * Restaure l'archive correspondant ï¿½ la date. Les informations sont restaurï¿½es ï¿½ l'emplacement
+     * dï¿½signï¿½ par "destination". 
      */
     public void recover(
             Object destination, 
@@ -87,15 +87,15 @@ public interface ArchiveMedium extends PublicClonable {
     ) throws ApplicationException;
     
     /**
-     * Détruit toutes les archives et données les concernant.
+     * Dï¿½truit toutes les archives et donnï¿½es les concernant.
      */
     public void destroyRepository() throws ApplicationException;
     
     /**
-     * Ouvre le support avec le manifest spécifié.
-     * Ceci signifie que les entrées ajoutées le seront avec ce manifest.
-     * Selon le mode de traitement du support, ce manifest peut écraser un manifest éventuellement
-     * existant, ou au contraire le compléter.
+     * Ouvre le support avec le manifest spï¿½cifiï¿½.
+     * Ceci signifie que les entrï¿½es ajoutï¿½es le seront avec ce manifest.
+     * Selon le mode de traitement du support, ce manifest peut ï¿½craser un manifest ï¿½ventuellement
+     * existant, ou au contraire le complï¿½ter.
      */
     public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException;
     
@@ -120,7 +120,7 @@ public interface ArchiveMedium extends PublicClonable {
     public void rollbackMerge(ProcessContext context) throws ApplicationException;
     
     /**
-     * Retourne la cible à laquelle est affecté le support 
+     * Retourne la cible ï¿½ laquelle est affectï¿½ le support 
      */
     public AbstractRecoveryTarget getTarget();
     
@@ -130,35 +130,35 @@ public interface ArchiveMedium extends PublicClonable {
     public String getDescription();
     
     /**
-     * Retourne l'historique des opérations effectuées sur le support 
+     * Retourne l'historique des opï¿½rations effectuï¿½es sur le support 
      */
     public History getHistory();
     
     /**
-     * Retourne les entrées contenues dans l'archive pour la date donnée. (sous forme de RecoveryEntries)
+     * Retourne les entrï¿½es contenues dans l'archive pour la date donnï¿½e. (sous forme de RecoveryEntries)
      */
     public Set getEntries(GregorianCalendar date) throws ApplicationException;
     
     public Set getLogicalView() throws ApplicationException;
     
     /**
-     * Retourne l'historique d'une entrée donnée
+     * Retourne l'historique d'une entrï¿½e donnï¿½e
      */
     public EntryArchiveData[] getHistory(RecoveryEntry entry) throws ApplicationException;
     
     /**
-     * Appelée avant la suppression de la target à laquelle appartient le medium
+     * Appelï¿½e avant la suppression de la target ï¿½ laquelle appartient le medium
      */
     public void doBeforeDelete();
     
     /**
-     * Appelée après la suppression de la target à laquelle appartient le medium
+     * Appelï¿½e aprï¿½s la suppression de la target ï¿½ laquelle appartient le medium
      */
     public void doAfterDelete();
     
     /**
-     * Simule le traitement d'une RecoveryEntry durant un backup en mettant à jour son status.
-     * Permet à la target de simuler un backup.
+     * Simule le traitement d'une RecoveryEntry durant un backup en mettant ï¿½ jour son status.
+     * Permet ï¿½ la target de simuler un backup.
      */
     public void simulateEntryProcessing(RecoveryEntry entry, ProcessContext context) throws ApplicationException;
     
@@ -168,9 +168,9 @@ public interface ArchiveMedium extends PublicClonable {
     public List closeSimulation(ProcessContext context) throws ApplicationException;
 
     /**
-     * Indique s'il est utile de faire une prévérification avant de déclencher le backup.
-     * <BR>Cette méthode sera par exemple utile pour les supports de stockage incrémentaux : ceci
-     * leur permet de vérifier qu'au moins un fichier a été modifié avant de lancer le backup.
+     * Indique s'il est utile de faire une prï¿½vï¿½rification avant de dï¿½clencher le backup.
+     * <BR>Cette mï¿½thode sera par exemple utile pour les supports de stockage incrï¿½mentaux : ceci
+     * leur permet de vï¿½rifier qu'au moins un fichier a ï¿½tï¿½ modifiï¿½ avant de lancer le backup.
      */
     public boolean isPreBackupCheckUseful();
     

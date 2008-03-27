@@ -9,7 +9,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -32,39 +32,15 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class CompressionArguments implements PublicClonable {
-    public static final String ZIP_EXTENSION = ".zip";
-    
+    public static final String ZIP_SUFFIX = ".zip";
+	
     protected boolean isCompressed = false;
     protected long volumeSize = -1;
+    protected int nbDigits;
     protected Charset charset = null;
     protected String comment = null;
     protected boolean useZip64 = false;
-    protected boolean extensionEnabled;
-    protected String extension;
-
-    public CompressionArguments() {
-        setExtensionEnabled(true);
-    }
-    
-    public void setExtensionEnabled(boolean b) {
-        extensionEnabled = b;
-        extension = extensionEnabled ? ZIP_EXTENSION : "";
-        checkMV();
-    }
-    
-    private void checkMV() {
-        if (isMultiVolumes() && (! extensionEnabled)) {
-            throw new IllegalArgumentException("Zip extension MUST be enabled if multivolume archives are used");
-        }
-    }
-
-    public String getExtension() {
-        return extension;
-    }
-
-    public boolean isExtensionEnabled() {
-        return extensionEnabled;
-    }
+    protected boolean addExtension = true;
 
     public Charset getCharset() {
         return charset;
@@ -74,11 +50,23 @@ public class CompressionArguments implements PublicClonable {
         return isCompressed;
     }
 
-    public void setCompressed(boolean isCompressed) {
+    public boolean isAddExtension() {
+		return addExtension;
+	}
+
+	public void setAddExtension(boolean addExtension) {
+		this.addExtension = addExtension;
+	}
+
+	public void setCompressed(boolean isCompressed) {
         this.isCompressed = isCompressed;
     }
 
-    public void setCharset(Charset charset) {
+    public int getNbDigits() {
+		return this.nbDigits;
+	}
+
+	public void setCharset(Charset charset) {
         this.charset = charset;
     }
 
@@ -106,9 +94,9 @@ public class CompressionArguments implements PublicClonable {
         return volumeSize;
     }
 
-    public void setVolumeSize(long volumeSize) {
+    public void setMultiVolumes(long volumeSize, int nbDigits) {
         this.volumeSize = volumeSize;
-        checkMV();
+        this.nbDigits = nbDigits;
     }
     
     public boolean isMultiVolumes() {
@@ -119,11 +107,10 @@ public class CompressionArguments implements PublicClonable {
         CompressionArguments clone = new CompressionArguments();
         clone.setCharset(charset);
         clone.setComment(comment);
+        clone.setAddExtension(addExtension);
         clone.setCompressed(isCompressed);
         clone.setUseZip64(useZip64);
-        clone.setVolumeSize(volumeSize);
-        clone.extension = extension;
-        clone.extensionEnabled = extensionEnabled;
+        clone.setMultiVolumes(volumeSize, nbDigits);
         return clone;
     }
     
@@ -132,10 +119,11 @@ public class CompressionArguments implements PublicClonable {
         ToStringHelper.append("IsCompressed", this.isCompressed, sb);
         if (isCompressed) {
             ToStringHelper.append("Zip64", this.useZip64, sb);
+            ToStringHelper.append("Add extension", this.addExtension, sb);
             ToStringHelper.append("Charset", this.charset != null ? this.charset.displayName() : null, sb);
             ToStringHelper.append("Comment", this.comment, sb);
             ToStringHelper.append("VolumeSize", this.volumeSize, sb);
-            ToStringHelper.append("Extension", this.extension, sb);            
+            ToStringHelper.append("NbDigits", this.nbDigits, sb);
         }
         return ToStringHelper.close(sb);
     }

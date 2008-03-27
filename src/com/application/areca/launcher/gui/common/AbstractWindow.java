@@ -23,7 +23,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -179,7 +179,7 @@ extends ApplicationWindow {
             hasBeenUpdated = true;
             getShell().setText(getFullWindowTitle());
             
-            // On met à jour l'état du bouton "save"
+            // On met ï¿½ jour l'ï¿½tat du bouton "save"
             this.updateState(checkBusinessRules());
         }
     }  

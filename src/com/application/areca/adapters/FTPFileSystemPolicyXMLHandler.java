@@ -4,13 +4,12 @@ import org.w3c.dom.Node;
 
 import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
-import com.application.areca.plugins.FileSystemPolicyXMLHandler;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -33,8 +32,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class FTPFileSystemPolicyXMLHandler
-implements FileSystemPolicyXMLHandler, XMLTags {
-
+extends AbstractFileSystemPolicyXMLHandler {
+	
     public FileSystemPolicy read(Node mediumNode) throws AdapterException {
         Node serverNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_HOST);
         Node portNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PORT);
@@ -45,10 +44,11 @@ implements FileSystemPolicyXMLHandler, XMLTags {
         Node loginNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_LOGIN);
         Node passwordNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PASSWORD);
         Node dirNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_REMOTEDIR);
+        Node nameNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVENAME);
         
         // No storage policy found
         if (serverNode == null && portNode == null && passivNode == null && loginNode == null && passwordNode == null && dirNode == null) {
-            throw new AdapterException("Medium storage policy not found : your medium must have either a '" + XML_MEDIUM_ARCHIVEPATH + "' attribute or FTP attributes (" + XML_MEDIUM_FTP_HOST + ", " + XML_MEDIUM_FTP_LOGIN + ", " + XML_MEDIUM_FTP_PASSWORD + " ...)");            
+            throw new AdapterException("Medium storage policy not found : your medium must have either a '" + XML_MEDIUM_PATH + "' attribute or FTP attributes (" + XML_MEDIUM_FTP_HOST + ", " + XML_MEDIUM_FTP_LOGIN + ", " + XML_MEDIUM_FTP_PASSWORD + " ...)");            
         }
         
         // FTP policy initialization
@@ -86,11 +86,23 @@ implements FileSystemPolicyXMLHandler, XMLTags {
         policy.setPassword(passwordNode.getNodeValue());
         policy.setRemoteDirectory(dirNode.getNodeValue());
         policy.setId(POLICY_FTP);
+        
+        if (version == 1) {
+        	policy.setArchiveName(buildDeprecatedArchiveName("bck"));
+        } else {
+        	policy.setArchiveName(nameNode.getNodeValue());
+        }
+        
         return policy;
     }
 
     public void write(FileSystemPolicy source, StringBuffer sb) {
         FTPFileSystemPolicy policy = (FTPFileSystemPolicy)source;
+        
+        sb.append(" ");
+        sb.append(XML_MEDIUM_ARCHIVENAME);
+        sb.append("=");
+        sb.append(AbstractXMLWriter.encode(policy.getArchiveName()));
         
         sb.append(" ");
         sb.append(XML_MEDIUM_FTP_HOST);

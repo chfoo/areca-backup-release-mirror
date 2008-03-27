@@ -14,10 +14,11 @@ import java.util.StringTokenizer;
 import com.myJava.util.log.Logger;
 
 /**
+ * Framework configuration keys and default values.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -42,6 +43,7 @@ This file is part of Areca.
 public class FrameworkConfiguration {
     private static FrameworkConfiguration instance = new FrameworkConfiguration(); 
     
+    private static String KEY_DELTA_DEBUG = "delta.debug";
     private static String KEY_FTP_MAX_PROXIES = "ftp.max.proxies";
     private static String KEY_FTP_DEBUG = "ftp.debug";
     private static String KEY_FT_DELAY = "filetool.delay";
@@ -65,16 +67,22 @@ public class FrameworkConfiguration {
     private static String KEY_ZIP_ENTRY_CHECK_ENABLE = "zip.crc.enable";   
     private static String KEY_MAX_FILEPATH_LENGTH = "fs.max.filepath";   
     private static String KEY_FORCE_FILEPATH_LENGTH_CHECK = "fs.max.filepath.check.force";   
-    private static String KEY_DEFAULT_LOG_HISTORY = "log.default.history";   
+    private static String KEY_DEFAULT_LOG_HISTORY = "log.default.history";
+    private static String KEY_WRITABLE_DIRECTORIES = "fs.writable.directories";  
+    private static String KEY_DELTA_LINKEDLIST_BUFFER_SIZE = "delta.linkedlist.buffer.size"; 
+    private static String KEY_DELTA_HASHMAP_SIZE = "delta.hashmap.size"; 
+    private static String KEY_DELTA_QUICKHASH_MULTIPLIER = "delta.quickhash.multiplier"; 
+    private static String KEY_DELTA_QUICKHASH_MODULUS = "delta.quickhash.modulus"; 
     
+    private static boolean DEF_DELTA_DEBUG = false;
     private static int DEF_FTP_MAX_PROXIES = 3;
     private static long DEF_FTP_NOOP_DELAY = 30000;    
     private static boolean DEF_FTP_DEBUG = false;
     private static int DEF_FT_DELAY = 100;
-    private static int DEF_FT_BUFFER_SIZE = 65536;
-    private static int DEF_FTP_CACHE_SIZE = 100;    
+    private static int DEF_FT_BUFFER_SIZE = 100000;
+    private static int DEF_FTP_CACHE_SIZE = 200;    
     private static boolean DEF_FTP_USE_CACHE = true;    
-    private static int DEF_HASH_CACHE_SIZE = 200;    
+    private static int DEF_HASH_CACHE_SIZE = 500;    
     private static boolean DEF_HASH_USE_CACHE = true;    
     private static String[] DEF_OS_BROWSERS = {"firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape"};
     private static String[] DEF_SSE_PROTOCOLS = {"TLS", "SSL"};  
@@ -82,7 +90,7 @@ public class FrameworkConfiguration {
     private static int DEF_ZIP_MV_DIGITS = 2; 
     private static int DEF_LOG_LEVEL = 8;
     private static boolean DEF_FS_USE_BUFFER = true;   
-    private static int DEF_FS_BUFFER_SIZE = 65536;   
+    private static int DEF_FS_BUFFER_SIZE = 100000;   
     private static boolean DEF_FS_CACHE_DEBUG = false; 
     private static int DEF_LAUNCHER_IH = -1;  
     private static int DEF_LAUNCHER_MH = -1;   
@@ -91,6 +99,11 @@ public class FrameworkConfiguration {
     private static long DEF_MAX_FILEPATH_LENGTH = 256;   
     private static int DEF_FORCE_FILEPATH_LENGTH_CHECK = -1;   // -1 = UNSET, 0 = FORCE DISABLE, 1 = FORCE ENABLE
     private static int DEF_DEFAULT_LOG_HISTORY = 10;  
+    private static String[] DEF_WRITABLE_DIRECTORIES = new String[] {};
+    private static int DEF_DELTA_LINKEDLIST_BUFFER_SIZE = 200 * 1024; 
+    private static int DEF_DELTA_HASHMAP_SIZE = 10007;
+    private static int DEF_DELTA_QUICKHASH_MULTIPLIER = 691 * 13 * 11; 
+    private static int DEF_DELTA_QUICKHASH_MODULUS = 4013423 * 17; 
 
     private static String VM_PROPS_PREFIX = "launcher.d.";
     
@@ -147,19 +160,35 @@ public class FrameworkConfiguration {
     }
     
     private Map getPropertiesMap(String prefix) {
-        Enumeration en = this.props.keys();
+        Enumeration enu = this.props.keys();
         HashMap map = new HashMap();
-        while (en.hasMoreElements()) {
-            String key = (String)en.nextElement();
+        while (enu.hasMoreElements()) {
+            String key = (String)enu.nextElement();
             if (key.startsWith(prefix)) {
                 map.put(key.substring(prefix.length()), props.get(key));
             }
         }
         return map;
     }
+    
+    public boolean isDeltaDebugMode() {
+        return getProperty(KEY_DELTA_DEBUG, DEF_DELTA_DEBUG);
+    }
 
     public int getFileToolDelay() {
         return getProperty(KEY_FT_DELAY, DEF_FT_DELAY);
+    }
+    
+    public int getDeltaQuickHashModulus() {
+        return getProperty(KEY_DELTA_QUICKHASH_MODULUS, DEF_DELTA_QUICKHASH_MODULUS);
+    }
+    
+    public int getDeltaQuickHashMultiplier() {
+        return getProperty(KEY_DELTA_QUICKHASH_MULTIPLIER, DEF_DELTA_QUICKHASH_MULTIPLIER);
+    }
+    
+    public int getDeltaHashMapSize() {
+        return getProperty(KEY_DELTA_HASHMAP_SIZE, DEF_DELTA_HASHMAP_SIZE);
     }
     
     public boolean isFTPDebugMode() {
@@ -234,6 +263,10 @@ public class FrameworkConfiguration {
         return getProperty(KEY_FT_BUFFER_SIZE, DEF_FT_BUFFER_SIZE);
     }
     
+    public String[] getWritableDirectories() {
+        return getProperty(KEY_WRITABLE_DIRECTORIES, DEF_WRITABLE_DIRECTORIES);
+    }
+    
     public String[] getOSBrowsers() {
         return getProperty(KEY_OS_BROWSERS, DEF_OS_BROWSERS);
     }
@@ -261,6 +294,10 @@ public class FrameworkConfiguration {
         } else {
             return p;
         }
+    }
+    
+    public int getDeltaLinkedListBufferSize() {
+        return getProperty(KEY_DELTA_LINKEDLIST_BUFFER_SIZE, DEF_DELTA_LINKEDLIST_BUFFER_SIZE);
     }
     
     protected boolean getProperty(String key, boolean defaultValue) {

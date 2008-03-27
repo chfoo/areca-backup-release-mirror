@@ -36,7 +36,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -81,32 +81,32 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_TARGET_ID);
         sb.append("=");
-        sb.append(encode("" + tg.getId()));
+        sb.append(encode(tg.getId()));
         
         sb.append(" ");
         sb.append(XML_TARGET_UID);
         sb.append("=");
-        sb.append(encode("" + tg.getUid()));
+        sb.append(encode(tg.getUid()));
         
         sb.append(" ");
         sb.append(XML_TARGET_FOLLOW_SYMLINKS);
         sb.append("=");
-        sb.append(encode("" + ! tg.isTrackSymlinks()));
+        sb.append(encode(! tg.isTrackSymlinks()));
         
         sb.append(" ");
         sb.append(XML_TARGET_FOLLOW_SUBDIRECTORIES);
         sb.append("=");
-        sb.append(encode("" + ! tg.isFollowSubdirectories()));
+        sb.append(encode(! tg.isFollowSubdirectories()));
         
         sb.append(" ");
         sb.append(XML_TARGET_CREATE_XML_SECURITY_COPY);
         sb.append("=");
-        sb.append(encode("" + tg.isCreateSecurityCopyOnBackup()));
+        sb.append(encode(tg.isCreateSecurityCopyOnBackup()));
         
         sb.append(" ");
         sb.append(XML_TARGET_NAME);
         sb.append("=");
-        sb.append(encode("" + tg.getTargetName()));     
+        sb.append(encode(tg.getTargetName()));     
         
         sb.append(" ");
         sb.append(XML_TARGET_DESCRIPTION);
@@ -177,7 +177,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");     
         sb.append(XML_PP_AFTER);
         sb.append("=");
-        sb.append(encode("" + postProcess));  
+        sb.append(encode(postProcess));  
         sb.append(" ");   
     }
 
@@ -189,15 +189,15 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");     
         sb.append(XML_PP_ONLY_IF_ERROR);
         sb.append("=");
-        sb.append(encode("" + pp.isOnlyIfError()));     
+        sb.append(encode(pp.isOnlyIfError()));     
         sb.append(" ");     
         sb.append(XML_PP_LIST_FILTERED);
         sb.append("=");
-        sb.append(encode("" + pp.isListFiltered()));  
+        sb.append(encode(pp.isListFiltered()));  
         sb.append(" ");     
         sb.append(XML_PP_DUMP_NAME);
         sb.append("=");
-        sb.append(encode("" + pp.getReportName()));  
+        sb.append(encode(pp.getReportName()));  
         sb.append("/>");        
     }
     
@@ -205,15 +205,15 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         serializeProcessorHeader(XML_PROCESSOR_MERGE, postProcess);
         sb.append(XML_PP_MERGE_FROM_DELAY);
         sb.append("=");
-        sb.append(encode("" + pp.getFromDelay()));
+        sb.append(encode(pp.getFromDelay()));
         sb.append(" ");
         sb.append(XML_PP_MERGE_TO_DELAY);
         sb.append("=");
-        sb.append(encode("" + pp.getToDelay()));
+        sb.append(encode(pp.getToDelay()));
         sb.append(" ");        
         sb.append(XML_PP_MERGE_KEEP_DELETED);
         sb.append("=");
-        sb.append(encode("" + pp.isKeepDeletedEntries()));
+        sb.append(encode(pp.isKeepDeletedEntries()));
         sb.append("/>");        
     }
     
@@ -221,7 +221,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         serializeProcessorHeader(XML_PROCESSOR_DELETE, postProcess);
         sb.append(XML_PP_DELAY);
         sb.append("=");
-        sb.append(encode("" + pp.getDelay()));
+        sb.append(encode(pp.getDelay()));
         sb.append("/>");        
     }
     
@@ -245,15 +245,15 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");     
         sb.append(XML_PP_ONLY_IF_ERROR);
         sb.append("=");
-        sb.append(encode("" + pp.isOnlyIfError()));     
+        sb.append(encode(pp.isOnlyIfError()));     
         sb.append(" ");     
         sb.append(XML_PP_EMAIL_SMTPS);
         sb.append("=");
-        sb.append(encode("" + pp.isSmtps()));    
+        sb.append(encode(pp.isSmtps()));    
         sb.append(" ");     
         sb.append(XML_PP_LIST_FILTERED);
         sb.append("=");
-        sb.append(encode("" + pp.isListFiltered()));  
+        sb.append(encode(pp.isListFiltered()));  
         sb.append(" ");
         sb.append(XML_PP_EMAIL_TITLE);
         sb.append("=");
@@ -287,7 +287,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_FILTER_EXCLUDE);
         sb.append("=");
-        sb.append(encode("" + filters.isExclude()));
+        sb.append(encode(filters.isExclude()));
         sb.append(" ");
         sb.append(XML_FILTER_GROUP_OPERATOR);
         sb.append("=");
@@ -328,7 +328,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_FILTER_EXCLUDE);
         sb.append("=");
-        sb.append(encode("" + filter.isExclude()));
+        sb.append(encode(filter.isExclude()));
         sb.append(" ");
         sb.append(XML_FILTER_RG_PATTERN);
         sb.append("=");
@@ -342,7 +342,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_FILTER_EXCLUDE);
         sb.append("=");
-        sb.append(encode("" + filter.isExclude()));
+        sb.append(encode(filter.isExclude()));
         sb.append(" ");
         sb.append(XML_FILTER_DIR_PATH);
         sb.append("=");
@@ -356,7 +356,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_FILTER_EXCLUDE);
         sb.append("=");
-        sb.append(encode("" + filter.isExclude()));
+        sb.append(encode(filter.isExclude()));
         sb.append(">");
         
         Iterator iter = filter.getExtensionIterator();
@@ -401,7 +401,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_FILTER_EXCLUDE);
         sb.append("=");
-        sb.append(encode("" + filter.isExclude()));
+        sb.append(encode(filter.isExclude()));
         if (addParam) {
             sb.append(" ");
             sb.append(XML_FILTER_PARAM);
@@ -448,24 +448,29 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_MEDIUM_TRACK_DIRS);
         sb.append("=");
-        sb.append(encode("" + medium.isTrackDirectories())); 
+        sb.append(encode(medium.isTrackDirectories())); 
         
         sb.append(" ");
         sb.append(XML_MEDIUM_TRACK_PERMS);
         sb.append("=");
-        sb.append(encode("" + medium.isTrackPermissions())); 
+        sb.append(encode(medium.isTrackPermissions())); 
         
         sb.append(" ");
         sb.append(XML_MEDIUM_OVERWRITE);
         sb.append("=");
-        sb.append(encode("" + medium.isOverwrite())); 
+        sb.append(encode(medium.isOverwrite())); 
         
         if (medium.getCompressionArguments().isCompressed()) {
             if (medium.getCompressionArguments().isMultiVolumes()) {
                 sb.append(" ");      
                 sb.append(XML_MEDIUM_VOLUME_SIZE);
                 sb.append("=");
-                sb.append(encode("" + medium.getCompressionArguments().getVolumeSize()));
+                sb.append(encode(medium.getCompressionArguments().getVolumeSize()));
+                
+                sb.append(" ");     
+                sb.append(XML_MEDIUM_VOLUME_DIGITS);
+                sb.append("=");
+                sb.append(encode(medium.getCompressionArguments().getNbDigits()));
             }
             
             if (medium.getCompressionArguments().getComment() != null) {
@@ -474,6 +479,11 @@ public class TargetXMLWriter extends AbstractXMLWriter {
                 sb.append("=");
                 sb.append(encode(medium.getCompressionArguments().getComment()));
             }
+
+            sb.append(" ");     
+            sb.append(XML_MEDIUM_ZIP_EXTENSION);
+            sb.append("=");
+            sb.append(encode(medium.getCompressionArguments().isAddExtension()));
             
             if (medium.getCompressionArguments().getCharset() != null) {
                 sb.append(" ");    
@@ -524,7 +534,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_MEDIUM_ENCRYPTED);
         sb.append("=");
-        sb.append(encode("" + policy.isEncrypted()));     
+        sb.append(encode(policy.isEncrypted()));     
         
         if (policy.isEncrypted() && (! removeEncryptionData)) {
 	        sb.append(" ");
@@ -548,6 +558,6 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(encode(id)); 
         
         StoragePlugin plugin = StoragePluginRegistry.getInstance().getById(id);
-        plugin.getFileSystemPolicyXMLHandler().write(policy, sb);
+        plugin.buildFileSystemPolicyXMLHandler().write(policy, sb);
     }
 }

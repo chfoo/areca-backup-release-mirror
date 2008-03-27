@@ -15,7 +15,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -44,17 +44,17 @@ implements LogProcessor {
     private static int DEFAULT_LOG_HISTORY = FrameworkConfiguration.getInstance().getDefaultLogHistory();
     
     /**
-     *  Booléen indiquant si on utilise un fichier unique ou si on utilise un fichier par jour
+     *  Boolï¿½en indiquant si on utilise un fichier unique ou si on utilise un fichier par jour
      */
     protected boolean uniqueFile;
     
     /**
-     *  Chemin d'accès complet au fichier de log
+     *  Chemin d'accï¿½s complet au fichier de log
      */
     private String fileName;
     
     /**
-     * Process de nettoyage éventuel de la log.
+     * Process de nettoyage ï¿½ventuel de la log.
      */
     protected LogCleaner cleaner;
     
@@ -82,7 +82,7 @@ implements LogProcessor {
     }
     
     /**
-     *  Déclenche l'historisation de la log.
+     *  Dï¿½clenche l'historisation de la log.
      *  <BR>L'historique s'entend en jours.
      */
     public void enableLogHistory(int history) {
@@ -107,9 +107,15 @@ implements LogProcessor {
     }
     
     public void log(int level, String message, Throwable e, String source) {
-        
-        // Log complète :
+        // Log complete :
         String logCt = LogHelper.format(level, message, source);
+        
+    	if (level == 1) {
+            System.out.println(logCt);
+            if (e != null) {
+                e.printStackTrace();
+            }
+    	}
         
         // Ecriture de la log.
         try {
@@ -125,10 +131,6 @@ implements LogProcessor {
                 fw.close();
             }
         } catch (Exception exc) {
-            System.out.println(logCt);
-            if (e != null) {
-                e.printStackTrace();
-            }
             System.out.println(" ");
             exc.printStackTrace();
         }
@@ -144,7 +146,7 @@ implements LogProcessor {
     }
     
     /**
-     * Retourne le répertoire de log
+     * Retourne le rï¿½pertoire de log
      */
     public File getLogDirectory() {
         if (this.fileName != null) {
@@ -157,7 +159,7 @@ implements LogProcessor {
     
     /**
      * Efface le fichier de log.
-     * <BR>Retourne true en cas de succès, false en cas d'échec.
+     * <BR>Retourne true en cas de succï¿½s, false en cas d'ï¿½chec.
      */
     public synchronized boolean clearLog() {
         if (fileName != null) {

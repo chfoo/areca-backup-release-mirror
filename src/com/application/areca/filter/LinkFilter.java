@@ -15,7 +15,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -50,8 +50,8 @@ public class LinkFilter extends AbstractArchiveFilter {
     }
     
     /**
-     * Cette condition ne s'applique que sur les répertoires (pour des raisons d'optimisation).
-     * Les fichiers retournent systématiquement "true"
+     * Cette condition ne s'applique que sur les rï¿½pertoires (pour des raisons d'optimisation).
+     * Les fichiers retournent systï¿½matiquement "true"
      */
     public boolean acceptStorage(RecoveryEntry entry) {
         FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;        

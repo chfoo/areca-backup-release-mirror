@@ -16,7 +16,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -59,9 +59,9 @@ public class TagHelper {
         } else {
             String value = param;
             
-            if (context.getFinalArchiveFile() != null) {
-                value = Util.replace(value, PARAM_ARCHIVE, FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()));
-                value = Util.replace(value, PARAM_ARCHIVE_NAME, FileSystemManager.getName(context.getFinalArchiveFile()));
+            if (context.getCurrentArchiveFile() != null) {
+                value = Util.replace(value, PARAM_ARCHIVE, FileSystemManager.getAbsolutePath(context.getCurrentArchiveFile()));
+                value = Util.replace(value, PARAM_ARCHIVE_NAME, FileSystemManager.getName(context.getCurrentArchiveFile()));
             } else {
                 value = Util.replace(value, PARAM_ARCHIVE, "");
                 value = Util.replace(value, PARAM_ARCHIVE_NAME, "");

@@ -1,11 +1,11 @@
 package com.myJava.util;
 
 /**
- * Classe utilitaire regroupant des fonctions dédiées aux tableaux d'entiers
+ * Classe utilitaire regroupant des fonctions dï¿½diï¿½es aux tableaux d'entiers
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -75,7 +75,7 @@ public abstract class IntArrayTool {
 
     /**
      * Retourne le contenu sous forme de liste
-     * [1 2 6 9] donnera "1,2,6,9" si le séparateur
+     * [1 2 6 9] donnera "1,2,6,9" si le sï¿½parateur
      * fourni est ",".
      */
     public static String getContentList(int[] values, String separator) {
@@ -90,14 +90,14 @@ public abstract class IntArrayTool {
 
     /**
      * Retourne le contenu sous forme de liste
-     * Séparateur = ","
+     * Sï¿½parateur = ","
      */
     public static String getContentList(int[] values) {
         return IntArrayTool.getContentList(values, ",");
     }
 
     /**
-     * Indique si le tableau contient la valeur spécifiée
+     * Indique si le tableau contient la valeur spï¿½cifiï¿½e
      */
     public static boolean contains(int[] values, int value) {
         for (int i=0; i<values.length; i++) {

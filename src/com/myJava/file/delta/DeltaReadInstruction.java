@@ -6,7 +6,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -61,7 +61,9 @@ public class DeltaReadInstruction {
         StringBuffer sb = ToStringHelper.init(this);
         ToStringHelper.append("ReadFrom", readFrom, sb);
         ToStringHelper.append("ReadTo", readTo, sb);
-        ToStringHelper.append("WriteOffset", writeOffset, sb);
+        ToStringHelper.append("Length", readTo - readFrom + 1, sb);
+        ToStringHelper.append("WriteFrom", writeOffset, sb);
+        ToStringHelper.append("WriteTo", writeOffset + readTo - readFrom, sb);
         return ToStringHelper.close(sb);
     }
 }

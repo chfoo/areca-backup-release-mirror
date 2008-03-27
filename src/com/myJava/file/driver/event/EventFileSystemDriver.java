@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.myJava.file.OutputStreamListener;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
 import com.myJava.file.driver.FileInformations;
@@ -23,7 +24,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -257,17 +258,21 @@ implements LinkableFileSystemDriver {
         return res;
     }
 
-    public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
+    public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException {
         FileSystemDriverEvent event = buildEvent("getFileOutputStream", file);
         event.setArgument(new Boolean(append));
         throwStartEvent(event);
         OutputStream res = new EventOutputStream(
-                predecessor.getFileOutputStream(file, append),
+                predecessor.getFileOutputStream(file, append, listener),
                 file,
                 this
         );
         throwStopEvent(event);
         return res;
+	}
+
+	public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
+		return getFileOutputStream(file, append, null);
     }
 
     public OutputStream getFileOutputStream(File file) throws IOException {

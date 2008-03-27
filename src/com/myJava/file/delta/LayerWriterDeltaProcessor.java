@@ -1,12 +1,9 @@
 package com.myJava.file.delta;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.myJava.file.delta.sequence.FileSequencer;
-import com.myJava.file.delta.sequence.HashSequence;
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.delta.sequence.HashSequenceEntry;
 import com.myJava.file.delta.tools.IOHelper;
 import com.myJava.file.delta.tools.LinkedList;
@@ -19,7 +16,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -43,25 +40,27 @@ This file is part of Areca.
  */
 public class LayerWriterDeltaProcessor
 implements DeltaProcessor, Constants {
-    private static final boolean DEBUG = false;
+	private static final boolean DEBUG = FrameworkConfiguration.getInstance().isDeltaDebugMode();
     private static final int BUFFER_SIZE = 1024 * 1024;
 
     private OutputStream out;
     private long currentPosition = 0; // Position in the original file
+    
     private byte[] buffer;
-    private boolean closeOnExit;
     private int bufferIndex = 0;
     
     private long from = -1;
     
-    public LayerWriterDeltaProcessor(OutputStream out, boolean closeOnExit) {
+    public LayerWriterDeltaProcessor(OutputStream out) {
         this.out = out;
         this.buffer = new byte[BUFFER_SIZE];
-        this.closeOnExit = closeOnExit;
     }
 
     private void flushNewBytes() throws DeltaProcessorException {
         if (bufferIndex != 0) {
+    		if (DEBUG) {
+    			Logger.defaultLogger().fine("Flushing " + bufferIndex + " new bytes.");
+    		}
             try {
                 writeLong(SIG_NEW);
                 writeInt(bufferIndex);
@@ -77,6 +76,9 @@ implements DeltaProcessor, Constants {
     private void flushReadBlocks() throws DeltaProcessorException {
         if (from != -1) {
             try {
+        		if (DEBUG) {
+        			Logger.defaultLogger().fine("Flushing read buckets : from " + from + " to " + (currentPosition-1));
+        		}
                 writeLong(SIG_READ);
                 writeLong(from);
                 writeLong(currentPosition - 1);
@@ -89,6 +91,9 @@ implements DeltaProcessor, Constants {
     }
     
     public void blockFound(HashSequenceEntry entry, LinkedList block) throws DeltaProcessorException {
+		if (DEBUG) {
+			Logger.defaultLogger().fine("Bucket found : index=" + entry.getIndex() + ", size=" + entry.getSize() + ", quickHash=" + entry.getQuickHash());
+		}
         flushNewBytes();
         if (from == -1) {
             from = currentPosition;
@@ -105,6 +110,10 @@ implements DeltaProcessor, Constants {
     }
 
     public void newBytes(byte[] data, int offset, int len) throws DeltaProcessorException {
+    	if (len == 0) {
+            flushReadBlocks();
+    	}
+    	
         for (int i=offset; i<offset+len; i++) {
             newByte(data[i]);
         }
@@ -122,6 +131,9 @@ implements DeltaProcessor, Constants {
     }
     
     public void bytesLost(long from, long to) throws DeltaProcessorException {
+		if (DEBUG) {
+			Logger.defaultLogger().fine("Deleted data : " + (to-from+1) + " bytes.");
+		}
         flushNewBytes();
         flushReadBlocks();
         
@@ -134,61 +146,17 @@ implements DeltaProcessor, Constants {
     public void end() throws DeltaProcessorException {
         flushNewBytes();
         flushReadBlocks();
-        
-        if (closeOnExit) {
-            try {
-                out.close();
-            } catch (IOException e) {
-                Logger.defaultLogger().error(e);
-                throw new DeltaProcessorException(e);
-            }
-        }
     }
     
     private void writeInt(long v) throws IOException {
-        if (DEBUG) {
-            System.out.println(v + "-I");
-        }
         IOHelper.writeInt(v, out);
     }
     
     private void writeLong(long v) throws IOException {
-        if (DEBUG) {
-            System.out.println(v + "-L");
-        }
         IOHelper.writeLong(v, out);       
     }
     
     private void writeBuffer() throws IOException {
-        if (DEBUG) {
-            String ret = "";
-            for (int i=0; i<bufferIndex; i++) {
-                ret += (char)buffer[i];
-            }
-            System.out.println("Buffer : [" + ret + "]");
-        }
-        
         out.write(buffer, 0, bufferIndex);
-    }
-    
-    public static void main(String[] args) {
-        try {
-            int blocksize = 50;
-            
-            FileInputStream f1 = new FileInputStream("/home/olivier/Desktop/idees_areca2.txt");
-            FileInputStream f2 = new FileInputStream("/home/olivier/Desktop/idees_areca3.txt");
-            
-            FileSequencer s =  new FileSequencer(f1, blocksize);
-            HashSequence seq = s.getHash();
-            
-            DeltaProcessor proc = new LayerWriterDeltaProcessor(new FileOutputStream("/home/olivier/Desktop/out"), true); 
-            DeltaReader reader = new DeltaReader(seq, f2, new DeltaProcessor[] {proc}, null);
-            reader.read();
-            
-            f1.close();
-            f2.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }

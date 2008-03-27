@@ -25,7 +25,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -262,8 +262,8 @@ implements FileSystemPolicy {
         }
     }
     
-    public String getBaseArchivePath() {
-        return LOCAL_DIR_PREFIX + getUid() + "/" + STORAGE_DIRECTORY_PREFIX + getUid() + "/" + getArchivePrefix();
+    public String getArchivePath() {
+        return LOCAL_DIR_PREFIX + getUid() + "/" + STORAGE_DIRECTORY_PREFIX + getUid() + "/";
     }
     
     public boolean isSecured() {
@@ -307,15 +307,15 @@ implements FileSystemPolicy {
     public FileSystemDriver initFileSystemDriver() throws ApplicationException {
         FileSystemDriver base = new FTPFileSystemDriver(buildProxy(), getLocalDirectory(), getRemoteDirectory());
         if (CACHE) {
-            File storageDir = FileSystemManager.getParentFile(new File(getBaseArchivePath()));
+            File storageDir = getArchiveDirectory();
             return new CachedFileSystemDriver(base, FileSystemManager.getParentFile(storageDir), CACHE_DEPTH);
         } else {
             return base;
         }
     }
     
-    public PublicClonable duplicate() {
-        FTPFileSystemPolicy policy = new FTPFileSystemPolicy();
+    public void copyAttributes(FTPFileSystemPolicy policy) {
+    	super.copyAttributes(policy);
         policy.setRemoteServer(this.remoteServer);
         policy.setRemotePort(this.remotePort);
         policy.setLogin(this.login);
@@ -325,7 +325,11 @@ implements FileSystemPolicy {
         policy.setProtocol(this.protocol);
         policy.setProtection(this.protection);
         policy.setRemoteDirectory(this.remoteDirectory);
-        policy.id = id;
+    }
+    
+    public PublicClonable duplicate() {
+        FTPFileSystemPolicy policy = new FTPFileSystemPolicy();
+        copyAttributes(policy);
         return policy;
     }
        
@@ -371,10 +375,6 @@ implements FileSystemPolicy {
     public void setRemoteServer(String remoteServer) {
         this.remoteServer = remoteServer;
     }
-
-    public String getArchivePrefix() {
-        return "bck";
-    }
     
     public String getRemoteDirectory() {
         return remoteDirectory;
@@ -414,15 +414,16 @@ implements FileSystemPolicy {
     
     public String toString() {
         StringBuffer sb = ToStringHelper.init(this);
-        ToStringHelper.append("SERVER", this.remoteServer, sb);
-        ToStringHelper.append("PORT", this.remotePort, sb);
-        ToStringHelper.append("LOGIN", this.login, sb);
-        ToStringHelper.append("PASSWORD", this.password, sb);
-        ToStringHelper.append("PASSIV", this.passivMode, sb);
-        ToStringHelper.append("PROTOCOL", this.protocol, sb);
-        ToStringHelper.append("PROTECTION", this.protection, sb);        
-        ToStringHelper.append("IMPLICIT", this.implicit, sb);
-        ToStringHelper.append("DIRECTORY", this.remoteDirectory, sb);
+        ToStringHelper.append("Server", this.remoteServer, sb);
+        ToStringHelper.append("Port", this.remotePort, sb);
+        ToStringHelper.append("Login", this.login, sb);
+        ToStringHelper.append("Password", this.password, sb);
+        ToStringHelper.append("Passiv", this.passivMode, sb);
+        ToStringHelper.append("Protocol", this.protocol, sb);
+        ToStringHelper.append("Protection", this.protection, sb);        
+        ToStringHelper.append("Implicit", this.implicit, sb);
+        ToStringHelper.append("Directory", this.remoteDirectory, sb);
+        ToStringHelper.append("Name", this.archiveName, sb);
         return ToStringHelper.close(sb);
     }
 }

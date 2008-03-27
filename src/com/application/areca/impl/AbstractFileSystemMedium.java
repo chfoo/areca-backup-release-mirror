@@ -1,8 +1,8 @@
 package com.application.areca.impl;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
@@ -17,7 +17,7 @@ import com.application.areca.EntryArchiveData;
 import com.application.areca.Errors;
 import com.application.areca.LogHelper;
 import com.application.areca.RecoveryEntry;
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.TargetActions;
 import com.application.areca.Utils;
 import com.application.areca.adapters.ProcessXMLWriter;
@@ -29,8 +29,10 @@ import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.indicator.Indicator;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.indicator.IndicatorTypes;
+import com.application.areca.metadata.manifest.Manifest;
+import com.application.areca.metadata.manifest.ManifestKeys;
+import com.application.areca.version.VersionInfos;
 import com.myJava.file.CompressionArguments;
-import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.driver.DriverAlreadySetException;
@@ -49,7 +51,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -79,10 +81,9 @@ implements TargetActions, IndicatorTypes {
     private static final boolean REPOSITORY_ACCESS_DEBUG = ArecaTechnicalConfiguration.get().isRepositoryAccessDebugMode();
     private static final boolean FILESTREAMS_DEBUG = ArecaTechnicalConfiguration.get().isFileStreamsDebugMode();
     private static final String REPOSITORY_ACCESS_DEBUG_ID = "Areca repository access";
-    
-	protected static final String TMP_ARCHIVE_SUFFIX = ".nc";
-    protected static final String TMP_ARCHIVE_SUFFIX_DEPRECATED = ".not_commited";
 
+    protected static final String COMMIT_MARKER_NAME = ".committed";
+    
     /**
      * Suffix added to the archive name to create the data directory (containing the manifest and trace)
      */
@@ -124,7 +125,7 @@ implements TargetActions, IndicatorTypes {
     public void install() throws ApplicationException {
         super.install();
         
-        File storageDir = new File(fileSystemPolicy.getBaseArchivePath()).getParentFile();
+        File storageDir = fileSystemPolicy.getArchiveDirectory();
         FileSystemDriver baseDriver = this.buildBaseDriver(true);
         FileSystemDriver storageDriver = this.buildStorageDriver(storageDir);
 
@@ -204,12 +205,8 @@ implements TargetActions, IndicatorTypes {
         return MANIFEST_FILE_OLD; // Maintained for backward-compatibility purpose
     }
 
-    public String getBaseArchivePath() {
-        return fileSystemPolicy.getBaseArchivePath();
-    } 
-
     public void destroyRepository() throws ApplicationException {
-        File storage = FileSystemManager.getParentFile(new File(this.getBaseArchivePath()));
+        File storage = fileSystemPolicy.getArchiveDirectory();
         Logger.defaultLogger().info("Deleting repository : " + FileSystemManager.getAbsolutePath(storage) + " ...");
         try {
             FileTool tool = FileTool.getInstance();
@@ -219,22 +216,75 @@ implements TargetActions, IndicatorTypes {
             throw new ApplicationException("Error trying to delete directory : " + FileSystemManager.getAbsolutePath(storage), e);
         }
     }
+    
+    protected File computeMarkerFile(File archive) {
+    	try {
+			return computeMarkerFile(archive, false);
+		} catch (IOException e) {
+			// Never thrown
+			Logger.defaultLogger().error(e);
+			return null;
+		}
+    }
+    
+    protected File computeMarkerFile(File archive, boolean ensureParentDir) throws IOException {
+    	File dataDir = getDataDirectory(archive);
+    	if (ensureParentDir && ! FileSystemManager.exists(dataDir)) {
+    		FileTool.getInstance().createDir(dataDir);
+    	}
+    	return new File(dataDir, COMMIT_MARKER_NAME);
+    }
+    
+    protected boolean isCommitted(File archive) {
+    	File marker = computeMarkerFile(archive);
+    	if (FileSystemManager.exists(marker)) {
+    		return true;
+    	} else if (FileSystemManager.getAbsolutePath(archive).endsWith(".nc")) {
+	    	// Backward-Compatibility
+    		return false;
+    	} else {
+	    	// Backward-Compatibility
+    		boolean ok = false;
+	    	try {
+				Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, archive);
+				if (mf != null) {
+					String version = mf.getStringProperty(ManifestKeys.VERSION);
+					if (version != null) {
+						ok = VersionInfos.isBeforeOrEquals(version, "5.5.7");
+						if (ok) {
+							try {
+								Logger.defaultLogger().info(FileSystemManager.getAbsolutePath(archive) + " has been created with version " + version + " of Areca, which handles archive validation differently than this newer version. This archive will be commited according to the current version's policy.");
+								markCommitted(archive);
+							} catch (IOException e) {
+								Logger.defaultLogger().error("Error marking the following archive as committed : " + FileSystemManager.getAbsolutePath(archive), e);
+							}
+						}
+					}
+				}
+			} catch (ApplicationException e) {
+				Logger.defaultLogger().error("Error while checking archive state : " + FileSystemManager.getAbsolutePath(archive));
+			}
+	    	
+	    	return ok;
+    	}
+    }
+    
+    protected void markCommitted(File archive) throws IOException {
+    	File marker = computeMarkerFile(archive, true);
+    	OutputStream out = FileSystemManager.getFileOutputStream(marker);
+    	out.write("c".getBytes());
+    	out.close();
+    }
 
     /**
      * Checks that the archive provided as argument belongs to this medium
      */
     public boolean checkArchiveCompatibility(File archive) {
         String archivePath = FileSystemManager.getAbsolutePath(archive);
-        String basePath = FileSystemManager.getAbsolutePath(new File(this.getBaseArchivePath()));
         
         return 
-        	archivePath.equals(basePath)
-        	|| (
-        		archivePath.startsWith(basePath)
-        		&& (! archivePath.endsWith(TMP_ARCHIVE_SUFFIX))
-                && (! archivePath.endsWith(TMP_ARCHIVE_SUFFIX_DEPRECATED))
-        		&& (! archivePath.endsWith(DATA_DIRECTORY_SUFFIX))        		
-        	)
+        	(! archivePath.endsWith(DATA_DIRECTORY_SUFFIX))
+    		&& isCommitted(archive)        		
         ;
     }
 
@@ -245,9 +295,7 @@ implements TargetActions, IndicatorTypes {
 	            // historique
 	            this.history = new DefaultHistory(
 	                    new File(
-	                            FileSystemManager.getParentFile(
-	                                    new File(this.fileSystemPolicy.getBaseArchivePath())
-	                            ), 
+	                            fileSystemPolicy.getArchiveDirectory(), 
 	                            this.getHistoryName()
 	                    )
 	            );
@@ -261,7 +309,7 @@ implements TargetActions, IndicatorTypes {
     }
     
     /**
-     * Valide diverses règles de gestion, notamment le fait que la gestion du cryptage est activée ou désactivée explicitement.
+     * Valide diverses regles de gestion, notamment le fait que la gestion du cryptage est activee ou desactivee explicitement.
      */
     public ActionReport checkMediumState(int action) {
         ActionReport result = new ActionReport();
@@ -270,10 +318,9 @@ implements TargetActions, IndicatorTypes {
             result.addError(new ActionError(Errors.ERR_C_MEDIUM_ENCRYPTION_NOT_INITIALIZED, Errors.ERR_M_MEDIUM_ENCRYPTION_NOT_INITIALIZED));
         }
         
-        File basePath = new File(fileSystemPolicy.getBaseArchivePath());
         if (action != ACTION_DESCRIBE) {       
 	        // The backup directory mustn't be included in the base directory
-	        File backupDir = FileSystemManager.getParentFile(basePath);
+	        File backupDir = fileSystemPolicy.getArchiveDirectory();
             
             Iterator iter = ((FileSystemRecoveryTarget)this.getTarget()).sources.iterator();
             while (iter.hasNext()) {
@@ -286,81 +333,60 @@ implements TargetActions, IndicatorTypes {
         
         return result;
     }
-    
-    /**
-     * Retourne le chemin des archives sous un format affichable à l'utilisateur 
-     */
-	public String getArchivePath() {
-		return FileSystemManager.getAbsolutePath(FileSystemManager.getParentFile(new File(fileSystemPolicy.getBaseArchivePath())));
-	}
 	
 	public String getDisplayArchivePath() {
 		return this.fileSystemPolicy.getDisplayableParameters();
 	}
 	
 	protected void checkRepository() {
-	    File storageDir = FileSystemManager.getParentFile(new File(fileSystemPolicy.getBaseArchivePath()));
+	    File storageDir = fileSystemPolicy.getArchiveDirectory();
+        
+	    // List all potential archive files
 	    File[] archives = FileSystemManager.listFiles(storageDir);
 
 	    if (archives != null) {
-	        File base = new File(this.getBaseArchivePath());
-	        String basePath = FileNameUtil.normalizePath(FileSystemManager.getAbsolutePath(base));
-
-	        // List all potential archive files
 	        for (int i=0; i<archives.length; i++) {
 	            File archive = archives[i];
-                String archivePath = FileNameUtil.normalizePath(FileSystemManager.getAbsolutePath(archive));
                 
-	            checkArchive(basePath, archivePath, archive);
+                // If it has not been committed - destroy it  
+                if (matchArchiveName(archive) && (! isCommitted(archive))) {          
+                    destroyTemporaryFile(archive);
+                }
 	        }
 	    }
 	}
-    
-    protected boolean checkArchive(String basePath, String archivePath, File archive) {
-        // Check wether the archive has been commited or not
-        if (            
-                archivePath.equals(basePath + TMP_ARCHIVE_SUFFIX)
-                || archivePath.equals(basePath + TMP_ARCHIVE_SUFFIX_DEPRECATED)
-                || (
-                        archivePath.startsWith(basePath + Utils.FILE_DATE_SEPARATOR)
-                        && archivePath.endsWith(TMP_ARCHIVE_SUFFIX)
-                )
-                || (
-                        archivePath.startsWith(basePath + Utils.FILE_DATE_SEPARATOR)
-                        && archivePath.endsWith(TMP_ARCHIVE_SUFFIX_DEPRECATED)
-                )                
-        ) {
-            // If it has not been commited - destroy it            
-            destroyTemporaryFile(archive);
-            return false;
-        } else {
-            return true;
-        }
-    }
-    
+
     protected void destroyTemporaryFile(File archive) {
         String name = FileSystemManager.isFile(archive) ? "file" : "directory";
         LogHelper.logFileInformations("CAUTION : Uncommited " + name + " detected : ", archive);
-
-        try {
-            this.deleteArchive(archive);
-        } catch (Exception e) {
-            Logger.defaultLogger().error(e);
-        }
 
         Logger.defaultLogger().displayApplicationMessage(
                 null, 
                 "Temporary " + name + " detected.", 
                 "Areca has detected that the following " + name + " is a temporary archive which has not been commited :" 
                 + "\n" + FileSystemManager.getAbsolutePath(archive) 
-                + "\n\nThis " + name + " has been deleted."
+                + "\n\nThis " + name + " will be deleted."
         );
+        
+        try {
+            this.deleteArchive(archive);
+        } catch (Exception e) {
+            Logger.defaultLogger().error(e);
+        }
     }
     
     /**
-     * Stocke le fichier passé en argument dans l'archive
-     * (indépendemment des filtres, ou politique de stockage; il s'agit là d'une
-     * méthode purement utilitaire; en pratique : zip ou répertoire) 
+     * Introduced in Areca v6.0
+     * <BR>Caution : will return 'false' for archives that have been built with previous versions of Areca
+     */
+	protected abstract boolean matchArchiveName(File f);
+	
+	protected abstract String getArchiveExtension();
+    
+    /**
+     * Stocke le fichier passe en argument dans l'archive
+     * (independemment des filtres, ou politique de stockage; il s'agit la d'une
+     * methode purement utilitaire; en pratique : zip ou repertoire) 
      */
     protected abstract void storeFileInArchive(FileSystemRecoveryEntry entry, ProcessContext context) throws ApplicationException;
     
@@ -371,7 +397,7 @@ implements TargetActions, IndicatorTypes {
     }
     
     /**
-     * Retourne la dernière archive précédant une date donnée
+     * Retourne la derniere archive precedant une date donnee
      */
     public abstract File getLastArchive(String backupScheme, GregorianCalendar date) throws ApplicationException;
     
@@ -387,7 +413,7 @@ implements TargetActions, IndicatorTypes {
     }
     
     /**
-     * Retourne le status de l'entrée, dans l'archive spécifiée.
+     * Retourne le status de l'entree, dans l'archive specifiee.
      * 
      * @param entry
      * @param archive
@@ -457,7 +483,7 @@ implements TargetActions, IndicatorTypes {
         }
         
         try {
-            FileSystemManager.getInstance().flush(FileSystemManager.getParentFile(new File(this.getBaseArchivePath())));
+            FileSystemManager.getInstance().flush(fileSystemPolicy.getArchiveDirectory());
         } catch (IOException e) {
             throw new ApplicationException(e);
         }
@@ -494,7 +520,7 @@ implements TargetActions, IndicatorTypes {
      */
     protected void storeTargetConfigBackup(ProcessContext context) throws ApplicationException {
        if (this.target.isCreateSecurityCopyOnBackup()) {
-            File storageDir = FileSystemManager.getParentFile(context.getFinalArchiveFile());
+            File storageDir = FileSystemManager.getParentFile(context.getCurrentArchiveFile());
             boolean ok = false;
             
             if (storageDir != null && FileSystemManager.exists(storageDir)) {
@@ -506,7 +532,7 @@ implements TargetActions, IndicatorTypes {
                     );
     
                     Logger.defaultLogger().info("Creating a XML backup copy of target \"" + this.target.getTargetName() + "\" on : " + FileSystemManager.getAbsolutePath(targetFile));
-                    RecoveryProcess process = new RecoveryProcess(targetFile);
+                    TargetGroup process = new TargetGroup(targetFile);
                     process.addTarget(this.target);
                     process.setComments("This group contains a backup copy of your target : \"" + this.target.getTargetName() + "\". It can be used in case of computer crash.\nDo not modify it as is will be automatically updated during backup processes.");
                     
@@ -518,50 +544,44 @@ implements TargetActions, IndicatorTypes {
             }
             
             if (!ok) {
-                Logger.defaultLogger().warn("Improper backup location : " + FileSystemManager.getAbsolutePath(context.getFinalArchiveFile()) + " - Could not create an XML configuration backup");
+                Logger.defaultLogger().warn("Improper backup location : " + FileSystemManager.getAbsolutePath(context.getCurrentArchiveFile()) + " - Could not create an XML configuration backup");
             }
         } else {
             Logger.defaultLogger().warn("Configuration security copy has been disabled for this target. No XML configuration copy will be created !");
         }
     }
     
+    public abstract long getArchiveSize(File archive, boolean forceComputation) throws ApplicationException;
+    
     public IndicatorMap computeIndicators() throws ApplicationException {
         IndicatorMap indicators = new IndicatorMap();
         File[] archives = this.listArchives(null, null);
         
-        // NOA
+        // Number of archives - NOA
         long noaValue = archives.length;
         Indicator noa = new Indicator();
         noa.setId(T_NOA);
         noa.setName(N_NOA);
-        noa.setDescription(D_NOA);
         noa.setStringValue(Utils.formatLong(noaValue));
         noa.setValue(noaValue);
         indicators.addIndicator(noa);
         
-        // APS
+        // Archives' physical size - APS
         long apsValue = 0;
         for (int i=0; i<archives.length; i++) {
-            try {
-                apsValue += AbstractFileSystemMedium.tool.getSize(archives[i]);
-            } catch (FileNotFoundException shallNotHappen) {
-                Logger.defaultLogger().error(shallNotHappen); // Ignored : shall not happen --> but logged anyway ...
-            }
+        	apsValue += this.getArchiveSize(archives[i], true);
         }
-
         Indicator aps = new Indicator();
         aps.setId(T_APS);
         aps.setName(N_APS);
-        aps.setDescription(D_APS);
         aps.setStringValue(Utils.formatFileSize(apsValue));
         aps.setValue(apsValue);   
         indicators.addIndicator(aps);
         
-        // SFS
         File archive = this.getLastArchive();
         if (archive != null) {
-
-            Set entries = this.getEntries(archive);
+            // Source file size - SFS
+        	Set entries = this.getEntries(archive);
             Iterator iter = entries.iterator();
             RecoveryEntry entry;
             long sfsValue = 0;
@@ -573,102 +593,87 @@ implements TargetActions, IndicatorTypes {
             Indicator sfs = new Indicator();
             sfs.setId(T_SFS);
             sfs.setName(N_SFS);
-            sfs.setDescription(D_SFS);
             sfs.setStringValue(Utils.formatFileSize(sfsValue));
             sfs.setValue(sfsValue);   
             indicators.addIndicator(sfs);
             
-            // NOF
+            // Number of files - NOF
             long nofValue = entries.size();
             Indicator nof = new Indicator();
             nof.setId(T_NOF);
             nof.setName(N_NOF);
-            nof.setDescription(D_NOF);
             nof.setStringValue(Utils.formatLong(nofValue));
             nof.setValue(nofValue);   
             indicators.addIndicator(nof);
             
-            // ALS
-            long alsValue = 0;
-            for (int i=0; i< archives.length; i++) {
+            // Logical size of the latest full backup
+            long lsValue = 0;
+            long psValue = 0;
+            File latestFullArchive = null;
+            for (int i=archives.length-1; i>=0; i--) {
                 archive = archives[i];
                 
-                entries = this.getEntries(archive);
-                iter = entries.iterator();
-
-                while (iter.hasNext()) {
-                    entry = (RecoveryEntry)iter.next();
-                    
-                    if (entry.getStatus() == RecoveryEntry.STATUS_STORED) {
-                        alsValue += entry.getSize();
-                    }
+                Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, archive);
+                if (mf != null && AbstractRecoveryTarget.BACKUP_SCHEME_FULL.equals(mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME))) {
+                	latestFullArchive = archive;
+                	break;
                 }
             }
-
-            Indicator als = new Indicator();
-            als.setId(T_ALS);
-            als.setName(N_ALS);
-            als.setDescription(D_ALS);
-            als.setStringValue(Utils.formatFileSize(alsValue));
-            als.setValue(alsValue);   
-            indicators.addIndicator(als);
+            if (latestFullArchive == null && archives.length > 0) {
+            	latestFullArchive = archives[0];
+            }
             
-            // PSR            
+            if (latestFullArchive != null) {                
+                Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, archive);
+                if (mf != null && AbstractRecoveryTarget.BACKUP_SCHEME_FULL.equals(mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME))) {
+                    entries = this.getEntries(archive);
+                    iter = entries.iterator();
+
+                    while (iter.hasNext()) {
+                        entry = (RecoveryEntry)iter.next();
+                        
+                        if (entry.getStatus() == RecoveryEntry.STATUS_STORED) {
+                            lsValue += (entry.getSize() < 0 ? 0 : entry.getSize());
+                        }
+                    }
+                }
+                
+            	psValue = this.getArchiveSize(latestFullArchive, true);
+            }
+            
+            // Physical size ratio - PSR            
             double psrValue;
             String psrStr;
             
-            if (alsValue == 0) {
+            if (lsValue == 0) {
                 psrValue = -1;
                 psrStr = "N/A";
             } else {
-                psrValue = 100 * (double)apsValue / (double)alsValue;
+                psrValue = 100 * (double)psValue / (double)lsValue;
                 psrStr = Utils.formatLong((long)psrValue) + " %";
             }
             
             Indicator psr = new Indicator();
             psr.setId(T_PSR);
             psr.setName(N_PSR);
-            psr.setDescription(D_PSR);
             psr.setStringValue(psrStr);
             psr.setValue(psrValue);   
             indicators.addIndicator(psr);
             
-            // SWH
+            // Size without history - SWH
             long swhValue = (long)(psrValue * (double)sfsValue / 100.);
             Indicator swh = new Indicator();
             swh.setId(T_SWH);
             swh.setName(N_SWH);
-            swh.setDescription(D_SWH);
             swh.setStringValue(Utils.formatFileSize(swhValue));
             swh.setValue(swhValue);   
             indicators.addIndicator(swh);
-            
-            // SRR
-            double srrValue;
-            String srrStr;
-            
-            if (sfsValue == 0) {
-                srrValue = -1;
-                srrStr = "N/A";
-            } else {
-                srrValue = ((double)alsValue / (double)sfsValue - 1) * 100.;
-                srrStr = Utils.formatLong((long)srrValue) + " %";
-            }
-            
-            Indicator srr = new Indicator();
-            srr.setId(T_SRR);
-            srr.setName(N_SRR);
-            srr.setDescription(D_SRR);
-            srr.setStringValue(srrStr);
-            srr.setValue(srrValue);   
-            indicators.addIndicator(srr);
             
             // SOH
             long sohValue = apsValue - swhValue;
             Indicator soh = new Indicator();
             soh.setId(T_SOH);
             soh.setName(N_SOH);
-            soh.setDescription(D_SOH);
             soh.setStringValue(Utils.formatFileSize(sohValue));
             soh.setValue(sohValue);   
             indicators.addIndicator(soh);

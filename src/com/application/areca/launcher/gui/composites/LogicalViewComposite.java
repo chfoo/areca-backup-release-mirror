@@ -36,7 +36,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -171,7 +171,7 @@ implements MouseListener, Refreshable, Listener {
         dt1Text.grabExcessHorizontalSpace = true;
         lblManifestText.setLayoutData(dt1Text);
         
-        manifest = new Text(content, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+        manifest = new Text(content, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
         GridData dt2 = new GridData();
         dt2.grabExcessVerticalSpace = true;
         dt2.verticalAlignment = SWT.FILL;

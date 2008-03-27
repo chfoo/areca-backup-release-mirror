@@ -1,12 +1,12 @@
 package com.myJava.file.driver;
 
 /**
- * Exception jetée lorsque l'on tente d'initialiser un driver sur un point de montage 
- * alors qu'un autre driver a déjà été initialisé et utilisé.
+ * Exception jetï¿½e lorsque l'on tente d'initialiser un driver sur un point de montage 
+ * alors qu'un autre driver a dï¿½jï¿½ ï¿½tï¿½ initialisï¿½ et utilisï¿½.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*

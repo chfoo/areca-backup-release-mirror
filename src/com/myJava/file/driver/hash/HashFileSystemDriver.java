@@ -2,6 +2,7 @@ package com.myJava.file.driver.hash;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.OutputStreamListener;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
 import com.myJava.file.driver.FileInformations;
@@ -32,7 +34,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -289,12 +291,16 @@ extends AbstractLinkableFileSystemDriver {
     }    
 
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException {       
+    	return getFileOutputStream(file, append, null);
+    }  
+
+    public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException {
         File target = this.encodeFileName(file);
         this.createDecodingFile(target, predecessor.getName(file));
-        return predecessor.getFileOutputStream(target, append); 
-    }    
+        return predecessor.getFileOutputStream(target, append, listener); 
+	}
 
-    /**
+	/**
      * No direct file access is supported !
      */
     public boolean directFileAccessSupported() {

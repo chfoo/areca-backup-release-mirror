@@ -1,10 +1,12 @@
 package com.myJava.file.delta.sequence;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.zip.GZIPOutputStream;
 
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.FileTool;
 import com.myJava.file.delta.Constants;
 import com.myJava.file.delta.tools.HashTool;
 import com.myJava.file.delta.tools.LinkedList;
@@ -14,7 +16,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -73,12 +75,15 @@ implements ByteProcessor, Constants {
         }
 
         if (fileToWrite != null) {
-            BufferedOutputStream bos = null;
+            OutputStream bos = null;
             try {
-                bos = new BufferedOutputStream(FileSystemManager.getFileOutputStream(fileToWrite));
+            	File parent = FileSystemManager.getParentFile(fileToWrite);
+            	FileTool.getInstance().createDir(parent);
+            	
+                bos = new GZIPOutputStream(FileSystemManager.getFileOutputStream(fileToWrite));
                 SequenceAdapter adapter = new SequenceAdapter();
                 adapter.serialize(bos, ret);
-            } catch (Throwable e) {
+            } catch (IOException e) {
                 Logger.defaultLogger().error(e);
                 throw new ByteProcessorException(e.getMessage());
             } finally {

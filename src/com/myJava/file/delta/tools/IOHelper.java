@@ -1,13 +1,14 @@
 package com.myJava.file.delta.tools;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -64,5 +65,33 @@ public class IOHelper {
         out.write((int)((v >>> 40) & 0xff));
         out.write((int)((v >>> 48) & 0xff));
         out.write((int)((v >>> 56) & 0xff));        
+    }
+    
+    public static int readFully(InputStream in, byte[] data) throws IOException {
+    	return readFully(in, data, 0, data.length);
+    }
+    
+    public static int readFully(InputStream in, byte[] data, int offset, int length) throws IOException {
+    	int r = in.read(data, offset, length);
+    	int t = r;
+    	while (r != -1 && t < length) {
+    		r = in.read(data, offset + t, length - t);
+    		if (r != -1) {
+    			t += r;
+    		}
+    	}
+    	return t;
+    }
+    
+    public static long skipFully(InputStream in, long length) throws IOException {
+    	long s = in.skip(length);
+    	long t = s;
+    	while (s != -1 && t < length) {
+    		s = in.skip(length - t);
+    		if (s != -1) {
+    			t += s;
+    		}
+    	}
+    	return t;
     }
 }

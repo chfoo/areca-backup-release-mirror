@@ -9,12 +9,11 @@ import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestManager;
 
 /**
- * Cache contenant les manifestes des FileSystemArchiveMedium.
- * <BR><BR>Classe singleton.
+ * Cache of Manifests
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -40,9 +39,6 @@ public class ArchiveManifestCache extends AbstractArchiveDataCache {
     
     private static ArchiveManifestCache instance = new ArchiveManifestCache();
     
-    /**
-     * Retourne l'instance de cache
-     */
     public static ArchiveManifestCache getInstance() {
         return instance;
     }
@@ -52,8 +48,7 @@ public class ArchiveManifestCache extends AbstractArchiveDataCache {
     }
     
     /**
-     * Retourne le manifeste demandé.
-     * <BR>Le manifeste est lu du medium si il n'est pas trouvé en cache.
+     * Returns the requested manifest
      */    
     public synchronized Manifest getManifest(AbstractFileSystemMedium medium, File key) throws ApplicationException {
         if (medium == null || key == null) {

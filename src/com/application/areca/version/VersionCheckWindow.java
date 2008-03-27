@@ -28,7 +28,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -143,7 +143,7 @@ extends ApplicationWindow {
             try {
                 SecuredRunner.execute(VersionCheckWindow.this, new Runnable(){
                     public void run() {
-                        lbl.setText("Connecting to " + VersionChecker.getInstance().getBaseHost() + " ...");
+                        lbl.setText("Connecting to " + VersionChecker.getInstance().getChekUrl().getHost() + " ...");
                     }
                 });
                 data = VersionChecker.getInstance().checkForNewVersion();

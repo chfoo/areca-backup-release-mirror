@@ -11,14 +11,14 @@ import com.application.areca.metadata.trace.ArchiveTraceManager;
 
 /**
  * Cache contenant les traces des AbstractIncrementalFileSystemArchiveMedium.
- * (stockées sous forme de maps).
- * <BR>A noter que toute tentative d'appel pour d'autres implémentations d'ArchiveMediums
- * déclenchera une IllegalArgumentException.
+ * (stockï¿½es sous forme de maps).
+ * <BR>A noter que toute tentative d'appel pour d'autres implï¿½mentations d'ArchiveMediums
+ * dï¿½clenchera une IllegalArgumentException.
  * <BR><BR>Classe singleton.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -56,8 +56,8 @@ public class ArchiveTraceCache extends AbstractArchiveDataCache {
     }    
     
     /**
-     * Retourne la trace demandée sous forme de Map.
-     * <BR>La trace est lue du medium si elle n'est pas trouvée en cache.
+     * Retourne la trace demandï¿½e sous forme de Map.
+     * <BR>La trace est lue du medium si elle n'est pas trouvï¿½e en cache.
      */
     public synchronized ArchiveTrace getTrace(AbstractFileSystemMedium medium, File key) throws ApplicationException {
         if (medium == null || key == null) {
@@ -140,7 +140,7 @@ public class ArchiveTraceCache extends AbstractArchiveDataCache {
     }
     
     /** 
-     * Valide qu'on est bien en présence d'un AbstractIncrementalFileSystemArchiveMedium
+     * Valide qu'on est bien en prï¿½sence d'un AbstractIncrementalFileSystemArchiveMedium
      */ 
     private AbstractIncrementalFileSystemMedium checkMediumInstance(AbstractFileSystemMedium medium) {
         if (! (medium instanceof AbstractIncrementalFileSystemMedium)) {

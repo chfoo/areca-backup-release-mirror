@@ -8,7 +8,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -40,7 +40,7 @@ public interface StoragePlugin {
     public File getSourceJar();
     public void setSourceJar(File sourceJar);
     
-    public FileSystemPolicyXMLHandler getFileSystemPolicyXMLHandler();
+    public FileSystemPolicyXMLHandler buildFileSystemPolicyXMLHandler();
     public StorageSelectionHelper getStorageSelectionHelper();
     public boolean storageSelectionHelperProvided();
 }

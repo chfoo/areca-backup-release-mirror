@@ -16,11 +16,11 @@ import com.myJava.util.errors.ActionReport;
 import com.myJava.util.log.Logger;
 
 /**
- * Process de backup/recovery
+ * Target group
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -42,29 +42,22 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class RecoveryProcess 
+public class TargetGroup 
 implements TargetActions, Identifiable {
     
     private File source;
     private String comments;
     
     /**
-     * Liste des cibles à traiter
+     * Group's content
      */
     private HashMap targets;
     
-    /**
-     * Constructeur
-     * @param id ID du process
-     */
-    public RecoveryProcess(File source) {
+    public TargetGroup(File source) {
         this.targets = new HashMap();
         this.source = source;
     }
     
-    /**
-     * Appelée avant suppression
-     */
     public void doBeforeDelete() {
     	Iterator iter = this.getTargetIterator();
     	while (iter.hasNext()) {
@@ -73,9 +66,6 @@ implements TargetActions, Identifiable {
     	}
     }
 
-    /**
-     *Appelée après suppression
-     */
     public void doAfterDelete() {
     	Iterator iter = this.getTargetIterator();
     	while (iter.hasNext()) {
@@ -85,7 +75,7 @@ implements TargetActions, Identifiable {
     }
     
     /**
-     * Itérateur sur les cibles, triées par Nom 
+     * Returns an iterator on targets, sorted by name
      */
     public Iterator getSortedTargetIterator() {
         AbstractRecoveryTarget[] tgs = new AbstractRecoveryTarget[targets.size()];
@@ -104,13 +94,12 @@ implements TargetActions, Identifiable {
     }
     
     private static class TargetComparator implements Comparator {
-        
         public int compare(Object o1, Object o2) {
             AbstractRecoveryTarget tg1 = (AbstractRecoveryTarget)o1;
             AbstractRecoveryTarget tg2 = (AbstractRecoveryTarget)o2;
             return tg1.getTargetName().toLowerCase().compareTo(tg2.getTargetName().toLowerCase());
         }
-}
+    }
     
     public String getComments() {
         return comments;
@@ -179,17 +168,17 @@ implements TargetActions, Identifiable {
             }
             
             if (id == this.targets.size()) {
-                // Cas 1 : tous les ids sont utilisés (pas de trou)
+                // Cas 1 : all ids are used (no hole)
                 return id + 1;
             } else {
-                // Cas 2 : il y a des trous -> on retourne le premier id libre
+                // Cas 2 : there are holes -> return the first free id
                 for (int i = 1; i<id; i++) {
                     if (this.getTargetById(i) == null) {
                         return i;
                     }
                 }
                 
-                // Cas 3 : ne doit jamais arriver
+                // Cas 3 : shall never happen
                 return id+1;
             }
         }
@@ -214,22 +203,9 @@ implements TargetActions, Identifiable {
     public String getUid() {
         return FileSystemManager.getAbsolutePath(getSourceFile());
     }
-
-    /**
-     * Traite le backup d'une cible donnée.
-     * 
-     * @param target
-     * @throws ApplicationException
-     */
-    public void processBackupOnTarget(AbstractRecoveryTarget target, ProcessContext context, String backupScheme) throws ApplicationException {
-        processBackupOnTarget(target, null, context, backupScheme);
-    }
     
     /**
-     * Traite le backup d'une cible donnée.
-     * 
-     * @param target
-     * @throws ApplicationException
+     * Launch a backup on a target
      */
     public void processBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
         initProgress(context);
@@ -248,8 +224,7 @@ implements TargetActions, Identifiable {
     }
     
     /**
-     * @param target
-     * @throws ApplicationException
+     * Launch a simulation on a target
      */
     public RecoveryEntry[] processSimulateOnTarget(AbstractRecoveryTarget target, ProcessContext context) throws ApplicationException {
         checkTarget(target, ACTION_SIMULATE);
@@ -257,12 +232,18 @@ implements TargetActions, Identifiable {
         return target.processSimulate(context);
     }
     
+    /**
+     * Compute indicators for a target
+     */
     public IndicatorMap processIndicatorsOnTarget(AbstractRecoveryTarget target, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_INDICATORS); // Même contraintes que pour un backup
+        checkTarget(target, ACTION_INDICATORS);
         this.initProgress(context);
         return target.computeIndicators();
     }
     
+    /**
+     * Launch a recovery on a target
+     */
     public void processRecoverOnTarget(AbstractRecoveryTarget target, String[] filters, String path, GregorianCalendar date, boolean recoverDeletedEntries, ProcessContext context) throws ApplicationException {
         checkTarget(target, ACTION_RECOVER);
 		this.initProgress(context);
@@ -275,34 +256,40 @@ implements TargetActions, Identifiable {
         target.processRecover(path, date, entry, context);
     }
     
-    public void processCompactOnTarget(AbstractRecoveryTarget target, GregorianCalendar fromDate, GregorianCalendar toDate, boolean keepDeletedEntries, Manifest manifest, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_COMPACT_OR_DELETE);     
+    /**
+     * Launch a merge on a target
+     */
+    public void processMergeOnTarget(AbstractRecoveryTarget target, GregorianCalendar fromDate, GregorianCalendar toDate, boolean keepDeletedEntries, Manifest manifest, ProcessContext context) throws ApplicationException {
+        checkTarget(target, ACTION_MERGE_OR_DELETE);     
 		this.initProgress(context);
         target.processMerge(fromDate, toDate, keepDeletedEntries, manifest, context);
     }  
     
-    public void processCompactOnTarget(AbstractRecoveryTarget target, int fromDelay, int toDelay, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
+    public void processMergeOnTarget(AbstractRecoveryTarget target, int fromDelay, int toDelay, boolean keepDeletedEntries, Manifest manifest, ProcessContext context) throws ApplicationException {
  		this.initProgress(context);
- 		processCompactOnTargetImpl(target, fromDelay, toDelay, keepDeletedEntries, context);
+ 		processMergeOnTargetImpl(target, fromDelay, toDelay, keepDeletedEntries, manifest, context);
     }  
     
-    public void processCompactOnTargetImpl(AbstractRecoveryTarget target, int fromDelay, int toDelay, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_COMPACT_OR_DELETE);    
-        target.processMerge(fromDelay, toDelay, keepDeletedEntries, context);
+    public void processMergeOnTargetImpl(AbstractRecoveryTarget target, int fromDelay, int toDelay, boolean keepDeletedEntries, Manifest manifest, ProcessContext context) throws ApplicationException {
+        checkTarget(target, ACTION_MERGE_OR_DELETE);    
+        target.processMerge(fromDelay, toDelay, keepDeletedEntries, manifest, context);
     }
     
+    /**
+     * Deletes archives for a target
+     */
     public void processDeleteOnTarget(AbstractRecoveryTarget target, int delay, ProcessContext context) throws ApplicationException {
 		this.initProgress(context);
         processDeleteOnTargetImpl(target, delay, context);
     }  
     
     public void processDeleteOnTargetImpl(AbstractRecoveryTarget target, int delay, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_COMPACT_OR_DELETE);    
+        checkTarget(target, ACTION_MERGE_OR_DELETE);    
         target.processDeleteArchives(delay, context);
     }  
     
     public void processDeleteOnTarget(AbstractRecoveryTarget target, GregorianCalendar fromDate, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_COMPACT_OR_DELETE);    
+        checkTarget(target, ACTION_MERGE_OR_DELETE);    
 		this.initProgress(context);
         target.processDeleteArchives(fromDate, context);
     }  
@@ -328,17 +315,15 @@ implements TargetActions, Identifiable {
     public String getDescription() {
 
         StringBuffer buf = new StringBuffer();
-        buf.append("Group #").append(FileSystemManager.getAbsolutePath(this.source));
-        buf.append("\nTargets :");
+        buf.append("Description file : ").append(FileSystemManager.getAbsolutePath(this.source));
+        buf.append("\nContent :");
         
         Iterator iter = this.getTargetIterator();
         while (iter.hasNext()) {
-            AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();
-            buf.append("\n-------------------------");            
+            AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();         
             buf.append("\n");
             buf.append(target.getDescription());
-        }
-        buf.append("\n-------------------------");          
+        }        
         
         return new String(buf);
     }

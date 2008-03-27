@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import com.myJava.configuration.FrameworkConfiguration;
+import com.myJava.file.EventOutputStream;
+import com.myJava.file.OutputStreamListener;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.file.attributes.AttributesHelper;
 import com.myJava.object.HashHelper;
@@ -19,11 +21,11 @@ import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 
 /**
- * Driver par défaut : relaie tous ses appels à la classe "File".
+ * Default driver implementation : all calls are routed to the "File" class.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -46,7 +48,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
-    
+	protected static String[] WRITABLE_DIRECTORIES = FrameworkConfiguration.getInstance().getWritableDirectories();
+	
     protected static boolean USE_BUFFER = FrameworkConfiguration.getInstance().useFileSystemBuffer();
     protected static int BUFFER_SIZE = FrameworkConfiguration.getInstance().getFileSystemBufferSize();
         
@@ -59,6 +62,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public boolean createNewFile(File file) throws IOException {
+    	checkWriteAccess(file);
         checkFilePath(file);
         return file.createNewFile();
     }
@@ -67,6 +71,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
         if (! file.exists()) {
             return true;
         } else {
+        	checkWriteAccess(file);
             return file.delete();
         }
     }
@@ -100,8 +105,12 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
+    	checkWriteAccess(symlink);
         checkFilePath(symlink);
         return AttributesHelper.createSymbolicLink(symlink, realPath);
+    }
+    
+    public void mount() throws IOException {
     }
   
     public void unmount() throws IOException {
@@ -229,6 +238,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     
     public boolean mkdir(File file) {
         try {
+        	checkWriteAccess(file);
             checkFilePath(file);
             return file.mkdir();
         } catch (IOException e) {
@@ -239,6 +249,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     
     public boolean mkdirs(File file) {
         try {
+        	checkWriteAccess(file);
             checkFilePath(file);
             return file.mkdirs();
         } catch (IOException e) {
@@ -249,6 +260,8 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     
     public boolean renameTo(File source, File dest) {
         try {
+        	checkWriteAccess(dest);
+        	checkWriteAccess(source);
             checkFilePath(dest);
             return source.renameTo(dest);
         } catch (IOException e) {
@@ -258,6 +271,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public boolean setLastModified(File file, long time) {
+    	checkWriteAccess(file);
         if (time < 0) {
             //throw new IllegalArgumentException("Negative time for file [" + file.getAbsolutePath() + "] : " + time);
             time = 0;
@@ -266,6 +280,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public boolean setReadOnly(File file) {
+    	checkWriteAccess(file);
         return file.setReadOnly();
     }
 
@@ -278,11 +293,13 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public OutputStream getCachedFileOutputStream(File file) throws IOException {
+    	checkWriteAccess(file);
         checkFilePath(file);
         return getFileOutputStream(file);
     }
     
     public OutputStream getFileOutputStream(File file) throws IOException {
+    	checkWriteAccess(file);
         checkFilePath(file);
         if (USE_BUFFER) {
             return new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
@@ -290,8 +307,14 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
             return new FileOutputStream(file);
         }
     }
-    
-    public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
+
+    public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException {
+    	OutputStream out = getFileOutputStream(file, append);
+    	return listener == null ? out : new EventOutputStream(out, listener);
+	}
+
+	public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
+    	checkWriteAccess(file);
         checkFilePath(file);
         if (USE_BUFFER) {
             return new BufferedOutputStream(new FileOutputStream(file, append), BUFFER_SIZE);
@@ -305,6 +328,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
 
     public void applyAttributes(Attributes p, File f) throws IOException {
+    	checkWriteAccess(f);
         AttributesHelper.applyFileAttributes(f, p);
     }
     
@@ -325,6 +349,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
     }
     
     public void deleteOnExit(File f) {
+    	checkWriteAccess(f);
         f.deleteOnExit();
     }
  
@@ -343,6 +368,24 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 
     public FileInformations getInformations(File file) {
         return new FileInformations(this, file);
+    }
+    
+    
+    private static void checkWriteAccess(File file) {
+    	if (WRITABLE_DIRECTORIES.length == 0 || WRITABLE_DIRECTORIES == null) {
+    		// does nothing
+    	} else {
+    		String path = file.getAbsolutePath().replace('\\', '/');
+    		if (! path.endsWith("/")) {
+    			path += "/";
+    		}
+    		for (int i=0; i<WRITABLE_DIRECTORIES.length; i++) {
+    			if (path.startsWith(WRITABLE_DIRECTORIES[i])) {
+    				return;
+    			}
+    		}
+    		throw new IllegalArgumentException("File " + path + " is not writable !");
+    	}
     }
 }
 

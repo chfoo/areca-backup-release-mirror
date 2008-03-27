@@ -13,11 +13,11 @@ import com.myJava.util.Util;
 import com.myJava.util.collections.CollectionTools;
 
 /**
- * Classe définissant un manifeste d'archive
+ * Archive's manifest implementation
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -40,8 +40,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class Manifest {
-    
-    public static final long CURRENT_VERSION = 1;
+    public static final long CURRENT_VERSION = 2;
     
     private static final String SEPARATOR = ";"; 
     private static final String HEADER = "|MFST_HDR|";
@@ -49,7 +48,6 @@ public class Manifest {
     public static final int TYPE_BACKUP = 0;
     public static final int TYPE_MERGE = 1;   
     
-    private String author;
     private GregorianCalendar date;
     private String description;
     private String title;    
@@ -64,13 +62,6 @@ public class Manifest {
     
     private Manifest() {
         this(TYPE_BACKUP);
-    }
-    
-    public String getAuthor() {
-        return author;
-    }
-    public void setAuthor(String author) {
-        this.author = author;
     }
     public GregorianCalendar getDate() {
         return date;
@@ -119,8 +110,18 @@ public class Manifest {
         return value == null ? defaultValue : value;
     }
     
+    public long getLongProperty(String name, long defaultValue) {
+        String value = (String)this.properties.get(name);
+        return value == null ? defaultValue : Long.parseLong(value);
+    }
+    
+    public int getIntProperty(String name, int defaultValue) {
+        String value = (String)this.properties.get(name);
+        return value == null ? defaultValue : Integer.parseInt(value);
+    }
+    
     public int getIntProperty(String name) {
-        return Integer.parseInt((String)this.properties.get(name));
+        return getIntProperty(name, 0);
     }
     
     public boolean getBooleanProperty(String name) {
@@ -144,8 +145,6 @@ public class Manifest {
         StringBuffer sb = new StringBuffer();
         sb.append(getCurrentVersion());
         sb.append(HEADER);
-        sb.append(encodeField(author));
-        sb.append(SEPARATOR);
         sb.append(encodeField(CalendarUtils.getFullDateToString(date)));
         sb.append(SEPARATOR);
         sb.append(encodeField(description));
@@ -183,9 +182,29 @@ public class Manifest {
            return decodeVersion0(content);
        } else if (version == 1) {
            return decodeVersion1(content);
+       } else if (version == 2) {
+           return decodeVersion2(content);           
        } else {
            throw new IllegalArgumentException("Incompatible manifest version : " + version);
        }
+    }
+    
+    private static Manifest decodeVersion2(String source) {
+        source = Util.replace(source, SEPARATOR, " " + SEPARATOR + " ");
+        String[] tokens = source.split(SEPARATOR);
+        
+        Manifest m = new Manifest();
+        
+        m.date = CalendarUtils.resolveDate(decodeField(tokens[0].trim()), null);
+        m.description = decodeField(tokens[1].trim());
+        m.title = decodeField(tokens[2].trim());
+        m.type = Integer.parseInt(tokens[3].trim());
+            
+        for (int i=4; i<tokens.length; i+=2) {
+            m.addProperty(decodeField(tokens[i].trim()), decodeField(tokens[i+1].trim()));
+        }
+        
+        return m;
     }
     
     private static Manifest decodeVersion1(String source) {
@@ -194,7 +213,7 @@ public class Manifest {
         
         Manifest m = new Manifest();
         
-        m.author = decodeField(tokens[0].trim());
+        decodeField(tokens[0].trim()); // old field : author
         m.date = CalendarUtils.resolveDate(decodeField(tokens[1].trim()), null);
         m.description = decodeField(tokens[2].trim());
         m.title = decodeField(tokens[3].trim());
@@ -213,7 +232,7 @@ public class Manifest {
         
         Manifest m = new Manifest(TYPE_BACKUP);
         
-        m.author = decodeField(tokens[0].trim());
+        decodeField(tokens[0].trim()); // old field : author
         m.date = CalendarUtils.resolveDate(decodeField(tokens[1].trim()), null);
         m.description = decodeField(tokens[2].trim());
         
@@ -246,13 +265,5 @@ public class Manifest {
         String ret = Util.replace(source, "\\\\", "\\");
         ret = Util.replace(ret, "\\+", SEPARATOR);
         return ret;        
-    }
-    
-    public String toString() {
-        if (this.title != null) {
-            return this.title;
-        } else {
-            return this.author;
-        }
     }
 }

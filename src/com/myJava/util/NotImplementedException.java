@@ -1,11 +1,11 @@
 package com.myJava.util;
 
 /**
- * Exception permettant de marquer les opérations non implémentées.
+ * Exception permettant de marquer les opï¿½rations non implï¿½mentï¿½es.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*

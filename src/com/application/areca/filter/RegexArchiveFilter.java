@@ -10,14 +10,14 @@ import com.myJava.object.HashHelper;
 import com.myJava.object.PublicClonable;
 
 /**
- * Vérifie si l'entrée est validée par l'expression régulière.
- * <BR>La condition s'applique sur le chemin complet du fichier à tester, hors la racine
- * du répertoire en cours de backup.
- * <BR>Par ailleurs, les répertoires ne sont pas filtrés.
+ * Vï¿½rifie si l'entrï¿½e est validï¿½e par l'expression rï¿½guliï¿½re.
+ * <BR>La condition s'applique sur le chemin complet du fichier ï¿½ tester, hors la racine
+ * du rï¿½pertoire en cours de backup.
+ * <BR>Par ailleurs, les rï¿½pertoires ne sont pas filtrï¿½s.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -42,12 +42,12 @@ This file is part of Areca.
 public class RegexArchiveFilter extends AbstractArchiveFilter {
     
 	/**
-	 * Forme non compilée du pattern
+	 * Forme non compilï¿½e du pattern
 	 */
     private String regex;
     
     /**
-     * Forme compilée du pattern à matcher
+     * Forme compilï¿½e du pattern ï¿½ matcher
      */
     private Pattern pattern;
     

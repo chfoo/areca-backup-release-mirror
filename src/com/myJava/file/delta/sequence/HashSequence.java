@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.object.ToStringHelper;
 
 
@@ -11,7 +12,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -34,7 +35,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class HashSequence {
-    private static final int SIZE = 10000;
+    private static final int SIZE = FrameworkConfiguration.getInstance().getDeltaHashMapSize();
     
     private long blockSize; // For information purpose;
     private int size = 0;
@@ -89,6 +90,7 @@ public class HashSequence {
         retList.clear();
         int index = computeIndex(quickHash);
         if (entries[index] != null) {
+        	//Logger.defaultLogger().fine(entries[index].size() + " entries at index " + index + " for quick hash " + quickHash);
             Iterator iter = entries[index].iterator();
             while (iter.hasNext()) {
                 HashSequenceEntry entry = (HashSequenceEntry)iter.next();

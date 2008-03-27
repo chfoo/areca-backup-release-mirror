@@ -5,12 +5,12 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**
- * Classe chargée de gérer des fichiers de ressources.
- * Utile pour les applications localisées.
+ * Classe chargï¿½e de gï¿½rer des fichiers de ressources.
+ * Utile pour les applications localisï¿½es.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -41,23 +41,23 @@ public class ResourceManager {
     protected Hashtable resources;
 
     /**
-     * Constructeur par défaut
+     * Constructeur par dï¿½faut
      */
     public ResourceManager() {
         this.resources = new Hashtable();
     }
 
     /**
-     * Retourne le dictionnaire demandé, ou tente de l'initialiser s'il
-     * ne l'a pas encore été.
+     * Retourne le dictionnaire demandï¿½, ou tente de l'initialiser s'il
+     * ne l'a pas encore ï¿½tï¿½.
      */
     protected ResourceBundle getResource(String name, String language) throws IllegalArgumentException {
-        // Vérification des paramètres
+        // Vï¿½rification des paramï¿½tres
         if (language == null || language.length() != 2) {
-            throw new IllegalArgumentException("Le code langue est obligatoire et correspond au code ISO-639 de la langue. (2 caractères)");
+            throw new IllegalArgumentException("Le code langue est obligatoire et correspond au code ISO-639 de la langue. (2 caractï¿½res)");
         }
 
-        // On tente de récupérer le dictionnaire depuis le cache
+        // On tente de rï¿½cupï¿½rer le dictionnaire depuis le cache
         ResourceBundle res = (ResourceBundle)(resources.get(name + "." + language.toLowerCase()));
 
         // S'il n'est pas dans le cache, on l'instancie et on le stocke
@@ -73,14 +73,14 @@ public class ResourceManager {
     }
 
     /**
-     * Stocke le dictionnaire proposé en cache
+     * Stocke le dictionnaire proposï¿½ en cache
      */
     protected void store(ResourceBundle resource, String name, String language) {
         this.resources.put(name + "." + language.toLowerCase(), resource);
     }
 
     /**
-     * Retourne la traduction demandée
+     * Retourne la traduction demandï¿½e
      */
     public String getString(String key, String resourceName, String language) throws IllegalArgumentException {
         if (key == null || key.trim().length() == 0) {

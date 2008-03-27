@@ -5,18 +5,21 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.delta.sequence.ByteProcessor;
 import com.myJava.file.delta.sequence.ByteProcessorException;
 import com.myJava.file.delta.sequence.HashSequence;
 import com.myJava.file.delta.sequence.HashSequenceEntry;
 import com.myJava.file.delta.tools.HashTool;
 import com.myJava.file.delta.tools.LinkedList;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -39,7 +42,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class DeltaReader implements Constants {
-    private static final int LL_BUFFER_SIZE = 100*1024;
+    private static final int LL_BUFFER_SIZE = FrameworkConfiguration.getInstance().getDeltaLinkedListBufferSize();
     
     private long blockSize;
     private HashSequence seq;
@@ -66,7 +69,7 @@ public class DeltaReader implements Constants {
         this.bproc = bproc;
     }
     
-    public void read() throws IOException, DeltaException, DeltaProcessorException, ByteProcessorException {
+    public void read(TaskMonitor monitor) throws IOException, DeltaException, DeltaProcessorException, ByteProcessorException, TaskCancelledException {
         LinkedList currentBlock = new LinkedList(blockSize, LL_BUFFER_SIZE);
         long totalRead = 0;
         long position = 0;
@@ -84,6 +87,8 @@ public class DeltaReader implements Constants {
         }
         
         while (true) {
+        	monitor.checkTaskCancellation();
+        	
             int read = in.read();
             if (read == -1) {
                 if (totalRead == 0 || totalRead == breakSize) {
@@ -113,9 +118,11 @@ public class DeltaReader implements Constants {
             boolean found = false;
             if (totalRead >= blockSize) {
                 if (seq != null && seq.contains(currentQuickHash)) {
+                	//Logger.defaultLogger().fine("Quick Hash found : " + currentQuickHash + " - Total read = " + totalRead + " - Last Block index = " + lastBlockIndex + " - Position = " + position);
                     byte[] fh = currentBlock.computeHash(hashAlgorithm);
                     List entries = seq.get(currentQuickHash, fh);
                     if (entries != null) {
+                    	//Logger.defaultLogger().info(entries.size() + " entries found.");
                         Iterator iter = entries.iterator();
                         HashSequenceEntry candidate = null;
                         while (iter.hasNext()) {
@@ -144,6 +151,8 @@ public class DeltaReader implements Constants {
                             totalRead = 0;
                             found = true;
                         }
+                    } else {
+                    	//Logger.defaultLogger().info("No entries found.");
                     }
                 }
 

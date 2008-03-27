@@ -1,9 +1,5 @@
 package com.myJava.file.delta;
 
-import java.io.FileInputStream;
-
-import com.myJava.file.delta.sequence.FileSequencer;
-import com.myJava.file.delta.sequence.HashSequence;
 import com.myJava.file.delta.sequence.HashSequenceEntry;
 import com.myJava.file.delta.tools.LinkedList;
 
@@ -11,7 +7,7 @@ import com.myJava.file.delta.tools.LinkedList;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -82,26 +78,5 @@ public class DefaultDeltaProcessor implements DeltaProcessor {
         flush();
         System.out.println("End");
         System.out.println("" + totalNew + " new bytes.");
-    }
-
-    public static void main(String[] args) {
-        try {
-            int blocksize = 50;
-            
-            FileInputStream f1 = new FileInputStream("/home/olivier/Desktop/idees_areca2.txt");
-            FileInputStream f2 = new FileInputStream("/home/olivier/Desktop/idees_areca3.txt");
-            
-            DeltaProcessor proc = new DefaultDeltaProcessor();
-            FileSequencer s =  new FileSequencer(f1, blocksize);
-            HashSequence seq = s.getHash();
-            
-            DeltaReader reader = new DeltaReader(seq, f2, new DeltaProcessor[] {proc}, null);
-            reader.read();
-            
-            f1.close();
-            f2.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }

@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * @author Stephane BRUNEL
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -82,6 +82,15 @@ public class ResourceManager {
                 }
             }
         }
+    }
+    
+    public String removeDots(String input) {
+    	String w = input.trim();
+    	if (w.endsWith(":")) {
+    		return w.substring(0, w.length() - 1).trim();
+    	} else {
+    		return input;
+    	}
     }
 
     public String getLabel(String key) {

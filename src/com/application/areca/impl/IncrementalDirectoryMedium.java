@@ -5,12 +5,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Map;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.cache.ArchiveTraceCache;
 import com.application.areca.context.ProcessContext;
+import com.application.areca.metadata.content.ArchiveContent;
+import com.application.areca.metadata.content.ArchiveContentManager;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.InvalidPathException;
 import com.myJava.file.driver.CompressedFileSystemDriver;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.object.PublicClonable;
@@ -18,11 +22,11 @@ import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
- * Support incrémental non compressé (répertoire)
+ * Support incremental non compresse (repertoire)
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -54,11 +58,11 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 
     protected FileSystemDriver buildStorageDriver(File storageDir) throws ApplicationException {
         FileSystemDriver driver = super.buildStorageDriver(storageDir);
-
+        
         if (this.compressionArguments.isCompressed()) {
             driver = new CompressedFileSystemDriver(storageDir, driver, compressionArguments);
         }
-
+        
         return driver;
     }
 
@@ -70,31 +74,34 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
         if (overwrite) {
             type = "image"; 
         }
-        return "Uncompressed " + type + " medium. (" + fileSystemPolicy.getBaseArchivePath() + ")";        
+        return "Uncompressed " + type + " medium. (" + fileSystemPolicy.getArchivePath() + ")";        
     }    
-
+    
     protected void storeFileInArchive(FileSystemRecoveryEntry entry, ProcessContext context) throws ApplicationException {
         File targetFile = new File(context.getCurrentArchiveFile(), entry.getName());
         File targetDirectory = FileSystemManager.getParentFile(targetFile);
         OutputStream out = null;
-        InputStream in = null;
         try {
-            try {
-                if (! FileSystemManager.exists(targetDirectory)) {
-                    FileTool.getInstance().createDir(targetDirectory);
-                }
-
-                out = FileSystemManager.getFileOutputStream(targetFile);
-                in = FileSystemManager.getFileInputStream(entry.getFile());
-
-                this.handler.store(entry, in, out, context);
-            } finally {
-                if (out != null) {
-                    out.close();
-                }
+            if (! FileSystemManager.exists(targetDirectory)) {
+                FileTool.getInstance().createDir(targetDirectory);
             }
+            
+            out = FileSystemManager.getFileOutputStream(targetFile, false, context.getOutputStreamListener());
+            InputStream in = FileSystemManager.getFileInputStream(entry.getFile());
+            
+            this.handler.store(entry, in, out, context);
+        } catch (InvalidPathException e) {
+            throw new ApplicationException("Error storing file " + FileSystemManager.getAbsolutePath(entry.getFile()) + " : " + e.getMessage(), e);
         } catch (Throwable e) {
             throw new ApplicationException("Error storing file " + FileSystemManager.getAbsolutePath(entry.getFile()) + " - target=" + FileSystemManager.getAbsolutePath(targetFile), e);
+        } finally {
+        	if (out != null) {
+        		try {
+					out.close();
+				} catch (IOException e) {
+					Logger.defaultLogger().error(e);
+				}
+        	}
         }
     }
 
@@ -108,33 +115,43 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
             File[] archivesToProcess, 
             boolean overrideRecoveredFiles, 
             File destination, 
-            String[] filters, 
+            Map filtersByArchive, 
             ProcessContext context
     ) throws IOException, ApplicationException {
         if (overrideRecoveredFiles) {
             try {
+            	ArchiveContent[] contents = new ArchiveContent[archivesToProcess.length];
+                for (int i=0; i<archivesToProcess.length; i++) {
+                	contents[i] = ArchiveContentManager.getContentForArchive(this, archivesToProcess[i]);
+                }
+            	
                 context.getInfoChannel().print("Data recovery ...");
                 for (int i=0; i<archivesToProcess.length; i++) {
+                	List filters = null;
+                	if (filtersByArchive != null) {
+                    	filters = (List)filtersByArchive.get(archivesToProcess[i]);
+                	}
+                	
                     context.getTaskMonitor().checkTaskCancellation();
                     context.getInfoChannel().updateCurrentTask(i+1, archivesToProcess.length, FileSystemManager.getPath(archivesToProcess[i]));
                     Logger.defaultLogger().info("Recovering " + FileSystemManager.getPath(archivesToProcess[i]) + " ...");                
-
-                    // Copie de l'élément en cours.
-                    if (filters == null) {
-                        tool.copyDirectoryContent(archivesToProcess[i], destination, context.getTaskMonitor());
-                    } else {
-                        for (int j=0; j<filters.length; j++) {
-                            File sourceFileOrDirectory = new File(archivesToProcess[i], filters[j]);
+                    
+                    // Copie de l'element en cours.
+                    if (filtersByArchive == null) {
+                    	copyFile(archivesToProcess[i], destination, FileSystemManager.getAbsolutePath(archivesToProcess[i]), i, contents, context);
+                    } else if (filters != null) {
+                        for (int j=0; j<filters.size(); j++) {
+                            File sourceFileOrDirectory = new File(archivesToProcess[i], (String)filters.get(j));
                             if (FileSystemManager.exists(sourceFileOrDirectory)) {
-                                File targetDirectory = FileSystemManager.getParentFile(new File(destination, filters[j]));
-                                tool.copy(sourceFileOrDirectory, targetDirectory, context.getTaskMonitor());
+                                File targetDirectory = FileSystemManager.getParentFile(new File(destination, (String)filters.get(j)));
+                                tool.copy(sourceFileOrDirectory, targetDirectory, context.getTaskMonitor(), context.getOutputStreamListener());
                             }
                         }
                     }
-
+    
                     context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, archivesToProcess.length);
                 }
-
+                
                 return new File[] {destination};
             } catch (IOException e) {
                 throw new ApplicationException(e);
@@ -145,29 +162,61 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
             return archivesToProcess;
         }
     }
-
+    
+    private void copyFile(File source, File destination, String root, int index, ArchiveContent[] contents, ProcessContext context) 
+    throws IOException, TaskCancelledException {
+		String localPath = FileSystemManager.getAbsolutePath(source).substring(root.length());
+    	if (FileSystemManager.isFile(source)) {
+    		boolean ok = true;
+    		for (int i=index+1; i<contents.length; i++) {
+    			if (contents[i].contains(new FileSystemRecoveryEntry(root, new File(root, localPath)))) {
+    				ok = false;
+    				System.out.println("ignoring " + source.getAbsolutePath());
+    				break;
+    			}
+    		}
+    		if (ok) {
+    			File tg = new File(destination, localPath);
+    			tool.copyFile(source, FileSystemManager.getFileOutputStream(tg, false, context.getOutputStreamListener()), true, context.getTaskMonitor());
+    		}
+    	} else {
+			tool.createDir(new File(destination, localPath));
+    		File[] files = FileSystemManager.listFiles(source);
+    		for (int i=0; i<files.length; i++) {
+    			copyFile(files[i], destination, root, index, contents, context);
+    		}
+    	}
+    }
+    
     protected void closeArchive(ProcessContext context) throws IOException {
-        // Ne fait rien (répertoire)
+        // Does nothing (directory)
     }
 
-    protected void buildArchiveFromDirectory(File sourceDir, File destination, ProcessContext context) throws ApplicationException {
-        try {
+    protected void computeMergeDirectories(ProcessContext context) {
+    	context.setCurrentArchiveFile(context.getRecoveryDestination());
+	}
+
+	protected void buildMergedArchiveFromDirectory(ProcessContext context) throws ApplicationException {
+        // does nothing
+    	/*
+    	try {
             tool.moveDirectoryContent(sourceDir, destination, true, context.getTaskMonitor());
         } catch (IOException e) {
             throw new ApplicationException(e);
         } catch (TaskCancelledException e) {
             throw new ApplicationException(e);            
         }
+        */
     } 
 
-    public void commitBackup(ProcessContext context) throws ApplicationException {
+	public void commitBackup(ProcessContext context) throws ApplicationException {
         super.commitBackup(context);
-
+        
         if (overwrite) {
             try {
                 this.applyTrace(
                         new File(computeFinalArchivePath()),
-                        ArchiveTraceCache.getInstance().getTrace(this, context.getFinalArchiveFile()),
+                        ArchiveTraceCache.getInstance().getTrace(this, context.getCurrentArchiveFile()),
                         false,
                         false,
                         context); // --> Call to "clean" in "cancel unsensitive" mode
@@ -178,35 +227,22 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
             }
         }
     }
-
+    
     protected void convertArchiveToFinal(ProcessContext context) throws IOException, ApplicationException {
         // Case of empty archive (nothing to store)
         if (! FileSystemManager.exists(context.getCurrentArchiveFile())) {
             AbstractFileSystemMedium.tool.createDir(context.getCurrentArchiveFile());
         }
-
-        try {
-            if (overwrite) {
-                AbstractFileSystemMedium.tool.moveDirectoryContent(context.getCurrentArchiveFile(), context.getFinalArchiveFile(), true, context.getTaskMonitor());
-                AbstractFileSystemMedium.tool.delete(context.getCurrentArchiveFile(), true);
-
-                AbstractFileSystemMedium.tool.moveDirectoryContent(getDataDirectory(context.getCurrentArchiveFile()), getDataDirectory(context.getFinalArchiveFile()), true, context.getTaskMonitor());
-                AbstractFileSystemMedium.tool.delete(getDataDirectory(context.getCurrentArchiveFile()), true);
-            } else {
-                super.convertArchiveToFinal(context);
-            }
-        } catch (TaskCancelledException e) {
-            throw new ApplicationException(e);
-        }
+    	super.convertArchiveToFinal(context);
     }
-
+    
     protected void registerGenericEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException {
         context.getTraceAdapter().writeEntry(entry);
         if (this.overwrite) {
             context.getContentAdapter().writeEntry(entry); // All entries are stored
         }
     }
-
+    
     protected void registerStoredEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException {
         if (! this.overwrite) {
             context.getContentAdapter().writeEntry(entry);

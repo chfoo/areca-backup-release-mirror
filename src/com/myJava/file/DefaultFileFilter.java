@@ -11,12 +11,12 @@ import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
 
 /**
- * FileFilter par défaut : filtre les fichiers par extension.
+ * FileFilter par defaut : filtre les fichiers par extension.
  * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*

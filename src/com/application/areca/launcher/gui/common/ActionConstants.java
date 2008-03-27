@@ -4,7 +4,7 @@ package com.application.areca.launcher.gui.common;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -67,7 +67,7 @@ public interface ActionConstants {
     public static final String CMD_SEARCH_PHYSICAL = "show physical";    
     public static final String CMD_SEARCH_LOGICAL = "show logical";    
     
-    // Actions génériques
+    // Actions gï¿½nï¿½riques
     public static final String ACTION_SAVE = "save";
     public static final String ACTION_TEST = "test";
     public static final String ACTION_SEARCH = "search";

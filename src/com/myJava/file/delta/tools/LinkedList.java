@@ -11,7 +11,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -45,20 +45,20 @@ public class LinkedList {
         this.bufferSize = bufferSize;
     }
 
-    public void add(byte data) {
-        if (size == maxSize) {
-            if ( ! root.canRemove()) {
-                root = root.getNext();
-            }
-            root.remove();
-            size--;
-        }
-        
+    public void add(byte data) {       
         if (root == null) {
             root = new LinkedListElement(bufferSize);
             root.add(data);
             current = root;
         } else {
+            if (size == maxSize) {
+                if ( ! root.canRemove()) {
+                    root = root.getNext();
+                }
+                root.remove();
+                size--;
+            }
+        	
             if (! current.canAdd()) {
                 current.setNext(new LinkedListElement(bufferSize));
                 current = current.getNext();

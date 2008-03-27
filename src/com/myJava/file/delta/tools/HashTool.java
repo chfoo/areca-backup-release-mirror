@@ -1,10 +1,12 @@
 package com.myJava.file.delta.tools;
 
+import com.myJava.configuration.FrameworkConfiguration;
+
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -27,13 +29,14 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class HashTool {
-    private static final int MODULUS = 200000;
+    private static final int MODULUS = FrameworkConfiguration.getInstance().getDeltaQuickHashModulus();
+    private static final int MULTIPLIER = FrameworkConfiguration.getInstance().getDeltaQuickHashMultiplier();
     
     public static int hash(int currentHash, byte value) {
-        return (currentHash + value) % MODULUS;
+        return (currentHash + MULTIPLIER * Math.abs(value)) % MODULUS;
     }
     
     public static int update(int currentHash, byte newValue, byte oldValue) {
-        return (currentHash + newValue - oldValue) % MODULUS;
+        return (currentHash + MULTIPLIER * (Math.abs(newValue) - Math.abs(oldValue))) % MODULUS;
     }
 }

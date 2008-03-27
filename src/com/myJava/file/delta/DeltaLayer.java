@@ -1,5 +1,6 @@
 package com.myJava.file.delta;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -7,6 +8,7 @@ import com.myJava.file.delta.bucket.Bucket;
 import com.myJava.file.delta.bucket.NewBytesBucket;
 import com.myJava.file.delta.bucket.ReadPreviousBucket;
 import com.myJava.file.delta.tools.IOHelper;
+import com.myJava.object.ToStringHelper;
 
 /**
  * Implements a diff layer over the original file.
@@ -14,7 +16,7 @@ import com.myJava.file.delta.tools.IOHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -46,9 +48,11 @@ implements Constants {
     
     private InputStream stream;
     private Bucket currentBucket;
+    private String name;
 
-    public DeltaLayer(InputStream stream) {
+    public DeltaLayer(InputStream stream, String name) {
         this.stream = stream;
+        this.name = name;
     }
 
     public InputStream getStream() {
@@ -68,7 +72,7 @@ implements Constants {
      * <BR>This bucket can be accessed by the "getCurrentBucket()" method.
      */
     public void readNextBucket() throws IOException {
-        int read = stream.read(tmpBytes);
+        int read = IOHelper.readFully(stream, tmpBytes);
         
         if (read == -1) {
             currentBucket = null;
@@ -76,8 +80,18 @@ implements Constants {
             long sig = IOHelper.get64(tmpBytes, 0);
             if (sig == SIG_NEW) {
                 currentBucket = tmpOverride;
-            } else {
+            } else if (sig == SIG_READ) {
                 currentBucket = tmpPrevious;            
+            } else {
+            	String message = "Illegal signature : " + ToStringHelper.serialize(tmpBytes) + " (" + sig + "). ";
+            	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            	message += "Expected ";
+            	IOHelper.writeLong(SIG_NEW, baos);
+            	message += ToStringHelper.serialize(baos.toByteArray()) + " or ";
+            	baos.reset();
+            	IOHelper.writeLong(SIG_READ, baos);
+            	message += ToStringHelper.serialize(baos.toByteArray()) + ".";
+            	throw new IOException(message);
             }
             currentBucket.init(stream);
             currentBucket.setFrom(tmpFrom);
@@ -94,10 +108,17 @@ implements Constants {
         while (currentBucket != null) {
             sb.append("\n").append(currentBucket.toString());
             if (currentBucket.getSignature() == SIG_NEW) {
-                stream.skip(currentBucket.getLength());
+            	IOHelper.skipFully(stream, currentBucket.getLength());
             }
             readNextBucket();
         }
         return sb.toString();
+    }
+    
+    public String toString() {
+    	StringBuffer sb = ToStringHelper.init(this);
+    	ToStringHelper.append("Name", name, sb);
+    	ToStringHelper.append("CurrentBucket", currentBucket, sb);    		
+    	return ToStringHelper.close(sb);
     }
 }

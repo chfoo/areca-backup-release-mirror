@@ -11,7 +11,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -37,7 +37,7 @@ public class ArecaImages {
     private static final boolean showSmallIcons = false;//OSTool.isSystemWindows(); 
     private static final String B_PREFIX = showSmallIcons ? "" : "big/";
 
-    // Général
+    // General
     public static Image ICO_SMALL = loadImage("ico_16.png");
     public static Image ICO_BIG = loadImage("ico_72.png");
     public static Image ICO_VOID = loadImage("void.png");
@@ -69,8 +69,8 @@ public class ArecaImages {
     // ACTIONS
     public static Image ICO_ACT_ARCHIVE = loadImage("db_add.png");
     public static Image ICO_ACT_ARCHIVE_B = loadImage(B_PREFIX + "db_add.png");
-    public static Image ICO_ACT_COMPACT = loadImage("db_update.png");
-    public static Image ICO_ACT_COMPACT_B = loadImage(B_PREFIX + "db_update.png");
+    public static Image ICO_ACT_MERGE = loadImage("db_update.png");
+    public static Image ICO_ACT_MERGE_B = loadImage(B_PREFIX + "db_update.png");
     public static Image ICO_ACT_RESTAURE = loadImage("db_comit.png");
     public static Image ICO_ACT_RESTAURE_B = loadImage(B_PREFIX + "db_comit.png");    
     public static Image ICO_ACT_DELETE = loadImage("db_remove.png");

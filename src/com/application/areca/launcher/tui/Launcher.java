@@ -7,13 +7,14 @@ import java.util.List;
 
 import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.AbstractRecoveryTarget;
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.UserInformationChannel;
 import com.application.areca.adapters.ProcessXMLReader;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.launcher.CommandConstants;
 import com.application.areca.launcher.InvalidCommandException;
 import com.application.areca.launcher.UserCommandLine;
+import com.application.areca.metadata.manifest.Manifest;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.CalendarUtils;
@@ -28,7 +29,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -62,7 +63,7 @@ implements CommandConstants {
     }
     
     /**
-     * Méthode principale de lancement.
+     * Methode principale de lancement.
      * @param args
      */
     protected void launchImpl(String[] args) {
@@ -71,7 +72,7 @@ implements CommandConstants {
             command = new UserCommandLine(args);
             command.parse();
             
-            // On logge dans le répertoire du fichier de config
+            // On logge dans le repertoire du fichier de config
             if (command.hasOption(OPTION_CONFIG)) {
                 File f = new File(command.getOption(OPTION_CONFIG));
                 if (FileSystemManager.exists(f)) {
@@ -92,15 +93,15 @@ implements CommandConstants {
             
             ProcessXMLReader adapter = new ProcessXMLReader(command.getOption(OPTION_CONFIG));
             adapter.setMissingDataListener(new MissingDataListener());
-            RecoveryProcess process = adapter.load();
+            TargetGroup process = adapter.load();
             AbstractRecoveryTarget target = null;
             if (command.hasOption(OPTION_TARGET)) {
                 target = getTarget(process, command.getOption(OPTION_TARGET));
             }
             ProcessContext context = new ProcessContext(target, channel, new TaskMonitor("tui-main"));
             
-            if (command.getCommand().equalsIgnoreCase(COMMAND_COMPACT.getName())) {
-                processCompact(command, process, context);
+            if (command.getCommand().equalsIgnoreCase(COMMAND_MERGE.getName())) {
+                processMerge(command, process, context);
             } else if (command.getCommand().equalsIgnoreCase(COMMAND_RECOVER.getName())) {
                 processRecover(command, process, context);
             } else if (command.getCommand().equalsIgnoreCase(COMMAND_BACKUP.getName())) {
@@ -121,8 +122,8 @@ implements CommandConstants {
             channel.print("Syntax   : (command) (options)");
             channel.print("Commands : describe / backup / merge / delete / recover");
             channel.print("Options (describe): -config (your xml config file)");
-            channel.print("Options (backup)  : -config (your xml config file) [-f] [-d] [-target (specific target)]");
-            channel.print("Options (merge) : -config (your xml config file) -target (specific target)  [-k] -date (recovery date : YYYY-MM-DD) / -from (nr of days - 0='-infinity') -to (nr of days - 0='today')");
+            channel.print("Options (backup)  : -config (your xml config file) [-f] [-d] [-target (specific target)] [-title (archive title)]");
+            channel.print("Options (merge) : -config (your xml config file) -target (specific target) [-title (archive title)] [-k] -date (recovery date : YYYY-MM-DD) / -from (nr of days - 0='-infinity') -to (nr of days - 0='today')");
             channel.print("Options (delete) : -config (your xml config file) -target (specific target) [-date (recovery date : YYYY-MM-DD) / -delay (nr of days)]");
             channel.print("Options (recover) : -config (your xml config file) -target (specific target) -destination (destination folder) [-date (recovery date : YYYY-MM-DD)]");
             channel.print(SEPARATOR);
@@ -142,7 +143,7 @@ implements CommandConstants {
         }
         channel.print(SEPARATOR);
         
-        // On logge tout systématiquement.
+        // On logge tout systematiquement.
         Logger.defaultLogger().error(e);
     }
     
@@ -152,7 +153,7 @@ implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processBackup(UserCommandLine command, final RecoveryProcess process, final ProcessContext context) throws Exception {
+    private static void processBackup(UserCommandLine command, final TargetGroup process, final ProcessContext context) throws Exception {
         final String backupScheme;
         String fOption = command.getOption(OPTION_FULL_BACKUP);
         String dOption = command.getOption(OPTION_DIFFERENTIAL_BACKUP);        
@@ -164,10 +165,19 @@ implements CommandConstants {
             backupScheme = AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL;
         }
         
+        final Manifest manifest;
+        if (command.hasOption(OPTION_TITLE)) {
+        	manifest = new Manifest(Manifest.TYPE_BACKUP);
+        	manifest.setTitle(command.getOption(OPTION_TITLE));
+        } else {
+        	manifest = null;
+        }
+        
         if (command.hasOption(OPTION_TARGET)) {
-            AbstractRecoveryTarget target = getTarget(process, command.getOption(OPTION_TARGET));
+            AbstractRecoveryTarget target = getTarget(process, command.getOption(OPTION_TARGET));            
             process.processBackupOnTarget(
                     target,
+                    manifest,
                     context,
                     backupScheme
             );
@@ -183,6 +193,7 @@ implements CommandConstants {
                         try {
                             process.processBackupOnTarget(
                                     tg,
+                                    manifest,
                                     cloneCtx,
                                     backupScheme
                             );
@@ -212,7 +223,7 @@ implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processCompact(UserCommandLine command, RecoveryProcess process, ProcessContext context) throws Exception {
+    private static void processMerge(UserCommandLine command, TargetGroup process, ProcessContext context) throws Exception {
         String strDelay = command.getOption(OPTION_DELAY);
         String strFrom = command.getOption(OPTION_FROM);
         String strTo = command.getOption(OPTION_TO);
@@ -222,6 +233,14 @@ implements CommandConstants {
                 command.getOption(OPTION_KEEP_DELETED_ENTRIES) != null
                 && command.getOption(OPTION_KEEP_DELETED_ENTRIES).trim().length() != 0
         );
+        
+        final Manifest manifest;
+        if (command.hasOption(OPTION_TITLE)) {
+        	manifest = new Manifest(Manifest.TYPE_MERGE);
+        	manifest.setTitle(command.getOption(OPTION_TITLE));
+        } else {
+        	manifest = null;
+        }
         
         if (strDelay != null || strFrom != null || strTo != null) {
             // A delay (in days) is provided
@@ -237,21 +256,22 @@ implements CommandConstants {
                 to = Integer.parseInt(strDelay);
             }
             
-            process.processCompactOnTarget(
+            process.processMergeOnTarget(
                     target,
                     from, 
                     to,
                     keepDeletedEntries,
+                    manifest,
                     context
             );
         } else {
             // A full date is provided
-            process.processCompactOnTarget(
+            process.processMergeOnTarget(
                     target,
                     null,
                     CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null),
                     keepDeletedEntries,
-                    null,
+                    manifest,
                     context
             );
         }
@@ -263,7 +283,7 @@ implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processDelete(UserCommandLine command, RecoveryProcess process, ProcessContext context) throws Exception {
+    private static void processDelete(UserCommandLine command, TargetGroup process, ProcessContext context) throws Exception {
         String strDelay = command.getOption(OPTION_DELAY);
         AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         if (strDelay != null) {
@@ -289,7 +309,7 @@ implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processRecover(UserCommandLine command, RecoveryProcess process, ProcessContext context) throws Exception {
+    private static void processRecover(UserCommandLine command, TargetGroup process, ProcessContext context) throws Exception {
         AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         
         String destination = command.getOption(OPTION_DESTINATION);
@@ -312,19 +332,19 @@ implements CommandConstants {
      * @param command
      * @param process
      */
-    private static void processDescribe(UserCommandLine command, RecoveryProcess process, ProcessContext context) throws Exception {
-        channel.print(process.getDescription());
+    private static void processDescribe(UserCommandLine command, TargetGroup process, ProcessContext context) throws Exception {
+        channel.print("\n" + process.getDescription());
     }
     
     /**
-     * Retourne la target demandée.
+     * Retourne la target demandee.
      *
      * @param process
      * @param targetId
      * @return
      * @throws InvalidCommandException
      */
-    private static AbstractRecoveryTarget getTarget(RecoveryProcess process, String targetId) throws InvalidCommandException {
+    private static AbstractRecoveryTarget getTarget(TargetGroup process, String targetId) throws InvalidCommandException {
         AbstractRecoveryTarget target = process.getTargetById(Integer.parseInt(targetId));
         if (target == null) {
             throw new InvalidCommandException("Invalid target ID : [" + targetId + "]");

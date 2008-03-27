@@ -10,7 +10,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -28,7 +28,7 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -104,55 +104,52 @@ extends AbstractWindow {
     private void initDataPanel(Composite parent) {
         parent.setLayout(new FillLayout());
         Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout(2, false);
-        composite.setLayout(layout);
+        composite.setLayout(new GridLayout(1, false));
         
         // TITLE
-        Label lblTitle = new Label(composite, SWT.NONE);
-        lblTitle.setText(RM.getLabel("archivedetail.titlefield.label"));
+        Group grpTitle = new Group(composite, SWT.NONE);
+        grpTitle.setText(RM.removeDots(RM.getLabel("archivedetail.titlefield.label")));
+        grpTitle.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        grpTitle.setLayout(new GridLayout());
         
-        Text txtTitle = new Text(composite, SWT.BORDER);
-        GridData ldTitle = new GridData();
-        ldTitle.grabExcessHorizontalSpace = true;
-        ldTitle.horizontalAlignment = SWT.FILL;
-        txtTitle.setLayoutData(ldTitle);
+        Text txtTitle = new Text(grpTitle, SWT.BORDER);
+        txtTitle.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         txtTitle.setEditable(false);
         
         // DATE
-        Label lblDate = new Label(composite, SWT.NONE);
-        lblDate.setText(RM.getLabel("archivedetail.datefield.label"));
+        Group grpDate = new Group(composite, SWT.NONE);
+        grpDate.setText(RM.removeDots(RM.getLabel("archivedetail.datefield.label")));
+        grpDate.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        grpDate.setLayout(new GridLayout());
         
-        Text txtDate = new Text(composite, SWT.BORDER);
-        GridData ldDate = new GridData();
-        ldDate.grabExcessHorizontalSpace = true;
-        ldDate.horizontalAlignment = SWT.FILL;
-        txtDate.setLayoutData(ldDate);
+        Text txtDate = new Text(grpDate, SWT.BORDER);
+        txtDate.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         txtDate.setEditable(false);
 
         // DESCRIPTION
-        Label lblDescription = new Label(composite, SWT.NONE);
-        lblDescription.setText(RM.getLabel("archivedetail.descriptionfield.label"));
+        Group grpDescription = new Group(composite, SWT.NONE);
+        grpDescription.setText(RM.removeDots(RM.getLabel("archivedetail.descriptionfield.label")));
+        grpDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        grpDescription.setLayout(new GridLayout());
         
-        Text txtDescription = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+        Text txtDescription = new Text(grpDescription, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
         GridData ldDescription = new GridData(SWT.FILL, SWT.FILL, true, true);
-        ldDescription.heightHint = computeHeight(70);
-        ldDescription.minimumHeight = computeHeight(70);
+        ldDescription.heightHint = computeHeight(50);
+        ldDescription.minimumHeight = computeHeight(50);
         txtDescription.setLayoutData(ldDescription);
         txtDescription.setEditable(false);
         
         // PROPERTIES
-        Label lblProperties = new Label(composite, SWT.NONE);
-        lblProperties.setText(RM.getLabel("archivedetail.propertiesfield.label"));
+        Group grpProperties = new Group(composite, SWT.NONE);
+        grpProperties.setText(RM.removeDots(RM.getLabel("archivedetail.propertiesfield.label")));
+        grpProperties.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        grpProperties.setLayout(new GridLayout());
         
-        TableViewer viewer = new TableViewer(composite, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
+        TableViewer viewer = new TableViewer(grpProperties, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL);
         Table table = viewer.getTable();
         table.setLinesVisible(false);
         table.setHeaderVisible(true);
-        GridData ldProperties = new GridData();
-        ldProperties.grabExcessHorizontalSpace = true;
-        ldProperties.horizontalAlignment = SWT.FILL;
-        ldProperties.grabExcessVerticalSpace = true;
-        ldProperties.verticalAlignment = SWT.FILL;
+        GridData ldProperties = new GridData(SWT.FILL, SWT.FILL, true, true);
         ldProperties.minimumHeight = computeHeight(100);
         table.setLayoutData(ldProperties);
         TableColumn col1 = new TableColumn (table, SWT.NONE);

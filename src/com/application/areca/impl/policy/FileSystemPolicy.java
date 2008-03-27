@@ -1,5 +1,7 @@
 package com.application.areca.impl.policy;
 
+import java.io.File;
+
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
 import com.myJava.file.driver.FileSystemDriver;
@@ -9,7 +11,7 @@ import com.myJava.object.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -33,7 +35,10 @@ This file is part of Areca.
  */
 public interface FileSystemPolicy extends PublicClonable {
     public String getId();
-    public String getBaseArchivePath();
+    public String getArchivePath();
+    public File getArchiveDirectory();
+    public String getArchiveName();
+    public void setArchiveName(String s);
     public FileSystemDriver initFileSystemDriver() throws ApplicationException;
     public String getDisplayableParameters();
     public void validate(boolean extendedTests) throws ApplicationException;

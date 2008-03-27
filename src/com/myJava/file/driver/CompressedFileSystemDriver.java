@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 
 import com.myJava.file.CompressionArguments;
+import com.myJava.file.OutputStreamListener;
 import com.myJava.file.archive.zip64.ZipEntry;
 import com.myJava.file.archive.zip64.ZipInputStream;
 import com.myJava.file.archive.zip64.ZipOutputStream;
@@ -19,11 +20,11 @@ import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
 
 /**
- * Driver "chainable" apportant des fonctionnalités de compression.
+ * "Linkable" driver with compression capabilities
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -95,6 +96,7 @@ extends AbstractLinkableFileSystemDriver {
 
     public FileInformations getInformations(File file) {
         File[] f = resolveFiles(file);
+        boolean bool = true;
         FileInformations fi = null;
         long length = -1;
         for (int i=0; i<f.length; i++) {
@@ -171,7 +173,7 @@ extends AbstractLinkableFileSystemDriver {
         if (files != null) {
             ArrayList list = new ArrayList();
             for (int i=0; i<files.length; i++) {
-                if ((! compression.isExtensionEnabled()) || files[i].getName().endsWith(compression.getExtension())) {
+                if ((! compression.isAddExtension()) || files[i].getName().endsWith(CompressionArguments.ZIP_SUFFIX)) {
                     list.add(this.decode(files[i]));
                 }
             }
@@ -209,7 +211,7 @@ extends AbstractLinkableFileSystemDriver {
         boolean bool = true;
         
         File target = new File(encode(predecessor.getParentFile(dest)), predecessor.getName(dest));
-        ZipVolumeStrategy vol = new ZipVolumeStrategy(target, compression.getExtension());
+        ZipVolumeStrategy vol = new ZipVolumeStrategy(target, compression.getNbDigits());
         for (int i=0; i<f.length; i++) {
             File encodedDest;
             if (i == f.length - 1) {
@@ -226,7 +228,14 @@ extends AbstractLinkableFileSystemDriver {
         return bool;
     }
     
-    public boolean setLastModified(File file, long time) {
+	public void mount() throws IOException {
+		if (compression.isMultiVolumes() && ! compression.isAddExtension()) {
+			throw new IllegalStateException("The \".zip\" extension is mandatory if zip-splitting is enabled.");
+		}
+		super.mount();
+	}
+
+	public boolean setLastModified(File file, long time) {
         File[] f = resolveFiles(file);
         boolean bool = true;
         for (int i=0; i<f.length; i++) {
@@ -254,7 +263,7 @@ extends AbstractLinkableFileSystemDriver {
         ZipInputStream zin;
         if (compression.isMultiVolumes()) {
             File target = new File(encode(predecessor.getParentFile(file)), predecessor.getName(file));
-            ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, false, compression.getExtension());
+            ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, false, compression.getNbDigits());
             zin = new ZipInputStream(new VolumeInputStream(strategy));
         } else {
             zin = new ZipInputStream(predecessor.getFileInputStream(encode(file)));
@@ -267,21 +276,28 @@ extends AbstractLinkableFileSystemDriver {
     }
     
     public OutputStream getCachedFileOutputStream(File file) throws IOException {
-        return getOutputStream(file, true);
+        return getOutputStream(file, true, null);
     }    
     
     public OutputStream getFileOutputStream(File file) throws IOException {
-        return getOutputStream(file, false);
+        return getOutputStream(file, false, null);
     }    
     
-    private OutputStream getOutputStream(File file, boolean cached) throws IOException {
+    private OutputStream getOutputStream(File file, boolean cached, OutputStreamListener listener) throws IOException {
         ZipOutputStream zout;
         if (compression.isMultiVolumes()) {
             File target = new File(encode(predecessor.getParentFile(file)), predecessor.getName(file));
-            ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, cached, compression.getExtension());
+            ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, cached, compression.getNbDigits());
+            strategy.setListener(listener);
             zout = new ZipOutputStream(strategy, compression.getVolumeSize() * 1024 * 1024, compression.isUseZip64());
         } else {
-            zout = new ZipOutputStream(predecessor.getFileOutputStream(encode(file)), compression.isUseZip64());
+        	OutputStream base;
+        	if (cached) {
+        		base = predecessor.getCachedFileOutputStream(encode(file)); // ! to fix : listener is ignored
+        	} else {
+        		base = predecessor.getFileOutputStream(encode(file), false, listener);        		
+        	}
+            zout = new ZipOutputStream(base, compression.isUseZip64());
         }
         if (compression.getCharset() != null) {
             zout.setCharset(compression.getCharset());
@@ -293,11 +309,15 @@ extends AbstractLinkableFileSystemDriver {
         return zout;
     }    
     
-    public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
+    public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException {
         if (append) {
             throw new IllegalArgumentException("Cannot open an OutputStream in 'append' mode on a compressed FileSystem");
         }
-        return getFileOutputStream(file);
+        return getOutputStream(file, false, listener);
+	}
+
+	public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
+        return getFileOutputStream(file, append, null);
     }   
 
     public void deleteOnExit(File file) {
@@ -369,7 +389,7 @@ extends AbstractLinkableFileSystemDriver {
         } else {
             if (compression.isMultiVolumes()) {
                 File target = new File(encode(predecessor.getParentFile(orig)), predecessor.getName(orig));
-                ZipVolumeStrategy vol = new ZipVolumeStrategy(target, compression.getExtension());
+                ZipVolumeStrategy vol = new ZipVolumeStrategy(target, compression.getNbDigits());
                 ArrayList list = new ArrayList(1);
                 while (true) {
                     File f = vol.getNextFile();
@@ -397,14 +417,14 @@ extends AbstractLinkableFileSystemDriver {
     }
     
     private String encode(String name) {
-        return compression.isExtensionEnabled() ? name + compression.getExtension() : name;
+        return compression.isAddExtension() ? name + CompressionArguments.ZIP_SUFFIX : name;
     }
     
     private String decode(String name) {
-        if (compression.isExtensionEnabled() && (! name.endsWith(compression.getExtension()))) {
-            throw new IllegalArgumentException("Illegal file name : " + name + ". It is expected to end with '" + compression.getExtension() + "'");
+        if (compression.isAddExtension() && (! name.endsWith(CompressionArguments.ZIP_SUFFIX))) {
+            throw new IllegalArgumentException("Illegal file name : " + name + ". It is expected to end with '" + CompressionArguments.ZIP_SUFFIX + "'");
         }
-        return compression.isExtensionEnabled() ? name.substring(0, name.length() - compression.getExtension().length()) : name;
+        return compression.isAddExtension() ? name.substring(0, name.length() - CompressionArguments.ZIP_SUFFIX.length()) : name;
     }
     
     protected static class FilenameFilterAdapter implements FilenameFilter {

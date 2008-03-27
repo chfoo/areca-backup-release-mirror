@@ -12,7 +12,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -87,19 +87,19 @@ public class DataEntry {
         this.length = length;
     }
     
-    private Map getContent() {
+    private synchronized Map getOrCreateContent() {
         if (contentMap == null) {
             contentMap = new HashMap();
         }
         return contentMap;
     }
     
-    private void clearPopulated() {
+    private synchronized void clearPopulated() {
         this.populated = false;
         this.populatedFilters = null;
     }
     
-    public int computeChildren() {
+    public synchronized int computeChildren() {
         if (this.contentMap == null || this.contentMap.isEmpty()) {
             return 0;
         } else {
@@ -113,16 +113,16 @@ public class DataEntry {
         }
     }
     
-    public void clearChildren() {
+    public synchronized void clearChildren() {
         this.contentMap = null;
         this.clearPopulated();
     }
     
-    public void putEntry(String name, DataEntry entry) {
+    public synchronized void putEntry(String name, DataEntry entry) {
         if (this.directorySet && (! this.directory)) {
             throw new IllegalArgumentException("This entry is a directory.");
         }
-        if (getContent().put(name, entry) != null) {
+        if (getOrCreateContent().put(name, entry) != null) {
             throw new IllegalStateException("An entry already exists.");
         }
         entry.setParent(this);
@@ -135,7 +135,7 @@ public class DataEntry {
      * <BR>
      * <BR>Throw a NonExistingEntryException if the entry does not exist
      */
-    public DataEntry getEntry(String name) throws NonExistingEntryException {
+    public synchronized DataEntry getEntry(String name) throws NonExistingEntryException {
         DataEntry entry = null;
         if (this.contentMap != null) {
             entry = (DataEntry)this.contentMap.get(name);
@@ -147,20 +147,20 @@ public class DataEntry {
         return entry;
     }
     
-    public Set getNames() {
+    public synchronized Set getNames() {
         if (this.directorySet && (! this.directory)) {
             return new HashSet();
         } else {
-            return this.getContent().keySet();
+            return this.getOrCreateContent().keySet();
         }
     }
 
-    public void setPopulated() {
+    public synchronized void setPopulated() {
         this.populated = true;
         this.populatedFilters = null;
     }
     
-    public void setPopulated(Object filter) {
+    public synchronized void setPopulated(Object filter) {
         if (filter == null) {
             this.setPopulated();
         } else if (! populated) {
@@ -172,7 +172,7 @@ public class DataEntry {
         return populated;
     }
     
-    public boolean isPopulated(Object filter) {
+    public synchronized boolean isPopulated(Object filter) {
         if (populated || filter == null) {
             return populated;
         } else if (populatedFilters == null) {
@@ -182,7 +182,7 @@ public class DataEntry {
         }
     }
     
-    public void remove(String name) {
+    public synchronized void remove(String name) {
         if (this.contentMap != null) {
             this.contentMap.remove(name);
             clearPopulated();
@@ -231,7 +231,7 @@ public class DataEntry {
         return tested != UNSET;
     }
 
-    private Set getOrCreatePopulatedFilters() {
+    private synchronized Set getOrCreatePopulatedFilters() {
         if (populatedFilters == null) {
             this.populatedFilters = new HashSet();
         }

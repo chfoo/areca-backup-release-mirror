@@ -5,7 +5,7 @@ package com.application.areca.indicator;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -31,20 +31,11 @@ public class Indicator {
 
     private Integer id;
     private String name;
-    private String description;
     private String stringValue;
     private double value;
     
     public Indicator() {
         super();
-    }
-
-    public String getDescription() {
-        return description;
-    }
-    
-    public void setDescription(String description) {
-        this.description = description;
     }
     
     public Integer getId() {

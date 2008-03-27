@@ -20,6 +20,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import com.myJava.encryption.EncryptionUtil;
+import com.myJava.file.OutputStreamListener;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.file.driver.hash.HashFileSystemDriver;
 import com.myJava.object.EqualsHelper;
@@ -28,13 +29,13 @@ import com.myJava.object.ToStringHelper;
 import com.myJava.util.log.Logger;
 
 /**
- * Driver "chainable" apportant des fonctionnalités de cryptage.
- * <BR>Les fichiers (noms, répertoires et contenus) sont cryptés avant traitement
- * par le Driver prédécesseur. 
+ * Driver "chainable" apportant des fonctionnalitï¿½s de cryptage.
+ * <BR>Les fichiers (noms, rï¿½pertoires et contenus) sont cryptï¿½s avant traitement
+ * par le Driver prï¿½dï¿½cesseur. 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -60,7 +61,7 @@ public class EncryptedFileSystemDriver
 extends AbstractLinkableFileSystemDriver {
 
     /**
-     * La racine du répertoire qui sera crypté.
+     * La racine du rï¿½pertoire qui sera cryptï¿½.
      */
     protected File directoryRoot;
     
@@ -286,15 +287,19 @@ extends AbstractLinkableFileSystemDriver {
     }    
     
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
+    	return getFileOutputStream(file, append, null);
+    }  
+
+    public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException {
         if (append) {
             throw new IllegalArgumentException("Cannot open an OutputStream in 'append' mode on an encrypted FileSystem");
         }
         
         File target = this.encryptFileName(file);
-        return new CipherOutputStream(predecessor.getFileOutputStream(target, append), buildNewCipher(Cipher.ENCRYPT_MODE)); 
-    }    
-    
-    private Cipher buildNewCipher(int mode) {
+        return new CipherOutputStream(predecessor.getFileOutputStream(target, append, listener), buildNewCipher(Cipher.ENCRYPT_MODE)); 
+	}
+
+	private Cipher buildNewCipher(int mode) {
         try {
             Cipher cipher = Cipher.getInstance(this.transformation);
             if (this.iv == null) {
@@ -338,7 +343,7 @@ extends AbstractLinkableFileSystemDriver {
     }
     
     /**
-     * Crypte le nom du fichier/répertoire (nom court, sans répertoires parents) 
+     * Crypte le nom du fichier/rï¿½pertoire (nom court, sans rï¿½pertoires parents) 
      */
     protected String encryptFileName(String shortName) {       
         try {
@@ -375,7 +380,7 @@ extends AbstractLinkableFileSystemDriver {
     }
     
     /**
-     * Décrypte le nom du fichier/répertoire (nom court, sans répertoires parents) 
+     * Dï¿½crypte le nom du fichier/rï¿½pertoire (nom court, sans rï¿½pertoires parents) 
      */
     protected String decryptFileName(String shortName) {
         try {

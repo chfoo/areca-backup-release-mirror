@@ -1,12 +1,12 @@
 package com.myJava.util;
 
 /**
- * Classe abstraite chargée d'implémenter les règles standard :
- * Vérification de non nullité, de format numérique, email, password, etc.
+ * Classe abstraite chargï¿½e d'implï¿½menter les rï¿½gles standard :
+ * Vï¿½rification de non nullitï¿½, de format numï¿½rique, email, password, etc.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -32,14 +32,14 @@ This file is part of Areca.
 public abstract class CommonRules {
 
     /**
-     * Vérification de nullité
+     * Vï¿½rification de nullitï¿½
      */
     public static boolean checkEmptyString(Object value) {
         return (value == null || value.toString().trim().equals(""));
     }
 
     /**
-     * Vérification de valeur décimale
+     * Vï¿½rification de valeur dï¿½cimale
      */
     public static boolean checkDouble(String value, boolean checkPositiveValue) {
         try {
@@ -51,7 +51,7 @@ public abstract class CommonRules {
     }
 
     /**
-     * Vérification de valeur décimale
+     * Vï¿½rification de valeur dï¿½cimale
      */
     public static boolean checkDouble(String value, double minValue, double maxValue) {
         try {
@@ -63,7 +63,7 @@ public abstract class CommonRules {
     }
 
     /**
-     * Vérification de valeur décimale
+     * Vï¿½rification de valeur dï¿½cimale
      */
     public static boolean checkDouble(String value, double maxValue) {
         try {
@@ -75,14 +75,14 @@ public abstract class CommonRules {
     }
 
     /**
-     * Vérification de valeur décimale
+     * Vï¿½rification de valeur dï¿½cimale
      */
     public static boolean checkDouble(String value) {
         return CommonRules.checkDouble(value, false);
     }
 
     /**
-     * Vérification de valeur entière
+     * Vï¿½rification de valeur entiï¿½re
      */
     public static boolean checkInteger(String value, boolean checkPositiveValue) {
         try {
@@ -94,7 +94,7 @@ public abstract class CommonRules {
     }
 
     /**
-     * Vérification de valeur entière
+     * Vï¿½rification de valeur entiï¿½re
      */
     public static boolean checkInteger(String value, int minValue, int maxValue) {
         try {
@@ -106,7 +106,7 @@ public abstract class CommonRules {
     }
 
     /**
-     * Vérification de valeur entière
+     * Vï¿½rification de valeur entiï¿½re
      */
     public static boolean checkInteger(String value, int maxValue) {
         try {
@@ -118,21 +118,21 @@ public abstract class CommonRules {
     }
 
     /**
-     * Vérification de valeur entière
+     * Vï¿½rification de valeur entiï¿½re
      */
     public static boolean checkInteger(String value) {
         return CommonRules.checkInteger(value, false);
     }
 
     /**
-     * Vérification de longueur maximale
+     * Vï¿½rification de longueur maximale
      */
     public static boolean checkMaxLength(Object value, int maxLength) {
         return (value == null || value.toString().length() <= maxLength);
     }
 
     /**
-     * Vérification format d'email
+     * Vï¿½rification format d'email
      * - non nul
      * - contient un "@"
      * - se termine par "." qq chose
@@ -149,13 +149,13 @@ public abstract class CommonRules {
     }
 
     /**
-     * Vérifie la "force" d'un mot de passe :
-     * - minimumNonAlpha désigne le nombre minimum de caractère non alpha (a-z, A-Z) que doit
+     * Vï¿½rifie la "force" d'un mot de passe :
+     * - minimumNonAlpha dï¿½signe le nombre minimum de caractï¿½re non alpha (a-z, A-Z) que doit
      *   comporter le password
-     * - minimumNonAlphaNumeric désigne le nombre minimum de caractère non alphanumériques (a-z, A-Z, 0-9) que doit
+     * - minimumNonAlphaNumeric dï¿½signe le nombre minimum de caractï¿½re non alphanumï¿½riques (a-z, A-Z, 0-9) que doit
      *   comporter le password
-     * - être différent de la valeur "oldValue"
-     * - Avoir une taille supérieure à minLength
+     * - ï¿½tre diffï¿½rent de la valeur "oldValue"
+     * - Avoir une taille supï¿½rieure ï¿½ minLength
      */
     public static boolean checkPasswordStrength(
                                                     String value,
@@ -187,12 +187,12 @@ public abstract class CommonRules {
     }
 
     /**
-     * Vérifie la "force" d'un mot de passe :
-     * - minimumNonAlpha désigne le nombre minimum de caractère non alpha (a-z, A-Z) que doit
+     * Vï¿½rifie la "force" d'un mot de passe :
+     * - minimumNonAlpha dï¿½signe le nombre minimum de caractï¿½re non alpha (a-z, A-Z) que doit
      *   comporter le password
-     * - minimumNonAlphaNumeric désigne le nombre minimum de caractère non alphanumériques (a-z, A-Z, 0-9) que doit
+     * - minimumNonAlphaNumeric dï¿½signe le nombre minimum de caractï¿½re non alphanumï¿½riques (a-z, A-Z, 0-9) que doit
      *   comporter le password
-     * - Avoir une taille supérieure à minLength
+     * - Avoir une taille supï¿½rieure ï¿½ minLength
      */
     public static boolean checkPasswordStrength(
                                                     String value,

@@ -10,12 +10,12 @@ import com.myJava.util.schedule.ScheduledTask;
 
 /**
  * Tache de nettoyage des logs.
- * Cette tâche est lancée automatiquement par le logger si
- * celui ci est marqué comme "historisable"
+ * Cette tï¿½che est lancï¿½e automatiquement par le logger si
+ * celui ci est marquï¿½ comme "historisable"
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -41,17 +41,17 @@ This file is part of Areca.
 public class LogCleaner extends ScheduledTask {
     
     /**
-     *  Logger ayant lancé la tâche
+     *  Logger ayant lancï¿½ la tï¿½che
      */
     protected FileLogProcessor lgcLogger;
     
     /**
-     *  Historique de log conservé (en jours)
+     *  Historique de log conservï¿½ (en jours)
      */
     protected int lgcHistory;
     
     /**
-     * Constructeur : vérification toutes les 2 heures.
+     * Constructeur : vï¿½rification toutes les 2 heures.
      * L'historique s'entend en jours.
      */
     public LogCleaner(FileLogProcessor logger, int history) {
@@ -61,12 +61,12 @@ public class LogCleaner extends ScheduledTask {
     }
     
     /**
-     * Exécution : nettoyage du chemin de log.
-     * liste tous les fichiers du chemin, et vérifie la date
+     * Exï¿½cution : nettoyage du chemin de log.
+     * liste tous les fichiers du chemin, et vï¿½rifie la date
      * pour chacun d'eux.
-     * Si cette date est antérieure à l'historique, alors le fichier
-     * est supprimé.
-     * S'appuie sur la date de dernière modification pour les vérifications.
+     * Si cette date est antï¿½rieure ï¿½ l'historique, alors le fichier
+     * est supprimï¿½.
+     * S'appuie sur la date de derniï¿½re modification pour les vï¿½rifications.
      */
     public void execute() {
         super.execute();
@@ -88,7 +88,7 @@ public class LogCleaner extends ScheduledTask {
     }
     
     /**
-     * Vérifie si le fichier doit être supprimé ou non
+     * Vï¿½rifie si le fichier doit ï¿½tre supprimï¿½ ou non
      */
     protected boolean checkFileToBeDeleted(String fileName) {
         GregorianCalendar fileDate = null;

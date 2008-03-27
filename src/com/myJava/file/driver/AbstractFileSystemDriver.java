@@ -8,16 +8,17 @@ import java.io.InputStream;
 
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileNameUtil;
+import com.myJava.file.InvalidPathException;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.system.OSTool;
 
 /**
- * Implémentation abstraite de l'interface FileSystemDriver
+ * Implï¿½mentation abstraite de l'interface FileSystemDriver
  * <BR>Lance des UnsupportedOperationExceptions.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -182,11 +183,11 @@ implements FileSystemDriver {
         }
     }
     
-    protected void checkFilePath(File f) throws IOException {
+    protected void checkFilePath(File f) throws InvalidPathException {
         if (CHECK_PATH) {
             String p = getAbsolutePath(f);
             if (p != null && p.length() > MAX_FILEPATH) {
-                throw new IOException("File path (" + p + ") exceeds maximum length (" + MAX_FILEPATH + ")");
+                throw new InvalidPathException("File path (" + p + ") exceeds maximum length (" + MAX_FILEPATH + ")");
             }
         }
     }

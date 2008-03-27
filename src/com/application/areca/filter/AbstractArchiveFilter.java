@@ -2,11 +2,11 @@ package com.application.areca.filter;
 
 /**
  * Classe de base des filters.
- * Définit la notion de 'including'/'excluding'
+ * Dï¿½finit la notion de 'including'/'excluding'
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*

@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -41,18 +41,14 @@ This file is part of Areca.
  */
 public class DefaultFileSystemPolicy 
 extends AbstractFileSystemPolicy
-implements FileSystemPolicy {
-    public static final String STORAGE_DIRECTORY_PREFIX = "";
-    
+implements FileSystemPolicy {    
     private static final boolean CACHE = ArecaTechnicalConfiguration.get().isRepositoryHDCache();
     private static final int CACHE_DEPTH = ArecaTechnicalConfiguration.get().getRepositoryHDCacheDepth();
     
-    public static final String DEFAULT_ARCHIVE_NAME = "b";
-    
     /**
-     * Chemin ou seront stockées les archives (zip, sous répertoires, etc.)
+     * Storage path
      */
-    protected String baseArchivePath;
+    protected String archivePath;
     protected ArchiveMedium medium;
 
     public void validate(boolean extendedTests) throws ApplicationException {
@@ -61,30 +57,34 @@ implements FileSystemPolicy {
     public FileSystemDriver initFileSystemDriver() throws ApplicationException {
         FileSystemDriver base = new DefaultFileSystemDriver();
         if (CACHE) {
-            File storageDir = FileSystemManager.getParentFile(new File(getBaseArchivePath()));
+            File storageDir = getArchiveDirectory();
             return new CachedFileSystemDriver(base, FileSystemManager.getParentFile(storageDir), CACHE_DEPTH);
         } else {
             return base;
         }
     }
-    
-    public String getBaseArchivePath() {
-        return baseArchivePath;
-    }
-    
-    public void setBaseArchivePath(String baseArchivePath) {
-        this.baseArchivePath = baseArchivePath;
+
+    public String getArchivePath() {
+		return this.archivePath;
+	}
+
+	public void setArchivePath(String archivePath) {
+		this.archivePath = archivePath;
+	}
+	
+    public void copyAttributes(DefaultFileSystemPolicy policy) {
+    	super.copyAttributes(policy);
+        policy.setArchivePath(archivePath);
     }
 
-    public PublicClonable duplicate() {
-        DefaultFileSystemPolicy other = new DefaultFileSystemPolicy();
-        other.baseArchivePath = baseArchivePath;
-        other.id = id;
-        return other;
+	public PublicClonable duplicate() {
+        DefaultFileSystemPolicy policy = new DefaultFileSystemPolicy();
+        copyAttributes(policy);
+        return policy;
     }
 
     public String getDisplayableParameters() {
-        File tmpF = FileSystemManager.getParentFile(new File(getBaseArchivePath()));
+        File tmpF = getArchiveDirectory();
         File mainStorageDirectory = FileSystemManager.getParentFile(tmpF);
         if (mainStorageDirectory == null) {
             return FileSystemManager.getAbsolutePath(tmpF);
@@ -95,7 +95,8 @@ implements FileSystemPolicy {
     
     public String toString() {
         StringBuffer sb = ToStringHelper.init(this);
-        ToStringHelper.append("Archive", this.baseArchivePath, sb);
+        ToStringHelper.append("Path", this.archivePath, sb);
+        ToStringHelper.append("Name", this.archiveName, sb);
         return ToStringHelper.close(sb);
     }
 
@@ -108,21 +109,18 @@ implements FileSystemPolicy {
     }
     
     public void synchronizeConfiguration() {
-        File archiveFile = new File(baseArchivePath);
-        File archiveStorageDirectory = FileSystemManager.getParentFile(archiveFile); 
+        File archiveStorageDirectory = getArchiveDirectory();
         File rootDirectory = null;
         
         if (! FileSystemManager.getInstance().isRoot(archiveStorageDirectory)) {
             rootDirectory = FileSystemManager.getParentFile(archiveStorageDirectory);
         } else {
             // BAD !
-            Logger.defaultLogger().warn("Inconsistent storage directory : " + baseArchivePath, "DefaultFileSystemPolicy.synchronizeConfiguration()");
+            Logger.defaultLogger().warn("Inconsistent storage directory : " + archivePath, "DefaultFileSystemPolicy.synchronizeConfiguration()");
             rootDirectory = archiveStorageDirectory;
         }
         
-        File newStorageDirectory = new File(rootDirectory, STORAGE_DIRECTORY_PREFIX + getMedium().getTarget().getUid());
-        File newArchiveFile = new File(newStorageDirectory, FileSystemManager.getName(archiveFile));
-        
-        this.baseArchivePath = FileSystemManager.getAbsolutePath(newArchiveFile);
+        File newStorageDirectory = new File(rootDirectory, getMedium().getTarget().getUid());
+        this.archivePath = FileSystemManager.getAbsolutePath(newStorageDirectory);
     }
 }

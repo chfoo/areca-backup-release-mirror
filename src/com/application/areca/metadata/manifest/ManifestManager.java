@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -49,10 +49,6 @@ public class ManifestManager {
     
     public static Manifest readManifestForArchive(AbstractFileSystemMedium medium, File archive) throws ApplicationException {
         try {
-            if (! medium.checkArchiveCompatibility(archive)) {
-                return null;
-            }
-            
             File dataDir = medium.getDataDirectory(archive);
             File manifestFile = new File(dataDir, medium.getManifestName());
             File oldManifestFile = new File(dataDir, medium.getOldManifestName());
@@ -79,7 +75,7 @@ public class ManifestManager {
     }
     
     public static void writeManifest(AbstractFileSystemMedium medium, Manifest mf, File archive) throws ApplicationException {
-        // Création du manifeste
+        // Creation du manifeste
         Writer w = null;
         try {
             File metadataDir = medium.getDataDirectory(archive);

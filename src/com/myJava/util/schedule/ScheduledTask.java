@@ -5,11 +5,11 @@ import java.util.GregorianCalendar;
 import com.myJava.util.log.Logger;
 
 /**
- * Tâche destinée à être gérée dans un scheduler
+ * Tï¿½che destinï¿½e ï¿½ ï¿½tre gï¿½rï¿½e dans un scheduler
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -35,29 +35,29 @@ This file is part of Areca.
 public abstract class ScheduledTask implements Runnable {
 
     /**
-     * Date de dernière exécution
+     * Date de derniï¿½re exï¿½cution
      */
     protected GregorianCalendar tskLastExecutionDate;
 
     /**
-     * Délai (secondes).
-     * Il s'agit du délai de test de "evaluateCondition"
+     * Dï¿½lai (secondes).
+     * Il s'agit du dï¿½lai de test de "evaluateCondition"
      */
     protected long tskDelay;
 
     /**
-     * Le thread associé à la tâche
+     * Le thread associï¿½ ï¿½ la tï¿½che
      */
     protected Thread tskThread;
 
     /**
-     * Flag interne indiquant si la tâche doit s'arrêter.
+     * Flag interne indiquant si la tï¿½che doit s'arrï¿½ter.
      */
     protected boolean tskShallStop;
 
     /**
      * Constructeur.
-     * Le délai est spécifié en secondes.
+     * Le dï¿½lai est spï¿½cifiï¿½ en secondes.
      */
     public ScheduledTask(long delay) {
         super();
@@ -67,7 +67,7 @@ public abstract class ScheduledTask implements Runnable {
     }
 
     /**
-     * Méthode exécutée lors de l'appel à la tâche.
+     * Mï¿½thode exï¿½cutï¿½e lors de l'appel ï¿½ la tï¿½che.
      */
     public void execute() {
         Logger.defaultLogger().info("Scheduled task startup.", this.getClass().getName());
@@ -75,14 +75,14 @@ public abstract class ScheduledTask implements Runnable {
     }
 
     /**
-     * Méthode déterminant si la tâche doit être exécutée ou non
+     * Mï¿½thode dï¿½terminant si la tï¿½che doit ï¿½tre exï¿½cutï¿½e ou non
      */
     public boolean evaluateCondition() {
         return true;
     }
 
     /**
-     * Démarre la tâche
+     * Dï¿½marre la tï¿½che
      */
     public void startTask() {
         this.tskShallStop = false;
@@ -94,21 +94,21 @@ public abstract class ScheduledTask implements Runnable {
     }
 
     /**
-     * Indique si la tâche fonctionne
+     * Indique si la tï¿½che fonctionne
      */
     public boolean isRunning() {
         return this.tskThread.isAlive();
     }
 
     /**
-     * Arrête la tâche
+     * Arrï¿½te la tï¿½che
      */
     public void stopTask() {
         this.tskShallStop = true;
     }
 
     /**
-     * Méthode mettant le thread courant en pause
+     * Mï¿½thode mettant le thread courant en pause
      */
     public void pauseThread() {
         try {
@@ -118,7 +118,7 @@ public abstract class ScheduledTask implements Runnable {
     }
 
     /**
-     * Méthode tournant en tâche de fond.
+     * Mï¿½thode tournant en tï¿½che de fond.
      */
     public void run() {
         while (! this.tskShallStop) {

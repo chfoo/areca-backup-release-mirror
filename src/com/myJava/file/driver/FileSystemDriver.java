@@ -6,20 +6,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import com.myJava.file.OutputStreamListener;
 import com.myJava.file.attributes.Attributes;
 
 /**
- * Interface définissant un driver pour système de fichier.
- * <BR>Ce driver redéfinit les opérations de base de la classe File (ainsi que les
- * opérations permettant d'obtenir des flux E/S, etc.), et prend en charge certaines
- * opérations bas niveau (cryptage, compression, par exemple).
+ * Interface dï¿½finissant un driver pour systï¿½me de fichier.
+ * <BR>Ce driver redï¿½finit les opï¿½rations de base de la classe File (ainsi que les
+ * opï¿½rations permettant d'obtenir des flux E/S, etc.), et prend en charge certaines
+ * opï¿½rations bas niveau (cryptage, compression, par exemple).
  * <BR>
- * <BR>Il n'apporte aucun autre service que ces opérations bas niveau (opérations avancées sur les fichiers,
- * par exemple). Ces opérations restent du ressort des classes utilisatrices.
+ * <BR>Il n'apporte aucun autre service que ces opï¿½rations bas niveau (opï¿½rations avancï¿½es sur les fichiers,
+ * par exemple). Ces opï¿½rations restent du ressort des classes utilisatrices.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -93,7 +94,7 @@ public interface FileSystemDriver {
     public void deleteOnExit(File f);
     
     /**
-     * Ouvre un flux d'entrée sur le fichier
+     * Ouvre un flux d'entree sur le fichier
      */
     public InputStream getFileInputStream(File file) throws IOException;
     
@@ -101,6 +102,11 @@ public interface FileSystemDriver {
      * Ouvre un flux de sortie sur le fichier 
      */
     public OutputStream getFileOutputStream(File file) throws IOException;
+    
+    /**
+     * Ouvre un flux de sortie sur le fichier 
+     */
+    public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException;
     
     /**
      * Returns an OutputStream for the given File
@@ -119,9 +125,9 @@ public interface FileSystemDriver {
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException;
     
     /**
-     * Indique si les accès directs au fileSystem sont acceptés.
+     * Indique si les accï¿½s directs au fileSystem sont acceptï¿½s.
      * <BR>Utile pour savoir si les classes utilisant directement des objets "File"
-     * peuvent être utilisées. (Comme par exemple la classe ZipFile)
+     * peuvent ï¿½tre utilisï¿½es. (Comme par exemple la classe ZipFile)
      */
     public boolean directFileAccessSupported();
     
@@ -144,6 +150,7 @@ public interface FileSystemDriver {
     
     public void flush() throws IOException;
     
+    public void mount() throws IOException;
     public void unmount() throws IOException;
     
     /**

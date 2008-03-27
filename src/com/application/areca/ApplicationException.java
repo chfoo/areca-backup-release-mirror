@@ -8,7 +8,7 @@ import com.myJava.util.errors.ActionReport;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -53,7 +53,7 @@ public class ApplicationException extends Exception {
     }
     
     /**
-     * Construit un message d'erreur à partir du report
+     * Construit un message d'erreur ï¿½ partir du report
      */
     private static String buildErrorMessage(ActionReport report) {
         if (report.isDataValid()) {

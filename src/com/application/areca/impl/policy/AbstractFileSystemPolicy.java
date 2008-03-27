@@ -1,10 +1,12 @@
 package com.application.areca.impl.policy;
 
+import java.io.File;
+
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -29,12 +31,30 @@ This file is part of Areca.
 public abstract class AbstractFileSystemPolicy 
 implements FileSystemPolicy {    
     protected String id;
+    protected String archiveName;
 
-    public String getId() {
+    public String getArchiveName() {
+		return this.archiveName;
+	}
+
+	public void setArchiveName(String archiveName) {
+		this.archiveName = archiveName;
+	}
+
+	public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
+    }
+    
+    public File getArchiveDirectory() {
+    	return new File(getArchivePath());
+    }
+    
+    public void copyAttributes(AbstractFileSystemPolicy policy) {
+    	policy.archiveName = archiveName;
+        policy.id = id;
     }
 }

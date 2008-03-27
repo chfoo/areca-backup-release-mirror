@@ -10,7 +10,7 @@ import java.util.Iterator;
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.LogHelper;
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.adapters.AdapterException;
 import com.application.areca.adapters.ProcessXMLReader;
 import com.application.areca.cache.CacheInitializer;
@@ -24,12 +24,12 @@ import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
 
 /**
- * <BR>Classe implémentant un workspace
- * <BR>Un workspace référence un ensemble de processus (un par fichier de configuration)
+ * <BR>Classe implï¿½mentant un workspace
+ * <BR>Un workspace rï¿½fï¿½rence un ensemble de processus (un par fichier de configuration)
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -70,11 +70,11 @@ public class Workspace {
         return this.processes.size();
     }
     
-    public RecoveryProcess getProcessById(String source) {
-        return (RecoveryProcess)processes.get(source);
+    public TargetGroup getProcessById(String source) {
+        return (TargetGroup)processes.get(source);
     }
     
-    public File getConfigFile(RecoveryProcess process) {
+    public File getConfigFile(TargetGroup process) {
         return (File)this.xmlFiles.get(process);
     }
     
@@ -83,7 +83,7 @@ public class Workspace {
     }
     
     public void removeProcess(String source) {
-    	RecoveryProcess process = this.getProcessById(source);
+    	TargetGroup process = this.getProcessById(source);
     	if (process != null) {
     		process.doBeforeDelete();
     	}
@@ -93,7 +93,7 @@ public class Workspace {
     	}
     }
     
-    public void removeProcess(RecoveryProcess process) {
+    public void removeProcess(TargetGroup process) {
         this.removeProcess(process.getSource());
     }
     
@@ -102,7 +102,7 @@ public class Workspace {
     }    
     
     /**
-     * Itérateur sur les process, triés par ID 
+     * Itï¿½rateur sur les process, triï¿½s par ID 
      */
     public Iterator getSortedProcessIterator() {
 
@@ -110,7 +110,7 @@ public class Workspace {
         Iterator iter = getProcessIterator();
         int i = 0;
         while (iter.hasNext()) {
-            ids[i++] = ((RecoveryProcess)iter.next()).getSource();
+            ids[i++] = ((TargetGroup)iter.next()).getSource();
         }
         Arrays.sort(ids);
         
@@ -125,7 +125,7 @@ public class Workspace {
         return this.path;
     }
     
-    public void addProcess(RecoveryProcess process) {
+    public void addProcess(TargetGroup process) {
         this.processes.put(process.getSource(), process);
     }
     
@@ -147,7 +147,7 @@ public class Workspace {
                     if (FileSystemManager.isFile(children[i]) && FileSystemManager.getName(children[i]).toLowerCase().endsWith(".xml")) {
                         ProcessXMLReader adapter = new ProcessXMLReader(children[i]);
                         adapter.setMissingDataListener(new MissingDataListener());
-                        RecoveryProcess process = adapter.load();
+                        TargetGroup process = adapter.load();
                         this.addProcess(process);
                         this.xmlFiles.put(process, children[i]);
                     }
@@ -156,7 +156,7 @@ public class Workspace {
             
             Logger.defaultLogger().info("Path : [" + path + "] - " + this.processes.size() + " groups loaded.");
             
-            // Une fois que le workspace est chargé, on lance la tâche de remplissage de cache
+            // Une fois que le workspace est chargï¿½, on lance la tï¿½che de remplissage de cache
             if (ArecaTechnicalConfiguration.get().isCachePreload()) {
                 CacheInitializer.populateCache(this);
             }
@@ -173,7 +173,7 @@ public class Workspace {
         Iterator iter = this.getProcessIterator();
         HashSet set = new HashSet();
         while (iter.hasNext()) {
-            RecoveryProcess process = (RecoveryProcess)iter.next();
+            TargetGroup process = (TargetGroup)iter.next();
             Iterator tgIter = process.getTargetIterator();
             while (tgIter.hasNext()) {
                 AbstractRecoveryTarget tg = (AbstractRecoveryTarget)tgIter.next();
@@ -192,7 +192,7 @@ public class Workspace {
         Iterator iter = this.getProcessIterator();
         HashSet set = new HashSet();
         while (iter.hasNext()) {
-            RecoveryProcess process = (RecoveryProcess)iter.next();
+            TargetGroup process = (TargetGroup)iter.next();
             Iterator tgIter = process.getTargetIterator();
             while (tgIter.hasNext()) {
                 AbstractRecoveryTarget tg = (AbstractRecoveryTarget)tgIter.next();

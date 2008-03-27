@@ -8,11 +8,11 @@ import com.myJava.configuration.FrameworkConfiguration;
 
 
 /**
- * Classe permettant de gérer la log applicative
+ * Classe permettant de gï¿½rer la log applicative
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -43,7 +43,7 @@ public final class Logger {
     private int logLevel;
 
     /**
-     *  Logger par défaut.
+     *  Logger par dï¿½faut.
      */
     private static Logger defaultLogger = new Logger();
     
@@ -58,7 +58,7 @@ public final class Logger {
     }
 
     /**
-     * Indique le logger par défaut de la classe
+     * Indique le logger par dï¿½faut de la classe
      */
     public static Logger defaultLogger() {
         return defaultLogger;
@@ -73,8 +73,8 @@ public final class Logger {
 
     /**
      * Indique le niveau de log.
-     * <BR>Tout appel de priorité inférieure à la priorité spécifiée ne sera pas
-     * loggé
+     * <BR>Tout appel de prioritï¿½ infï¿½rieure ï¿½ la prioritï¿½ spï¿½cifiï¿½e ne sera pas
+     * loggï¿½
      */
     public void setLogLevel(int l) {
         logLevel = l;
@@ -85,7 +85,7 @@ public final class Logger {
     }
 
     /**
-     * <BR>Retourne true en cas de succès, false en cas d'échec.
+     * <BR>Retourne true en cas de succï¿½s, false en cas d'ï¿½chec.
      */
     public boolean clearLog() {
         Iterator iter = this.processors.iterator();
@@ -139,7 +139,7 @@ public final class Logger {
     }
     
     /**
-     * Ecrit la log en vérifiant le niveau précisé.
+     * Ecrit la log en vï¿½rifiant le niveau prï¿½cisï¿½.
      */
     private void log(int level, String message, Throwable e, String source) {
         if (level <= logLevel) {
@@ -156,7 +156,7 @@ public final class Logger {
     }
 
     /**
-     * Ecrit une log générique
+     * Ecrit une log gï¿½nï¿½rique
      */
     private void log(int level, String message, String source) {
         log(level, message, null, source);

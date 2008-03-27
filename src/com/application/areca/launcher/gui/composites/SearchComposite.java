@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.AbstractRecoveryTarget;
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
@@ -40,7 +40,7 @@ import com.application.areca.search.TargetSearchResult;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -223,7 +223,7 @@ implements MouseListener, Listener, Refreshable {
         Iterator pIter = this.application.getWorkspace().getProcessIterator();
         boolean hasChanged = false;
         while (pIter.hasNext() && ! hasChanged) {
-            RecoveryProcess process = (RecoveryProcess)pIter.next();
+            TargetGroup process = (TargetGroup)pIter.next();
             Iterator tIter = process.getSortedTargetIterator();
             while (tIter.hasNext() && ! hasChanged) {
                 AbstractRecoveryTarget target = (AbstractRecoveryTarget)tIter.next();
@@ -271,7 +271,7 @@ implements MouseListener, Listener, Refreshable {
         // ADD TGS
         Iterator pIter = this.application.getWorkspace().getProcessIterator();
         while (pIter.hasNext()) {
-            RecoveryProcess process = (RecoveryProcess)pIter.next();
+            TargetGroup process = (TargetGroup)pIter.next();
             Iterator tIter = process.getSortedTargetIterator();
             while (tIter.hasNext()) {
                 AbstractRecoveryTarget target = (AbstractRecoveryTarget)tIter.next();

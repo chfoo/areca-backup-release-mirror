@@ -2,6 +2,7 @@ package com.myJava.file;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Stack;
 
@@ -9,13 +10,12 @@ import com.myJava.util.log.Logger;
 
 
 /**
- * Itérateur permettant de lister le contenu d'un répertoire.
- * <BR>Tous les éléments du répertoire (fichiers et sous répertoires) sont retournés par l'itérateur.
- * <BR>Les sous-répertoires sont traités récursivement par l'itérateur.
+ * This iterator lists all elements of a source directory. They can be either files or subdirectories.
+ * Subdirectories are processed recursively.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -39,92 +39,128 @@ This file is part of Areca.
  */
 public class FileSystemIterator implements Iterator {
 
-    protected Stack fileSystemLevels;
-    protected FileSystemLevel currentLevel;
-    protected File baseDirectory;
-    protected Object nextCachedObject;
-    protected boolean followSymLinks;
-    
-    public FileSystemIterator(File baseDirectory, boolean followSymLinks) {
-        this.baseDirectory = baseDirectory;
-        this.fileSystemLevels = new Stack();
-        this.currentLevel = new FileSystemLevel(baseDirectory);        
-        this.followSymLinks = followSymLinks;
-        fetchNext();        
-    }
+	protected Stack fileSystemLevels;
+	protected FileSystemLevel currentLevel;
+	protected File baseDirectory;
+	protected Object nextCachedObject;
+	protected boolean followSymLinks;
+	protected Iterator currentFilteredFilesIterator;
+	protected Iterator currentFilteredDirectoriesIterator;
+	protected FileSystemIterator currentFileSystemSubIterator;
 
-    /**
-     * Retourne le prochain élément.
-     * Attention : ca peut être un fichier ou un répertoire.
-     * Cet élément est filtré par appel aux filtres.
-     */
-    private File nextFileOrDirectory() {
-        while (true) {
-            if (currentLevel.hasMoreElements()) {
-                File f = currentLevel.nextElement();
-    
-                try {
-                    if (FileSystemManager.isDirectory(f) && (followSymLinks || (! FileSystemManager.isLink(f)))) {
-                        this.fileSystemLevels.push(this.currentLevel);
-                        this.currentLevel = new FileSystemLevel(f);
-                    }
-                } catch (IOException e) {
-                    Logger.defaultLogger().error("Unreadable file : " + FileSystemManager.getAbsolutePath(f), e);
-                    throw new IllegalArgumentException("Unreadable file : " + FileSystemManager.getAbsolutePath(f));
-                }
-                return f;  
-            } else {
-                if (this.fileSystemLevels.isEmpty()) {
-                    return null;
-                } else {
-                    this.currentLevel = (FileSystemLevel)this.fileSystemLevels.pop();
-                }
-            }
-        }
-    }
-    
-    /**
-     * Retourne le prochain élément;
-     */
-    public Object next() {
-        Object next = this.nextCachedObject;
-        fetchNext();
-        
-        return next;
-    }
+	public FileSystemIterator(File baseDirectory, boolean followSymLinks) {
+		this(baseDirectory, null, followSymLinks);
+	}
+	
+	public FileSystemIterator(File baseDirectory, String[] filters, boolean followSymLinks) {
+		this.baseDirectory = baseDirectory;
+		this.fileSystemLevels = new Stack();
+		this.followSymLinks = followSymLinks;
+		
+		if (filters != null) {
+			setFilters(filters);
+		} else {
+			this.currentLevel = new FileSystemLevel(baseDirectory);   
+		}
+		fetchNext();        
+	}
 
-    public boolean hasNext() {
-        return (this.nextCachedObject != null);
-    }
-    
-    public void remove() {
-        throw new UnsupportedOperationException("Not supported by this implementation.");
-    }
-    
-    private void fetchNext() {
-        this.nextCachedObject = nextFileOrDirectory();
-    }
-    
-    private class FileSystemLevel {
-        private File[] levelFiles;
-        private int index;
-        
-        public FileSystemLevel(File baseDirectory) {
-            if (FileSystemManager.isDirectory(baseDirectory)) {
-                this.levelFiles = FileSystemManager.listFiles(baseDirectory);
-            } else {
-                this.levelFiles = new File[] {baseDirectory};
-            }
-            this.index = 0;
-        }
-        
-        public boolean hasMoreElements() {
-            return (this.index <= this.levelFiles.length-1);
-        }
-        
-        public File nextElement() {
-            this.index++;
-            return this.levelFiles[index-1];
-        }
-    }    
+	private void setFilters(String[] filters) {
+		ArrayList filteredDirectories = new ArrayList();
+		ArrayList filteredFiles = new ArrayList();
+		for (int i=0; i<filters.length; i++) {
+			File f = new File(baseDirectory, filters[i]);
+			if (FileSystemManager.isFile(f)) {
+				filteredFiles.add(f);
+			} else {
+				filteredDirectories.add(f);    			
+			}
+		}
+
+		this.currentFilteredFilesIterator = filteredFiles.iterator();
+		this.currentFilteredDirectoriesIterator = filteredDirectories.iterator();
+	}
+
+	/**
+	 * Returns the next element
+	 * It can be either a file or a directory
+	 */
+	 private File nextFileOrDirectory() {
+		 if (currentFilteredFilesIterator != null && currentFilteredFilesIterator.hasNext()) {
+			 return (File)currentFilteredFilesIterator.next();    
+		 } else if (currentFileSystemSubIterator != null && currentFileSystemSubIterator.hasNext()) {
+			 return (File)currentFileSystemSubIterator.next();
+		 } else if (currentFilteredDirectoriesIterator != null && currentFilteredDirectoriesIterator.hasNext()) {
+			 this.currentFileSystemSubIterator = new FileSystemIterator((File)currentFilteredDirectoriesIterator.next(), followSymLinks);
+			 return (File)currentFileSystemSubIterator.next();
+		 } else {			 
+			 while (true) {
+				 if (currentLevel != null && currentLevel.hasMoreElements()) {
+					 File f = currentLevel.nextElement();
+
+					 try {
+						 if (FileSystemManager.isDirectory(f) && (followSymLinks || (! FileSystemManager.isLink(f)))) {
+							 this.fileSystemLevels.push(this.currentLevel);
+							 this.currentLevel = new FileSystemLevel(f);
+						 }
+					 } catch (IOException e) {
+						 Logger.defaultLogger().error("Unreadable file : " + FileSystemManager.getAbsolutePath(f), e);
+						 throw new IllegalArgumentException("Unreadable file : " + FileSystemManager.getAbsolutePath(f));
+					 }
+					 return f;  
+				 } else {
+					 if (this.fileSystemLevels.isEmpty()) {
+						 return null;
+					 } else {
+						 this.currentLevel = (FileSystemLevel)this.fileSystemLevels.pop();
+					 }
+				 }
+			 }
+		 }
+	 }
+
+	 /**
+	  * Returns the next element
+	  */
+	 public Object next() {
+		 Object next = this.nextCachedObject;
+		 fetchNext();
+
+		 return next;
+	 }
+
+	 public boolean hasNext() {
+		 return (this.nextCachedObject != null);
+	 }
+
+	 public void remove() {
+		 throw new UnsupportedOperationException("Not supported by this implementation.");
+	 }
+
+	 private void fetchNext() {
+		 this.nextCachedObject = nextFileOrDirectory();
+	 }
+
+	 private class FileSystemLevel {
+		 private File[] levelFiles;
+		 private int index;
+
+		 public FileSystemLevel(File baseDirectory) {
+			 if (FileSystemManager.isDirectory(baseDirectory)) {
+				 this.levelFiles = FileSystemManager.listFiles(baseDirectory);
+			 } else {
+				 this.levelFiles = new File[] {baseDirectory};
+			 }
+			 this.index = 0;
+		 }
+
+		 public boolean hasMoreElements() {
+			 return (this.index <= this.levelFiles.length-1);
+		 }
+
+		 public File nextElement() {
+			 this.index++;
+			 return this.levelFiles[index-1];
+		 }
+	 }    
 }

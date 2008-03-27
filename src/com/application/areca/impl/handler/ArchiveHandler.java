@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
+import java.util.Set;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
@@ -21,7 +23,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -48,20 +50,12 @@ public interface ArchiveHandler extends PublicClonable {
     public static final short MODE_MERGE = 1;
     public static final short MODE_RECOVER = 2;
     
-    /**
-     * Tells whether archives produced by this handler are autonomous or not.
-     */
-    public boolean providesAutonomousArchives();
-    
-    /**
-     * Gets the parent storage medium
-     */
     public AbstractIncrementalFileSystemMedium getMedium();
-    
-    /**
-     * Sets the parent storage medium
-     */
     public void setMedium(AbstractIncrementalFileSystemMedium medium);
+    
+    ////////////////////////////////////////////////////
+    // Backup
+    ////////////////////////////////////////////////////
     
     /**
      * The outputStream is provided by the Medium itself. The inputStream is provided by the target.
@@ -71,13 +65,16 @@ public interface ArchiveHandler extends PublicClonable {
     public void store(FileSystemRecoveryEntry entry, InputStream in, OutputStream out, ProcessContext context) 
     throws ApplicationException, IOException, TaskCancelledException;
     
-    /**
-     * Recovers the content of the archives passed as argument, according to the filters.
-     */
+    ////////////////////////////////////////////////////
+    // Raw Recovery
+    ////////////////////////////////////////////////////
+    
     public void recoverRawData(
             File[] archivesToRecover, 
-            String[] filters, 
+            Map filtersByArchive, 
             short mode,
             ProcessContext context
     ) throws IOException, ApplicationException;
+    
+    public Map dispatchEntries(File[] archives, Set entriesToRecover) throws ApplicationException, IOException;
 }

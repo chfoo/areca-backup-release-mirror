@@ -14,6 +14,7 @@ import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.trace.ArchiveTrace;
 import com.application.areca.metadata.trace.ArchiveTraceAdapter;
+import com.myJava.file.MeteredOutputStreamListener;
 import com.myJava.file.archive.ArchiveWriter;
 import com.myJava.util.taskmonitor.TaskMonitor;
 
@@ -21,7 +22,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -46,15 +47,10 @@ This file is part of Areca.
 public class ProcessContext {
     
     /**
-     * Fichier pointant sur l'archive zip en cours de construction (qui sera renommée à l'issue
-     * du commit en archive définitive)
+     * Fichier pointant sur l'archive zip en cours de construction (qui sera renommee a l'issue
+     * du commit en archive definitive)
      */
     protected File currentArchiveFile;
-    
-    /**
-     * Fichier pointant sur l'archive zip définitive (validée après commit)
-     */
-    protected File finalArchiveFile;
     
     /**
      * Writer pour la trace
@@ -65,9 +61,14 @@ public class ProcessContext {
      * Archive content adapter (used for read/write operations)
      */
     protected ArchiveContentAdapter contentAdapter;
+
+    /**
+     * Written bytes
+     */
+    protected long inputBytes = 0;
     
     /**
-     * trace contenant les fichiers listés lors de la dernière exécution.
+     * trace contenant les fichiers listes lors de la derniere execution.
      */
     protected ArchiveTrace previousTrace;
     
@@ -110,8 +111,10 @@ public class ProcessContext {
     
     protected File recoveryDestination;
     
+    protected MeteredOutputStreamListener outputStreamListener = new MeteredOutputStreamListener();
+    
     /**
-     * Logger spécifique utilisé pour les retours utilisateur (typiquement : affichage à l'écran)
+     * Logger spï¿½cifique utilisï¿½ pour les retours utilisateur (typiquement : affichage ï¿½ l'ï¿½cran)
      */
     private UserInformationChannel infoChannel;
 
@@ -123,6 +126,8 @@ public class ProcessContext {
         this.isInitialized = false;
         this.previousTrace = null;
         this.traceAdapter = null;
+        inputBytes = 0;
+        this.outputStreamListener = new MeteredOutputStreamListener();
         if (! operationalOnly) {
             this.getReport().reset();
         }
@@ -152,8 +157,12 @@ public class ProcessContext {
     public void setRecoveryDestination(File recoveryDestination) {
         this.recoveryDestination = recoveryDestination;
     }
+    
+	public MeteredOutputStreamListener getOutputStreamListener() {
+		return this.outputStreamListener;
+	}
 
-    public ArrayList getPreviousArchives() {
+	public ArrayList getPreviousArchives() {
         return previousArchives;
     }
 
@@ -187,14 +196,6 @@ public class ProcessContext {
 
     public void setCurrentArchiveFile(File currentArchiveFile) {
         this.currentArchiveFile = currentArchiveFile;
-    }
-    
-    public File getFinalArchiveFile() {
-        return finalArchiveFile;
-    }
-    
-    public void setFinalArchiveFile(File finalArchiveFile) {
-        this.finalArchiveFile = finalArchiveFile;
     }
     
     public ArchiveTrace getPreviousTrace() {
@@ -239,6 +240,26 @@ public class ProcessContext {
     
     public ProcessReport getReport() {
         return currentReport;
+    }
+    
+    public void addInputBytes(long w) {
+        inputBytes += w;
+    }
+    
+    public long getInputBytesInKB() {
+        return (long)(inputBytes / 1024.0);
+    }
+    
+    public long getInputBytesInKBPerSecond() {
+        return (long)(1000.0 / 1024.0 * inputBytes / (getReport().getDataFlowStop() - getReport().getDataFlowStart()));
+    }
+    
+    public long getOutputBytesInKB() {
+        return (long)(getOutputStreamListener().getWritten() / 1024.0);
+    }
+    
+    public long getOutputBytesInKBPerSecond() {
+        return (long)(1000.0 / 1024.0 * getOutputStreamListener().getWritten() / (getReport().getDataFlowStop() - getReport().getDataFlowStart()));
     }
 
     public FileSystemLevel getCurrentLevel() {

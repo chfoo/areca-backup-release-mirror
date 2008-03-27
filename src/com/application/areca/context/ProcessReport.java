@@ -11,7 +11,7 @@ import com.application.areca.AbstractRecoveryTarget;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -61,6 +61,17 @@ public class ProcessReport {
      */
     protected int unfilteredDirectories;
 
+    
+    /**
+     * Start date used to compute the data flow
+     */
+    protected long dataFlowStart = 0;
+    
+    /**
+     * Stop date used to compute the data flow
+     */
+    protected long dataFlowStop = 0;
+    
     /**
      * Number of processed files
      */
@@ -82,21 +93,6 @@ public class ProcessReport {
     protected FilteredEntries filteredEntriesData;
 
     protected AbstractRecoveryTarget target;
-    
-    /**
-     * Start date used to compute the data flow
-     */
-    protected long dataFlowStart = 0;
-    
-    /**
-     * Stop date used to compute the data flow
-     */
-    protected long dataFlowStop = 0;
-    
-    /**
-     * Written bytes
-     */
-    protected long written = 0;
 
     /**
      * Tells wether the process is being validated
@@ -150,20 +146,8 @@ public class ProcessReport {
         dataFlowStop = System.currentTimeMillis() + 1;
     }
     
-    public void addWritten(long w) {
-        written += w;
-    }
-    
     public long getDataFlowTimeInSecond() {
         return (long)((dataFlowStop - dataFlowStart)/1000.0);
-    }
-    
-    public long getWrittenInKB() {
-        return (long)(written / 1024.0);
-    }
-    
-    public long getDataFlowInKBPerSecond() {
-        return (long)(1000.0 / 1024.0 * written / (dataFlowStop - dataFlowStart));
     }
     
     public int getProcessedEntries() {
@@ -223,7 +207,17 @@ public class ProcessReport {
         return commited;
     }
     
-    public void setCommited() {
+    
+    
+    public long getDataFlowStart() {
+		return this.dataFlowStart;
+	}
+
+	public long getDataFlowStop() {
+		return this.dataFlowStop;
+	}
+
+	public void setCommited() {
         this.commited = true;
     }
     

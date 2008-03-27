@@ -18,7 +18,7 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -122,7 +122,7 @@ extends AbstractWindow {
     protected void saveChanges() {
         this.manifest.setDescription(this.txtDescription.getText());
         this.manifest.setTitle(this.txtTitle.getText());        
-        this.application.launchCompactOnTarget(btnKeepDeletedEntries.getSelection(), this.manifest);
+        this.application.launchMergeOnTarget(btnKeepDeletedEntries.getSelection(), this.manifest);
         this.hasBeenUpdated = false;
         this.close();
     }

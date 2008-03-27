@@ -19,7 +19,7 @@ import com.myJava.file.archive.zip64.ZipVolumeStrategy;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -43,6 +43,7 @@ This file is part of Areca.
  */
 public class CmdLineDeZip
 extends AbstractArecaLauncher {
+	private static final int MAX_DIGITS = 10;
     
     private static final String ARG_CHARSET = "charset";
     private static final String ARG_SOURCE = "source";
@@ -97,18 +98,22 @@ extends AbstractArecaLauncher {
         } else {
             boolean multivolume = false;
             String name = FileSystemManager.getName(archive);
-            int index = name.lastIndexOf('.');
-            if (index != -1) {
-                String baseName = name.substring(0, index);
-                String ext = name.substring(index + 1);
-                ZipVolumeStrategy strat = new ZipVolumeStrategy(
-                        new File(FileSystemManager.getParentFile(archive), baseName),
-                        ext
-                );
-                multivolume = FileSystemManager.exists(strat.getFirstVolume());
+            if (name.endsWith(CompressionArguments.ZIP_SUFFIX)) {
+            	ZipVolumeStrategy strat = null;
+            	
+                // try to locate multivolume files
+                for (int nbDigits = 1; nbDigits <= MAX_DIGITS; nbDigits++) {
+                    strat = new ZipVolumeStrategy(
+                            new File(FileSystemManager.getParentFile(archive), name.substring(0, name.length() - 4)),
+                            nbDigits
+                    );
+                    if (FileSystemManager.exists(strat.getFirstVolume())) {
+                    	multivolume = true;
+                    	break;
+                    }
+                }
                 
                 if (multivolume) {
-                    System.out.println(" * Multi-volumes archive * ");
                     adapter = new ZipArchiveAdapter(strat);
                 } 
             }

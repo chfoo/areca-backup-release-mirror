@@ -29,7 +29,7 @@ import com.myJava.util.CommonRules;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -88,7 +88,7 @@ extends AbstractWindow {
         GridData mainData2 = new GridData();
         mainData2.grabExcessHorizontalSpace = true;
         mainData2.horizontalAlignment = SWT.FILL;
-        mainData2.widthHint = AbstractWindow.computeWidth(300);
+        mainData2.widthHint = AbstractWindow.computeWidth(400);
         location.setLayoutData(mainData2);
         location.setText(FileSystemManager.getAbsolutePath(new File(initialDirectory)));
         monitorControl(location);

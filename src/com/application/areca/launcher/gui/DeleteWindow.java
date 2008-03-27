@@ -12,7 +12,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.ResourceManager;
 import com.application.areca.impl.AbstractFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryTarget;
@@ -24,7 +24,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -54,14 +54,14 @@ extends AbstractWindow {
     private Button chkDeleteContent;
     private boolean ok = false;
     private FileSystemRecoveryTarget target;
-    private RecoveryProcess process;
+    private TargetGroup process;
     
     public DeleteWindow(FileSystemRecoveryTarget target) {
         super();
         this.target = target;
     }
     
-    public DeleteWindow(RecoveryProcess process) {
+    public DeleteWindow(TargetGroup process) {
         super();
         this.process = process;
     }
@@ -97,7 +97,7 @@ extends AbstractWindow {
         chkDeleteContent.setSelection(false);
         if (target != null) {
             AbstractFileSystemMedium medium = (AbstractFileSystemMedium)target.getMedium();
-            File tgDir = FileSystemManager.getParentFile(new File(medium.getBaseArchivePath()));
+            File tgDir = medium.getFileSystemPolicy().getArchiveDirectory();
             chkDeleteContent.setText(RM.getLabel("app.deletetargetaction.deletecontent.label", new Object[] {FileSystemManager.getAbsolutePath(tgDir)}));
         } else {
             chkDeleteContent.setText(RM.getLabel("app.deletegroupaction.deletecontent.label"));            

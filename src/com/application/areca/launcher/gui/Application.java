@@ -28,7 +28,7 @@ import com.application.areca.ArchiveMedium;
 import com.application.areca.EntryArchiveData;
 import com.application.areca.Identifiable;
 import com.application.areca.RecoveryEntry;
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.ResourceManager;
 import com.application.areca.UserInformationChannel;
 import com.application.areca.Utils;
@@ -71,7 +71,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -140,13 +140,13 @@ implements ActionConstants, Window.IExceptionHandler {
     private Workspace workspace;
     private MainWindow mainWindow;
 
-    private Identifiable currentObject;							// Objet en cours de sélection; il peut s'agir d'un workspace, groupe ou target
-    private GregorianCalendar currentFromDate;			// Début de l'intervalle de dates en cours de sélection
-    private GregorianCalendar currentToDate;				// Fin de l'intervalle de dates en cours de sélection
-    private RecoveryEntry currentEntry;						// Entrée en cours de sélection (utile pour le détail d'une archive)
-    private EntryArchiveData currentEntryData;   		    // En cas d'affichage de l'historique d'une entrée, date en cours de sélection
-    private RecoveryFilter currentFilter;									// En cas de sélection d'un noeud sur le panel de détail d'une archive (répertoire ou Entry réelle), nom de celui ci.
-    private boolean latestVersionRecoveryMode;         // Indique si la recovery se fera en dernière version ou non
+    private Identifiable currentObject;							// Objet en cours de selection; il peut s'agir d'un workspace, groupe ou target
+    private GregorianCalendar currentFromDate;			// Debut de l'intervalle de dates en cours de selection
+    private GregorianCalendar currentToDate;				// Fin de l'intervalle de dates en cours de selection
+    private RecoveryEntry currentEntry;						// Entree en cours de selection (utile pour le detail d'une archive)
+    private EntryArchiveData currentEntryData;   		    // En cas d'affichage de l'historique d'une entree, date en cours de selection
+    private RecoveryFilter currentFilter;									// En cas de selection d'un noeud sur le panel de detail d'une archive (repertoire ou Entry reelle), nom de celui ci.
+    private boolean latestVersionRecoveryMode;         // Indique si la recovery se fera en derniere version ou non
 
     private Set channels = new HashSet();
 
@@ -267,8 +267,8 @@ implements ActionConstants, Window.IExceptionHandler {
             launchBackupOnWorkspace();
         } else if (command.equals(CMD_BACKUP)) {            
             // BACKUP
-            if (RecoveryProcess.class.isAssignableFrom(this.getCurrentObject().getClass())) {
-                RecoveryProcess process = (RecoveryProcess)this.getCurrentObject();
+            if (TargetGroup.class.isAssignableFrom(this.getCurrentObject().getClass())) {
+                TargetGroup process = (TargetGroup)this.getCurrentObject();
                 launchBackupOnProcess(process, AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);
             } else if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                 // BACKUP WITH MANIFEST
@@ -302,7 +302,7 @@ implements ActionConstants, Window.IExceptionHandler {
             if (result == SWT.YES) {
                 if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                     FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
-                    RecoveryProcess process = target.getProcess();
+                    TargetGroup process = target.getProcess();
                     ProcessRunner rn = new ProcessRunner(target) {
                         public void runCommand() throws ApplicationException {
                             rProcess.processDeleteOnTarget(rTarget, rFromDate, context);
@@ -368,7 +368,8 @@ implements ActionConstants, Window.IExceptionHandler {
             this.processExit();            
         } else if (command.equals(CMD_OPEN)) {
             // OPEN WORKSPACE
-            String path = showDirectoryDialog(this.workspace.path, this.mainWindow);
+        	String initPath = this.workspace != null ? this.workspace.path : OSTool.getUserHome();
+            String path = showDirectoryDialog(initPath, this.mainWindow);
             openWorkspace(path);
         } else if (command.equals(CMD_IMPORT_GROUP)) {
             // IMPORT GROUP
@@ -405,7 +406,7 @@ implements ActionConstants, Window.IExceptionHandler {
             if (path != null) {
                 if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                     FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
-                    RecoveryProcess process = target.getProcess();
+                    TargetGroup process = target.getProcess();
                     ProcessRunner rn = new ProcessRunner(target) {
                         public void runCommand() throws ApplicationException {
                             rProcess.processRecoverOnTarget(
@@ -464,9 +465,14 @@ implements ActionConstants, Window.IExceptionHandler {
             if (path != null) {
                 if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                     FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
-                    RecoveryProcess process = target.getProcess();
+                    TargetGroup process = target.getProcess();
                     ProcessRunner rn = new ProcessRunner(target) {
                         public void runCommand() throws ApplicationException {
+                            File entry = new File(path, rEntry.getName());
+                            File f = new File(path, FileSystemManager.getName(entry));
+                            if (FileSystemManager.exists(f)) {
+                            	FileSystemManager.delete(f);
+                            }
                             rProcess.processRecoverOnTarget(rTarget, rPath, rFromDate, rEntry, context);
                         }
 
@@ -505,7 +511,7 @@ implements ActionConstants, Window.IExceptionHandler {
         showDialog(frmEdit);
         AbstractRecoveryTarget newTarget = frmEdit.getTargetIfValidated();
         if (newTarget != null) {
-            RecoveryProcess process = newTarget.getProcess();
+            TargetGroup process = newTarget.getProcess();
             process.addTarget(newTarget);
             this.currentObject = newTarget;
             this.saveProcess(process);
@@ -513,10 +519,10 @@ implements ActionConstants, Window.IExceptionHandler {
         }
     }
 
-    public void showEditProcess(RecoveryProcess process) {
-        ProcessEditionWindow frmEdit = new ProcessEditionWindow(process);
+    public void showEditProcess(TargetGroup process) {
+        GroupEditionWindow frmEdit = new GroupEditionWindow(process);
         showDialog(frmEdit);
-        RecoveryProcess newProcess = frmEdit.getProcess();
+        TargetGroup newProcess = frmEdit.getProcess();
         if (newProcess != null) {
             this.getWorkspace().addProcess(newProcess);
             this.currentObject = newProcess;
@@ -730,7 +736,7 @@ implements ActionConstants, Window.IExceptionHandler {
             } else {
                 Iterator iter = this.workspace.getProcessIterator();
                 while (iter.hasNext()) {
-                    RecoveryProcess process = (RecoveryProcess)iter.next();
+                    TargetGroup process = (TargetGroup)iter.next();
                     content += generateShortcutScript(
                             executable, 
                             process, 
@@ -774,7 +780,7 @@ implements ActionConstants, Window.IExceptionHandler {
                     && FileSystemManager.isFile(f) 
                     && FileSystemManager.getName(f).toLowerCase().endsWith(".xml")              
             ) {
-                FileTool.getInstance().copy(f, new File(workspace.getPath()), null);
+                FileTool.getInstance().copy(f, new File(workspace.getPath()), null, null);
                 this.openWorkspace(this.workspace.getPath());
             }
         } catch (Throwable e) {
@@ -784,7 +790,7 @@ implements ActionConstants, Window.IExceptionHandler {
 
     private String generateShortcutScript(
             File executable,
-            RecoveryProcess process, 
+            TargetGroup process, 
             AbstractRecoveryTarget target,
             String commentPrefix,
             String commandPrefix,
@@ -813,22 +819,25 @@ implements ActionConstants, Window.IExceptionHandler {
     }
 
     public void createWorkspaceCopy(File root, boolean removeEncryptionData) {
+    	String removeStr = removeEncryptionData ? " (Encryption data will be removed)" : "";
+    	Logger.defaultLogger().info("Creating a backup copy of current workspace (" + this.workspace.path + ") in " + FileSystemManager.getAbsolutePath(root) + removeStr);
         try {
             if (this.workspace != null) {
-                File location = new File(root, "areca_workspace_copy");
-
-                if (! FileSystemManager.exists(location)) {
-                    fileTool.createDir(location);
+                if (! FileSystemManager.exists(root)) {
+                    fileTool.createDir(root);
                 }
 
                 Iterator iter = this.workspace.getProcessIterator();
                 while (iter.hasNext()) {
-                    RecoveryProcess process = (RecoveryProcess)iter.next();
+                    TargetGroup process = (TargetGroup)iter.next();
                     ProcessXMLWriter writer = new ProcessXMLWriter(removeEncryptionData);
-                    File targetFile = new File(location, FileSystemManager.getName(process.getSourceFile()));
+                    File targetFile = new File(root, FileSystemManager.getName(process.getSourceFile()));
+                    Logger.defaultLogger().info("Creating a backup copy of \"" + process.getName() + "\" : " + FileSystemManager.getAbsolutePath(targetFile));
                     writer.serializeProcess(process, targetFile);
                 }
             }
+            
+            Logger.defaultLogger().info("Backup copy of " + this.workspace.path + " successfully created.");
         } catch (Throwable e) {
             handleException(RM.getLabel("error.cpws.message"), e);
         }
@@ -930,9 +939,9 @@ implements ActionConstants, Window.IExceptionHandler {
     }
 
     /**
-     * Indique si la VM doit être stoppée au moyen de System.exit(0) ou
-     * Si le thread en cours doit simplement être stoppé, ce qui laisse la possibilité
-     * aux threads non daemon de continuer à s'exécuter.
+     * Indique si la VM doit ï¿½tre stoppï¿½e au moyen de System.exit(0) ou
+     * Si le thread en cours doit simplement ï¿½tre stoppï¿½, ce qui laisse la possibilitï¿½
+     * aux threads non daemon de continuer ï¿½ s'exï¿½cuter.
      * 
      * @return
      */
@@ -959,7 +968,7 @@ implements ActionConstants, Window.IExceptionHandler {
         }
     } 
 
-    public void launchBackupOnProcess(RecoveryProcess process, String backupScheme) {
+    public void launchBackupOnProcess(TargetGroup process, String backupScheme) {
         Iterator iter = process.getTargetIterator();
         while (iter.hasNext()) {
             AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
@@ -970,13 +979,13 @@ implements ActionConstants, Window.IExceptionHandler {
     public void launchBackupOnWorkspace() {
         Iterator iter = this.workspace.getProcessIterator();
         while (iter.hasNext()) {
-            RecoveryProcess process = (RecoveryProcess)iter.next();
+            TargetGroup process = (TargetGroup)iter.next();
             this.launchBackupOnProcess(process, AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);
         }
     }
 
     public void launchBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest, final String backupScheme) {
-        RecoveryProcess process = target.getProcess();
+        TargetGroup process = target.getProcess();
         ProcessRunner rn = new ProcessRunner(target) {
             public void runCommand() throws ApplicationException {
                 rProcess.processBackupOnTarget(rTarget, rManifest, context, backupScheme);
@@ -999,13 +1008,13 @@ implements ActionConstants, Window.IExceptionHandler {
         rn.launch();           
     }
 
-    public void launchCompactOnTarget(final boolean keepDeletedEntries, Manifest manifest) {
-        // COMPACT
+    public void launchMergeOnTarget(final boolean keepDeletedEntries, Manifest manifest) {
+        // MERGE
         FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
-        RecoveryProcess process = target.getProcess();
+        TargetGroup process = target.getProcess();
         ProcessRunner rn = new ProcessRunner(target) {
             public void runCommand() throws ApplicationException {
-                rProcess.processCompactOnTarget(rTarget, rFromDate, rToDate, keepDeletedEntries, rManifest, context);
+                rProcess.processMergeOnTarget(rTarget, rFromDate, rToDate, keepDeletedEntries, rManifest, context);
             }
         };
         rn.rProcess = process;
@@ -1091,13 +1100,13 @@ implements ActionConstants, Window.IExceptionHandler {
     }
 
 
-    public RecoveryProcess getCurrentProcess() {
+    public TargetGroup getCurrentProcess() {
         if (this.currentObject == null) {
             return null;
         }
 
-        if (RecoveryProcess.class.isAssignableFrom(this.currentObject.getClass())) {
-            return (RecoveryProcess)this.currentObject;
+        if (TargetGroup.class.isAssignableFrom(this.currentObject.getClass())) {
+            return (TargetGroup)this.currentObject;
         } else if (AbstractRecoveryTarget.class.isAssignableFrom(this.currentObject.getClass())) {
             return ((AbstractRecoveryTarget)this.currentObject).getProcess();
         } else {
@@ -1105,7 +1114,7 @@ implements ActionConstants, Window.IExceptionHandler {
         }
     }
 
-    public void saveProcess(RecoveryProcess process) {
+    public void saveProcess(TargetGroup process) {
         try {
             ProcessXMLWriter writer = new ProcessXMLWriter();
             writer.serializeProcess(process);
@@ -1123,7 +1132,7 @@ implements ActionConstants, Window.IExceptionHandler {
     }
 
     public boolean isCurrentObjectProcess() {
-        return (currentObject != null && RecoveryProcess.class.isAssignableFrom(currentObject.getClass()));
+        return (currentObject != null && TargetGroup.class.isAssignableFrom(currentObject.getClass()));
     }
 
     public boolean isCurrentObjectTarget() {
@@ -1177,7 +1186,7 @@ implements ActionConstants, Window.IExceptionHandler {
         return currentObject;
     }
     public void setCurrentObject(Identifiable currentObject, boolean refreshTree) {
-        if (this.currentObject != currentObject) { // Yes, we DO use reference compaisison
+        if (this.currentObject != currentObject) { // Yes, we DO use reference comparison
             this.enableWaitCursor();
             this.currentObject = currentObject;
 
@@ -1382,7 +1391,7 @@ implements ActionConstants, Window.IExceptionHandler {
     }
 
     private abstract class ProcessRunner implements Runnable {
-        public RecoveryProcess rProcess;
+        public TargetGroup rProcess;
         public String rName;
         public AbstractRecoveryTarget rTarget;
         public String rPath;
@@ -1453,7 +1462,8 @@ implements ActionConstants, Window.IExceptionHandler {
             } finally {
                 channel.stopRunning(); 
                 removeChannel(channel);
-                AppActionReferenceHolder.refresh();
+                registerState(false);						// Enforce menu refresh
+                AppActionReferenceHolder.refresh();			// Enforce menu refresh
             }
         }
 
@@ -1465,7 +1475,7 @@ implements ActionConstants, Window.IExceptionHandler {
             Thread th = new Thread(this);
             th.setName("Command Runner : [" + rName + "]");
 
-            // Le thread doit se terminer normalement
+            // The thread shall stop normally
             th.setDaemon(false);
             th.start();
         }

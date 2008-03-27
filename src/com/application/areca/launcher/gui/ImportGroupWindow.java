@@ -23,7 +23,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -55,15 +55,13 @@ extends AbstractWindow {
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(1, false);
-        layout.verticalSpacing = 20;
         composite.setLayout(layout);
         
         Label lblAdvise = new Label(composite, SWT.NONE);
         lblAdvise.setText(RM.getLabel("importgrp.intro.label"));
-        GridData mainData1 = new GridData();
-        mainData1.grabExcessHorizontalSpace = true;
-        mainData1.horizontalAlignment = SWT.FILL;
-        lblAdvise.setLayoutData(mainData1);
+        lblAdvise.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        
+        new Label(composite, SWT.NONE);
         
         Group grpLocation = new Group(composite, SWT.NONE);
         grpLocation.setText(RM.getLabel("importgrp.location.label"));
@@ -72,10 +70,7 @@ extends AbstractWindow {
         grpLocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         
         location = new Text(grpLocation, SWT.BORDER);
-        GridData mainData2 = new GridData();
-        mainData2.grabExcessHorizontalSpace = true;
-        mainData2.horizontalAlignment = SWT.FILL;
-        location.setLayoutData(mainData2);
+        location.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         monitorControl(location);
         
         Button btnBrowse = new Button(grpLocation, SWT.PUSH);
@@ -99,15 +94,10 @@ extends AbstractWindow {
                 }
             }
         });
-        GridData mainData3 = new GridData();
-        mainData3.horizontalAlignment = SWT.FILL;
-        btnBrowse.setLayoutData(mainData3);
+        btnBrowse.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 
         SavePanel pnlSave = new SavePanel(RM.getLabel("common.import.label"), this);
-        GridData saveData = new GridData();
-        saveData.grabExcessHorizontalSpace = true;
-        saveData.horizontalAlignment = SWT.FILL;
-        pnlSave.buildComposite(composite).setLayoutData(saveData);        
+        pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true));        
         saveButton = pnlSave.getBtnSave();
         
         composite.pack();

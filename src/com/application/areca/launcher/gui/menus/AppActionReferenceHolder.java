@@ -1,7 +1,7 @@
 package com.application.areca.launcher.gui.menus;
 
 import com.application.areca.EntryArchiveData;
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.Workspace;
@@ -14,7 +14,7 @@ import com.application.areca.launcher.gui.common.SecuredRunner;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -59,7 +59,7 @@ public class AppActionReferenceHolder implements ActionConstants{
     public static AppAction AC_BACKUP_ALL = new AppAction("app.backupallaction", null, null, CMD_BACKUP_ALL);    
     public static AppAction AC_BUILD_BATCH = new AppAction("app.buildbatch", ArecaImages.ICO_FILTER, CMD_BUILD_BATCH);
     public static AppAction AC_BUILD_STRATEGY = new AppAction("app.strategy", ArecaImages.ICO_FILTER, CMD_BUILD_STRATEGY);    
-    public static AppAction AC_MERGE = new AppAction("app.mergearchivesaction", ArecaImages.ICO_ACT_COMPACT, ArecaImages.ICO_ACT_COMPACT_B, CMD_MERGE);
+    public static AppAction AC_MERGE = new AppAction("app.mergearchivesaction", ArecaImages.ICO_ACT_MERGE, ArecaImages.ICO_ACT_MERGE_B, CMD_MERGE);
     public static AppAction AC_DELETE_ARCHIVES = new AppAction("app.deletearchivesaction", ArecaImages.ICO_ACT_DELETE, ArecaImages.ICO_ACT_DELETE_B, CMD_DELETE_ARCHIVES);
     public static AppAction AC_RECOVER = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, ArecaImages.ICO_ACT_RESTAURE_B, CMD_RECOVER);
 
@@ -88,7 +88,7 @@ public class AppActionReferenceHolder implements ActionConstants{
                     enableCommands(false);
                     AC_NEW_PROCESS.setEnabled(true);
                     AC_BACKUP_ALL.setEnabled(true);
-                } else if (RecoveryProcess.class.isAssignableFrom(application.getCurrentObject().getClass())) {
+                } else if (TargetGroup.class.isAssignableFrom(application.getCurrentObject().getClass())) {
                     boolean available = ! application.getCurrentProcess().isRunning();
                     
                     AC_BUILD_BATCH.setEnabled(true);

@@ -12,7 +12,7 @@ import org.w3c.dom.NodeList;
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.filter.FileDateArchiveFilter;
@@ -32,6 +32,7 @@ import com.application.areca.impl.handler.DefaultArchiveHandler;
 import com.application.areca.impl.handler.DeltaArchiveHandler;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
+import com.application.areca.plugins.FileSystemPolicyXMLHandler;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.processor.DeleteProcessor;
@@ -40,14 +41,15 @@ import com.application.areca.processor.MailSendProcessor;
 import com.application.areca.processor.MergeProcessor;
 import com.application.areca.processor.Processor;
 import com.application.areca.processor.ShellScriptProcessor;
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.CompressionArguments;
 
 /**
- * Adaptateur pour la sérialisation / désérialisation XML.
+ * Adapter for target serialization / deserialization
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -70,13 +72,17 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class TargetXMLReader implements XMLTags {
-    protected RecoveryProcess process;
+    private static final int DEFAULT_ZIP_MV_DIGITS = FrameworkConfiguration.getInstance().getZipMvDigits();
+    
+    protected int version;
+    protected TargetGroup process;
     protected Node targetNode;
     protected MissingDataListener missingDataListener = null;
     
-    public TargetXMLReader(Node targetNode, RecoveryProcess process) throws AdapterException {
+    public TargetXMLReader(Node targetNode, TargetGroup process, int version) throws AdapterException {
         this.targetNode = targetNode;
         this.process = process;
+        this.version = version;
     }
     
     public void setMissingDataListener(MissingDataListener missingDataListener) {
@@ -393,12 +399,24 @@ public class TargetXMLReader implements XMLTags {
         Node volumeSizeNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_VOLUME_SIZE);
         if (volumeSizeNode != null) {
             long volumeSize = Long.parseLong(volumeSizeNode.getNodeValue());
-            compression.setVolumeSize(volumeSize);
+            int volumeDigits = DEFAULT_ZIP_MV_DIGITS;
+            
+            Node volumeDigitsNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_VOLUME_DIGITS);
+            if (volumeDigitsNode != null) {
+            	volumeDigits = Integer.parseInt(volumeDigitsNode.getNodeValue());
+            }
+            
+            compression.setMultiVolumes(volumeSize, volumeDigits);
         }
         
         Node commentNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ZIP_COMMENT);
         if (commentNode != null) {
             compression.setComment(commentNode.getNodeValue());
+        }
+        
+        Node addExtensionNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ZIP_EXTENSION);
+        if (addExtensionNode != null) {
+            compression.setAddExtension(Boolean.valueOf(addExtensionNode.getNodeValue()).booleanValue());
         }
         
         Node charsetNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ZIP_CHARSET);
@@ -455,7 +473,11 @@ public class TargetXMLReader implements XMLTags {
         medium.setEncryptionPolicy(encrArgs);
         medium.setOverwrite(isOverwrite);
         medium.setTrackDirectories(trackDirs);
-        medium.setTrackPermissions(trackPerms);        
+        medium.setTrackPermissions(trackPerms);   
+        
+        if (medium.isOverwrite() && medium.getHandler() instanceof DeltaArchiveHandler) {
+        	throw new AdapterException("Illegal state : 'Delta' archive mode is incompatible with 'image' targets.");
+        }
         
         return medium;
     }
@@ -479,7 +501,7 @@ public class TargetXMLReader implements XMLTags {
             policyId = policyNode.getNodeValue();
         } else {
             // Backward compatible read
-            Node pathNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVEPATH);
+            Node pathNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVEPATH_DEPRECATED);
             if (pathNode != null) {
                 policyId = POLICY_HD;
             } else {
@@ -488,7 +510,9 @@ public class TargetXMLReader implements XMLTags {
         }
         
         StoragePlugin plugin = StoragePluginRegistry.getInstance().getById(policyId);
-        return plugin.getFileSystemPolicyXMLHandler().read(mediumNode);
+        FileSystemPolicyXMLHandler handler = plugin.buildFileSystemPolicyXMLHandler();
+        handler.setVersion(version);
+        return handler.read(mediumNode);
     }
     
     protected EncryptionPolicy readEncryptionPolicy(Node mediumNode, AbstractRecoveryTarget target) throws IOException, AdapterException, ApplicationException {

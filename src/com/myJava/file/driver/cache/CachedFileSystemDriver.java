@@ -7,9 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import com.myJava.configuration.FrameworkConfiguration;
+import com.myJava.file.OutputStreamListener;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
 import com.myJava.file.driver.FileInformations;
@@ -26,7 +28,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -207,9 +209,9 @@ implements LinkableFileSystemDriver {
         }
         return os;
     }
-
-    public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
-        OutputStream os = predecessor.getFileOutputStream(file, append);
+    
+    public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException {
+        OutputStream os = predecessor.getFileOutputStream(file, append, listener);
         if (os != null) {
             try {
                 DataEntry entry = this.getOrCreateDataEntry(file, false, true);
@@ -219,6 +221,10 @@ implements LinkableFileSystemDriver {
             }
         }
         return os;
+    }
+
+    public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
+    	return getFileOutputStream(file, append, null);
     }
 
     public OutputStream getFileOutputStream(File file) throws IOException {
@@ -399,30 +405,40 @@ implements LinkableFileSystemDriver {
             entry.setPopulated(filter);
         }
 
-        Iterator iter = entry.getNames().iterator();
-        ArrayList list = new ArrayList();
-        while (iter.hasNext()) {
-            String name = (String)iter.next();
-            DataEntry child = null;
-            try {
-                child = (DataEntry)entry.getEntry(name);
-            } catch (NonExistingEntryException e) { /// Shall not happen
-            }
-            if (child.isExistsSet() && child.isExists()) {
-                File f = new File(file, name);
-                boolean accepted = false;
-                if (filter == null) {
-                    accepted = true;
-                } else if (filter instanceof FilenameFilter) {
-                    accepted = ((FilenameFilter)filter).accept(file, name);
-                } else {
-                    accepted = ((FileFilter)filter).accept(f);
-                }
+    	HashMap asyncMap = new HashMap();
+        synchronized (entry) {
+        	Iterator iter = entry.getNames().iterator();
+        	while (iter.hasNext()) {
+        		String name = (String)iter.next();
+        		DataEntry child = null;
+        		try {
+        			child = (DataEntry)entry.getEntry(name);
+        		} catch (NonExistingEntryException e) { /// Shall not happen
+        		}
+        		asyncMap.put(name, child);
+        	}
+        }
+        
+    	ArrayList list = new ArrayList();
+    	Iterator iter = asyncMap.keySet().iterator();
+    	while (iter.hasNext()) {
+    		String name = (String)iter.next();
+    		DataEntry child = (DataEntry)asyncMap.get(name);
+    		if (child.isExistsSet() && child.isExists()) {
+    			File f = new File(file, name);
+    			boolean accepted = false;
+    			if (filter == null) {
+    				accepted = true;
+    			} else if (filter instanceof FilenameFilter) {
+    				accepted = ((FilenameFilter)filter).accept(file, name);
+    			} else {
+    				accepted = ((FileFilter)filter).accept(f);
+    			}
 
-                if (accepted) {
-                    list.add(f);
-                }
-            }
+    			if (accepted) {
+    				list.add(f);
+    			}
+    		}
         }
 
         return (File[])list.toArray(new File[list.size()]);

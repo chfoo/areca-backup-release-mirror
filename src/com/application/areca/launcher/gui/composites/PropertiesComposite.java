@@ -1,5 +1,7 @@
 package com.application.areca.launcher.gui.composites;
 
+import java.io.File;
+
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -8,18 +10,20 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.ResourceManager;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.handler.DefaultArchiveHandler;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
+import com.myJava.file.FileSystemManager;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -79,12 +83,13 @@ extends Composite {
         }
     }
     
-    private void fillData(RecoveryProcess process) {
+    private void fillData(TargetGroup process) {
         this.addProperty(RM.getLabel("property.element.label"), process.getName());
         if (process.getComments() != null) {
             this.addProperty(RM.getLabel("property.description.label"), process.getComments());
-        }        
-        this.addProperty(RM.getLabel("property.source.label"), process.getSource());
+        }
+        
+        this.addProperty(RM.getLabel("property.source.label"), application.getWorkspace().getPath() + File.separator + process.getSource());
         this.addProperty(RM.getLabel("property.targets.label"), String.valueOf(process.getTargetCount()));
     }
     
@@ -112,9 +117,11 @@ extends Composite {
                 this.addProperty(RM.getLabel("property.directory.label"), medium.getDisplayArchivePath());
                 
                 if (medium.isOverwrite()) {
-                    this.addProperty(RM.getLabel("property.type.label"), RM.getLabel("property.image.label"));
-                }  else {
-                    this.addProperty(RM.getLabel("property.type.label"), RM.getLabel("property.incremental.label"));
+                    this.addProperty(RM.getLabel("property.type.label"), RM.getLabel("targetedition.storagetype.image"));
+                } else if (medium.getHandler() instanceof DefaultArchiveHandler) {
+                    this.addProperty(RM.getLabel("property.type.label"), RM.getLabel("targetedition.storagetype.multiple"));
+                } else {
+                    this.addProperty(RM.getLabel("property.type.label"), RM.getLabel("targetedition.storagetype.delta"));                	
                 }
             }
         } catch (Throwable e) {

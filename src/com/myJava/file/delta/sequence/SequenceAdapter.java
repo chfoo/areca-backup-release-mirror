@@ -7,7 +7,7 @@ import java.util.Iterator;
 
 import com.myJava.file.delta.Constants;
 import com.myJava.file.delta.tools.IOHelper;
-
+import com.myJava.util.log.Logger;
 
 /**
  * Format : 
@@ -21,7 +21,7 @@ import com.myJava.file.delta.tools.IOHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -51,31 +51,34 @@ public class SequenceAdapter implements Constants {
         IOHelper.writeLong(sequence.getBlockSize(), out);
         SimilarEntrySet[] sets = sequence.getInternalData();
         for (int i=0; i<sets.length; i++) {
-            if (sets[i] != null) {
-                Iterator iter = sets[i].iterator();
-                while(iter.hasNext()) {
-                    HashSequenceEntry entry = (HashSequenceEntry)iter.next();
-                    IOHelper.writeInt(entry.getQuickHash(), out);
-                    IOHelper.writeLong(entry.getIndex(), out);
-                    IOHelper.writeInt(entry.getSize(), out);
-                    out.write(entry.getFullHash());
-                }
-            }
+        	if (sets[i] != null) {
+	            Iterator iter = sets[i].iterator();
+	            while(iter.hasNext()) {
+	                HashSequenceEntry entry = (HashSequenceEntry)iter.next();
+	                IOHelper.writeInt(entry.getQuickHash(), out);
+	                IOHelper.writeLong(entry.getIndex(), out);
+	                IOHelper.writeInt(entry.getSize(), out);
+	                out.write(entry.getFullHash());
+	            }
+        	}
         }
     }
-
+    
     public HashSequence deserialize(InputStream in) throws IOException {
         byte[] sig = new byte[2 + 8];
         byte[] entryData = new byte[4 + 8 + 4];
-        int nb = in.read(sig);
+        int nb = IOHelper.readFully(in, sig);
+        long nbBuckets = 0;
         if (nb == -1) {
             return null;
         } else {
             long blockSize = IOHelper.get64(sig, 2);
             HashSequence seq = new HashSequence(blockSize);
-            while (in.read(entryData) != -1) {
+            int r, t = 0;
+            while (IOHelper.readFully(in, entryData) != -1) {
                 byte[] fullHash = new byte[HASH_ALG_KLENGTH];
-                in.read(fullHash);
+                IOHelper.readFully(in, fullHash);
+                nbBuckets++;
                 seq.add(
                         (int)IOHelper.get32(entryData, 0), // quick hash
                         fullHash, 
@@ -84,6 +87,7 @@ public class SequenceAdapter implements Constants {
                 );
             }
 
+            //Logger.defaultLogger().fine("Sequence adapter : " + nbBuckets + " buckets read.");
             return seq;
         }
     }

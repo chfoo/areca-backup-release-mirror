@@ -13,7 +13,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -69,8 +69,8 @@ public abstract class AbstractMedium implements ArchiveMedium {
     } 
     
     /**
-     * Construit une liste de EAD ordonnée et dont les status sont à jour
-     * à partir de la liste d'entrée data.
+     * Construit une liste de EAD ordonnee et dont les status sont a jour
+     * a partir de la liste d'entree data.
      * 
      * @param data
      * @return

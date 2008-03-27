@@ -4,7 +4,7 @@ package com.application.areca.launcher;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -29,7 +29,7 @@ This file is part of Areca.
 public interface CommandConstants {   
     public static UserCommand COMMAND_BACKUP = new UserCommand("backup");
     public static UserCommand COMMAND_RECOVER = new UserCommand("recover");
-    public static UserCommand COMMAND_COMPACT = new UserCommand("merge");
+    public static UserCommand COMMAND_MERGE = new UserCommand("merge");
     public static UserCommand COMMAND_DESCRIBE = new UserCommand("describe");
     public static UserCommand COMMAND_DELETE = new UserCommand("delete");       
     
@@ -43,4 +43,5 @@ public interface CommandConstants {
     public static UserOption OPTION_KEEP_DELETED_ENTRIES = new UserOption("-k", 1);    
     public static UserOption OPTION_FULL_BACKUP = new UserOption("-f", 1);
     public static UserOption OPTION_DIFFERENTIAL_BACKUP = new UserOption("-d", 1);
+    public static UserOption OPTION_TITLE = new UserOption("-title", 2);
 }

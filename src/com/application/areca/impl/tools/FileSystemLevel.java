@@ -9,7 +9,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -41,7 +41,7 @@ public class FileSystemLevel {
     
     public FileSystemLevel(File baseDirectory, FileSystemLevel parent) throws ApplicationException {
         if (! FileSystemManager.exists(baseDirectory)) {
-            // On laisse volontairement se déclencher les NullPointerExceptions
+            // On laisse volontairement se dï¿½clencher les NullPointerExceptions
             throw new ApplicationException("The requested directory (" + FileSystemManager.getAbsolutePath(baseDirectory) + ") doesn't exist.");
         }
         

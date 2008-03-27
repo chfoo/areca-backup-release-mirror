@@ -10,10 +10,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
@@ -24,7 +24,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -46,7 +46,7 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ProcessEditionWindow 
+public class GroupEditionWindow 
 extends AbstractWindow 
 implements FocusListener
 {
@@ -55,38 +55,36 @@ implements FocusListener
     protected Text txtDescription;
     protected Button btnSave;
     
-    protected RecoveryProcess process;
+    protected TargetGroup group;
     
-    public ProcessEditionWindow(RecoveryProcess process) {
+    public GroupEditionWindow(TargetGroup group) {
         super();
-        this.process = process;
+        this.group = group;
     }
 
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout();
-        layout.numColumns = 2;
-        composite.setLayout(layout);
+        composite.setLayout(new GridLayout(1, false));
         
-        Label lblName = new Label(composite, SWT.NONE);
-        lblName.setText(RM.getLabel("archivedetail.titlefield.label"));
+        Group grpName = new Group(composite, SWT.NONE);
+        grpName.setText(RM.removeDots(RM.getLabel("archivedetail.titlefield.label")));
+        grpName.setLayout(new GridLayout(1, false));
+        grpName.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
         
-        txtName = new Text(composite, SWT.BORDER);
-        GridData ldTitle = new GridData();
-        ldTitle.grabExcessHorizontalSpace = true;
-        ldTitle.horizontalAlignment = SWT.FILL;
-        txtName.setLayoutData(ldTitle);
-        monitorControl(txtName);
-        Label lblDescription = new Label(composite, SWT.NONE);
-        lblDescription.setText(RM.getLabel("archivedetail.descriptionfield.label"));
+        txtName = new Text(grpName, SWT.BORDER);
+        txtName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
         txtName.addFocusListener(this);
-        
-        if (this.process != null) {
-            this.txtName.setEnabled(false);
-            lblName.setEnabled(false);            
+        if (this.group != null) {
+            this.txtName.setEnabled(false);           
         }
+        monitorControl(txtName);
         
-        txtDescription = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+        Group grpDescription = new Group(composite, SWT.NONE);
+        grpDescription.setText(RM.removeDots(RM.getLabel("archivedetail.descriptionfield.label")));
+        grpDescription.setLayout(new GridLayout(1, false));
+        grpDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));   
+        
+        txtDescription = new Text(grpDescription, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
         GridData ldDescription = new GridData(SWT.FILL, SWT.FILL, true, true);
         ldDescription.widthHint = computeWidth(400);
         ldDescription.heightHint = computeHeight(100);
@@ -102,9 +100,9 @@ implements FocusListener
         ldPnl.horizontalSpan = 2;
         pnl.setLayoutData(ldPnl);
         
-        if (process != null) {
-            this.txtDescription.setText(process.getComments() == null ? "" : process.getComments());
-            this.txtName.setText(FileSystemManager.getName(process.getSourceFile()).substring(0, FileSystemManager.getName(process.getSourceFile()).length() - 4));
+        if (group != null) {
+            this.txtDescription.setText(group.getComments() == null ? "" : group.getComments());
+            this.txtName.setText(FileSystemManager.getName(group.getSourceFile()).substring(0, FileSystemManager.getName(group.getSourceFile()).length() - 4));
         }
         
         composite.pack();
@@ -135,12 +133,12 @@ implements FocusListener
         }
         suffix = Utils.normalizeFileName(suffix);
         
-        if (this.process == null) {
-            this.process = new RecoveryProcess(
+        if (this.group == null) {
+            this.group = new TargetGroup(
                     new File(application.getWorkspace().getPath(), suffix + ".xml")
             );
         }
-        this.process.setComments(this.txtDescription.getText());
+        this.group.setComments(this.txtDescription.getText());
         
         this.hasBeenUpdated = false;
         this.close();
@@ -159,7 +157,7 @@ implements FocusListener
         ));
     }
 
-    public RecoveryProcess getProcess() {
-        return process;
+    public TargetGroup getProcess() {
+        return group;
     }
 }

@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -33,6 +33,7 @@ public interface XMLTags {
     public static final String POLICY_FTP  = "ftp";
     
     public static final String XML_PROCESS = "process";
+    public static final String XML_VERSION = "version";
     public static final String XML_PROCESS_DESCRIPTION = "description";
     
     public static final String XML_TARGET = "target";    
@@ -72,7 +73,9 @@ public interface XMLTags {
     public static final String XML_HANDLER_TYPE_DELTA = "delta";
 
     public static final String XML_MEDIUM = "medium";    
-    public static final String XML_MEDIUM_ARCHIVEPATH = "archive_path";   
+    public static final String XML_MEDIUM_ARCHIVEPATH_DEPRECATED = "archive_path";   // Backward - compatibility
+    public static final String XML_MEDIUM_PATH = "path";
+    public static final String XML_MEDIUM_ARCHIVENAME = "archive_name";
     public static final String XML_MEDIUM_OVERWRITE = "overwrite";
     public static final String XML_MEDIUM_POLICY = "policy";
     public static final String XML_MEDIUM_FILECOMPRESSION = "file_compression";
@@ -83,8 +86,10 @@ public interface XMLTags {
     public static final String XML_MEDIUM_TRACK_DIRS = "track_directories";
     public static final String XML_MEDIUM_TRACK_PERMS = "track_permissions";    
     public static final String XML_MEDIUM_VOLUME_SIZE = "volume_size";
+    public static final String XML_MEDIUM_VOLUME_DIGITS = "volume_digits";
     public static final String XML_MEDIUM_ZIP_COMMENT = "zip_comment";    
-    public static final String XML_MEDIUM_ZIP_CHARSET = "zip_charset";      
+    public static final String XML_MEDIUM_ZIP_CHARSET = "zip_charset";   
+    public static final String XML_MEDIUM_ZIP_EXTENSION = "zip_ext";   
     public static final String XML_MEDIUM_TYPE = "type";
     public static final String XML_MEDIUM_TYPE_ZIP = "zip";
     public static final String XML_MEDIUM_TYPE_ZIP64 = "zip64"; // DEPRECATED

@@ -6,20 +6,20 @@ import java.util.Iterator;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.launcher.gui.Workspace;
 import com.myJava.util.log.Logger;
 
 /**
- * Classe chargée d'initialiser les caches en parcourant les archives :
+ * Classe chargï¿½e d'initialiser les caches en parcourant les archives :
  * <BR>- ArchiveTraceCache
  * <BR>- ArchiveManifestCache
  * <BR>- ZipReaderCache
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -44,7 +44,7 @@ This file is part of Areca.
 public class CacheInitializer {
     
     /**
-     * Méthode asynchrone de remplissage de cache pour un workspace donné.
+     * Mï¿½thode asynchrone de remplissage de cache pour un workspace donnï¿½.
      */
     public static void populateCache(Workspace workspace) {
     	Logger.defaultLogger().info("Trace cache creation. (Workspace : " + workspace.getPath() + ")");
@@ -59,15 +59,15 @@ public class CacheInitializer {
     }
     
     /**
-     * Runner chargé du remplissage du cache
+     * Runner chargï¿½ du remplissage du cache
      */
     private static class CachePopulator implements Runnable {
         private Workspace workspace;
         
-        // Délai (en ms) avant que le remplissage du cache ne soit démarré. 
+        // Dï¿½lai (en ms) avant que le remplissage du cache ne soit dï¿½marrï¿½. 
         private static final long POPULATION_START_DELAY = 3000;
         
-        // Délai entre le remplissage de deux targets
+        // Dï¿½lai entre le remplissage de deux targets
         private static final long POPULATION_TARGET_DELAY = 1000;        
         
         public CachePopulator(Workspace workspace) {
@@ -83,7 +83,7 @@ public class CacheInitializer {
             Iterator iter = this.workspace.getProcessIterator();
             try {
 	            while(iter.hasNext()) {
-	                if (! this.populateCache((RecoveryProcess)iter.next())) {
+	                if (! this.populateCache((TargetGroup)iter.next())) {
 	                    Logger.defaultLogger().info("Memory threshold reached - Cache population stopped");
 	                    break;
 	                }
@@ -95,9 +95,9 @@ public class CacheInitializer {
         }
         
         /**
-         * Méthode de remplissage de cache pour un process donné.
+         * Mï¿½thode de remplissage de cache pour un process donnï¿½.
          */
-        private boolean populateCache(RecoveryProcess process) {
+        private boolean populateCache(TargetGroup process) {
             Iterator iter = process.getTargetIterator();
             try {
                 while(iter.hasNext()) {

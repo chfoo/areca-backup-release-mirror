@@ -8,7 +8,7 @@ import com.application.areca.context.ReportingConfiguration;
 /**
  * @author Stephane Brunel
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -123,7 +123,7 @@ public final class ArecaPreferences {
     }
     
     public static boolean isCheckNewVersions() {
-        return LocalPreferences.instance().getBoolean(CHECK_NEW_VERSIONS, true);
+        return LocalPreferences.instance().getBoolean(CHECK_NEW_VERSIONS, false);
     }
     
     public static boolean isDisplayJavaVendorMessage() {
@@ -169,7 +169,26 @@ public final class ArecaPreferences {
 	}
 	
 	public static String getLang() {
-	    return LocalPreferences.instance().get(LANG, Locale.getDefault().getCountry().toLowerCase());
+	    return LocalPreferences.instance().get(LANG, System.getProperty("user.language"));
+	}
+	
+	public static String resolveLanguage() {
+    	String currentLg = getLang();
+        String[] lges = Utils.getTranslations();
+        
+        // Check that the language exists in the language list
+        boolean found = false;
+        for (int i=0; i<lges.length; i++) {
+            if (lges[i].equals(currentLg)) {
+            	found = true;
+            	break;
+            }
+        }
+        if (! found) {
+        	currentLg = "en";
+        }
+
+        return currentLg;
 	}
 	
 	public static void setLang(String lang) {

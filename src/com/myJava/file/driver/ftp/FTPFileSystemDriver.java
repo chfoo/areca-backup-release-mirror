@@ -14,14 +14,17 @@ import java.util.Iterator;
 import java.util.Map;
 
 import com.myJava.configuration.FrameworkConfiguration;
+import com.myJava.file.EventOutputStream;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.OutputStreamListener;
 import com.myJava.file.driver.AbstractFileSystemDriver;
 import com.myJava.file.driver.FileInformations;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
+import com.myJava.system.OSTool;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 
@@ -41,7 +44,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -291,14 +294,14 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
             releaseProxy(proxy, owner);
             throw e;
         }
-        // Pas de "releaseLock" systématique ici car c'est le stream qui s'en charge à la fermeture
+        // Pas de "releaseLock" systematique ici car c'est le stream qui s'en charge a la fermeture
     }
 
     public synchronized OutputStream getCachedFileOutputStream(File file) throws IOException {
         checkFilePath(file);
         
         long rnd = Util.getRndLong();
-        File localFile = new File(System.getProperty("user.home"), "java_ftp_local_file_out" + rnd + ".tmp");
+        File localFile = new File(OSTool.getTempDirectory(), "java_ftp_local_file_out" + rnd + ".tmp");
         FileSystemManager.deleteOnExit(localFile);
         this.localFiles.put(translateToRemote(file), localFile);
         OutputStream raw = FileSystemManager.getFileOutputStream(localFile);
@@ -312,7 +315,7 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
 
     public InputStream getCachedFileInputStream(File file) throws IOException {
         long rnd = Util.getRndLong();
-        File localFile = new File(System.getProperty("user.home"), "java_ftp_local_file_in" + rnd + ".tmp");
+        File localFile = new File(OSTool.getTempDirectory(), "java_ftp_local_file_in" + rnd + ".tmp");
         FileSystemManager.deleteOnExit(localFile);
         FileTool.getInstance().copy(getFileInputStream(file), FileSystemManager.getFileOutputStream(localFile), true, true);
         return new LocalInputStream(localFile);
@@ -339,8 +342,13 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
             releaseProxy(proxy, owner);
             throw e;
         }
-        // Pas de "releaseLock" systématique ici car c'est le stream qui s'en charge à la fermeture
+        // Pas de "releaseLock" systematique ici car c'est le stream qui s'en charge a la fermeture
     }
+    
+    public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException {
+    	OutputStream out = getFileOutputStream(file, append);
+    	return listener == null ? out : new EventOutputStream(out, listener);
+	}
 
     public OutputStream getFileOutputStream(File file) throws IOException {
         checkFilePath(file);
@@ -460,6 +468,9 @@ public class FTPFileSystemDriver extends AbstractFileSystemDriver {
             return new FictiveFile(normalizeIfNeeded(file.getAbsolutePath()), this.translateToRemote(file), this);
         }
     } 
+    
+    public void mount() throws IOException {
+    }
 
     public void unmount() throws IOException {
         Logger.defaultLogger().info("Unmounting FTP driver ...");

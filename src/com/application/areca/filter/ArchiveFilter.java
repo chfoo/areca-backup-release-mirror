@@ -4,11 +4,11 @@ import com.application.areca.RecoveryEntry;
 import com.myJava.object.PublicClonable;
 
 /**
- * Classe générique définissant un filtre d'entrée à backuper.
+ * Classe gï¿½nï¿½rique dï¿½finissant un filtre d'entrï¿½e ï¿½ backuper.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -34,14 +34,14 @@ public interface ArchiveFilter
 extends PublicClonable {
 	
     /**
-     * Indique si l'entrée doit être acceptée ou refusée
+     * Indique si l'entrï¿½e doit ï¿½tre acceptï¿½e ou refusï¿½e
      * @param entry
      * @return
      */
     public boolean acceptIteration(RecoveryEntry entry);
     
 	/**
-	 * Indique si l'entrée doit être acceptée ou refusée
+	 * Indique si l'entrï¿½e doit ï¿½tre acceptï¿½e ou refusï¿½e
 	 * @param entry
 	 * @return
 	 */

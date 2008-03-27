@@ -1,12 +1,13 @@
 package com.myJava.file.delta;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -29,5 +30,6 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface LayerHandler {
-    public void addInputStream(InputStream stream);
+    public void addInputStream(InputStream stream, String name);
+    public void close() throws IOException;
 }

@@ -32,7 +32,7 @@ import com.myJava.util.history.HistoryEntry;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -153,7 +153,7 @@ implements Listener, Refreshable, HistoryEntryTypes {
                 } else if (type == HISTO_RECOVER) {
                     item.setImage(0, ArecaImages.ICO_ACT_RESTAURE);
                 } else {
-                    item.setImage(0, ArecaImages.ICO_ACT_COMPACT);
+                    item.setImage(0, ArecaImages.ICO_ACT_MERGE);
                 }
 
                 item.setText(1, Utils.formatDisplayDate(keys[i]));

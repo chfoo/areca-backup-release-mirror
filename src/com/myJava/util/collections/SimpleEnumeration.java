@@ -1,12 +1,12 @@
 package com.myJava.util.collections;
 
 /**
- * Interface décrivant une énumération simple. Elle ne comporte qu'une méthode "GetString".
+ * Interface dï¿½crivant une ï¿½numï¿½ration simple. Elle ne comporte qu'une mï¿½thode "GetString".
  * Utile notamment pour le ContextData.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*

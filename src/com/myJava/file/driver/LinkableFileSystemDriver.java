@@ -1,15 +1,15 @@
 package com.myJava.file.driver;
 
 /**
- * Interface définissant un driver "chainable", c'est à dire s'appuyant sur un driver prédécesseur
- * pour les accès disque.
- * <BR>L'implémentation d'un tel driver impose donc de se référer systématiquement au prédécesseur pour
- * l'accès au FileSystem, et interdit tout accès direct. 
+ * Interface dï¿½finissant un driver "chainable", c'est ï¿½ dire s'appuyant sur un driver prï¿½dï¿½cesseur
+ * pour les accï¿½s disque.
+ * <BR>L'implï¿½mentation d'un tel driver impose donc de se rï¿½fï¿½rer systï¿½matiquement au prï¿½dï¿½cesseur pour
+ * l'accï¿½s au FileSystem, et interdit tout accï¿½s direct. 
  *
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*

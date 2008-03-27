@@ -6,7 +6,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -46,21 +46,27 @@ extends FrameworkConfiguration {
     private static String KEY_REPOSITORYACCESS_HD_CACHE_DEPTH = "repository.access.hd.cache.depth";
     private static String KEY_REPOSITORYACCESS_FTP_CACHE_DEPTH = "repository.access.ftp.cache.depth";
     private static String KEY_CHECK_DIRECTORY_CONSISTENCY = "repository.check.consistency";
+    private static String KEY_DELTA_MIN_BUCKETSIZE = "delta.min.bucket.size";
+    private static String KEY_DELTA_MAX_BUCKETSIZE = "delta.max.bucket.size";
+    private static String KEY_DELTA_TARGET_BUCKER_NUMBER = "delta.target.bucket.number";
     
     private static boolean DEF_SMTP_DEBUG = false;
-    private static long DEF_MEMORY_BASE_KB = 20 * 1024;
-    private static double DEF_MEMORY_BY_ENTRY_KB = 2;
-    private static double DEF_MEMORY_SAFETY_MARGIN = 0.3;
+    private static long DEF_MEMORY_BASE_KB = 5 * 1024;
+    private static double DEF_MEMORY_BY_ENTRY_KB = 1.7;
+    private static double DEF_MEMORY_SAFETY_MARGIN = 0.0;
     private static boolean DEF_CACHE_PRELOAD = false;
     private static boolean DEF_XML_BACKUP = true;
     private static boolean DEF_BACKUP_DEBUG_MODE = false;
     private static boolean DEF_REPOSITORYACCESS_DEBUG = false;
     private static boolean DEF_FILESTREAMS_DEBUG = false;
     private static boolean DEF_REPOSITORYACCESS_HD_CACHE = false;
-    private static boolean DEF_REPOSITORYACCESS_FTP_CACHE = false;
+    private static boolean DEF_REPOSITORYACCESS_FTP_CACHE = true;
     private static int DEF_REPOSITORYACCESS_HD_CACHE_DEPTH = 2;
     private static int DEF_REPOSITORYACCESS_FTP_CACHE_DEPTH = 2;
     private static boolean DEF_CHECK_DIRECTORY_CONSISTENCY = true;
+    private static int DEF_DELTA_MIN_BUCKETSIZE = 1 * 1024;
+    private static int DEF_DELTA_MAX_BUCKETSIZE = 1 * 1024 * 1024;
+    private static int DEF_DELTA_TARGET_BUCKER_NUMBER = 100;
     
     public ArecaTechnicalConfiguration() {
         super();
@@ -102,6 +108,18 @@ extends FrameworkConfiguration {
     
     public boolean isRepositoryFTPCache() {
         return getProperty(KEY_REPOSITORYACCESS_FTP_CACHE, DEF_REPOSITORYACCESS_FTP_CACHE);
+    }
+    
+    public int getDeltaMinBucketSize() {
+        return getProperty(KEY_DELTA_MIN_BUCKETSIZE, DEF_DELTA_MIN_BUCKETSIZE);
+    }
+    
+    public int getDeltaMaxBucketSize() {
+        return getProperty(KEY_DELTA_MAX_BUCKETSIZE, DEF_DELTA_MAX_BUCKETSIZE);
+    }
+    
+    public int getDeltaTargetBucketNumber() {
+        return getProperty(KEY_DELTA_TARGET_BUCKER_NUMBER, DEF_DELTA_TARGET_BUCKER_NUMBER);
     }
     
     public int getRepositoryHDCacheDepth() {

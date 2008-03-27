@@ -12,12 +12,12 @@ import com.myJava.object.PublicClonable;
 import com.myJava.util.log.Logger;
 
 /**
- * Vérifie si l'entrée est bien contenue (directement ou indirectement) dans le répertoire
- * spécifié.
+ * Vï¿½rifie si l'entrï¿½e est bien contenue (directement ou indirectement) dans le rï¿½pertoire
+ * spï¿½cifiï¿½.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*

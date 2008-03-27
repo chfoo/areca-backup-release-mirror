@@ -3,11 +3,11 @@ package com.myJava.util.log;
 import com.myJava.util.schedule.ScheduledTask;
 
 /**
- * Tâche de logging de mémoire
+ * Tï¿½che de logging de mï¿½moire
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -32,7 +32,7 @@ This file is part of Areca.
 
 public class MemoryLogger extends ScheduledTask {
 
-	// Logging par défaut toutes les 4 minutes
+	// Logging par dï¿½faut toutes les 4 minutes
     public MemoryLogger() {
         this(4 * 60);
     }

@@ -20,7 +20,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -45,7 +45,7 @@ This file is part of Areca.
 public class EncryptionPolicy implements PublicClonable {
    
     /**
-     * Clef de cryptage si les fichiers sont cryptées
+     * Clef de cryptage si les fichiers sont cryptï¿½es
      */
     protected String encryptionKey = null;
     
@@ -59,7 +59,7 @@ public class EncryptionPolicy implements PublicClonable {
     
     public FileSystemDriver initFileSystemDriver(File basePath, FileSystemDriver predecessor) throws ApplicationException {                 
         if (this.isEncrypted()) {         
-            // Génération de la clef + paramètres
+            // Gï¿½nï¿½ration de la clef + paramï¿½tres
             EncryptionConfiguration params = EncryptionConfiguration.getParameters(this.getEncryptionAlgorithm());
             Key key = new SecretKeySpec(getNormalizedEncryptionKey(this.getEncryptionKey(), params), params.getAlgorithm());
             

@@ -28,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -93,10 +93,10 @@ public class DefaultHistory implements History {
     
     /**
      * Ferme l'historique et flush son contenu en fichier.
-     * <BR>Ce mode peut paraître non optimisé dans la mesure ou il réécrit tout
-     * le contenu de l'historique au lieu de n'ajouter que la dernière entrée au fichier.
-     * <BR>Ce choix a été fait pour rendre cette classe compatible avec les EncryptedFileSystemDrivers,
-     * qui ne supportent pas l'écriture en mode "append" 
+     * <BR>Ce mode peut paraï¿½tre non optimisï¿½ dans la mesure ou il rï¿½ï¿½crit tout
+     * le contenu de l'historique au lieu de n'ajouter que la derniï¿½re entrï¿½e au fichier.
+     * <BR>Ce choix a ï¿½tï¿½ fait pour rendre cette classe compatible avec les EncryptedFileSystemDrivers,
+     * qui ne supportent pas l'ï¿½criture en mode "append" 
      */
     public synchronized void flush() throws IOException {       
         if (file != null) {

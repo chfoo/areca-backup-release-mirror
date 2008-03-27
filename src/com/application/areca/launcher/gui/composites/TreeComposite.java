@@ -30,7 +30,7 @@ import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.Identifiable;
-import com.application.areca.RecoveryProcess;
+import com.application.areca.TargetGroup;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.ArecaImages;
 
@@ -38,7 +38,7 @@ import com.application.areca.launcher.gui.common.ArecaImages;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -131,8 +131,8 @@ implements MouseListener, Listener {
                 if (event.item != null) {
                     TreeItem item = (TreeItem) event.item;
                     AbstractRecoveryTarget draggedTarget = Application.getInstance().getCurrentTarget();
-                    RecoveryProcess sourceProcess = draggedTarget.getProcess();
-                    RecoveryProcess destinationProcess = extractRecoveryProcess(item);
+                    TargetGroup sourceProcess = draggedTarget.getProcess();
+                    TargetGroup destinationProcess = extractRecoveryProcess(item);
 
                     if ( ! destinationProcess.equals(sourceProcess)) {
                         sourceProcess.removeTarget(draggedTarget);
@@ -156,13 +156,13 @@ implements MouseListener, Listener {
         refresh();
     }
 
-    private RecoveryProcess extractRecoveryProcess(TreeItem item) {
+    private TargetGroup extractRecoveryProcess(TreeItem item) {
         if (item == null) {
             return null;
         } else {
             Object data = item.getData();
-            if (data instanceof RecoveryProcess) {
-                return (RecoveryProcess)data;
+            if (data instanceof TargetGroup) {
+                return (TargetGroup)data;
             } else {
                 AbstractRecoveryTarget tg = (AbstractRecoveryTarget)data;
                 return tg.getProcess();
@@ -171,7 +171,7 @@ implements MouseListener, Listener {
     }
 
     private boolean isValidTreeItem(TreeItem item) {
-        RecoveryProcess process = extractRecoveryProcess(item);
+        TargetGroup process = extractRecoveryProcess(item);
         return
         process != null
         && ! (process.getUid().equals(Application.getInstance().getCurrentProcess().getUid()));
@@ -181,16 +181,18 @@ implements MouseListener, Listener {
         tree.removeAll();
         String currentObjectId = Application.getInstance().getCurrentObject() != null ? Application.getInstance().getCurrentObject().getUid() : null;
 
-        Iterator iter = Application.getInstance().getWorkspace().getSortedProcessIterator();
-        while (iter.hasNext()) {
-            TreeItem processNode = new TreeItem(tree, SWT.NONE);
-            RecoveryProcess process = (RecoveryProcess)iter.next();
-            fillProcessData(processNode, process, currentObjectId);
-            processNode.setExpanded(true);
+        if (Application.getInstance().getWorkspace() != null) {
+        	Iterator iter = Application.getInstance().getWorkspace().getSortedProcessIterator();
+        	while (iter.hasNext()) {
+        		TreeItem processNode = new TreeItem(tree, SWT.NONE);
+        		TargetGroup process = (TargetGroup)iter.next();
+        		fillProcessData(processNode, process, currentObjectId);
+        		processNode.setExpanded(true);
+        	}
         }
     }
 
-    private void fillProcessData(TreeItem processNode, RecoveryProcess process, String currentObjectId) {
+    private void fillProcessData(TreeItem processNode, TargetGroup process, String currentObjectId) {
         processNode.setText(" " + process.getName());
         processNode.setImage(ArecaImages.ICO_REF_PROCESS);
         processNode.setData(process);
@@ -217,11 +219,11 @@ implements MouseListener, Listener {
     public void setSelectedTarget(AbstractRecoveryTarget target) {
         if (target != null) {
             TreeItem processNode = null;
-            RecoveryProcess process = target.getProcess();
+            TargetGroup process = target.getProcess();
             TreeItem[] processes = tree.getItems();
             for (int i=0; i<processes.length; i++) {
                 TreeItem child = processes[i];
-                RecoveryProcess cProcess = (RecoveryProcess)child.getData();
+                TargetGroup cProcess = (TargetGroup)child.getData();
                 if (cProcess.getSource().equals(process.getSource())) {
                     processNode = child;
                     break;
@@ -249,7 +251,7 @@ implements MouseListener, Listener {
         if (item != null) {
             if (item.getData() instanceof AbstractRecoveryTarget) {
                 showMenu(e, Application.getInstance().getTargetContextMenu());
-            } else if (item.getData() instanceof RecoveryProcess) {
+            } else if (item.getData() instanceof TargetGroup) {
                 showMenu(e, Application.getInstance().getProcessContextMenu());            
             } else {
                 showMenu(e, Application.getInstance().getWorkspaceContextMenu());

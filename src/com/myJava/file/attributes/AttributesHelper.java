@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -310,7 +310,7 @@ public class AttributesHelper {
 
     public static void main(String[] args) {
         try {
-            File f = new File("/home/olivier/Desktop/bañuelos");
+            File f = new File("/home/olivier/Desktop/baï¿½uelos");
             
             UnixAttributes p = new UnixAttributes();
             BufferedReader reader = null;

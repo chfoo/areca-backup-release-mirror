@@ -6,7 +6,7 @@ import com.myJava.util.Util;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -35,6 +35,18 @@ public abstract class AbstractXMLWriter implements XMLTags {
     public AbstractXMLWriter(StringBuffer sb) {
         this.sb = sb;
     }
+    
+    protected static String encode(long orig) {
+    	return encode("" + orig);
+    }
+    
+    protected static String encode(int orig) {
+    	return encode("" + orig);
+    }
+    
+    protected static String encode(boolean orig) {
+    	return encode("" + orig);
+    }
 
     protected static String encode(String orig) {
         String ret = orig;
@@ -58,7 +70,6 @@ public abstract class AbstractXMLWriter implements XMLTags {
     }
     
     protected static String getEncoding() {
-        //return OSTool.getIANAFileEncoding();
         return "UTF-8";
     }
 }

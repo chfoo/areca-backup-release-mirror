@@ -27,7 +27,7 @@ import com.myJava.util.Util;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -56,6 +56,7 @@ public class DeltaStreamTest {
     private static final FileTool tool = FileTool.getInstance();
     private static List filePairs = new ArrayList();
     private static int blocksize = 10240;
+    private static long modulus = 1000000;
     private static final int compareSize = 10240;
     private static File logfile = new File("/home/olivier/Desktop/log.txt");
     
@@ -155,10 +156,10 @@ public class DeltaStreamTest {
                 println("Sequence created - length = " + seq.getSize());
                 
                 println("Creating diff file from " + source + " and " + mutated + " ...");
-                DeltaProcessor proc = new LayerWriterDeltaProcessor(new BufferedOutputStream(new FileOutputStream(FileSystemManager.getAbsolutePath(mutated) + ".diff"), 200000), true);            
+                DeltaProcessor proc = new LayerWriterDeltaProcessor(new BufferedOutputStream(new FileOutputStream(FileSystemManager.getAbsolutePath(mutated) + ".diff"), 200000));            
                 
                 DeltaReader reader = new DeltaReader(seq, f2, new DeltaProcessor[] {proc}, null);
-                reader.read();
+                //reader.read();
                 
                 f1.close();
                 f2.close();
@@ -168,7 +169,7 @@ public class DeltaStreamTest {
                 InputStream orig = new BufferedInputStream(new FileInputStream(mutated), 200000);
                 DeltaInputStream diffz = new DeltaInputStream();
                 diffz.setMainInputStream(new FileInputStream(source));
-                diffz.addInputStream(new BufferedInputStream(new FileInputStream(FileSystemManager.getAbsolutePath(mutated) + ".diff"), 200000));
+                diffz.addInputStream(new BufferedInputStream(new FileInputStream(FileSystemManager.getAbsolutePath(mutated) + ".diff"), 200000), "");
                 InputStream diff = new BufferedInputStream(diffz, 200000);
                 
                 byte[] buff1 = new byte[compareSize];

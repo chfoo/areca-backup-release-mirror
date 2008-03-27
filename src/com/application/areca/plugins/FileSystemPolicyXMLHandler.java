@@ -9,7 +9,7 @@ import com.application.areca.impl.policy.FileSystemPolicy;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -34,4 +34,5 @@ This file is part of Areca.
 public interface FileSystemPolicyXMLHandler {
     public FileSystemPolicy read(Node mediumNode) throws AdapterException;
     public void write(FileSystemPolicy policy, StringBuffer sb);
+    public void setVersion(int version);
 }

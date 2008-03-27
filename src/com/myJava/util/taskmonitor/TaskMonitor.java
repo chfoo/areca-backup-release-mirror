@@ -6,13 +6,13 @@ import java.util.List;
 import com.myJava.object.ToStringHelper;
 
 /**
- * Classe définissant un moniteur d'avancement de tâche.
- * <BR>Permet d'enregistrer des sous tâches, de définir un état d'avancement global
- * <BR>et de lever des événements lors des changements d'état (@see TaskMonitorListener)
+ * Classe dï¿½finissant un moniteur d'avancement de tï¿½che.
+ * <BR>Permet d'enregistrer des sous tï¿½ches, de dï¿½finir un ï¿½tat d'avancement global
+ * <BR>et de lever des ï¿½vï¿½nements lors des changements d'ï¿½tat (@see TaskMonitorListener)
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -36,16 +36,16 @@ This file is part of Areca.
  */
 public class TaskMonitor {
 
-    // Taux de completion de la tâche (hors sous tâche) : double entre 0 et 1
+    // Taux de completion de la tï¿½che (hors sous tï¿½che) : double entre 0 et 1
     protected double currentCompletionRate;
 
-    // Sous tâche courante
+    // Sous tï¿½che courante
     protected TaskMonitor currentSubTask;
     
-    // Part de la sous tâche dans l'avancement global de la tâche (double, entre 0 et 1)
+    // Part de la sous tï¿½che dans l'avancement global de la tï¿½che (double, entre 0 et 1)
     protected double currentSubTaskShare;
     
-    // En cas de sous tâche, tâche parent
+    // En cas de sous tï¿½che, tï¿½che parent
     protected TaskMonitor parentTask;   
     
     // Liste contenant des TaskMonitorListeners
@@ -68,7 +68,7 @@ public class TaskMonitor {
         this.clearAllListeners();  
     }
     
-    // Ajoute un listener à la liste
+    // Ajoute un listener ï¿½ la liste
     public void addListener(TaskMonitorListener listener) {
         if (listener == null) {
             throw new NullPointerException();
@@ -82,8 +82,8 @@ public class TaskMonitor {
         this.listeners = new ArrayList();
     }
     
-    // Retourne le taux d'avancement global de la tâche
-    // (taux courant de la tâche + part de la sous tâche * taux global de la sous tâche.
+    // Retourne le taux d'avancement global de la tï¿½che
+    // (taux courant de la tï¿½che + part de la sous tï¿½che * taux global de la sous tï¿½che.
     public double getGlobalCompletionRate() {
         if (currentSubTask == null) {
             return this.currentCompletionRate;
@@ -93,9 +93,9 @@ public class TaskMonitor {
         }
     }
     
-    // Initialise la sous tâche courante
-    // subTaskShare représente la part de la sous tâche dans l'avancement global
-    // de la tâche (exemple : 0.1 pour 10%)
+    // Initialise la sous tï¿½che courante
+    // subTaskShare reprï¿½sente la part de la sous tï¿½che dans l'avancement global
+    // de la tï¿½che (exemple : 0.1 pour 10%)
     public void setCurrentSubTask(TaskMonitor subTask, double subTaskShare) {
         if (subTask.getGlobalCompletionRate() > 0) {
             throw new IllegalArgumentException("Illegal attempt to add a subTask which has already been started.");
@@ -110,11 +110,11 @@ public class TaskMonitor {
         this.setCurrentSubTask(new TaskMonitor(name), subTaskShare);
     }
 
-    // Initialise le taux d'avancement global de la tâche.
-    // Attention : ceci n'est faisable que si la sous tâche courante a été terminée.    
+    // Initialise le taux d'avancement global de la tï¿½che.
+    // Attention : ceci n'est faisable que si la sous tï¿½che courante a ï¿½tï¿½ terminï¿½e.    
     public void setCurrentCompletion(double completion) {
         
-        // On ne fait rien si le taux d'avancement ne change pas. (sauf si la complétion est égale à 0, auquel cas on force l'update quoi qu'il arrive)
+        // On ne fait rien si le taux d'avancement ne change pas. (sauf si la complï¿½tion est ï¿½gale ï¿½ 0, auquel cas on force l'update quoi qu'il arrive)
         if (this.currentCompletionRate == completion && completion != 0) {
             return;
         }
@@ -130,7 +130,7 @@ public class TaskMonitor {
         // MAJ du taux d'avancement.
         this.currentCompletionRate = completion;
         
-        // Levée d'événement.
+        // Levï¿½e d'ï¿½vï¿½nement.
         this.completionChanged();
     }
     
@@ -156,9 +156,9 @@ public class TaskMonitor {
         this.setCurrentCompletion(1.0);
     }
     
-    // Retourne la sous tâche réellement active de la tâche courante
-    // <BR>(c'est à dire la dernière sous tâche ayant été ajoutée dans le chaîne des sous tâches)
-    // <BR>C'est la seule sous tâche dont le taux d'avancement peut être mis à jour par appel direct à 
+    // Retourne la sous tï¿½che rï¿½ellement active de la tï¿½che courante
+    // <BR>(c'est ï¿½ dire la derniï¿½re sous tï¿½che ayant ï¿½tï¿½ ajoutï¿½e dans le chaï¿½ne des sous tï¿½ches)
+    // <BR>C'est la seule sous tï¿½che dont le taux d'avancement peut ï¿½tre mis ï¿½ jour par appel direct ï¿½ 
     // 'setCurrentCompletion()'.
     public TaskMonitor getCurrentActiveSubTask() {
         if (this.currentSubTask == null) {
@@ -168,9 +168,9 @@ public class TaskMonitor {
         }
     }
     
-    // Alerte ses listeners ainsi que la tâche parente que le taux d'avancement a changé.
+    // Alerte ses listeners ainsi que la tï¿½che parente que le taux d'avancement a changï¿½.
     protected void completionChanged() {
-        // nettoyage de la sous tâche
+        // nettoyage de la sous tï¿½che
         if (this.currentSubTask != null && this.currentSubTask.getGlobalCompletionRate() >= 1.) {
             this.completeCurrentSubTask();
         }
@@ -180,15 +180,15 @@ public class TaskMonitor {
             ((TaskMonitorListener)listeners.get(i)).completionChanged(this);
         }
         
-        // appel de la tâche parente
+        // appel de la tï¿½che parente
         if (this.parentTask != null) {
             this.parentTask.completionChanged();
         }
     }
     
-    // Supprime la sous tâche courante et intègre son taux d'avancement dans le taux d'avancement
+    // Supprime la sous tï¿½che courante et intï¿½gre son taux d'avancement dans le taux d'avancement
     // courant.
-    // Cette sous tâche est supposée avoir été terminée (taux d'avancement de la sous tâche = 1);
+    // Cette sous tï¿½che est supposï¿½e avoir ï¿½tï¿½ terminï¿½e (taux d'avancement de la sous tï¿½che = 1);
     private void completeCurrentSubTask() {
         this.currentSubTask.clearAllListeners();
         this.currentSubTask.parentTask = null;

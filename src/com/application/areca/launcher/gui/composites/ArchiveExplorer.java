@@ -39,7 +39,7 @@ import com.myJava.file.FileNameUtil;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -90,7 +90,7 @@ implements MouseListener, Listener
         column1.setWidth(AbstractWindow.computeWidth(400));
         TreeColumn column2 = new TreeColumn(tree, SWT.LEFT);
         column2.setText(RM.getLabel("mainpanel.size.label"));
-        column2.setWidth(AbstractWindow.computeWidth(200));
+        column2.setWidth(AbstractWindow.computeWidth(120));
         
         viewer.addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {

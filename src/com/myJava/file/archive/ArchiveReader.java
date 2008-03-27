@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.OutputStreamListener;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
@@ -14,7 +15,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
@@ -48,13 +49,13 @@ public class ArchiveReader {
     
     public void injectIntoDirectory(File dir) throws IOException {
         try {
-            this.injectIntoDirectory(dir, null, null);
+            this.injectIntoDirectory(dir, null, null, null);
         } catch (TaskCancelledException ignored) {
             // This exception is never thrown because no monitor is set. 
         }
     }
     
-    public void injectIntoDirectory(File dir, String[] entriesToRecover, TaskMonitor monitor) 
+    public void injectIntoDirectory(File dir, String[] entriesToRecover, TaskMonitor monitor, OutputStreamListener listener) 
     throws IOException, TaskCancelledException {
         
         String[] normalizedEntries = null;
@@ -96,7 +97,7 @@ public class ArchiveReader {
 	                    }
 
 	                    tool.createDir(FileSystemManager.getParentFile(target));
-	                    tool.copy(adapter.getArchiveInputStream(), FileSystemManager.getFileOutputStream(target), false, true);    
+	                    tool.copy(adapter.getArchiveInputStream(), FileSystemManager.getFileOutputStream(target, false, listener), false, true);    
                     }
                 } catch (IOException e) {
                     Logger.defaultLogger().error(e);

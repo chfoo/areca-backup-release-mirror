@@ -17,11 +17,11 @@ import com.myJava.util.log.Logger;
  * <BR>Checks that :
  * <BR>- The file is compatible with the medium
  * <BR>- A manifest exists for the given file
- * <BR>- The manifest's date matchs the param dates
+ * <BR>- The manifest's date matches the param dates
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8290826359148479344
+ * <BR>Areca Build ID : 7289397627058093710
  */
  
  /*
