@@ -36,7 +36,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -260,6 +260,6 @@ implements Listener {
             mf = new Manifest(Manifest.TYPE_BACKUP);
         }
         
-        this.application.showBackupWindow(target, mf);
+        this.application.showBackupWindow(target, mf, true);
     }
 }

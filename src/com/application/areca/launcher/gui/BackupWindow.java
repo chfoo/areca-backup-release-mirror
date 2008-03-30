@@ -21,7 +21,7 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -48,7 +48,8 @@ extends AbstractWindow {
 
     protected Manifest manifest;
     protected AbstractRecoveryTarget target;
-
+    protected boolean disableCheck = false;
+    
     // MarieB was here !!
 
     protected Label lblTitle;
@@ -59,9 +60,10 @@ extends AbstractWindow {
     protected Button radDifferential;
     protected Button chkManifest;
 
-    public BackupWindow(Manifest manifest, AbstractRecoveryTarget target) {
+    public BackupWindow(Manifest manifest, AbstractRecoveryTarget target, boolean disableCheck) {
         super();
         this.manifest = manifest;
+        this.disableCheck = disableCheck;
         this.target = target;
     }
 
@@ -182,7 +184,8 @@ extends AbstractWindow {
         this.application.launchBackupOnTarget(
                 target, 
                 this.manifest, 
-                backupScheme
+                backupScheme,
+                disableCheck
         );            
         this.hasBeenUpdated = false;
         this.close();

@@ -20,7 +20,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -207,17 +207,29 @@ implements TargetActions, Identifiable {
     /**
      * Launch a backup on a target
      */
-    public void processBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
+    public void processBackupOnTarget(
+    		AbstractRecoveryTarget target, 
+    		Manifest manifest, 
+    		ProcessContext context, 
+    		String backupScheme,
+    		boolean disableCheck
+    ) throws ApplicationException {
         initProgress(context);
-        processBackupOnTargetImpl(target, manifest, context, backupScheme);
+        processBackupOnTargetImpl(target, manifest, context, backupScheme, disableCheck);
     }
     
-    private void processBackupOnTargetImpl(AbstractRecoveryTarget target, Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
+    private void processBackupOnTargetImpl(
+    		AbstractRecoveryTarget target, 
+    		Manifest manifest, 
+    		ProcessContext context, 
+    		String backupScheme,
+    		boolean disableCheck
+    ) throws ApplicationException {
         checkTarget(target, ACTION_BACKUP);
         
         try {
             Logger.defaultLogger().info("Target processing : [Backup] - [" + target.getFullName() + "] - [" + target.getId() + "]");         
-            target.processBackup(manifest, context, backupScheme);
+            target.processBackup(manifest, context, backupScheme, disableCheck);
         } finally {
             Logger.defaultLogger().info("End of target processing : [Backup] - [" + target.getFullName() + "] - [" + target.getId() + "]");
         }

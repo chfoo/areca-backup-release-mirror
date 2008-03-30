@@ -15,7 +15,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -57,7 +57,7 @@ public class VersionInfos {
     static {
         
         // INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-        BUILD_ID = 7289397627058093710L;
+        BUILD_ID = 2736893395693886205L;
         
         // INIT VERSION DATA
         VERSIONS.add(new VersionData("1.0", new GregorianCalendar(2005, 4, 1), "Backup engine implementation."));
@@ -131,7 +131,8 @@ public class VersionInfos {
         VERSIONS.add(new VersionData("5.5.5", new GregorianCalendar(2008, 0, 13), "Encryption bug fix; Zip64 bug fix; Minor enhancements."));
         VERSIONS.add(new VersionData("5.5.6", new GregorianCalendar(2008, 0, 15), "Filename size checks were added; Minor enhancements."));
         VERSIONS.add(new VersionData("5.5.7", new GregorianCalendar(2008, 0, 25), "Minor bugfixes; Japanese, Chinese and Spanish translations."));
-        VERSIONS.add(new VersionData("6.0", new GregorianCalendar(2008, 2, 26), "Delta storage implementation; Chinese (traditional), Swedish and Danish translations; Minor bugfixes and enhancements."));        
+        VERSIONS.add(new VersionData("6.0", new GregorianCalendar(2008, 2, 26), "Delta storage implementation; Chinese (traditional), Swedish and Danish translations; Minor bugfixes and enhancements."));
+        VERSIONS.add(new VersionData("6.0.1", new GregorianCalendar(2008, 2, 30), "Minor bugfixes; Minor encryption and log enhancements."));        
 
         Iterator iter = VERSIONS.iterator();
         while (iter.hasNext()) {
@@ -150,16 +151,6 @@ public class VersionInfos {
     
     public static boolean isBeforeOrEquals(String v0, String v1) {
     	return v0.compareTo(v1)<=0;
-    	/*
-    	VersionData dt0 = getVersion(v0);
-    	VersionData dt1 = getVersion(v1);
-    	
-    	if (dt0 == null) {
-    		return false;
-    	} else {
-    		return dt0.getVersionDate().compareTo(dt1.getVersionDate()) <= 0;
-    	}
-    	*/
     }
     
     /**

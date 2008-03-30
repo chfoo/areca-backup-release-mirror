@@ -26,7 +26,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -77,7 +77,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
         return "Uncompressed " + type + " medium. (" + fileSystemPolicy.getArchivePath() + ")";        
     }    
     
-    protected void storeFileInArchive(FileSystemRecoveryEntry entry, ProcessContext context) throws ApplicationException {
+    protected void storeFileInArchive(FileSystemRecoveryEntry entry, ProcessContext context) throws ApplicationException, TaskCancelledException {
         File targetFile = new File(context.getCurrentArchiveFile(), entry.getName());
         File targetDirectory = FileSystemManager.getParentFile(targetFile);
         OutputStream out = null;
@@ -93,7 +93,11 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
         } catch (InvalidPathException e) {
             throw new ApplicationException("Error storing file " + FileSystemManager.getAbsolutePath(entry.getFile()) + " : " + e.getMessage(), e);
         } catch (Throwable e) {
-            throw new ApplicationException("Error storing file " + FileSystemManager.getAbsolutePath(entry.getFile()) + " - target=" + FileSystemManager.getAbsolutePath(targetFile), e);
+        	if (e instanceof TaskCancelledException) {
+        		throw (TaskCancelledException)e;
+        	} else {
+        		throw new ApplicationException("Error storing file " + FileSystemManager.getAbsolutePath(entry.getFile()) + " - target=" + FileSystemManager.getAbsolutePath(targetFile), e);
+        	}
         } finally {
         	if (out != null) {
         		try {

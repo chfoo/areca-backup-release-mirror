@@ -37,7 +37,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -250,14 +250,19 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     /**
      * Lance le backup sur cette target.
      */
-    public synchronized void processBackup(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
+    public synchronized void processBackup(
+    		Manifest manifest, 
+    		ProcessContext context, 
+    		String backupScheme,
+    		boolean disableCheck
+    ) throws ApplicationException {
         boolean backupRequired = true;
         
         // Si requis, on pre-verifie qu'au moins un fichier a ete modifie avant de declencher le backup.
         // 2 conditions :
         // - Le support requiert une pre-verification
         // - Le manifeste est null (ie l'utilisateur n'en a pas fourni un explicitement) - Si un manifeste est renseigne, on fait tjs le backup.
-        if (this.medium.isPreBackupCheckUseful() && manifest == null && backupScheme.equals(BACKUP_SCHEME_INCREMENTAL)) {
+        if (this.medium.isPreBackupCheckUseful() && (!disableCheck) && backupScheme.equals(BACKUP_SCHEME_INCREMENTAL)) {
             context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.3, "pre-check");
             context.getInfoChannel().print("Pre-check in progress ...");
             this.processSimulateImpl(context, false);
@@ -327,8 +332,10 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                 Logger.defaultLogger().info("Average data input : " + Utils.formatLong(context.getInputBytesInKBPerSecond()) + " kb/second.");
                 Logger.defaultLogger().info(Utils.formatLong(context.getOutputBytesInKB()) + " kb written in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
                 Logger.defaultLogger().info("Average data output : " + Utils.formatLong(context.getOutputBytesInKBPerSecond()) + " kb/second.");
-            } catch (Exception e) {
-                Logger.defaultLogger().error(e);
+            } catch (Throwable e) {
+            	if (! TaskCancelledException.isTaskCancellation(e)) {
+            		Logger.defaultLogger().error(e);
+            	}
                 this.rollbackBackup(context);
                 if (e instanceof ApplicationException) {
                     throw (ApplicationException)e;
@@ -348,7 +355,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                 context.getInfoChannel().print("Backup completed."); 
             }
         } else {
-            // Aucun backup n�cessaire : on termine directement la t�che.
+            // Aucun backup necessaire : on termine directement la tache.
             context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
             context.getInfoChannel().print("No backup required - Operation completed.");     
         }

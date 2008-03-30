@@ -59,7 +59,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -243,7 +243,6 @@ implements TargetActions {
 			context.setTraceAdapter(new ArchiveTraceAdapter(this, traceFile, this.trackDirectories, ((FileSystemRecoveryTarget)this.target).isTrackSymlinks()));
 			context.getTraceAdapter().setTrackPermissions(this.trackPermissions);
 			context.setContentAdapter(new ArchiveContentAdapter(contentFile));            
-
 		} catch (Exception e) {
 			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
@@ -360,7 +359,7 @@ implements TargetActions {
 	/**
 	 * Stores an entry
 	 */
-	public void store(RecoveryEntry entry, ProcessContext context) throws StoreException, ApplicationException {
+	public void store(RecoveryEntry entry, ProcessContext context) throws StoreException, ApplicationException, TaskCancelledException {
 		if (entry == null) {
 			return;
 		} else {

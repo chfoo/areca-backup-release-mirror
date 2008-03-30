@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -83,6 +83,7 @@ public interface XMLTags {
     public static final String XML_MEDIUM_ENCRYPTED = "encrypted";
     public static final String XML_MEDIUM_ENCRYPTIONKEY = "encryption_key";
     public static final String XML_MEDIUM_ENCRYPTIONALGO = "encryption_algo";
+    public static final String XML_MEDIUM_ENCRYPTNAMES = "encrypt_names";
     public static final String XML_MEDIUM_TRACK_DIRS = "track_directories";
     public static final String XML_MEDIUM_TRACK_PERMS = "track_permissions";    
     public static final String XML_MEDIUM_VOLUME_SIZE = "volume_size";

@@ -7,7 +7,7 @@ import java.util.Date;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -32,27 +32,40 @@ This file is part of Areca.
 public class LogHelper {
 
     public static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yy-MM-dd HH:mm");
+    public static String SEPARATOR = " - ";
     
     public static String format(int level, String message, String source) {
         // Date de la log
         String logDate = "" + DATE_FORMAT.format(new Date());
         
         // Level de la log
-        String logLev = " - " + level;
+        String logLev = SEPARATOR + resolveLevel(level);
         
         // Source de la log
         String logSource = "";
         if (source != null && !source.equals("")) {
-            logSource = " - " + source;
+            logSource = SEPARATOR + source;
         }
         
         // Message de la log
         String logMess = "";
         if (message!= null && !message.equals("")) {
-            logMess = " - " + message;
+            logMess = SEPARATOR + message;
         }
         
-        // Log compl�te :
+        // Log complete :
         return logDate + logLev + logSource + logMess;
+    }
+    
+    private static String resolveLevel(int l) {
+    	if (l == 1) {
+    		return "ERROR";
+    	} else if (l <=4) {
+    		return "WARNING";
+    	} else if (l <=7) {
+    		return "INFO";
+    	} else {
+    		return "DETAIL";
+    	}
     }
 }

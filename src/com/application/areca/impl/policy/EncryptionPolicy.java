@@ -20,7 +20,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -43,32 +43,24 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class EncryptionPolicy implements PublicClonable {
-   
-    /**
-     * Clef de cryptage si les fichiers sont crypt�es
-     */
+
     protected String encryptionKey = null;
-    
-    /**
-     * Algorithm used if encryption is enabled
-     */
     protected String encryptionAlgorithm = null;
-    
+    protected boolean encryptNames = true; // Names are encrypted by default
     protected boolean isEncrypted = false;
-    
     
     public FileSystemDriver initFileSystemDriver(File basePath, FileSystemDriver predecessor) throws ApplicationException {                 
         if (this.isEncrypted()) {         
-            // G�n�ration de la clef + param�tres
             EncryptionConfiguration params = EncryptionConfiguration.getParameters(this.getEncryptionAlgorithm());
             Key key = new SecretKeySpec(getNormalizedEncryptionKey(this.getEncryptionKey(), params), params.getAlgorithm());
             
-            // Initialisation du driver
+            // Driver initialization
             AbstractLinkableFileSystemDriver driver = new EncryptedFileSystemDriver(
                     basePath,
                     params.getTransformation(),
                     params.getIV(), 
-                    key
+                    key,
+                    encryptNames
             );
         
             driver.setPredecessor(predecessor);
@@ -144,8 +136,16 @@ public class EncryptionPolicy implements PublicClonable {
     public boolean isEncrypted() {
         return isEncrypted;
     }
-    
-    public void setEncrypted(boolean isEncrypted) {
+
+    public boolean isEncryptNames() {
+		return this.encryptNames;
+	}
+
+	public void setEncryptNames(boolean encryptNames) {
+		this.encryptNames = encryptNames;
+	}
+
+	public void setEncrypted(boolean isEncrypted) {
         this.isEncrypted = isEncrypted;
     }
     
@@ -154,6 +154,7 @@ public class EncryptionPolicy implements PublicClonable {
         other.encryptionAlgorithm = encryptionAlgorithm;
         other.encryptionKey = encryptionKey;
         other.isEncrypted = isEncrypted;
+        other.encryptNames = encryptNames;
         return other;
     }
     
@@ -163,6 +164,7 @@ public class EncryptionPolicy implements PublicClonable {
         if (isEncrypted) {
             ToStringHelper.append("Algorithm", this.encryptionAlgorithm, sb);
             ToStringHelper.append("Key", this.encryptionKey, sb);
+            ToStringHelper.append("Encrypt names", this.encryptNames, sb);
         }
         return ToStringHelper.close(sb);
     }

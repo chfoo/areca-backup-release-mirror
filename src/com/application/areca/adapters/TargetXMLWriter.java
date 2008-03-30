@@ -36,7 +36,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -545,7 +545,12 @@ public class TargetXMLWriter extends AbstractXMLWriter {
 	        sb.append(" ");
 	        sb.append(XML_MEDIUM_ENCRYPTIONALGO);
 	        sb.append("=");
-	        sb.append(encode(policy.getEncryptionAlgorithm()));         
+	        sb.append(encode(policy.getEncryptionAlgorithm()));   
+	        
+	        sb.append(" ");
+	        sb.append(XML_MEDIUM_ENCRYPTNAMES);
+	        sb.append("=");
+	        sb.append(encode(policy.isEncryptNames()));
         }
     }
     

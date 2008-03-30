@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -235,13 +235,24 @@ public class AttributesHelper {
         UnixAttributes perm = (UnixAttributes)p;
         StringBuffer sb = new StringBuffer("u");
         
+    	toString(perm.getPermissions(), sb);
+        
         return 
         	sb
-        	.append(perm.getPermissions())
         	.append(perm.getOwner())
         	.append(" ")
         	.append(perm.getOwnerGroup())
         	.toString();
+    }
+    
+    private static void toString(int perm, StringBuffer sb) {
+    	if (perm < 100) {
+    		sb.append("0");
+    	}
+    	if (perm < 10) {
+    		sb.append("0");
+    	}
+    	sb.append(perm);
     }
     
     private static Attributes decodeWindows(String s) {
@@ -254,19 +265,24 @@ public class AttributesHelper {
     }
     
     private static Attributes decodeUnix(String s) {
-        String perms = s.substring(1, 4);
-        int iPerms = Integer.parseInt(perms);
-        
-        int index = s.indexOf(' ');
-        String owner = s.substring(4, index);
-        String group = s.substring(index + 1).trim();
-        
-        UnixAttributes p = new UnixAttributes();
-        p.setOwner(owner);
-        p.setOwnerGroup(group);
-        p.setPermissions(iPerms);
+        try {
+			String perms = s.substring(1, 4);
+			int iPerms = Integer.parseInt(perms);
+			
+			int index = s.indexOf(' ');
+			String owner = s.substring(4, index);
+			String group = s.substring(index + 1).trim();
+			
+			UnixAttributes p = new UnixAttributes();
+			p.setOwner(owner);
+			p.setOwnerGroup(group);
+			p.setPermissions(iPerms);
 
-        return p;
+			return p;
+		} catch (RuntimeException e) {
+			Logger.defaultLogger().error("Error caught during permission deserialization : " + s, e);
+			throw e;
+		}
     }
 
     private static void execute(String[] cmd) throws IOException {

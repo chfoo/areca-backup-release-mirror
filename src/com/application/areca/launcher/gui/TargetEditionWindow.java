@@ -83,7 +83,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -153,6 +153,7 @@ extends AbstractWindow {
     protected Button chkAddExtension;
     protected Button chkFollowLinks;
     protected Text txtEncryptionKey;
+    protected Button chkEncrypNames;
     protected Text txtMultiVolumes;
     protected Combo cboEncryptionAlgorithm;
     protected Label lblEncryptionExample;
@@ -651,6 +652,10 @@ extends AbstractWindow {
                 resetEcryptionKey();
             }
         });
+        chkEncrypNames = new Button(grpEncryption, SWT.CHECK);
+        chkEncrypNames.setText(RM.getLabel("targetedition.encryptnames.label"));
+        chkEncrypNames.setToolTipText(RM.getLabel("targetedition.encryptnames.tooltip"));
+        chkEncrypNames.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1)); 
         
         lblEncryptionAlgorithm = new Label(grpEncryption, SWT.NONE);
         lblEncryptionAlgorithm.setText(RM.getLabel("targetedition.algorithmfield.label"));
@@ -680,7 +685,8 @@ extends AbstractWindow {
         txtEncryptionKey.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         new Label(grpEncryption, SWT.NONE);
         lblEncryptionExample = new Label(grpEncryption, SWT.NONE);
-        lblEncryptionExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));    
+        lblEncryptionExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false)); 
+
         
         // CONFIG
         grpConfiguration = new Group(composite, SWT.NONE);
@@ -1013,6 +1019,7 @@ extends AbstractWindow {
             chkEncrypted.setSelection(fMedium.getEncryptionPolicy().isEncrypted());
             if (fMedium.getEncryptionPolicy().isEncrypted()) {
                 txtEncryptionKey.setText(fMedium.getEncryptionPolicy().getEncryptionKey());
+                chkEncrypNames.setSelection(fMedium.getEncryptionPolicy().isEncryptNames());
                 String algoId = fMedium.getEncryptionPolicy().getEncryptionAlgorithm();
                 
                 if (EncryptionConfiguration.validateAlgorithmId(algoId, true)) {
@@ -1116,6 +1123,7 @@ extends AbstractWindow {
             lblArchiveName.setEnabled(false);
             lblEncryptionExample.setEnabled(false);
             txtEncryptionKey.setEnabled(false);
+            chkEncrypNames.setEnabled(false);
             txtMultiVolumes.setEnabled(false);
             txtMultivolumesDigits.setEnabled(false);
             lblMultiVolumesUnit.setEnabled(false);
@@ -1406,6 +1414,7 @@ extends AbstractWindow {
             this.txtEncryptionKey.setEnabled(true);
             this.cboEncryptionAlgorithm.setEnabled(true);
             this.lblEncryptionAlgorithm.setEnabled(true);
+            this.chkEncrypNames.setEnabled(true);
             this.lblEncryptionExample.setEnabled(true);
             this.lblEncryptionKey.setEnabled(true);
         } else {
@@ -1417,6 +1426,7 @@ extends AbstractWindow {
             }
             this.cboEncryptionAlgorithm.setEnabled(false);
             this.lblEncryptionExample.setEnabled(false);
+            this.chkEncrypNames.setEnabled(false);
             this.cboEncryptionAlgorithm.setBackground(null);
             this.lblEncryptionAlgorithm.setEnabled(false);
             this.lblEncryptionKey.setEnabled(false);
@@ -1424,7 +1434,7 @@ extends AbstractWindow {
     }
     
     /**
-     * Indique si certaines zones sont d�sactiv�es ou non
+     * Indique si certaines zones sont desactivees ou non
      * @return
      */
     protected boolean isFrozen(boolean showWarning) {
@@ -1503,6 +1513,7 @@ extends AbstractWindow {
                     String encryptionKey = this.txtEncryptionKey.getText();
                     EncryptionConfiguration config = (EncryptionConfiguration)lstEncryptionAlgorithms.get(cboEncryptionAlgorithm.getSelectionIndex());
                     encrArgs.setEncryptionAlgorithm(config.getId());
+                    encrArgs.setEncryptNames(chkEncrypNames.getSelection());
                     encrArgs.setEncryptionKey(encryptionKey);
                 }
 

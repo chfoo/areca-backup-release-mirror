@@ -6,6 +6,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -13,7 +16,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
@@ -27,7 +29,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -53,7 +55,7 @@ public class LogComposite
 extends Composite 
 implements LogProcessor, Refreshable, Listener {
     protected final ResourceManager RM = ResourceManager.instance();
-    private Text txtLog;
+    private StyledText txtLog;
     private int position = 0;
     protected Button btnClear;
     private Application application = Application.getInstance();
@@ -67,9 +69,11 @@ implements LogProcessor, Refreshable, Listener {
         layout.numColumns = 1;
         setLayout(layout);
         
-        txtLog = new Text(this, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+        txtLog = new StyledText(this, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
         txtLog.setEditable(false);
         txtLog.setMenu(Application.getInstance().getLogContextMenu());
+        txtLog.setForeground(GREY);
+        //txtLog.setFont(new Font(Application.getInstance().getDisplay(), "Monospace", 10, SWT.NORMAL));
         
         GridData dt1 = new GridData();
         dt1.grabExcessHorizontalSpace = true;
@@ -112,13 +116,14 @@ implements LogProcessor, Refreshable, Listener {
                 synchronized(this) {
                     txtLog.setText("");
                     position = 0;
+                    txtLog.setStyleRange(null);	// Clear all styles
                 }
             }
         });
         return true;
     }
 
-    public void log(int level, String message, Throwable e, String source) {
+    public void log(final int level, String message, Throwable e, String source) {
         try {
             String txt = LogHelper.format(level, message, source);
             if (e != null) {
@@ -133,9 +138,17 @@ implements LogProcessor, Refreshable, Listener {
             SecuredRunner.execute(this, new Runnable() {
                 public void run() {
                     synchronized(this) {
-                        position += fTxt.length();
+                    	int l = fTxt.length();
                         txtLog.append(fTxt);
-                        txtLog.update();
+                        StyleRange rg = resolveStyle(level);
+                        if (rg != null) {
+                        	rg.start = position;
+                        	rg.length = l;
+	                    	txtLog.setStyleRange(rg);
+                        }
+                        position += l;
+                        txtLog.setSelection(position, position);
+                        txtLog.showSelection();
                     }
                 }
             });
@@ -183,5 +196,27 @@ implements LogProcessor, Refreshable, Listener {
                 messageKey != null
                 && displayedMessages.contains(messageKey)
         );
+    }
+    
+    private static Color RED = new Color(Application.getInstance().getDisplay(), 250, 0, 0);
+    private static Color ORANGE = new Color(Application.getInstance().getDisplay(), 250, 120, 0);
+    private static Color BLUE = new Color(Application.getInstance().getDisplay(), 0, 0, 250);
+    private static Color GREY = new Color(Application.getInstance().getDisplay(), 150, 150, 150);
+    
+    private static StyleRange resolveStyle(int level) {
+    	if (level > 7) {
+    		return null;
+    	} 
+    	
+    	StyleRange style = new StyleRange();
+    	if (level == 1) {
+    		style.foreground = RED;
+    	} else if (level <= 3) {
+    		style.foreground = ORANGE;
+    	} else {
+    		style.foreground = BLUE;
+    	}
+    	
+    	return style;
     }
 }

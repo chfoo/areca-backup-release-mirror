@@ -49,7 +49,7 @@ import com.myJava.file.CompressionArguments;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -523,7 +523,10 @@ public class TargetXMLReader implements XMLTags {
         String encryptionKey = encryptionKeyNode != null ? encryptionKeyNode.getNodeValue() : null;   
         
         Node encryptionAlgoNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTIONALGO);
-        String encryptionAlgo = encryptionAlgoNode != null ? encryptionAlgoNode.getNodeValue() : null;          
+        String encryptionAlgo = encryptionAlgoNode != null ? encryptionAlgoNode.getNodeValue() : null;   
+        
+        Node encryptNamesNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTNAMES);
+        boolean encryptNames = encryptNamesNode == null ? true : encryptNamesNode.getNodeValue().equalsIgnoreCase("true");  
         
         if (isEncrypted && encryptionKey == null) { // No check for the encryptionAlgorithm because we use a default one if none is specified.
             if (this.missingDataListener != null) {
@@ -542,6 +545,7 @@ public class TargetXMLReader implements XMLTags {
         EncryptionPolicy encrArgs = new EncryptionPolicy();
         encrArgs.setEncrypted(isEncrypted);
         encrArgs.setEncryptionAlgorithm(encryptionAlgo);
+        encrArgs.setEncryptNames(encryptNames);
         encrArgs.setEncryptionKey(encryptionKey);
         
         return encrArgs;

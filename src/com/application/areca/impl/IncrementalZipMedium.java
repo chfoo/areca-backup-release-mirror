@@ -37,7 +37,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -81,7 +81,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
     }
 
     protected void storeFileInArchive(FileSystemRecoveryEntry entry, ProcessContext context) 
-    throws ApplicationException {
+    throws ApplicationException, TaskCancelledException {
         try {
             File file = entry.getFile();
             String path = entry.getName();
@@ -103,8 +103,6 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
             context.getArchiveWriter().getAdapter().closeEntry();
         } catch (IOException e) {
             Logger.defaultLogger().error(e);
-            throw new ApplicationException(e);
-        } catch (TaskCancelledException e) {
             throw new ApplicationException(e);
         }
     }  

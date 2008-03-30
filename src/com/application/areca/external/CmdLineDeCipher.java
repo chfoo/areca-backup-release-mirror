@@ -21,7 +21,7 @@ import com.myJava.file.driver.FileSystemDriver;
  * <BR>
  * @author Ludovic QUESNELLE
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -52,13 +52,14 @@ extends AbstractArecaLauncher {
     private static final String ARG_FILE = "file";
     private static final String ARG_DESTINATION = "destination";
     private static final String ARG_SHOW = "l";
+    private static final String ARG_DONT_ENCRYPT_NAMES = "r";
     
     private static final String DESCRIPTION = 
         "Areca's external decryption tool.\ndecrypt -" 
-        + ARG_SOURCE + "=[" + ARG_SOURCE + "] -"
-        + ARG_ALG + "=[" + ARG_ALG + "] -"
-        + ARG_PASSWD + "=[" + ARG_PASSWD + "] -"
-        + ARG_DESTINATION + "=[" + ARG_DESTINATION + "]"
+        + ARG_SOURCE + "=<" + ARG_SOURCE + "> -"
+        + ARG_ALG + "=<" + ARG_ALG + "> -"
+        + ARG_PASSWD + "=<" + ARG_PASSWD + "> -"
+        + ARG_DESTINATION + "=<" + ARG_DESTINATION + "> [-" + ARG_SHOW + "] [-" + ARG_DONT_ENCRYPT_NAMES + "]"
         ;
     
 	private String algorithm="";
@@ -66,6 +67,7 @@ extends AbstractArecaLauncher {
 	private String mountPoint="";
 	private String source="";
 	private String targetDir="";
+	private boolean disableNameDecryption=false;
 	private boolean justShow=false;
 	
     public static void main(String[] args) {
@@ -86,6 +88,7 @@ extends AbstractArecaLauncher {
 		parser.addParameter(new StringCmdLineOption(false,ARG_FILE,"Specific file to extract"));
 		parser.addParameter(new StringCmdLineOption(true,ARG_DESTINATION,"Destination Directory "));
 		parser.addParameter(new BooleanCmdLineOption(false,ARG_SHOW,"Display only mode"));
+		parser.addParameter(new BooleanCmdLineOption(false,ARG_DONT_ENCRYPT_NAMES,"Disable filenames decryption"));
 		
 		try {
 			parser.parse(args, null);
@@ -96,7 +99,7 @@ extends AbstractArecaLauncher {
 			source    =  (String)parser.getParameter(ARG_FILE).getValue();
 			targetDir =  (String)parser.getParameter(ARG_DESTINATION).getValue();
 			justShow  =  ((Boolean)parser.getParameter(ARG_SHOW).getValue()).booleanValue();
-			
+			disableNameDecryption  =  ((Boolean)parser.getParameter(ARG_DONT_ENCRYPT_NAMES).getValue()).booleanValue();
 		} catch (CmdLineParserException e) {
 			System.out.println("Syntax error : " + e.getMessage());
 			System.out.println(parser.usage());
@@ -110,6 +113,7 @@ extends AbstractArecaLauncher {
 		policy.setEncrypted(true);
 		policy.setEncryptionAlgorithm(algorithm);
 		policy.setEncryptionKey(encryption);
+		policy.setEncryptNames(! disableNameDecryption);
 		
 		try {
 		    File mnt = new File(mountPoint);

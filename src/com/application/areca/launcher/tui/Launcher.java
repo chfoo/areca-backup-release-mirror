@@ -29,7 +29,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -179,7 +179,8 @@ implements CommandConstants {
                     target,
                     manifest,
                     context,
-                    backupScheme
+                    backupScheme,
+                    false
             );
         } else {
             List thList = new ArrayList();
@@ -195,7 +196,8 @@ implements CommandConstants {
                                     tg,
                                     manifest,
                                     cloneCtx,
-                                    backupScheme
+                                    backupScheme,
+                                    false
                             );
                         } catch (Exception e) {
                             handleError(e);

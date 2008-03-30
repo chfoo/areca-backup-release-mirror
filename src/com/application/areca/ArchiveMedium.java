@@ -12,13 +12,14 @@ import com.application.areca.search.TargetSearchResult;
 import com.myJava.object.PublicClonable;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.History;
+import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
  * <BR>Interface d�finissant un support de stockage et pouvant h�berger des archives.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -50,7 +51,7 @@ public interface ArchiveMedium extends PublicClonable {
     /**
      * Stocke une entree sur le support
      */
-    public void store(RecoveryEntry entry, ProcessContext context) throws StoreException, ApplicationException;
+    public void store(RecoveryEntry entry, ProcessContext context) throws StoreException, ApplicationException, TaskCancelledException;
     
     /**
      * Fusionne les archives jusqu'a la date donnee.

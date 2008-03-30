@@ -46,12 +46,13 @@ import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.DefaultHistory;
 import com.myJava.util.history.History;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -388,7 +389,7 @@ implements TargetActions, IndicatorTypes {
      * (independemment des filtres, ou politique de stockage; il s'agit la d'une
      * methode purement utilitaire; en pratique : zip ou repertoire) 
      */
-    protected abstract void storeFileInArchive(FileSystemRecoveryEntry entry, ProcessContext context) throws ApplicationException;
+    protected abstract void storeFileInArchive(FileSystemRecoveryEntry entry, ProcessContext context) throws ApplicationException, TaskCancelledException;
     
     public abstract File[] listArchives(GregorianCalendar fromDate, GregorianCalendar toDate);
     

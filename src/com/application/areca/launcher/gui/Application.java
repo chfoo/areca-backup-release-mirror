@@ -71,7 +71,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7289397627058093710
+ * <BR>Areca Build ID : 2736893395693886205
  */
  
  /*
@@ -279,7 +279,7 @@ implements ActionConstants, Window.IExceptionHandler {
                     Logger.defaultLogger().error(e1);
                     mf = new Manifest(Manifest.TYPE_BACKUP);
                 }
-                this.showBackupWindow(this.getCurrentTarget(), mf);   
+                this.showBackupWindow(this.getCurrentTarget(), mf, false);   
             }
         } else if (command.equals(CMD_MERGE)) {
             // MERGE
@@ -972,7 +972,7 @@ implements ActionConstants, Window.IExceptionHandler {
         Iterator iter = process.getTargetIterator();
         while (iter.hasNext()) {
             AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
-            this.launchBackupOnTarget(tg, null, backupScheme);
+            this.launchBackupOnTarget(tg, null, backupScheme, false);
         }
     }
 
@@ -984,11 +984,11 @@ implements ActionConstants, Window.IExceptionHandler {
         }
     }
 
-    public void launchBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest, final String backupScheme) {
+    public void launchBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest, final String backupScheme, final boolean disableCheck) {
         TargetGroup process = target.getProcess();
         ProcessRunner rn = new ProcessRunner(target) {
             public void runCommand() throws ApplicationException {
-                rProcess.processBackupOnTarget(rTarget, rManifest, context, backupScheme);
+                rProcess.processBackupOnTarget(rTarget, rManifest, context, backupScheme, disableCheck);
             }
 
             protected void finishCommand() {
@@ -1025,10 +1025,11 @@ implements ActionConstants, Window.IExceptionHandler {
         rn.launch();                    
     }
 
-    public void showBackupWindow(AbstractRecoveryTarget target, Manifest manifest) {
+    public void showBackupWindow(AbstractRecoveryTarget target, Manifest manifest, boolean disableCheck) {
         BackupWindow frm = new BackupWindow(
                 manifest, 
-                target);
+                target,
+                disableCheck);
         showDialog(frm);
     }
     
@@ -1076,7 +1077,9 @@ implements ActionConstants, Window.IExceptionHandler {
                 disableWaitCursor();
 
                 if (e != null) {
-                    Logger.defaultLogger().error(e);
+                	if (! (e instanceof ApplicationException)) {
+                		Logger.defaultLogger().error(e); // Unexpected exception ... that may not have been logged.
+                	}
                     e.printStackTrace(System.err);
                 }
 
