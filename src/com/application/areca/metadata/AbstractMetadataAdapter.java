@@ -18,7 +18,7 @@ import com.myJava.file.FileTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -41,11 +41,11 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class AbstractMetadataAdapter {
-
     protected static final String DATA_CHARSET = "UTF-8";
     protected static final String VERSION_HEADER = "#### MDT_FORMAT_VERSION=";
-    protected static final String VERSION_1 = VERSION_HEADER + "1"; // Initial metadata version : uses the default character encoding
-    protected static final String VERSION_2 = VERSION_HEADER + "2"; // Latest metadata version : uses UTF-8 encoding
+    //protected static final String VERSION = VERSION_HEADER + "1"; // Initial metadata version : uses the default character encoding
+    //protected static final String VERSION = VERSION_HEADER + "2"; // uses UTF-8 encoding
+    protected static final String VERSION = VERSION_HEADER + "3"; // new separators
     
     private FileTool TOOL = FileTool.getInstance();
     
@@ -108,7 +108,7 @@ public class AbstractMetadataAdapter {
     }    
     
     protected String getVersionHeader() {
-        return VERSION_2 ;
+        return VERSION;
     }
     
     public void setObjectPool(ObjectPool objectPool) {
@@ -138,13 +138,18 @@ public class AbstractMetadataAdapter {
         }
     }
     
-    protected String resolveEncoding() throws IOException {
+    protected long getVersion() throws IOException {
         FileTool tool = FileTool.getInstance();
         String firstLine = tool.getFirstRow(getInputStream(), DATA_CHARSET);
-        if (firstLine != null && firstLine.startsWith(VERSION_2)) {
-            return DATA_CHARSET; // Version2 <=> UTF-8
+        String str = firstLine.substring(VERSION_HEADER.length()).trim();
+        return Long.parseLong(str);
+    }
+    
+    protected String resolveEncoding(long version) throws IOException {
+        if (version >= 2) {
+            return DATA_CHARSET; // Version >= 2 <=> UTF-8
         } else {
-            return null; // Version1 <=> Default charset
+            return null; // Version == 1 <=> Default charset
         }
     }
     

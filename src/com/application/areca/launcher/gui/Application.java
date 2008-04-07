@@ -71,7 +71,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -1224,17 +1224,25 @@ implements ActionConstants, Window.IExceptionHandler {
 
         ArecaPreferences.setLastWorkspace(workspace.getPath());
     }
-
-    public void enableWaitCursor() {
-        if (mainWindow != null) {
-            mainWindow.getShell().setCursor(CURSOR_WAIT); // Always set the cursor on the whole window
+    
+    public void enableWaitCursor(AbstractWindow window) {
+        if (window != null) {
+        	window.getShell().setCursor(CURSOR_WAIT);
         }
     }
 
-    public void disableWaitCursor() {
-        if (mainWindow != null) {
-            mainWindow.getShell().setCursor(null); // Always set the cursor on the whole window
+    public void disableWaitCursor(AbstractWindow window) {
+        if (window != null) {
+        	window.getShell().setCursor(null);
         }
+    }
+
+    public void enableWaitCursor() {
+    	enableWaitCursor(mainWindow);
+    }
+
+    public void disableWaitCursor() {
+    	disableWaitCursor(mainWindow);
     }
 
     public void showInformationDialog(

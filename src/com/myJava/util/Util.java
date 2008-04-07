@@ -3,7 +3,7 @@
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -62,28 +62,28 @@ public abstract class Util {
     /**
      * Remplacement des occurences d'une chaine par une autre chaine
      */
-    public static String replace(String chaine, String orig, String newC) {
+    public static String replace(String initialString, String toReplace, String replacement) {
 
-        if (chaine == null) {
+        if (initialString == null) {
             return null;
         }
 
-        if (orig != null && !(orig.equals("")) && newC != null) {
+        if (toReplace != null && !(toReplace.equals("")) && replacement != null) {
             StringBuffer stb = new StringBuffer();
-            int index = chaine.indexOf(orig);
+            int index = initialString.indexOf(toReplace);
             int oldIndex = 0;
 
             while (index != -1) {
-                stb.append(chaine.substring(oldIndex, index));
-                stb.append(newC);
-                oldIndex = index + orig.length();
-                index = chaine.indexOf(orig, index + orig.length());
+                stb.append(initialString.substring(oldIndex, index));
+                stb.append(replacement);
+                oldIndex = index + toReplace.length();
+                index = initialString.indexOf(toReplace, index + toReplace.length());
             }
 
-            stb.append(chaine.substring(oldIndex));
-            return new String(stb);
+            stb.append(initialString.substring(oldIndex));
+            return stb.toString();
         } else {
-            return chaine;
+            return initialString;
         }
     }
 

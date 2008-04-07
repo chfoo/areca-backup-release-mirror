@@ -25,7 +25,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -70,11 +70,26 @@ implements FileSystemPolicy {
     private ArchiveMedium medium;
     
     static {
+    	String prefix;
         if (OSTool.isSystemWindows()) {
-            LOCAL_DIR_PREFIX = "C:\\ftp\\";
+        	prefix = "C:\\ftp";
         } else {
-            LOCAL_DIR_PREFIX = "/ftp/";
+        	prefix = "/ftp";
         }
+        
+        String tg = prefix;
+        int n=0;
+        while (FileSystemManager.exists(new File(tg))) {
+        	tg = prefix + n++;
+        }
+        
+        if (OSTool.isSystemWindows()) {
+        	tg += "\\";
+        } else {
+        	tg += "/";
+        }
+        
+        LOCAL_DIR_PREFIX = tg;
     }
 
     public void synchronizeConfiguration() {
@@ -417,7 +432,6 @@ implements FileSystemPolicy {
         ToStringHelper.append("Server", this.remoteServer, sb);
         ToStringHelper.append("Port", this.remotePort, sb);
         ToStringHelper.append("Login", this.login, sb);
-        ToStringHelper.append("Password", this.password, sb);
         ToStringHelper.append("Passiv", this.passivMode, sb);
         ToStringHelper.append("Protocol", this.protocol, sb);
         ToStringHelper.append("Protection", this.protection, sb);        

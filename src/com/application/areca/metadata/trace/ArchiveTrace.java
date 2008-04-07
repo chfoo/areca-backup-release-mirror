@@ -7,21 +7,24 @@ import java.util.Set;
 
 import com.application.areca.cache.ObjectPool;
 import com.application.areca.impl.FileSystemRecoveryEntry;
-import com.myJava.file.FileNameUtil;
+import com.application.areca.metadata.MetadataConstants;
+import com.application.areca.metadata.MetadataEncoder;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.file.attributes.AttributesHelper;
 import com.myJava.util.log.Logger;
 
 /**
- * Trace format : 
- * File :       <SIZE>#-#<LASTMODIF>#-#<ATTRIBUTES>(optional)
- * Dir :                    !D!<LASTMODIF>#-#<ATTRIBUTES>(optional)
- * Link :                  !S!<PATH> 
+ * FORMAT :
+ * <BR>File : 		f[NAME];[SIZE];[DATE];[PERMS]
+ * <BR>Directory : 	d[NAME];[DATE];[PERMS]
+ * <BR>SymLink : 	s[NAME];[d/f][PATH]
+ * <BR>'@' are reencoded as '@@'
+ * <BR>';' are reencoded as '@P'
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -43,36 +46,13 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ArchiveTrace {
-    
-    /**
-     * File trace separator
-     */
-    private static final String TRACE_SEP = "#-#";
-    
-    /**
-     * Internal separator
-     */
-    private static final char INTERNAL_SEP = '-';
-    
+public class ArchiveTrace implements MetadataConstants {
+
     /**
      * Approximation of the size in the memory
      */
     private long approximateMemorySize = 0;
-    
-    /**
-     * Directory marker
-     */
-    private static final String DIRECTORY_MARKER = "!D!";
-    
-    /**
-     * Symlink marker
-     */
-    private static final String SYMLINK_MARKER = "!S!";
-    
-    private static final char SL_DIR_PREFIX = 'd';
-    private static final char SL_FILE_PREFIX = 'f';
-    
+
     private Map files;
     private Map directories;
     private Map symLinks;
@@ -91,7 +71,7 @@ public class ArchiveTrace {
      * Parses the entry's trace and extract its size.
      */
     public static long extractFileSizeFromTrace(String trace) {
-        int idx = trace.indexOf(INTERNAL_SEP);
+        int idx = trace.indexOf(SEPARATOR);
         return Long.parseLong(trace.substring(0, idx));
     }
     
@@ -99,8 +79,8 @@ public class ArchiveTrace {
      * Parses the entry's trace and extract its modification time.
      */
     public static long extractFileModificationDateFromTrace(String trace) {
-        int idx1 = trace.indexOf(INTERNAL_SEP);
-        int idx2 = trace.indexOf(INTERNAL_SEP, idx1 + 1);
+        int idx1 = trace.indexOf(SEPARATOR);
+        int idx2 = trace.indexOf(SEPARATOR, idx1 + 1);
         
         if (idx2 < 0) {
             return Long.parseLong(trace.substring(idx1 + 1));
@@ -110,8 +90,8 @@ public class ArchiveTrace {
     }
     
     public static Attributes extractFileAttributesFromTrace(String trace) {
-        int idx1 = trace.indexOf(INTERNAL_SEP);
-        int idx2 = trace.indexOf(INTERNAL_SEP, idx1 + 1);
+        int idx1 = trace.indexOf(SEPARATOR);
+        int idx2 = trace.indexOf(SEPARATOR, idx1 + 1);
         
         if (idx2 < 0) {
             return null;
@@ -121,7 +101,7 @@ public class ArchiveTrace {
     }
     
     public static long extractDirectoryModificationDateFromTrace(String trace) {
-        int idx1 = trace.indexOf(INTERNAL_SEP);
+        int idx1 = trace.indexOf(SEPARATOR);
         if (idx1 < 0) {
             return Long.parseLong(trace);
         } else {
@@ -130,15 +110,15 @@ public class ArchiveTrace {
     }
     
     public static String extractSymLinkPathFromTrace(String trace) {
-        return trace.substring(1);
+        return MetadataEncoder.decode(trace.substring(1));
     }
     
     public static boolean extractSymLinkFileFromTrace(String trace) {
-        return trace.charAt(0) == SL_FILE_PREFIX;
+        return trace.charAt(0) == T_SYMLINK;
     }
     
     public static Attributes extractDirectoryAttributesFromTrace(String trace) {
-        int idx1 = trace.indexOf(INTERNAL_SEP);
+        int idx1 = trace.indexOf(SEPARATOR);
         if (idx1 < 0) {
             return null;
         } else {
@@ -206,29 +186,30 @@ public class ArchiveTrace {
                 return null;
             } else if (trackSymlinks && FileSystemManager.isLink(fEntry.getFile())) {      
                 sb
-                .append(SYMLINK_MARKER)                
-                .append(fEntry.getName())
-                .append(TRACE_SEP)
+                .append(T_SYMLINK)                
+                .append(MetadataEncoder.encode(fEntry.getName()))
+                .append(SEPARATOR)
                 .append(hash(fEntry, true));  
             } else if (FileSystemManager.isFile(fEntry.getFile())) {
                 sb
-                .append(fEntry.getName())
-                .append(TRACE_SEP)
+                .append(T_FILE)
+                .append(MetadataEncoder.encode(fEntry.getName()))
+                .append(SEPARATOR)
                 .append(hash(fEntry, false));
                 
                 if (trackPermissions) {
-                    sb.append(INTERNAL_SEP)
+                    sb.append(SEPARATOR)
                     .append(AttributesHelper.serialize(FileSystemManager.getAttributes(fEntry.getFile())));
                 }
             } else {
                 sb
-                .append(DIRECTORY_MARKER)
-                .append(fEntry.getName())
-                .append(TRACE_SEP)
+                .append(T_DIR)
+                .append(MetadataEncoder.encode(fEntry.getName()))
+                .append(SEPARATOR)
                 .append(FileSystemManager.lastModified(fEntry.getFile()));
                 
                 if (trackPermissions) {
-                    sb.append(INTERNAL_SEP)
+                    sb.append(SEPARATOR)
                     .append(AttributesHelper.serialize(FileSystemManager.getAttributes(fEntry.getFile())));
                 }
             }
@@ -249,15 +230,15 @@ public class ArchiveTrace {
         } else if (asLink) {
             char prefix;
             if (FileSystemManager.isFile(fEntry.getFile())) {
-                prefix = SL_FILE_PREFIX;
+                prefix = T_FILE;
             } else {
-                prefix = SL_DIR_PREFIX;
+                prefix = T_DIR;
             }
-            return prefix + FileSystemManager.getCanonicalPath(fEntry.getFile());
+            return prefix + MetadataEncoder.encode(FileSystemManager.getCanonicalPath(fEntry.getFile()));
         } else if (FileSystemManager.isFile(fEntry.getFile())) {
             return new StringBuffer()
             .append(fEntry.getSize())
-            .append(INTERNAL_SEP)
+            .append(SEPARATOR)
             .append(FileSystemManager.lastModified(fEntry.getFile()))
             .toString();
         } else {
@@ -265,38 +246,37 @@ public class ArchiveTrace {
         }
     }  
     
-    protected void deserialize(String str, ObjectPool pool) {       
-        // Format : <Path><TRACE_SEP><hash>     
-        int index = str.indexOf(ArchiveTrace.TRACE_SEP);
+    protected void deserialize(String str, ObjectPool pool) {         
+        int index = str.indexOf(SEPARATOR);
         String key;
         String hash;
         if (index == -1) {
             key = str;
             hash = null;
         } else {
-            key = str.substring(0, index);
-            hash = str.substring(index + ArchiveTrace.TRACE_SEP.length());
+            key = MetadataEncoder.decode(str.substring(0, index));
+            hash = str.substring(index + SEPARATOR.length());
         }
+        key = key.substring(1); // remove the type marker
         
-        if (str.startsWith(ArchiveTrace.DIRECTORY_MARKER)) {
+        if (str.charAt(0) == T_DIR) {
             // CASE 1 : DIRECTORY
             registerDirectory(
-                    key.substring(ArchiveTrace.DIRECTORY_MARKER.length()),
+                    key,
                     hash,
                     pool);
-        } else if (str.startsWith(ArchiveTrace.SYMLINK_MARKER)) {
+        } else if (str.charAt(0) == T_SYMLINK) {
             // CASE 2 : SYMLINK
             registerSymLink(
-                    key.substring(ArchiveTrace.SYMLINK_MARKER.length()),
+                    key,
                     hash,
                     pool);
         } else {
             // CASE 3 : FILE
-            // Backward compatibility (older versions store a trailing "/" for each row) 
-            if (FileNameUtil.startsWithSeparator(str)) {
-                str= str.substring(1);
-            }
-            registerFile(key, hash, pool);
+            registerFile(
+                    key,
+            		hash, 
+            		pool);
         }       
     }
     
@@ -336,7 +316,7 @@ public class ArchiveTrace {
         if (entryKey == null) {
             return null;
         } else {
-            return entryKey + TRACE_SEP + (String)this.files.get(entryKey);
+            return T_FILE + MetadataEncoder.encode(entryKey) + SEPARATOR + (String)this.files.get(entryKey);
         }
     }  
     
@@ -347,7 +327,7 @@ public class ArchiveTrace {
         if (entryKey == null) {
             return null;
         } else {
-            return DIRECTORY_MARKER + entryKey + TRACE_SEP + (String)this.directories.get(entryKey);
+            return T_DIR + MetadataEncoder.encode(entryKey) + SEPARATOR + (String)this.directories.get(entryKey);
         }
     }  
     
@@ -358,7 +338,7 @@ public class ArchiveTrace {
         if (entryKey == null) {
             return null;
         } else {
-            return SYMLINK_MARKER + entryKey + TRACE_SEP + (String)this.symLinks.get(entryKey);
+            return T_SYMLINK + MetadataEncoder.encode(entryKey) + SEPARATOR + (String)this.symLinks.get(entryKey);
         }
     }  
     
@@ -434,7 +414,7 @@ public class ArchiveTrace {
     }
     
     /**
-     * Checks wether the entry has been modified
+     * Checks whether the entry has been modified
      */
     public boolean hasFileBeenModified(FileSystemRecoveryEntry fEntry) throws IOException {
         return hasBeenModified(hash(fEntry, false), (String)files.get(fEntry.getName()));
@@ -445,13 +425,12 @@ public class ArchiveTrace {
     }
     
     /**
-     * Checks wether the entry has been modified
+     * Checks whether the entry has been modified
      */
     public static boolean hasBeenModified(String newHash, String oldHash) {
-        return ! (oldHash + INTERNAL_SEP).startsWith(newHash + INTERNAL_SEP);
+        return ! (oldHash + SEPARATOR).startsWith(newHash + SEPARATOR);
     }
 
-    
     public ArchiveTrace cloneTrace() {
         ArchiveTrace ret = new ArchiveTrace();
         

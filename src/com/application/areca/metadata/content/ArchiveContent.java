@@ -9,6 +9,8 @@ import java.util.Set;
 
 import com.application.areca.RecoveryEntry;
 import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.application.areca.metadata.MetadataConstants;
+import com.application.areca.metadata.MetadataEncoder;
 import com.application.areca.metadata.trace.ArchiveTrace;
 import com.myJava.system.OSTool;
 
@@ -18,7 +20,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -40,12 +42,7 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ArchiveContent {
-
-    /**
-     * Separator
-     */
-    protected static final String DATA_SEP = "#-#";
+public class ArchiveContent implements MetadataConstants {
     
     private Set content = new HashSet();;
 
@@ -63,16 +60,19 @@ public class ArchiveContent {
         this.content.add(entry);
     }
     
-    public void parse(String[] serialized) {
+    public void parse(String[] serialized, long version) {
+        boolean backWardCompatibility = (version <= 2);
+        
         for (int i=0; i<serialized.length; i++) {
             if (serialized[i] != null) {
-                this.content.add(this.deserialize(serialized[i]));
+            	String str = backWardCompatibility ? ContentBackwardCompatibleReencoder.reencode(serialized[i]) : serialized[i];
+                this.content.add(this.deserialize(str));
             }
         }
     }
     
     protected static String serialize(FileSystemRecoveryEntry entry) {
-        return entry.getName() + DATA_SEP + entry.getSize();
+        return MetadataEncoder.encode(entry.getName()) + SEPARATOR + entry.getSize();
     }
     
     public boolean contains(FileSystemRecoveryEntry entry) {
@@ -83,12 +83,12 @@ public class ArchiveContent {
         if (serialized == null || serialized.length() == 0) {
             return null;
         }
-        int i = serialized.indexOf(DATA_SEP);
+        int i = serialized.indexOf(SEPARATOR);
         if (i == -1) {
             return null;
         }
-        String name = serialized.substring(0, i);
-        long length = Long.parseLong(serialized.substring(i + DATA_SEP.length()));
+        String name = MetadataEncoder.decode(serialized.substring(0, i));
+        long length = Long.parseLong(serialized.substring(i + SEPARATOR.length()));
         
         return new FileSystemRecoveryEntry(defaultRootDirectory, new File(defaultRootDirectory, name), RecoveryEntry.STATUS_STORED, length); 
     }

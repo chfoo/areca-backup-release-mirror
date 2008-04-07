@@ -18,7 +18,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -102,12 +102,11 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
     
     /**
      * Parses each line initializes the trace content
-     * <BR>-Key = file path
-     * <BR>-Value = FilePath TRACE_SEP FileSize - FileModificationDate
      */    
     public ArchiveTrace readTrace() throws IOException {
         FileTool tool = FileTool.getInstance();
-        String encoding = resolveEncoding();
+        long version = getVersion();
+        String encoding = resolveEncoding(version);
         String[] traceContent = tool.getInputStreamRows(this.getInputStream(), encoding, true);
         // Check memory usage
         long entries = traceContent.length;
@@ -119,6 +118,8 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
             );
         }
         
+        boolean backWardCompatibility = (version <= 2);
+        
         // Parse trace
         ArchiveTrace trace = new ArchiveTrace();
         if (traceContent.length >= 1) {
@@ -126,7 +127,10 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
         }
         for (int i=0; i<traceContent.length; i++) {
             if (traceContent[i] != null) {
-                trace.deserialize(traceContent[i], this.objectPool);
+                trace.deserialize(
+                		backWardCompatibility ? TraceBackwardCompatibleReencoder.reencode(traceContent[i]) : traceContent[i], 
+                		this.objectPool
+                );
             }
         }
         Logger.defaultLogger().info("" + traceContent.length + " traces read for " + FileSystemManager.getAbsolutePath(file));

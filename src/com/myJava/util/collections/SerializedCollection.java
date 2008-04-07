@@ -12,6 +12,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.FileTool;
 import com.myJava.system.OSTool;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
@@ -28,7 +29,7 @@ import com.myJava.util.log.Logger;
  * implemented by these classes when "read/writeObject" is called (which results in a growing HashTable)
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -61,10 +62,7 @@ public abstract class SerializedCollection implements Collection {
     public SerializedCollection() {
         long rnd = Util.getRndLong();
         this.bufferFile = new File(OSTool.getTempDirectory(), "java_serialized_collection_" + rnd + ".tmp");
-    }
-    
-    public SerializedCollection(File bufferFile) {
-        this.bufferFile = bufferFile;
+        FileSystemManager.deleteOnExit(this.bufferFile);
     }
     
     public int size() {
@@ -102,12 +100,16 @@ public abstract class SerializedCollection implements Collection {
                 Logger.defaultLogger().error(e);
             }
         }
-        
-        if (FileSystemManager.exists(bufferFile)) {
-            FileSystemManager.delete(bufferFile);
-        }
+
+        try {
+			if (FileSystemManager.exists(bufferFile)) {
+			    FileTool.getInstance().delete(bufferFile, true);
+			}
+		} catch (IOException e) {
+			Logger.defaultLogger().error("Error while trying to delete temporary z64 file (" + FileSystemManager.getAbsolutePath(bufferFile) + ")", e);
+		}
+
         count = 0;
-        
         initialized = false;
     }
     
@@ -242,44 +244,6 @@ public abstract class SerializedCollection implements Collection {
         
         public void remove() {
             throw new UnsupportedOperationException("This method is not supported by this implementation");
-        }
-    }
-    
-    public static void main(String[] args) {
-        try {
-            long nb = 1000;
-            SerializedCollection col = new LongSerializedCollection(new File("/home/olivier/Desktop/toto.tmp"));
-            for (long i=0; i<nb; i++) {
-                col.add(new Long(i));
-            }
-            col.lock();
-            
-            Iterator iter = col.iterator();
-            while (iter.hasNext()) {
-                System.out.println(iter.next().toString());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    private static class LongSerializedCollection extends SerializedCollection {
-        
-        /**
-         * @param bufferFile
-         */
-        public LongSerializedCollection(File bufferFile) {
-            super(bufferFile);
-        }
-        
-        protected Object readObject(ObjectInputStream in) throws IOException,
-        ClassNotFoundException {
-            
-            return new Long(in.readLong());
-        }
-        protected void writeObject(ObjectOutputStream out, Object o)
-        throws IOException {
-            out.writeLong(((Long)o).longValue());
         }
     }
 }

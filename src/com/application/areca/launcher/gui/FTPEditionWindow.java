@@ -28,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -140,6 +140,7 @@ extends AbstractWindow {
         } else {
             this.txtPort.setText("" + FTPFileSystemPolicy.DEFAULT_PORT);
             this.cboProtection.select(0);
+            this.chkPassiv.setSelection(true);
         }
     }
     
@@ -302,7 +303,7 @@ extends AbstractWindow {
         this.currentRunningTest = th;
     }
     
-    protected void testFTP(FTPFileSystemPolicy policy) {
+    protected void testFTP(FTPFileSystemPolicy policy) {   	
         SecuredRunner.execute(new Runnable() {
             public void run() {
                 btnTest.setEnabled(false);

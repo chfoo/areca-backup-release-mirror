@@ -12,7 +12,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -80,14 +80,14 @@ public final class Logger {
         logLevel = l;
     }
     
-    public void addProcessor(LogProcessor proc) {
+    public synchronized void addProcessor(LogProcessor proc) {
         this.processors.add(proc);
     }
 
     /**
      * <BR>Retourne true en cas de succ�s, false en cas d'�chec.
      */
-    public boolean clearLog() {
+    public synchronized boolean clearLog() {
         Iterator iter = this.processors.iterator();
         boolean b = true;
         while(iter.hasNext()) {
@@ -97,7 +97,7 @@ public final class Logger {
         return b;
     }
     
-    public void displayApplicationMessage(String messageKey, String title, String message) {
+    public synchronized void displayApplicationMessage(String messageKey, String title, String message) {
         Iterator iter = this.processors.iterator();
         while(iter.hasNext()) {
             LogProcessor proc = (LogProcessor)iter.next();
@@ -105,7 +105,7 @@ public final class Logger {
         }
     }
     
-    public LogProcessor find(Class c) {
+    public synchronized LogProcessor find(Class c) {
         Iterator iter = this.processors.iterator();
         while (iter.hasNext()) {
             Object o = iter.next();
@@ -117,7 +117,7 @@ public final class Logger {
         return null;
     }
     
-    public void remove(Class c) {
+    public synchronized void remove(Class c) {
         Iterator iter = this.processors.iterator();
         while (iter.hasNext()) {
             Object o = iter.next();
@@ -127,7 +127,7 @@ public final class Logger {
         }
     }
     
-    public void clearLog(Class c) {
+    public synchronized void clearLog(Class c) {
         Iterator iter = this.processors.iterator();
         while (iter.hasNext()) {
             Object o = iter.next();
@@ -141,7 +141,7 @@ public final class Logger {
     /**
      * Ecrit la log en v�rifiant le niveau pr�cis�.
      */
-    private void log(int level, String message, Throwable e, String source) {
+    private synchronized void log(int level, String message, Throwable e, String source) {
         if (level <= logLevel) {
             Iterator iter = this.processors.iterator();
             while(iter.hasNext()) {

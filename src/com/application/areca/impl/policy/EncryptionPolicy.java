@@ -20,7 +20,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -163,7 +163,6 @@ public class EncryptionPolicy implements PublicClonable {
         ToStringHelper.append("IsEncrypted", this.isEncrypted, sb);
         if (isEncrypted) {
             ToStringHelper.append("Algorithm", this.encryptionAlgorithm, sb);
-            ToStringHelper.append("Key", this.encryptionKey, sb);
             ToStringHelper.append("Encrypt names", this.encryptNames, sb);
         }
         return ToStringHelper.close(sb);

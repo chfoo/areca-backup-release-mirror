@@ -13,7 +13,7 @@ import com.myJava.util.version.VersionDataAdapterException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -40,7 +40,7 @@ public class VersionChecker {
     private static final String DEFAULT_CHECK_URL = "http://areca.sourceforge.net/version.php";
     private static VersionChecker instance = new VersionChecker();
     
-    private URL chekUrl;
+    private String chekUrl;
     
     /**
      * Returns the single instance 
@@ -55,35 +55,41 @@ public class VersionChecker {
      * <BR>- Add the current version ... this allows to adapt the response to Areca's version (warning messages if bugs have been discovered, ...)
      */
     private VersionChecker() {
+    	this.chekUrl = DEFAULT_CHECK_URL + "?currentVersion=" + VersionInfos.getLastVersion().getVersionId() + "&randomArg=";
+    }  
+
+    public String getCheckHost() {
+        URL url = null;
         try {
-            chekUrl = new URL(DEFAULT_CHECK_URL + "?randomArg=" + Math.random() + "&currentVersion=" + VersionInfos.getLastVersion().getVersionId());
+        	url = new URL(chekUrl);
         } catch (MalformedURLException ignored) {
             ignored.printStackTrace();  // The default validation URL has been checked -->OK
         }
-    }    
-    
-    public URL getChekUrl() {
-        return chekUrl;
-    }
-    
-    public void setChekUrl(URL chekUrl) {
-        this.chekUrl = chekUrl;
-    }
-    
-    /**
+        return url.getHost();
+	}
+
+	/**
      * Checks wether a new version is available.
      * <BR>Returns null if no new version is available.
      * <BR>Returns the new version otherwise. 
      */
     public VersionData checkForNewVersion() throws VersionDataAdapterException {
         OnlineVersionDataAdapter adapter = new OnlineVersionDataAdapter();
-        adapter.setCheckUrl(this.chekUrl);
+        
+        URL url = null;
+        try {
+        	url = new URL(chekUrl + Math.random());
+        } catch (MalformedURLException ignored) {
+            ignored.printStackTrace();  // The default validation URL has been checked -->OK
+        }
 
-        Logger.defaultLogger().info("Opening url : " + this.chekUrl.toExternalForm());
+        adapter.setCheckUrl(url);
+
+        Logger.defaultLogger().info("Opening url : " + url.toExternalForm());
         VersionData newVersion = adapter.readVersionData();
         if (newVersion == null) {
             Logger.defaultLogger().error("Error : No version information found.");
-            throw new VersionDataAdapterException("Unable to retrieve version informations from url : " + chekUrl.toExternalForm());
+            throw new VersionDataAdapterException("Unable to retrieve version informations from url : " + url.toExternalForm());
         } else {
             Logger.defaultLogger().info("Version information retrieved : " + newVersion.getVersionId());
         }

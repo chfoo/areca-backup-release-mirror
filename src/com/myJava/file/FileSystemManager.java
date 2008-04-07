@@ -31,7 +31,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2736893395693886205
+ * <BR>Areca Build ID : 8363716858549252512
  */
  
  /*
@@ -434,38 +434,40 @@ public class FileSystemManager {
             return false;
         } else {
             String message = null;
-            
             FileLock lock = null;
             RandomAccessFile raf = null;
-            try {
-                raf = new RandomAccessFile(file, "r");
-            } catch (Throwable e) {
-                message = e.getMessage();
-            }
             
-            if (raf != null) {
-                FileChannel chn = raf.getChannel();
-                try {
-                    lock = chn.tryLock(0L, Long.MAX_VALUE, true);
-                } catch (Throwable e) {
-                    message = e.getMessage();             
-                } finally {
-                    if (lock != null) {
-                        try {
-                            lock.release();
-                        } catch (IOException ignored) {
-                        }
-                    }
-
-                    try {
-                        raf.close();
-                    } catch (IOException ignored) {
-                    }
-                }
+            synchronized (FileSystemManager.class) {
+	            try {
+	                raf = new RandomAccessFile(file, "r");
+	            } catch (Throwable e) {
+	                message = e.getMessage();
+	            }
+	            
+	            if (raf != null) {
+	                FileChannel chn = raf.getChannel();
+	                try {
+	                    lock = chn.tryLock(0L, Long.MAX_VALUE, true);
+	                } catch (Throwable e) {
+	                    message = e.getMessage();             
+	                } finally {
+	                    if (lock != null && lock.isValid()) {
+	                        try {
+	                            lock.release();
+	                        } catch (IOException ignored) {
+	                        }
+	                    }
+	
+	                    try {
+	                        raf.close();
+	                    } catch (IOException ignored) {
+	                    }
+	                }
+	            }
             }
             
             if (lock == null) {
-                Logger.defaultLogger().info("The following file is locked by the system : " + FileSystemManager.getAbsolutePath(file));
+                Logger.defaultLogger().warn("The following file is locked by the system : " + FileSystemManager.getAbsolutePath(file));
                 if (message != null) {
                     Logger.defaultLogger().info("Cause : " + message);
                 }
