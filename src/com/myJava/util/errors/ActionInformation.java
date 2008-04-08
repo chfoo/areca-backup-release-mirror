@@ -6,7 +6,7 @@ package com.myJava.util.errors;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8363716858549252512
+ * <BR>Areca Build ID : 6668125177615540854
  */
  
  /*

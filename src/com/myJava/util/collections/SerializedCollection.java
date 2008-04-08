@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -29,7 +31,7 @@ import com.myJava.util.log.Logger;
  * implemented by these classes when "read/writeObject" is called (which results in a growing HashTable)
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8363716858549252512
+ * <BR>Areca Build ID : 6668125177615540854
  */
  
  /*
@@ -58,6 +60,7 @@ public abstract class SerializedCollection implements Collection {
     private long count = 0;
     private boolean initialized = false;
     private boolean locked = false;
+    private Set registeredIterators = new HashSet();
     
     public SerializedCollection() {
         long rnd = Util.getRndLong();
@@ -111,6 +114,13 @@ public abstract class SerializedCollection implements Collection {
 
         count = 0;
         initialized = false;
+        
+        Iterator iter = this.registeredIterators.iterator();
+        while (iter.hasNext()) {
+        	SerializedIterator i = (SerializedIterator)iter.next();
+        	i.close();
+        }
+        this.registeredIterators.clear();
     }
     
     public boolean isEmpty() {
@@ -133,6 +143,14 @@ public abstract class SerializedCollection implements Collection {
         }
     }
     
+    protected void registerIterator(SerializedIterator iter) {
+    	this.registeredIterators.add(iter);
+    }
+    
+    protected void unregisterIterator(SerializedIterator iter) {
+    	this.registeredIterators.remove(iter);
+    }
+    
     public boolean addAll(Collection c) {
         Iterator iter = c.iterator();
         boolean changed = false;
@@ -149,7 +167,9 @@ public abstract class SerializedCollection implements Collection {
         if (! locked) {
             throw new IllegalStateException("The SerializedCollection must be closed first.");
         }
-        return new SerializedIterator(this.bufferFile, this.count);
+        SerializedIterator iter = new SerializedIterator(this.bufferFile, this.count);
+        this.registerIterator(iter);
+        return iter;
     }
     
     /* (non-Javadoc)
@@ -221,6 +241,8 @@ public abstract class SerializedCollection implements Collection {
                     nextObject = readObject(in);
                     remainingItems--;
                 } else {
+                	this.close();
+                	unregisterIterator(this);
                     nextObject = null;
                 }
             } catch (IOException e) {
@@ -244,6 +266,16 @@ public abstract class SerializedCollection implements Collection {
         
         public void remove() {
             throw new UnsupportedOperationException("This method is not supported by this implementation");
+        }
+        
+        public void close() {
+        	try {
+				if (in != null) {
+					in.close();
+				}
+			} catch (IOException e) {
+				Logger.defaultLogger().error("Error trying to close iterator", e);
+			}
         }
     }
 }
