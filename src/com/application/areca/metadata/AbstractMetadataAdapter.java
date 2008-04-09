@@ -18,7 +18,7 @@ import com.myJava.file.FileTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 6668125177615540854
+ * <BR>Areca Build ID : 2380639557663016217
  */
  
  /*
@@ -141,8 +141,12 @@ public class AbstractMetadataAdapter {
     protected long getVersion() throws IOException {
         FileTool tool = FileTool.getInstance();
         String firstLine = tool.getFirstRow(getInputStream(), DATA_CHARSET);
-        String str = firstLine.substring(VERSION_HEADER.length()).trim();
-        return Long.parseLong(str);
+        if (firstLine != null && firstLine.startsWith(VERSION_HEADER)) {
+	        String str = firstLine.substring(VERSION_HEADER.length()).trim();
+	        return Long.parseLong(str);
+        } else {
+        	return 1L;
+        }
     }
     
     protected String resolveEncoding(long version) throws IOException {
