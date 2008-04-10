@@ -29,7 +29,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2380639557663016217
+ * <BR>Areca Build ID : 4765044255727194190
  */
  
  /*
@@ -73,7 +73,6 @@ implements LogProcessor, Refreshable, Listener {
         txtLog.setEditable(false);
         txtLog.setMenu(Application.getInstance().getLogContextMenu());
         txtLog.setForeground(GREY);
-        //txtLog.setFont(new Font(Application.getInstance().getDisplay(), "Monospace", 10, SWT.NORMAL));
         
         GridData dt1 = new GridData();
         dt1.grabExcessHorizontalSpace = true;
@@ -113,15 +112,16 @@ implements LogProcessor, Refreshable, Listener {
     public boolean clearLog() {
         SecuredRunner.execute(this, new Runnable() {
             public void run() {
-                synchronized(this) {
-                    txtLog.setText("");
-                    position = 0;
-                    txtLog.setStyleRange(null);	// Clear all styles
-                }
+                txtLog.setText("");
+                position = 0;
+                txtLog.setStyleRange(null);	// Clear all styles
             }
         });
         return true;
     }
+    
+	public void unmount() {
+	}
 
     public void log(final int level, String message, Throwable e, String source) {
         try {
@@ -137,19 +137,17 @@ implements LogProcessor, Refreshable, Listener {
             final String fTxt = txt;
             SecuredRunner.execute(this, new Runnable() {
                 public void run() {
-                    synchronized(this) {
-                    	int l = fTxt.length();
-                        txtLog.append(fTxt);
-                        StyleRange rg = resolveStyle(level);
-                        if (rg != null) {
-                        	rg.start = position;
-                        	rg.length = l;
-	                    	txtLog.setStyleRange(rg);
-                        }
-                        position += l;
-                        txtLog.setSelection(position, position);
-                        txtLog.showSelection();
+                	int l = fTxt.length();
+                    txtLog.append(fTxt);
+                    StyleRange rg = resolveStyle(level);
+                    if (rg != null) {
+                    	rg.start = position;
+                    	rg.length = l;
+                    	txtLog.setStyleRange(rg);
                     }
+                    position += l;
+                    txtLog.setSelection(position, position);
+                    txtLog.showSelection();
                 }
             });
         } catch (Throwable ignored) {

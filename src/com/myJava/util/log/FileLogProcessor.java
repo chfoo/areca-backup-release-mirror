@@ -15,7 +15,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2380639557663016217
+ * <BR>Areca Build ID : 4765044255727194190
  */
  
  /*
@@ -161,10 +161,12 @@ implements LogProcessor {
      * Efface le fichier de log.
      * <BR>Retourne true en cas de succ�s, false en cas d'�chec.
      */
-    public synchronized boolean clearLog() {
+    public boolean clearLog() {
         if (fileName != null) {
             File f = new File(fileName);
-            return (FileSystemManager.delete(f));
+            synchronized (this) {
+                return (FileSystemManager.delete(f));	
+			}
         } else {
             return false;
         }
@@ -173,4 +175,8 @@ implements LogProcessor {
     public void displayApplicationMessage(String messageKey, String title, String message) {
         log(3, message, null, title);
     }
+
+	public void unmount() {
+		this.cleaner.stopTask();
+	}
 }

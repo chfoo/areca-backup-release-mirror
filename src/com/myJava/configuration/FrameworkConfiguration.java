@@ -18,7 +18,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2380639557663016217
+ * <BR>Areca Build ID : 4765044255727194190
  */
  
  /*
@@ -43,67 +43,67 @@ This file is part of Areca.
 public class FrameworkConfiguration {
     private static FrameworkConfiguration instance = new FrameworkConfiguration(); 
     
-    private static String KEY_DELTA_DEBUG = "delta.debug";
-    private static String KEY_FTP_MAX_PROXIES = "ftp.max.proxies";
-    private static String KEY_FTP_DEBUG = "ftp.debug";
-    private static String KEY_FT_DELAY = "filetool.delay";
-    private static String KEY_FT_BUFFER_SIZE = "filetool.buffer.size";
-    private static String KEY_FTP_NOOP_DELAY = "ftp.noop.delay";    
-    private static String KEY_FTP_CACHE_SIZE = "ftp.cache.size";    
-    private static String KEY_FTP_USE_CACHE = "ftp.use.cache";
-    private static String KEY_HASH_CACHE_SIZE = "hash.cache.size";    
-    private static String KEY_HASH_USE_CACHE = "hash.use.cache";
-    private static String KEY_OS_BROWSERS = "os.browsers";  
-    private static String KEY_SSE_PROTOCOLS = "sse.protocols";  
-    private static String KEY_ZIP_BUFFER = "zip.buffer.size"; 
-    private static String KEY_ZIP_MV_DIGITS = "zip.mv.digits"; 
-    private static String KEY_LOG_LEVEL = "log.level";
-    private static String KEY_FS_USE_BUFFER = "fs.use.buffer";   
-    private static String KEY_FS_BUFFER_SIZE = "fs.buffer.size";   
-    private static String KEY_FS_CACHE_DEBUG = "fs.cache.debug";    
-    private static String KEY_LAUNCHER_IH = "launcher.initialheap";  
-    private static String KEY_LAUNCHER_MH = "launcher.maxheap";   
-    private static String KEY_LAUNCHER_WAITFOR = "launcher.waitfor"; 
-    private static String KEY_ZIP_ENTRY_CHECK_ENABLE = "zip.crc.enable";   
-    private static String KEY_MAX_FILEPATH_LENGTH = "fs.max.filepath";   
-    private static String KEY_FORCE_FILEPATH_LENGTH_CHECK = "fs.max.filepath.check.force";   
-    private static String KEY_DEFAULT_LOG_HISTORY = "log.default.history";
-    private static String KEY_WRITABLE_DIRECTORIES = "fs.writable.directories";  
-    private static String KEY_DELTA_LINKEDLIST_BUFFER_SIZE = "delta.linkedlist.buffer.size"; 
-    private static String KEY_DELTA_HASHMAP_SIZE = "delta.hashmap.size"; 
-    private static String KEY_DELTA_QUICKHASH_MULTIPLIER = "delta.quickhash.multiplier"; 
-    private static String KEY_DELTA_QUICKHASH_MODULUS = "delta.quickhash.modulus"; 
+    public static String KEY_DELTA_DEBUG = "delta.debug";
+    public static String KEY_FTP_MAX_PROXIES = "ftp.max.proxies";
+    public static String KEY_FTP_DEBUG = "ftp.debug";
+    public static String KEY_FT_DELAY = "filetool.delay";
+    public static String KEY_FT_BUFFER_SIZE = "filetool.buffer.size";
+    public static String KEY_FTP_NOOP_DELAY = "ftp.noop.delay";    
+    public static String KEY_FTP_CACHE_SIZE = "ftp.cache.size";    
+    public static String KEY_FTP_USE_CACHE = "ftp.use.cache";
+    public static String KEY_HASH_CACHE_SIZE = "hash.cache.size";    
+    public static String KEY_HASH_USE_CACHE = "hash.use.cache";
+    public static String KEY_OS_BROWSERS = "os.browsers";  
+    public static String KEY_SSE_PROTOCOLS = "sse.protocols";  
+    public static String KEY_ZIP_BUFFER = "zip.buffer.size"; 
+    public static String KEY_ZIP_MV_DIGITS = "zip.mv.digits"; 
+    public static String KEY_LOG_LEVEL = "log.level";
+    public static String KEY_FS_USE_BUFFER = "fs.use.buffer";   
+    public static String KEY_FS_BUFFER_SIZE = "fs.buffer.size";   
+    public static String KEY_FS_CACHE_DEBUG = "fs.cache.debug";    
+    public static String KEY_LAUNCHER_IH = "launcher.initialheap";  
+    public static String KEY_LAUNCHER_MH = "launcher.maxheap";   
+    public static String KEY_LAUNCHER_WAITFOR = "launcher.waitfor"; 
+    public static String KEY_ZIP_ENTRY_CHECK_ENABLE = "zip.crc.enable";   
+    public static String KEY_MAX_FILEPATH_LENGTH = "fs.max.filepath";   
+    public static String KEY_FORCE_FILEPATH_LENGTH_CHECK = "fs.max.filepath.check.force";   
+    public static String KEY_DEFAULT_LOG_HISTORY = "log.default.history";
+    public static String KEY_WRITABLE_DIRECTORIES = "fs.writable.directories";  
+    public static String KEY_DELTA_LINKEDLIST_BUFFER_SIZE = "delta.linkedlist.buffer.size"; 
+    public static String KEY_DELTA_HASHMAP_SIZE = "delta.hashmap.size"; 
+    public static String KEY_DELTA_QUICKHASH_MULTIPLIER = "delta.quickhash.multiplier"; 
+    public static String KEY_DELTA_QUICKHASH_MODULUS = "delta.quickhash.modulus"; 
     
-    private static boolean DEF_DELTA_DEBUG = false;
-    private static int DEF_FTP_MAX_PROXIES = 3;
-    private static long DEF_FTP_NOOP_DELAY = 30000;    
-    private static boolean DEF_FTP_DEBUG = false;
-    private static int DEF_FT_DELAY = 100;
-    private static int DEF_FT_BUFFER_SIZE = 100000;
-    private static int DEF_FTP_CACHE_SIZE = 200;    
-    private static boolean DEF_FTP_USE_CACHE = true;    
-    private static int DEF_HASH_CACHE_SIZE = 500;    
-    private static boolean DEF_HASH_USE_CACHE = true;    
-    private static String[] DEF_OS_BROWSERS = {"firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape"};
-    private static String[] DEF_SSE_PROTOCOLS = {"TLS", "SSL"};  
-    private static int DEF_ZIP_BUFFER = 2048;
-    private static int DEF_ZIP_MV_DIGITS = 2; 
-    private static int DEF_LOG_LEVEL = 8;
-    private static boolean DEF_FS_USE_BUFFER = true;   
-    private static int DEF_FS_BUFFER_SIZE = 100000;   
-    private static boolean DEF_FS_CACHE_DEBUG = false; 
-    private static int DEF_LAUNCHER_IH = -1;  
-    private static int DEF_LAUNCHER_MH = -1;   
-    private static boolean DEF_LAUNCHER_WAITFOR = true;  
-    private static boolean DEF_ZIP_ENTRY_CHECK_ENABLE = true;  
-    private static long DEF_MAX_FILEPATH_LENGTH = 256;   
-    private static int DEF_FORCE_FILEPATH_LENGTH_CHECK = -1;   // -1 = UNSET, 0 = FORCE DISABLE, 1 = FORCE ENABLE
-    private static int DEF_DEFAULT_LOG_HISTORY = 10;  
-    private static String[] DEF_WRITABLE_DIRECTORIES = new String[] {};
-    private static int DEF_DELTA_LINKEDLIST_BUFFER_SIZE = 200 * 1024; 
-    private static int DEF_DELTA_HASHMAP_SIZE = 10007;
-    private static int DEF_DELTA_QUICKHASH_MULTIPLIER = 691 * 13 * 11; 
-    private static int DEF_DELTA_QUICKHASH_MODULUS = 4013423 * 17; 
+    public static boolean DEF_DELTA_DEBUG = false;
+    public static int DEF_FTP_MAX_PROXIES = 3;
+    public static long DEF_FTP_NOOP_DELAY = 30000;    
+    public static boolean DEF_FTP_DEBUG = false;
+    public static int DEF_FT_DELAY = 100;
+    public static int DEF_FT_BUFFER_SIZE = 100000;
+    public static int DEF_FTP_CACHE_SIZE = 200;    
+    public static boolean DEF_FTP_USE_CACHE = true;    
+    public static int DEF_HASH_CACHE_SIZE = 500;    
+    public static boolean DEF_HASH_USE_CACHE = true;    
+    public static String[] DEF_OS_BROWSERS = {"firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape"};
+    public static String[] DEF_SSE_PROTOCOLS = {"TLS", "SSL"};  
+    public static int DEF_ZIP_BUFFER = 2048;
+    public static int DEF_ZIP_MV_DIGITS = 2; 
+    public static int DEF_LOG_LEVEL = 8;
+    public static boolean DEF_FS_USE_BUFFER = true;   
+    public static int DEF_FS_BUFFER_SIZE = 100000;   
+    public static boolean DEF_FS_CACHE_DEBUG = false; 
+    public static int DEF_LAUNCHER_IH = -1;  
+    public static int DEF_LAUNCHER_MH = -1;   
+    public static boolean DEF_LAUNCHER_WAITFOR = true;  
+    public static boolean DEF_ZIP_ENTRY_CHECK_ENABLE = true;  
+    public static long DEF_MAX_FILEPATH_LENGTH = 256;   
+    public static int DEF_FORCE_FILEPATH_LENGTH_CHECK = -1;   // -1 = UNSET, 0 = FORCE DISABLE, 1 = FORCE ENABLE
+    public static int DEF_DEFAULT_LOG_HISTORY = 10;  
+    public static String[] DEF_WRITABLE_DIRECTORIES = new String[] {};
+    public static int DEF_DELTA_LINKEDLIST_BUFFER_SIZE = 200 * 1024; 
+    public static int DEF_DELTA_HASHMAP_SIZE = 10007;
+    public static int DEF_DELTA_QUICKHASH_MULTIPLIER = 691 * 13 * 11; 
+    public static int DEF_DELTA_QUICKHASH_MODULUS = 4013423 * 17; 
 
     private static String VM_PROPS_PREFIX = "launcher.d.";
     

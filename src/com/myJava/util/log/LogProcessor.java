@@ -5,7 +5,7 @@ package com.myJava.util.log;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2380639557663016217
+ * <BR>Areca Build ID : 4765044255727194190
  */
  
  /*
@@ -31,4 +31,5 @@ public interface LogProcessor {
     public void log(int level, String message, Throwable e, String source);
     public boolean clearLog();
     public void displayApplicationMessage(String messageKey, String title, String message);
+    public void unmount();
 }

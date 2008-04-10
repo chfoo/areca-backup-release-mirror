@@ -2,14 +2,11 @@ package com.myJava.util.schedule;
 
 import java.util.GregorianCalendar;
 
-import com.myJava.util.log.Logger;
-
 /**
- * T�che destin�e � �tre g�r�e dans un scheduler
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2380639557663016217
+ * <BR>Areca Build ID : 4765044255727194190
  */
  
  /*
@@ -34,30 +31,21 @@ This file is part of Areca.
 
 public abstract class ScheduledTask implements Runnable {
 
-    /**
-     * Date de derni�re ex�cution
-     */
     protected GregorianCalendar tskLastExecutionDate;
 
     /**
-     * D�lai (secondes).
-     * Il s'agit du d�lai de test de "evaluateCondition"
+     * Delai (secondes).
+     * Il s'agit du delai de test de "evaluateCondition"
      */
     protected long tskDelay;
 
-    /**
-     * Le thread associ� � la t�che
-     */
-    protected Thread tskThread;
 
-    /**
-     * Flag interne indiquant si la t�che doit s'arr�ter.
-     */
+    protected Thread tskThread;
     protected boolean tskShallStop;
 
     /**
      * Constructeur.
-     * Le d�lai est sp�cifi� en secondes.
+     * Le delai est specifie en secondes.
      */
     public ScheduledTask(long delay) {
         super();
@@ -70,7 +58,6 @@ public abstract class ScheduledTask implements Runnable {
      * M�thode ex�cut�e lors de l'appel � la t�che.
      */
     public void execute() {
-        Logger.defaultLogger().info("Scheduled task startup.", this.getClass().getName());
         this.tskLastExecutionDate = new GregorianCalendar();
     }
 
@@ -103,23 +90,21 @@ public abstract class ScheduledTask implements Runnable {
     /**
      * Arr�te la t�che
      */
-    public void stopTask() {
+    public synchronized void stopTask() {
         this.tskShallStop = true;
+        this.notifyAll();
     }
 
     /**
      * M�thode mettant le thread courant en pause
      */
-    public void pauseThread() {
+    public synchronized void pauseThread() {
         try {
-            Thread.sleep(this.tskDelay * 1000);
+        	this.wait(this.tskDelay * 1000);
         } catch (InterruptedException ignored) {
         }
     }
 
-    /**
-     * M�thode tournant en t�che de fond.
-     */
     public void run() {
         while (! this.tskShallStop) {
             if (this.evaluateCondition()) {

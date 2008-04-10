@@ -15,7 +15,7 @@ import com.myJava.util.schedule.ScheduledTask;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2380639557663016217
+ * <BR>Areca Build ID : 4765044255727194190
  */
  
  /*
@@ -77,7 +77,6 @@ public class LogCleaner extends ScheduledTask {
             if (files != null) {
                 for (int i=0; i<files.length; i++) {
                     if (this.checkFileToBeDeleted(FileSystemManager.getAbsolutePath(files[i]))) {
-                        Logger.defaultLogger().info("Deleting old log file : " + files[i]);
                         synchronized(this.lgcLogger) {
                             FileSystemManager.delete(files[i]);
                         }

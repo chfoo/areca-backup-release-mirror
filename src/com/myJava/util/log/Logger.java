@@ -2,7 +2,6 @@ package com.myJava.util.log;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import com.myJava.configuration.FrameworkConfiguration;
 
@@ -12,7 +11,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2380639557663016217
+ * <BR>Areca Build ID : 4765044255727194190
  */
  
  /*
@@ -37,206 +36,268 @@ This file is part of Areca.
 
 public final class Logger {
 
-    /**
-     * Niveau de log
-     */
-    private int logLevel;
+	private boolean isModifying = false;
+	private boolean isReading = false;
 
-    /**
-     *  Logger par d�faut.
-     */
-    private static Logger defaultLogger = new Logger();
-    
-    private List processors = new ArrayList();
+	/**
+	 * Niveau de log
+	 */
+	private int logLevel;
 
-    /**
-     * Constructeur.
-     */
-    public Logger() {
-        this.setLogLevel(FrameworkConfiguration.getInstance().getLogLevel());
-        this.addProcessor(new ConsoleLogProcessor());
-    }
+	private static Logger defaultLogger = new Logger();
 
-    /**
-     * Indique le logger par d�faut de la classe
-     */
-    public static Logger defaultLogger() {
-        return defaultLogger;
-    }
+	private ArrayList processors = new ArrayList();
 
-    /**
-     * Retourne le niveau de log
-     */
-    public int getLogLevel() {
-        return this.logLevel;
-    }
+	public synchronized void setModifying(boolean isModifying) {
+		if (isModifying && this.isReading) {
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 
-    /**
-     * Indique le niveau de log.
-     * <BR>Tout appel de priorit� inf�rieure � la priorit� sp�cifi�e ne sera pas
-     * logg�
-     */
-    public void setLogLevel(int l) {
-        logLevel = l;
-    }
-    
-    public synchronized void addProcessor(LogProcessor proc) {
-        this.processors.add(proc);
-    }
+		this.isModifying = isModifying;
+		this.notifyAll();
+	}
 
-    /**
-     * <BR>Retourne true en cas de succ�s, false en cas d'�chec.
-     */
-    public synchronized boolean clearLog() {
-        Iterator iter = this.processors.iterator();
-        boolean b = true;
-        while(iter.hasNext()) {
-            LogProcessor proc = (LogProcessor)iter.next();
-            b &= proc.clearLog();
-        }
-        return b;
-    }
-    
-    public synchronized void displayApplicationMessage(String messageKey, String title, String message) {
-        Iterator iter = this.processors.iterator();
-        while(iter.hasNext()) {
-            LogProcessor proc = (LogProcessor)iter.next();
-            proc.displayApplicationMessage(messageKey, title, message);
-        }
-    }
-    
-    public synchronized LogProcessor find(Class c) {
-        Iterator iter = this.processors.iterator();
-        while (iter.hasNext()) {
-            Object o = iter.next();
-            if (c.isAssignableFrom(o.getClass())) {
-                return (LogProcessor)o;
-            }
-        }
-        
-        return null;
-    }
-    
-    public synchronized void remove(Class c) {
-        Iterator iter = this.processors.iterator();
-        while (iter.hasNext()) {
-            Object o = iter.next();
-            if (c.isAssignableFrom(o.getClass())) {
-                iter.remove();
-            }
-        }
-    }
-    
-    public synchronized void clearLog(Class c) {
-        Iterator iter = this.processors.iterator();
-        while (iter.hasNext()) {
-            Object o = iter.next();
-            if (c.isAssignableFrom(o.getClass())) {
-                LogProcessor proc = (LogProcessor)o;
-                proc.clearLog();
-            }
-        }
-    }
-    
-    /**
-     * Ecrit la log en v�rifiant le niveau pr�cis�.
-     */
-    private synchronized void log(int level, String message, Throwable e, String source) {
-        if (level <= logLevel) {
-            Iterator iter = this.processors.iterator();
-            while(iter.hasNext()) {
-                LogProcessor proc = (LogProcessor)iter.next();
-                try {
-                    proc.log(level, message, e, source);
-                } catch (RuntimeException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }
-    }
+	public synchronized void setReading(boolean isReading) {
+		if (isReading && this.isModifying) {
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 
-    /**
-     * Ecrit une log g�n�rique
-     */
-    private void log(int level, String message, String source) {
-        log(level, message, null, source);
-    }
+		this.isReading = isReading;
+		this.notifyAll();
+	}
 
-    /**
-     * Ecrit une erreur critique (niveau de log 1)
-     */
-    public void error(String message, Throwable e, String source) {
-        log(1, message, e, source);
-    }
-    
-    /**
-     * Ecrit une erreur critique (niveau de log 1)
-     */
-    public void error(String message, Throwable e) {
-        error(message, e, "");
-    }
-    
-    /**
-     * Ecrit une erreur critique (niveau de log 1)
-     */
-    public void error(Throwable e) {
-        error("", e, "");
-    }    
+	/**
+	 * Constructeur.
+	 */
+	public Logger() {
+		this.setLogLevel(FrameworkConfiguration.getInstance().getLogLevel());
+		this.addProcessor(new ConsoleLogProcessor());
+	}
 
-    /**
-     * Ecrit une erreur critique (niveau de log 1)
-     */
-    public void error(String message, String source) {
-        log(1, message, source);
-    }
+	/**
+	 * Indique le logger par d�faut de la classe
+	 */
+	public static Logger defaultLogger() {
+		return defaultLogger;
+	}
 
-   public void error(String message) {
-       log(1, message, "");
-   }
+	/**
+	 * Retourne le niveau de log
+	 */
+	public int getLogLevel() {
+		return this.logLevel;
+	}
 
-    /**
-     * Ecrit un warning (niveau de log 3)
-     */
-    public void warn(String message, String source) {
-        log(3, message, source);
-    }
-    
-    /**
-     * Ecrit un warning (niveau de log 3)
-     */
-    public void warn(String message) {
-        log(3, message, "");
-    }    
+	/**
+	 * Indique le niveau de log.
+	 * <BR>Tout appel de priorit� inf�rieure � la priorit� sp�cifi�e ne sera pas
+	 * logg�
+	 */
+	public void setLogLevel(int l) {
+		logLevel = l;
+	}
 
-    /**
-     * Ecrit un warning (niveau de log 3)
-     */
-    public void warn(String message, Throwable e, String source) {
-        log(3, message, e, source);
-    }
+	public void addProcessor(LogProcessor proc) {
+		setModifying(true);
+		try {
+			this.processors.add(proc);
+		} finally {
+			setModifying(false);
+		}
+	}
 
-    /**
-     * Ecrit une information (niveau de log 6)
-     */
-    public void info(String message, String source) {
-        log(6, message, source);
-    }
+	/**
+	 * <BR>Retourne true en cas de succ�s, false en cas d'�chec.
+	 */
+	public boolean clearLog() {
+		boolean b = true;
+		setReading(true);
+		try {
+			Iterator iter = this.processors.iterator();
+			while(iter.hasNext()) {
+				LogProcessor proc = (LogProcessor)iter.next();
+				b &= proc.clearLog();
+			}
+		} finally {
+			setReading(false);    		
+		}
+		return b;
+	}
 
-    /**
-     * Ecrit une info (niveau de log 6)
-     */
-    public void info(String message, Throwable e, String source) {
-        log(6, message, e, source);
-    }
+	public void displayApplicationMessage(String messageKey, String title, String message) {
+		setReading(true);
+		try {
+			Iterator iter = this.processors.iterator();
+			while(iter.hasNext()) {
+				LogProcessor proc = (LogProcessor)iter.next();
+				proc.displayApplicationMessage(messageKey, title, message);
+			}
+		} finally {
+			setReading(false);
+		}
+	}
 
-    /**
-     * Ecrit une info (niveau de log 6) 
-     */
-    public void info(String message) {
-        log(6, message, "");
-    }
-    
-    public void fine(String message) {
-        log(8, message, "");
-    }
+	public LogProcessor find(Class c) {
+		setReading(true);
+		try {
+			Iterator iter = this.processors.iterator();
+			while (iter.hasNext()) {
+				Object o = iter.next();
+				if (c.isAssignableFrom(o.getClass())) {
+					setReading(false);
+					return (LogProcessor)o;
+				}
+			}
+		} finally {
+			setReading(false);
+		}
+		return null;
+	}
+
+	public void remove(Class c) {
+		setModifying(true);
+		try {
+			Iterator iter = this.processors.iterator();
+			while (iter.hasNext()) {
+				LogProcessor o = (LogProcessor)iter.next();
+				if (c.isAssignableFrom(o.getClass())) {
+					o.unmount();
+					iter.remove();
+				}
+			}
+		} finally {
+			setModifying(false);
+		}
+	}
+
+	public void clearLog(Class c) {
+		setReading(true);
+		try {
+			Iterator iter = this.processors.iterator();
+			while (iter.hasNext()) {
+				Object o = iter.next();
+				if (c.isAssignableFrom(o.getClass())) {
+					LogProcessor proc = (LogProcessor)o;
+					proc.clearLog();
+				}
+			}
+		} finally {
+			setReading(false);
+		}
+	}
+
+	/**
+	 * Ecrit la log en v�rifiant le niveau pr�cis�.
+	 */
+	private void log(int level, String message, Throwable e, String source) {
+		if (level <= logLevel) {
+			setReading(true);
+			try {
+				Iterator iter = this.processors.iterator();
+				while(iter.hasNext()) {
+					LogProcessor proc = (LogProcessor)iter.next();
+					try {
+						proc.log(level, message, e, source);
+					} catch (RuntimeException e1) {
+						e1.printStackTrace();
+					}
+				}
+			} finally {
+				setReading(false);
+			}
+		}
+	}
+
+	/**
+	 * Ecrit une log g�n�rique
+	 */
+	private void log(int level, String message, String source) {
+		log(level, message, null, source);
+	}
+
+	/**
+	 * Ecrit une erreur critique (niveau de log 1)
+	 */
+	public void error(String message, Throwable e, String source) {
+		log(1, message, e, source);
+	}
+
+	/**
+	 * Ecrit une erreur critique (niveau de log 1)
+	 */
+	public void error(String message, Throwable e) {
+		error(message, e, "");
+	}
+
+	/**
+	 * Ecrit une erreur critique (niveau de log 1)
+	 */
+	public void error(Throwable e) {
+		error("", e, "");
+	}    
+
+	/**
+	 * Ecrit une erreur critique (niveau de log 1)
+	 */
+	public void error(String message, String source) {
+		log(1, message, source);
+	}
+
+	public void error(String message) {
+		log(1, message, "");
+	}
+
+	/**
+	 * Ecrit un warning (niveau de log 3)
+	 */
+	public void warn(String message, String source) {
+		log(3, message, source);
+	}
+
+	/**
+	 * Ecrit un warning (niveau de log 3)
+	 */
+	public void warn(String message) {
+		log(3, message, "");
+	}    
+
+	/**
+	 * Ecrit un warning (niveau de log 3)
+	 */
+	public void warn(String message, Throwable e, String source) {
+		log(3, message, e, source);
+	}
+
+	/**
+	 * Ecrit une information (niveau de log 6)
+	 */
+	public void info(String message, String source) {
+		log(6, message, source);
+	}
+
+	/**
+	 * Ecrit une info (niveau de log 6)
+	 */
+	public void info(String message, Throwable e, String source) {
+		log(6, message, e, source);
+	}
+
+	/**
+	 * Ecrit une info (niveau de log 6) 
+	 */
+	public void info(String message) {
+		log(6, message, "");
+	}
+
+	public void fine(String message) {
+		log(8, message, "");
+	}
 }

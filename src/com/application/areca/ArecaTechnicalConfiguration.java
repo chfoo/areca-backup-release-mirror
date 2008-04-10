@@ -6,7 +6,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2380639557663016217
+ * <BR>Areca Build ID : 4765044255727194190
  */
  
  /*
@@ -32,41 +32,41 @@ public class ArecaTechnicalConfiguration
 extends FrameworkConfiguration {   
     private static String URI = "fwk.properties";
     
-    private static String KEY_SMTP_DEBUG = "smtp.debug";
-    private static String KEY_MEMORY_BASE_KB = "memory.base.kb";
-    private static String KEY_MEMORY_BY_ENTRY_KB = "memory.by.entry.kb";
-    private static String KEY_MEMORY_SAFETY_MARGIN = "memory.safety.margin";
-    private static String KEY_CACHE_PRELOAD = "cache.preload";
-    private static String KEY_XML_BACKUP = "xml.config.backup";
-    private static String KEY_BACKUP_DEBUG_MODE = "backup.debug";
-    private static String KEY_REPOSITORYACCESS_DEBUG = "repository.access.debug";
-    private static String KEY_FILESTREAMS_DEBUG = "file.streams.debug";
-    private static String KEY_REPOSITORYACCESS_HD_CACHE = "repository.access.hd.cache";
-    private static String KEY_REPOSITORYACCESS_FTP_CACHE = "repository.access.ftp.cache";
-    private static String KEY_REPOSITORYACCESS_HD_CACHE_DEPTH = "repository.access.hd.cache.depth";
-    private static String KEY_REPOSITORYACCESS_FTP_CACHE_DEPTH = "repository.access.ftp.cache.depth";
-    private static String KEY_CHECK_DIRECTORY_CONSISTENCY = "repository.check.consistency";
-    private static String KEY_DELTA_MIN_BUCKETSIZE = "delta.min.bucket.size";
-    private static String KEY_DELTA_MAX_BUCKETSIZE = "delta.max.bucket.size";
-    private static String KEY_DELTA_TARGET_BUCKER_NUMBER = "delta.target.bucket.number";
+    public static String KEY_SMTP_DEBUG = "smtp.debug";
+    public static String KEY_MEMORY_BASE_KB = "memory.base.kb";
+    public static String KEY_MEMORY_BY_ENTRY_KB = "memory.by.entry.kb";
+    public static String KEY_MEMORY_SAFETY_MARGIN = "memory.safety.margin";
+    public static String KEY_CACHE_PRELOAD = "cache.preload";
+    public static String KEY_XML_BACKUP = "xml.config.backup";
+    public static String KEY_BACKUP_DEBUG_MODE = "backup.debug";
+    public static String KEY_REPOSITORYACCESS_DEBUG = "repository.access.debug";
+    public static String KEY_FILESTREAMS_DEBUG = "file.streams.debug";
+    public static String KEY_REPOSITORYACCESS_HD_CACHE = "repository.access.hd.cache";
+    public static String KEY_REPOSITORYACCESS_FTP_CACHE = "repository.access.ftp.cache";
+    public static String KEY_REPOSITORYACCESS_HD_CACHE_DEPTH = "repository.access.hd.cache.depth";
+    public static String KEY_REPOSITORYACCESS_FTP_CACHE_DEPTH = "repository.access.ftp.cache.depth";
+    public static String KEY_CHECK_DIRECTORY_CONSISTENCY = "repository.check.consistency";
+    public static String KEY_DELTA_MIN_BUCKETSIZE = "delta.min.bucket.size";
+    public static String KEY_DELTA_MAX_BUCKETSIZE = "delta.max.bucket.size";
+    public static String KEY_DELTA_TARGET_BUCKER_NUMBER = "delta.target.bucket.number";
     
-    private static boolean DEF_SMTP_DEBUG = false;
-    private static long DEF_MEMORY_BASE_KB = 5 * 1024;
-    private static double DEF_MEMORY_BY_ENTRY_KB = 1.7;
-    private static double DEF_MEMORY_SAFETY_MARGIN = 0.0;
-    private static boolean DEF_CACHE_PRELOAD = false;
-    private static boolean DEF_XML_BACKUP = true;
-    private static boolean DEF_BACKUP_DEBUG_MODE = false;
-    private static boolean DEF_REPOSITORYACCESS_DEBUG = false;
-    private static boolean DEF_FILESTREAMS_DEBUG = false;
-    private static boolean DEF_REPOSITORYACCESS_HD_CACHE = false;
-    private static boolean DEF_REPOSITORYACCESS_FTP_CACHE = true;
-    private static int DEF_REPOSITORYACCESS_HD_CACHE_DEPTH = 2;
-    private static int DEF_REPOSITORYACCESS_FTP_CACHE_DEPTH = 2;
-    private static boolean DEF_CHECK_DIRECTORY_CONSISTENCY = true;
-    private static int DEF_DELTA_MIN_BUCKETSIZE = 1 * 1024;
-    private static int DEF_DELTA_MAX_BUCKETSIZE = 1 * 1024 * 1024;
-    private static int DEF_DELTA_TARGET_BUCKER_NUMBER = 100;
+    public static boolean DEF_SMTP_DEBUG = false;
+    public static long DEF_MEMORY_BASE_KB = 5 * 1024;
+    public static double DEF_MEMORY_BY_ENTRY_KB = 1.7;
+    public static double DEF_MEMORY_SAFETY_MARGIN = 0.0;
+    public static boolean DEF_CACHE_PRELOAD = false;
+    public static boolean DEF_XML_BACKUP = true;
+    public static boolean DEF_BACKUP_DEBUG_MODE = false;
+    public static boolean DEF_REPOSITORYACCESS_DEBUG = false;
+    public static boolean DEF_FILESTREAMS_DEBUG = false;
+    public static boolean DEF_REPOSITORYACCESS_HD_CACHE = false;
+    public static boolean DEF_REPOSITORYACCESS_FTP_CACHE = true;
+    public static int DEF_REPOSITORYACCESS_HD_CACHE_DEPTH = 2;
+    public static int DEF_REPOSITORYACCESS_FTP_CACHE_DEPTH = 2;
+    public static boolean DEF_CHECK_DIRECTORY_CONSISTENCY = true;
+    public static int DEF_DELTA_MIN_BUCKETSIZE = 1 * 1024;
+    public static int DEF_DELTA_MAX_BUCKETSIZE = 1 * 1024 * 1024;
+    public static int DEF_DELTA_TARGET_BUCKER_NUMBER = 100;
     
     public ArecaTechnicalConfiguration() {
         super();
