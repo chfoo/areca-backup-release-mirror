@@ -37,7 +37,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -245,6 +245,8 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 	                }
 	                zrElement.injectIntoDirectory(realDestination, filters, context.getTaskMonitor(), context.getOutputStreamListener());
 	                zrElement.close();
+            	} else {
+            		ret.add(null);
             	}
                 context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, archivesToProcess.length);  
             }

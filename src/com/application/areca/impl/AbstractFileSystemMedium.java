@@ -52,7 +52,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -359,7 +359,7 @@ implements TargetActions, IndicatorTypes {
 
     protected void destroyTemporaryFile(File archive) {
         String name = FileSystemManager.isFile(archive) ? "file" : "directory";
-        LogHelper.logFileInformations("CAUTION : Uncommited " + name + " detected : ", archive);
+        Logger.defaultLogger().warn("Uncommited " + name + " detected : " + FileSystemManager.getAbsolutePath(archive));
 
         Logger.defaultLogger().displayApplicationMessage(
                 null, 

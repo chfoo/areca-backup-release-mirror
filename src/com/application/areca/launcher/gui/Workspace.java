@@ -10,6 +10,7 @@ import java.util.Iterator;
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.LogHelper;
+import com.application.areca.ResourceManager;
 import com.application.areca.TargetGroup;
 import com.application.areca.adapters.AdapterException;
 import com.application.areca.adapters.ProcessXMLReader;
@@ -24,12 +25,12 @@ import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
 
 /**
- * <BR>Classe impl�mentant un workspace
- * <BR>Un workspace r�f�rence un ensemble de processus (un par fichier de configuration)
+ * <BR>Classe implementant un workspace
+ * <BR>Un workspace reference un ensemble de groupes (un par fichier de configuration)
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -145,11 +146,20 @@ public class Workspace {
                 
                 for (int i=0; i<children.length; i++) {
                     if (FileSystemManager.isFile(children[i]) && FileSystemManager.getName(children[i]).toLowerCase().endsWith(".xml")) {
-                        ProcessXMLReader adapter = new ProcessXMLReader(children[i]);
-                        adapter.setMissingDataListener(new MissingDataListener());
-                        TargetGroup process = adapter.load();
-                        this.addProcess(process);
-                        this.xmlFiles.put(process, children[i]);
+                        Logger.defaultLogger().info("Loading configuration file : " + FileSystemManager.getAbsolutePath(children[i]) + " ...");
+                    	try {
+	                        ProcessXMLReader adapter = new ProcessXMLReader(children[i]);
+	                        adapter.setMissingDataListener(new MissingDataListener());
+	                        TargetGroup process = adapter.load();
+	                        this.addProcess(process);
+	                        this.xmlFiles.put(process, children[i]);
+                    	} catch (AdapterException e) {
+                        	Logger.defaultLogger().error("Error detected in " + e.getSource());
+                            Application.getInstance().handleException(
+                                    ResourceManager.instance().getLabel("error.loadworkspace.message", new Object[] {e.getMessage(), e.getSource()}),
+                                    e
+                            );
+                    	}
                     }
                 } 
             }
@@ -161,9 +171,6 @@ public class Workspace {
                 CacheInitializer.populateCache(this);
             }
         } catch (RuntimeException e) {
-            Logger.defaultLogger().error(e);
-            throw e;
-        } catch (AdapterException e) {
             Logger.defaultLogger().error(e);
             throw e;
         }

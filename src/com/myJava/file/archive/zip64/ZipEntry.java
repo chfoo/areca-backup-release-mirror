@@ -25,14 +25,14 @@ import com.myJava.object.ToStringHelper;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
 public
 class ZipEntry implements ZipConstants, Cloneable, Serializable {
     String name;	// entry name
     long time = -1;	// modification time (in DOS time)
     long crc = -1;	// crc-32 of entry data
-    long size = -1;	// uncompressed size of entry data
+    private long size = -1;	// uncompressed size of entry data
     long csize = -1;   	// compressed size of entry data
     int method = -1;	// compression method
     byte[] extra;	// optional extra field data for entry
@@ -132,16 +132,9 @@ class ZipEntry implements ZipConstants, Cloneable, Serializable {
 
     /**
      * Sets the uncompressed size of the entry data.
-     * @param size the uncompressed size in bytes
-     * @exception IllegalArgumentException if the specified size is less
-     *		  than 0 or greater than 0xFFFFFFFF bytes
-     * @see #getSize()
      */
     public void setSize(long size) {
-	if (size < 0 || size > 0xFFFFFFFFL) {
-	    throw new IllegalArgumentException("invalid entry size");
-	}
-	this.size = size;
+    	this.size = size;
     }
 
     /**
@@ -150,7 +143,7 @@ class ZipEntry implements ZipConstants, Cloneable, Serializable {
      * @see #setSize(long)
      */
     public long getSize() {
-	return size;
+    	return size;
     }
 
     /**

@@ -33,7 +33,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -232,7 +232,7 @@ implements TargetActions {
                 if (context.getCurrentLevel().getParent() == null) {
                     completionStep /= Math.max(context.getRootCount(), 1);
                 }
-                
+                                
                 try {
                     if (FileSystemManager.isDirectory(f) && ((! trackSymlinks) || (! FileSystemManager.isLink(f)))) {
                         // check if we can iterate on this directory
@@ -249,7 +249,7 @@ implements TargetActions {
                         } else {
                             context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);
                         }
-                    } else {
+                    } else if (FileSystemManager.exists(f)) { // this check is needed because dangling symbolic links may return "false" here ...
                         // Check if we can store the file
                         context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);
                         if (this.acceptEntry(entry, true, context)) {
@@ -258,6 +258,8 @@ implements TargetActions {
                             context.getCurrentLevel().setHaveFilesBeenStored(true);
                             return entry;
                         }
+                    } else {
+                    	Logger.defaultLogger().warn("Dangling symbolic link detected : " + FileSystemManager.getAbsolutePath(f) + ". It will be excluded from the backup.");
                     }
                 } catch (IOException e) {
                     throw new ApplicationException(e);

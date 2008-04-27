@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -287,9 +287,16 @@ public class AttributesHelper {
 
     private static void execute(String[] cmd) throws IOException {
         Process p = null;
+        int ret = 0;
         try {
             p = Runtime.getRuntime().exec(cmd);
-            p.waitFor();
+            ret = p.waitFor();
+            
+            if (ret != 0) {
+            	BufferedReader errorReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                String err = errorReader.readLine();
+            	Logger.defaultLogger().warn("Error executing " + ToStringHelper.serialize(cmd) + " : " + err);
+            }
         } catch (InterruptedException e) {
             Logger.defaultLogger().error("Error executing " + ToStringHelper.serialize(cmd), e);
             throw new IOException(e.getMessage());     

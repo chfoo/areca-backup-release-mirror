@@ -49,7 +49,7 @@ import com.myJava.file.CompressionArguments;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -155,23 +155,23 @@ public class TargetXMLReader implements XMLTags {
             
             // ===== BACKWARD COMPATIBILITY =====
             if (child.equalsIgnoreCase(XML_FILTER_DIRECTORY)) {
-                target.addFilter(this.readDirectoryArchiveFilter(children.item(i)));
+                target.addFilter(this.readDirectoryArchiveFilter( children.item(i)));
             } else if (child.equalsIgnoreCase(XML_FILTER_FILEEXTENSION)) {
-                target.addFilter(this.readFileExtensionArchiveFilter(children.item(i)));   
+                target.addFilter(this.readFileExtensionArchiveFilter( children.item(i)));   
             } else if (child.equalsIgnoreCase(XML_FILTER_REGEX)) {
-                target.addFilter(this.readRegexArchiveFilter(children.item(i)));  
+                target.addFilter(this.readRegexArchiveFilter( children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_FILESIZE)) {
-                target.addFilter(this.readFileSizeArchiveFilter(children.item(i)));  
+                target.addFilter(this.readFileSizeArchiveFilter( children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_OWNER)) {
-                target.addFilter(this.readFileOwnerArchiveFilter(children.item(i)));  
+                target.addFilter(this.readFileOwnerArchiveFilter( children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_LINK)) {
-                target.addFilter(this.readLinkFilter(children.item(i)));  
+                target.addFilter(this.readLinkFilter( children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_LOCKED)) {
-                target.addFilter(this.readLockedFileFilter(children.item(i)));         
+                target.addFilter(this.readLockedFileFilter( children.item(i)));         
             } else if (child.equalsIgnoreCase(XML_FILTER_OWNER)) {
-                target.addFilter(this.readFileOwnerArchiveFilter(children.item(i)));                        
+                target.addFilter(this.readFileOwnerArchiveFilter( children.item(i)));                        
             } else if (child.equalsIgnoreCase(XML_FILTER_FILEDATE)) {
-                target.addFilter(this.readFileDateArchiveFilter(children.item(i)));  
+                target.addFilter(this.readFileDateArchiveFilter( children.item(i)));  
             // ===== EOF BACKWARD COMPATIBILITY =====
 
             } else if (child.equalsIgnoreCase(XML_FILTER_GROUP)) {
@@ -377,14 +377,16 @@ public class TargetXMLReader implements XMLTags {
         return pp;
     }
     
+    protected static boolean isOverwrite(Node mediumNode) {
+        Node overwriteNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_OVERWRITE);
+        return (overwriteNode != null && overwriteNode.getNodeValue().equalsIgnoreCase("true"));   
+    }
+    
     protected ArchiveMedium readMedium(Node mediumNode, AbstractRecoveryTarget target) throws IOException, AdapterException, ApplicationException {
         Node typeNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_TYPE);
         if (typeNode == null) {
             throw new AdapterException("Medium type not found : your medium must have a '" + XML_MEDIUM_TYPE + "' attribute.");
         }           
-        
-        Node overwriteNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_OVERWRITE);
-        boolean isOverwrite = (overwriteNode != null && overwriteNode.getNodeValue().equalsIgnoreCase("true"));    
         
         Node trackDirsNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_TRACK_DIRS);
         boolean trackDirs = (trackDirsNode != null && trackDirsNode.getNodeValue().equalsIgnoreCase("true"));   
@@ -471,7 +473,7 @@ public class TargetXMLReader implements XMLTags {
         medium.setCompressionArguments(compression);
         medium.setFileSystemPolicy(storage);
         medium.setEncryptionPolicy(encrArgs);
-        medium.setOverwrite(isOverwrite);
+        medium.setOverwrite(isOverwrite(mediumNode));
         medium.setTrackDirectories(trackDirs);
         medium.setTrackPermissions(trackPerms);   
         
@@ -567,21 +569,21 @@ public class TargetXMLReader implements XMLTags {
             
             // BACKWARD COMPATIBILITY
             if (child.equalsIgnoreCase(XML_FILTER_DIRECTORY)) {
-                grp.addFilter(this.readDirectoryArchiveFilter(children.item(i)));
+                grp.addFilter(this.readDirectoryArchiveFilter( children.item(i)));
             } else if (child.equalsIgnoreCase(XML_FILTER_FILEEXTENSION)) {
-                grp.addFilter(this.readFileExtensionArchiveFilter(children.item(i)));   
+                grp.addFilter(this.readFileExtensionArchiveFilter( children.item(i)));   
             } else if (child.equalsIgnoreCase(XML_FILTER_REGEX)) {
-                grp.addFilter(this.readRegexArchiveFilter(children.item(i)));  
+                grp.addFilter(this.readRegexArchiveFilter( children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_FILESIZE)) {
-                grp.addFilter(this.readFileSizeArchiveFilter(children.item(i)));  
+                grp.addFilter(this.readFileSizeArchiveFilter( children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_LINK)) {
-                grp.addFilter(this.readLinkFilter(children.item(i)));  
+                grp.addFilter(this.readLinkFilter( children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_LOCKED)) {
-                grp.addFilter(this.readLockedFileFilter(children.item(i)));                  
+                grp.addFilter(this.readLockedFileFilter( children.item(i)));                  
             } else if (child.equalsIgnoreCase(XML_FILTER_FILEDATE)) {
-                grp.addFilter(this.readFileDateArchiveFilter(children.item(i)));  
+                grp.addFilter(this.readFileDateArchiveFilter( children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_OWNER)) {
-                grp.addFilter(this.readFileOwnerArchiveFilter(children.item(i)));                 
+                grp.addFilter(this.readFileOwnerArchiveFilter( children.item(i)));                 
             } else if (child.equalsIgnoreCase(XML_FILTER_GROUP)) {
                 grp.addFilter(this.readFilterGroup(children.item(i)));  
             }

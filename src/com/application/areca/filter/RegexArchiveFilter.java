@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.PublicClonable;
@@ -17,7 +18,7 @@ import com.myJava.object.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -50,11 +51,8 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
      * Forme compil�e du pattern � matcher
      */
     private Pattern pattern;
-    
-    public RegexArchiveFilter() {
-    }
 
-    public void acceptParameters(String parameters) {
+	public void acceptParameters(String parameters) {
         if (Utils.isEmpty(parameters)) {
             throw new IllegalArgumentException("Invalid parameters : " + parameters);
         }

@@ -40,7 +40,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -73,6 +73,7 @@ public class MainWindow extends AbstractWindow {
     private int returnTabIndex = 0;
     private LogicalViewComposite logicalView;
     private SearchComposite searchView;
+    private String workspacePath;
     
     private static final int TAB_PHYSICAL = 0;
     private static final int TAB_LOGICAL = 1;
@@ -85,7 +86,11 @@ public class MainWindow extends AbstractWindow {
         super();
     }
 
-    protected void configureShell(Shell shell) {
+    public void setWorkspacePath(String workspacePath) {
+		this.workspacePath = workspacePath;
+	}
+
+	protected void configureShell(Shell shell) {
         super.configureShell(shell);
         shell.setMenuBar(MenuBuilder.buildMainMenu(shell));
         Application.getInstance().initMenus(shell);
@@ -96,6 +101,9 @@ public class MainWindow extends AbstractWindow {
             public void handleEvent(Event event) {
                 application.checkSystem();
                 application.checkVersion(false);
+                if (workspacePath != null) {
+                	application.openWorkspace(workspacePath);
+                }
             }
         });
     }

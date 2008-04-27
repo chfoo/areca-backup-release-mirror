@@ -83,7 +83,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -658,8 +658,17 @@ extends AbstractWindow {
         chkEncrypNames.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1)); 
         
         lblEncryptionAlgorithm = new Label(grpEncryption, SWT.NONE);
-        lblEncryptionAlgorithm.setText(RM.getLabel("targetedition.algorithmfield.label"));
-        lblEncryptionAlgorithm.setToolTipText(RM.getLabel("targetedition.algorithmfield.tooltip", new Object[] {EncryptionConfiguration.getParameters(EncryptionConfiguration.RECOMMENDED_ALGORITHM).getAlgorithm()}));
+        lblEncryptionAlgorithm.setText(RM.getLabel("targetedition.algorithmfield.label"));        
+        try {
+        	lblEncryptionAlgorithm.setToolTipText(RM.getLabel("targetedition.algorithmfield.tooltip", new Object[] {EncryptionConfiguration.getParameters(EncryptionConfiguration.RECOMMENDED_ALGORITHM).getAlgorithm()}));
+        } catch (NullPointerException e) {
+        	Logger.defaultLogger().error(
+        			String.valueOf(EncryptionConfiguration.getParameters(EncryptionConfiguration.RECOMMENDED_ALGORITHM)) + "  " + String.valueOf(EncryptionConfiguration.RECOMMENDED_ALGORITHM)
+        			, e
+        	);
+        	throw e;
+        }
+        
         cboEncryptionAlgorithm = new Combo(grpEncryption, SWT.READ_ONLY);
         monitorControl(cboEncryptionAlgorithm);
         cboEncryptionAlgorithm.addListener(SWT.Selection, new Listener() {

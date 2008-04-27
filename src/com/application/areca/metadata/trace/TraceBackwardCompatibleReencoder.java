@@ -1,6 +1,12 @@
 package com.application.areca.metadata.trace;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import com.application.areca.metadata.MetadataConstants;
+import com.myJava.file.FileTool;
 import com.myJava.util.Util;
 
 /**
@@ -18,7 +24,7 @@ import com.myJava.util.Util;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -71,11 +77,28 @@ public class TraceBackwardCompatibleReencoder implements MetadataConstants {
 		if (! isSymLink) {
 			// '-' => ';'
 			secondPart = secondPart.replace(DEPRECATED_INTERNAL_SEP, SEPARATOR_CHAR);
+			secondPart = Util.replace(secondPart, ";;", ";-");
 		}
 		
 		// '#-#' => ';'
 		encoded = firstPart + SEPARATOR + secondPart;
 				
 		return encoded;
+	}
+	
+	public static void main(String[] args) {
+		try {
+			File f = new File("/home/olivier/Bureau/trace");
+			String[] rows = FileTool.getInstance().getInputStreamRows(new FileInputStream(f), "UTF-8", true);
+			for (int i=2; i<rows.length; i++) {
+				System.out.println(reencode(rows[i]));
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

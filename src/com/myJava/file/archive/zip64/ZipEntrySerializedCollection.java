@@ -14,7 +14,7 @@ import com.myJava.util.collections.SerializedCollection;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -60,7 +60,7 @@ public class ZipEntrySerializedCollection extends SerializedCollection {
         out.writeInt(e.method);
         out.writeInt(e.version);
         out.writeLong(e.crc);
-        out.writeLong(e.size);
+        out.writeLong(e.getSize());
         out.writeLong(e.csize);
         out.writeLong(e.time);
         out.writeInt(e.volumeNumber);
@@ -82,7 +82,7 @@ public class ZipEntrySerializedCollection extends SerializedCollection {
         e.method = in.readInt();
         e.version = in.readInt();
         e.crc = in.readLong();
-        e.size = in.readLong();
+        e.setSize(in.readLong());
         e.csize = in.readLong();
         e.time = in.readLong();
         e.volumeNumber = in.readInt();

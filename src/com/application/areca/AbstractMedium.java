@@ -13,7 +13,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -93,9 +93,10 @@ public abstract class AbstractMedium implements ArchiveMedium {
                     list.add(e);
                 }
             } else if (ArchiveTrace.hasBeenModified(hash, prevHash)) {
-                if (status != EntryArchiveData.STATUS_STORED) {
-                    e.setStatus(EntryArchiveData.STATUS_MISSING);
-                } else if (i == 0) {
+                //if (status != EntryArchiveData.STATUS_STORED) {
+                //    e.setStatus(EntryArchiveData.STATUS_MISSING);
+                //} else 
+            	if (i == 0) {
                     e.setStatus(EntryArchiveData.STATUS_FIRST_BACKUP);
                 } else if (prevHash == null) {
                     e.setStatus(EntryArchiveData.STATUS_CREATED);

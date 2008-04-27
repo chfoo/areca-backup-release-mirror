@@ -17,6 +17,7 @@ import com.application.areca.filter.FilterGroup;
 import com.application.areca.filter.LinkFilter;
 import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.filter.RegexArchiveFilter;
+import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.launcher.gui.filters.AbstractFilterComposite;
 import com.application.areca.launcher.gui.filters.DirectoryFilterComposite;
 import com.application.areca.launcher.gui.filters.FileDateFilterComposite;
@@ -32,7 +33,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*

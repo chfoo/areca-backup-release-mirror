@@ -6,7 +6,7 @@ import com.application.areca.plugins.FileSystemPolicyXMLHandler;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -41,7 +41,11 @@ implements FileSystemPolicyXMLHandler, XMLTags  {
 		this.version = version;
 	}
 	
-	protected static String buildDeprecatedArchiveName(String prefix) {
-		return prefix + "_%YYYY%%MM%%DD%_%hh%%mm%";
+	protected static String buildDeprecatedArchiveName(String prefix, boolean isOverwrite) {
+		if (isOverwrite) {
+			return prefix;
+		} else {
+			return prefix + "_%YYYY%%MM%%DD%_%hh%%mm%";
+		}
 	}
 }

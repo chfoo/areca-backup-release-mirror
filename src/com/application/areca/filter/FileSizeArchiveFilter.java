@@ -13,7 +13,7 @@ import com.myJava.object.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -39,11 +39,8 @@ public class FileSizeArchiveFilter extends AbstractArchiveFilter {
     
     private long maxSize;
     private boolean greaterThan;
-    
-    public FileSizeArchiveFilter() {
-    }
 
-    public void acceptParameters(String parameters) {
+	public void acceptParameters(String parameters) {
         if (
                 Utils.isEmpty(parameters) 
                 || (

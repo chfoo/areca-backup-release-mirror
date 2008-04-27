@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.application.areca.RecoveryEntry;
 import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.myJava.file.FileSystemManager;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
@@ -15,7 +16,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -38,11 +39,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class LinkFilter extends AbstractArchiveFilter {
-    
-    public LinkFilter() {
-    }
-    
-    public void acceptParameters(String parameters) {
+
+	public void acceptParameters(String parameters) {
     }
     
     public boolean acceptIteration(RecoveryEntry entry) {

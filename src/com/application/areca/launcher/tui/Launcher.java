@@ -29,7 +29,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -91,7 +91,7 @@ implements CommandConstants {
             Logger.defaultLogger().info("Starting the process ... config = [" + command.getOption(OPTION_CONFIG) + "].");
             channel.print("Starting the process ... config = [" + command.getOption(OPTION_CONFIG) + "].");
             
-            ProcessXMLReader adapter = new ProcessXMLReader(command.getOption(OPTION_CONFIG));
+            ProcessXMLReader adapter = new ProcessXMLReader(new File(command.getOption(OPTION_CONFIG)));
             adapter.setMissingDataListener(new MissingDataListener());
             TargetGroup process = adapter.load();
             AbstractRecoveryTarget target = null;

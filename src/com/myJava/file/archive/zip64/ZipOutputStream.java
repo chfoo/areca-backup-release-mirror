@@ -40,7 +40,7 @@ import com.myJava.util.log.Logger;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
 public class ZipOutputStream 
 extends DeflaterOutputStream 
@@ -191,12 +191,12 @@ implements ZipConstants {
                 deflate();
             }
 
-            e.size = getTotalIn();
+            e.setSize(getTotalIn());
             e.csize = getTotalOut();
             e.crc = crc.getValue();
             
-            if ((!useZip64) && e.size > ZIP32_ENTRY_SIZE_LIMIT) {
-                throw new IOException(e.name + " is too voluminous (" + (long)(e.size / 1024) + " kbytes). Zip32 archives can't store files bigger than " + (long)(ZIP32_ENTRY_SIZE_LIMIT / 1024) + " kbytes.");
+            if ((!useZip64) && e.getSize() > ZIP32_ENTRY_SIZE_LIMIT) {
+                throw new IOException(e.name + " is too voluminous (" + (long)(e.getSize() / 1024) + " kbytes). Zip32 archives can't store files bigger than " + (long)(ZIP32_ENTRY_SIZE_LIMIT / 1024) + " kbytes.");
             }
             
             writeEXT(e);
@@ -340,10 +340,10 @@ implements ZipConstants {
         writeInt(e.crc);	    	// crc-32
         if (useZip64) {
             writeLong(e.csize);	    // compressed size
-            writeLong(e.size);	    // uncompressed size
+            writeLong(e.getSize());	    // uncompressed size
         } else {
             writeInt(e.csize);      // compressed size
-            writeInt(e.size);       // uncompressed size
+            writeInt(e.getSize());       // uncompressed size
         }
         
         checkWritten(mark, size);
@@ -376,7 +376,7 @@ implements ZipConstants {
             writeInt(ZIP64SIZEFLAG);	    // uncompressed size
         } else {
             writeInt(e.csize);      // compressed size
-            writeInt(e.size);       // uncompressed size
+            writeInt(e.getSize());       // uncompressed size
         }
 
         writeShort(nameBytes.length);
@@ -417,7 +417,7 @@ implements ZipConstants {
     private void writeZip64ExtraField(ZipEntry e) throws IOException {
         writeShort(ZIP64XTRAFIELD);
         writeShort(ZIP64XTRALENGTH - 4); // 8+8+8+4
-        writeLong(e.size);
+        writeLong(e.getSize());
         writeLong(e.csize);
         writeLong(e.offset);
         writeInt(e.volumeNumber);

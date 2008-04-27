@@ -20,7 +20,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -90,7 +90,7 @@ public class ArchiveContent implements MetadataConstants {
         String name = MetadataEncoder.decode(serialized.substring(0, i));
         long length = Long.parseLong(serialized.substring(i + SEPARATOR.length()));
         
-        return new FileSystemRecoveryEntry(defaultRootDirectory, new File(defaultRootDirectory, name), RecoveryEntry.STATUS_STORED, length); 
+        return new FileSystemRecoveryEntry(defaultRootDirectory, new File(defaultRootDirectory, name), RecoveryEntry.STATUS_STORED, length, false, false); 
     }
     
     public void override(ArchiveContent previousContent) {

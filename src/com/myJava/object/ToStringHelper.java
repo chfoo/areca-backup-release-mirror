@@ -10,7 +10,7 @@ import java.util.Set;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -115,7 +115,7 @@ public class ToStringHelper {
                     b.append(", ");
                 }
                 if (o[i] != null) {
-                    b.append(o.toString());
+                    b.append(String.valueOf(o[i]));
                 } else {
                     b.append("<null>");
                 }

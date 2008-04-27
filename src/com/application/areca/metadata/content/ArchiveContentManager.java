@@ -15,7 +15,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -92,7 +92,9 @@ public class ArchiveContentManager {
 			            root, 
 			            files[i],
 			            FileSystemRecoveryEntry.STATUS_STORED,
-			            FileSystemManager.length(files[i])
+			            FileSystemManager.length(files[i]),
+			            false,
+			            false
 			    ));
 			} else {
 				addStoredDirectoryToSet(content, files[i], root);

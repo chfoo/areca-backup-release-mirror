@@ -18,7 +18,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -126,7 +126,7 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
             traceContent[0] = null; // The first line holds version data
         }
         for (int i=0; i<traceContent.length; i++) {
-            if (traceContent[i] != null) {
+            if (traceContent[i] != null && traceContent[i].trim().length() != 0) {
                 trace.deserialize(
                 		backWardCompatibility ? TraceBackwardCompatibleReencoder.reencode(traceContent[i]) : traceContent[i], 
                 		this.objectPool

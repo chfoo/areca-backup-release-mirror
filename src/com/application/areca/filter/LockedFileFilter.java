@@ -12,7 +12,7 @@ import com.myJava.object.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -35,11 +35,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class LockedFileFilter extends AbstractArchiveFilter {
-    
-    public LockedFileFilter() {
-    }
-    
-    public void acceptParameters(String parameters) {
+
+	public void acceptParameters(String parameters) {
     }
     
     public boolean acceptIteration(RecoveryEntry entry) {
@@ -47,8 +44,8 @@ public class LockedFileFilter extends AbstractArchiveFilter {
     }
     
     /**
-     * Cette condition ne s'applique que sur les r�pertoires (pour des raisons d'optimisation).
-     * Les fichiers retournent syst�matiquement "true"
+     * Cette condition ne s'applique que sur les fichiers (pour des raisons d'optimisation).
+     * Les repertoires retournent systematiquement "true"
      */
     public boolean acceptStorage(RecoveryEntry entry) {
         FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;      
@@ -58,7 +55,10 @@ public class LockedFileFilter extends AbstractArchiveFilter {
         } else if (FileSystemManager.isDirectory(fEntry.getFile())) {
             return true;
         } else {
-            if (FileSystemManager.isReadable(fEntry.getFile())) {
+            if (
+            		(! FileSystemManager.exists(fEntry.getFile())) 			// Cas specifique des liens symboliques qui ne pointent sur rien : on les accepte qd même
+            		|| (FileSystemManager.isReadable(fEntry.getFile()))
+            ) {
                 return exclude;
             } else {
                 return ! exclude;

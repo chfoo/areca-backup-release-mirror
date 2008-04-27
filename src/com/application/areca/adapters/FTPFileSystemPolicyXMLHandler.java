@@ -9,7 +9,7 @@ import com.application.areca.impl.policy.FileSystemPolicy;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -88,7 +88,7 @@ extends AbstractFileSystemPolicyXMLHandler {
         policy.setId(POLICY_FTP);
         
         if (version == 1) {
-        	policy.setArchiveName(buildDeprecatedArchiveName("bck"));
+        	policy.setArchiveName(buildDeprecatedArchiveName("bck", TargetXMLReader.isOverwrite(mediumNode)));
         } else {
         	policy.setArchiveName(nameNode.getNodeValue());
         }

@@ -5,6 +5,7 @@ import java.io.File;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.myJava.file.FileSystemManager;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
@@ -17,7 +18,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -41,18 +42,15 @@ This file is part of Areca.
  */
 public class DirectoryArchiveFilter extends AbstractArchiveFilter {
     private File directory;
-    
-    public DirectoryArchiveFilter() {
-    }
 
-    public void acceptParameters(String parameters) {
+	public void acceptParameters(String parameters) {
         if (Utils.isEmpty(parameters)) {
             throw new IllegalArgumentException("Invalid directory : " + parameters);
         }
         this.directory = new File(parameters);
         
         if (! FileSystemManager.exists(directory)) {
-            Logger.defaultLogger().warn("Caution : The filtered directory does not exist. (" + FileSystemManager.getAbsolutePath(directory) + ")");
+            Logger.defaultLogger().warn("The filtered directory does not exist. (" + FileSystemManager.getAbsolutePath(directory) + ")");
         }
     }
     

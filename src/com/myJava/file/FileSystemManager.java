@@ -23,15 +23,15 @@ import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.util.log.Logger;
 
 /**
- * Gestionnaire de syst�me de fichiers.
- * <BR>Ce gestionnaire r�f�rence des FileSystemDrivers pour diff�rents points de montage (r�pertoires) et route les
- * demandes d'acc�s (r�plication des m�thodes de la classe File) au driver appropri�.
+ * Gestionnaire de systeme de fichiers.
+ * <BR>Ce gestionnaire reference des FileSystemDrivers pour differents points de montage (repertoires) et route les
+ * demandes d'acces (replication des methodes de la classe File) au driver approprie.
  * <BR>
- * <BR>Par d�faut, un DefaultFileSystemDriver est utilis�. 
+ * <BR>Par defaut, un DefaultFileSystemDriver est utilise. 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -58,20 +58,20 @@ public class FileSystemManager {
     protected static FileSystemManager instance = new FileSystemManager();
     
     /**
-     * Drivers index�s par point de montage
+     * Drivers indexes par point de montage
      */
     protected Map drivers = new HashMap();
     
     /**
-     * Drivers index�s par point de montage.
-     * <BR>Contrairement � la map "drivers", cette map ne contient que les drivers
-     * qui ont �t� explicitement enregistr�s par la m�thode "registerDriver".
-     * <BR>Elle sert � r�initialiser la map "drivers" suite � l'appel � la m�thode "unregisterDriver"
+     * Drivers indexes par point de montage.
+     * <BR>Contrairement a la map "drivers", cette map ne contient que les drivers
+     * qui ont ete explicitement enregistres par la methode "registerDriver".
+     * <BR>Elle sert a reinitialiser la map "drivers" suite a l'appel a la methode "unregisterDriver"
      */
     protected Map driversReference = new HashMap();
     
     /**
-     * Driver par d�faut.
+     * Driver par defaut.
      */
     protected FileSystemDriver defaultDriver = new DefaultFileSystemDriver();
     
@@ -81,9 +81,9 @@ public class FileSystemManager {
     protected Set roots = new HashSet();
     
     /**
-     * Optimisation : ce flag est � "true" si aucun driver sp�cifique n'a �t� enregistr�.
-     * <BR>On �vite ainsi des recherches dans la Map des drivers : le driver par d�faut
-     * est syst�matiquement retourn�.
+     * Optimisation : ce flag est a "true" si aucun driver specifique n'a ete enregistre.
+     * <BR>On evite ainsi des recherches dans la Map des drivers : le driver par defaut
+     * est systematiquement retourne.
      */
     protected boolean hasOnlyDefaultDriver = true;
     
@@ -142,17 +142,17 @@ public class FileSystemManager {
             Logger.defaultLogger().error(e);
         }
         
-        // Suppression du driver de la map de r�f�rence
+        // Suppression du driver de la map de reference
         this.driversReference.remove(mountPoint);
         
-        // R�initialisation de la map de drivers
+        // Reinitialisation de la map de drivers
         this.drivers.clear();
         this.drivers.putAll(this.driversReference);
     }
 
     /**
-     * Retourne le driver enregistr� pour le point de montage pass� en argument.
-     * <BR>Il n'y a pas de recherche r�cursive dans les r�pertoires parents; la m�thode retourne null si aucun driver n'a �t� enregistr� pour ce point de montage. 
+     * Retourne le driver enregistre pour le point de montage passe en argument.
+     * <BR>Il n'y a pas de recherche recursive dans les repertoires parents; la methode retourne null si aucun driver n'a ete enregistre pour ce point de montage. 
      */
     public synchronized FileSystemDriver getDriverAtMountPoint(File mountPoint) {
         return (FileSystemDriver)this.drivers.get(mountPoint);
@@ -164,11 +164,11 @@ public class FileSystemManager {
     }
     
     /**
-     * Retourne le driver appropri� pour le fichier sp�cifi�.
-     * <BR>Si aucun driver n'est trouv�, le driver par d�faut est retourn�. 
+     * Retourne le driver approprie pour le fichier specifie.
+     * <BR>Si aucun driver n'est trouve, le driver par defaut est retourne. 
      */
     public synchronized FileSystemDriver getDriver(File file) {
-        // Si aucun driver n'a �t� enregistr�, on retourne le driver par d�faut
+        // Si aucun driver n'a ete enregistre, on retourne le driver par defaut
         if (this.hasOnlyDefaultDriver) {
             return this.defaultDriver;
         }
@@ -182,14 +182,14 @@ public class FileSystemManager {
     }
     
     /**
-     * Sp�cifie le driver par d�faut (celui qui est utilis� si aucun driver n'a �t� enregistr� pour un chemin donn�).
+     * Specifie le driver par defaut (celui qui est utilise si aucun driver n'a ete enregistre pour un chemin donne).
      */
     public synchronized void setDefaultDriver(FileSystemDriver defaultDriver) {
         this.defaultDriver = defaultDriver;
     }
     
     /**
-     * Enregistre le driver sans v�rifier qu'aucun driver n'a �t� pr�alablement sp�cifi� (� utiliser avec pr�cautions !) 
+     * Enregistre le driver sans verifier qu'aucun driver n'a ete prealablement specifie (a utiliser avec precautions !) 
      */
     private Object registerDriverWithoutCheck(File mountPoint, FileSystemDriver driver) {
         this.hasOnlyDefaultDriver = false;
@@ -203,7 +203,7 @@ public class FileSystemManager {
             if (this.isRoot(file)) {
                 return this.defaultDriver;
             } else {
-                // Recherche du driver par le r�pertoire parent
+                // Recherche du driver par le repertoire parent
                 File parent = file.getParentFile();
                 FileSystemDriver returned = this.lookupDriver(parent, false);
 
@@ -236,11 +236,11 @@ public class FileSystemManager {
     }
     
     /**
-     * Tells wether the file is a link or not
+     * Tells whether the file is a link or not
      */
     public static boolean isLink(File file) throws IOException {
-        if (! file.exists()) {
-            return false;
+        if (! exists(file)) {
+            return true;  // Specific case of dangling symbolic links
         } else {
             return ! getAbsolutePath(file).equals(getCanonicalPath(file));
         }

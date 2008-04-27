@@ -11,7 +11,7 @@ import com.myJava.object.HashHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -40,33 +40,31 @@ public class FileSystemRecoveryEntry implements RecoveryEntry {
     private long size;
     private String name;
     private boolean isLink;
+    private boolean isDirectory;
     
-    public FileSystemRecoveryEntry(String rootDirectory, File file, short status, long size, boolean isLink) {
+    public FileSystemRecoveryEntry(String rootDirectory, File file, short status, long size, boolean isLink, boolean isDirectory) {
         this.rootDirectory = rootDirectory;            
         this.file = file;
         this.status = status;
         this.size = size;
         this.isLink = isLink;
+        this.isDirectory = isDirectory;
         this.name = Utils.extractShortFilePath(this.getFile(), this.rootDirectory);
     }
     
-    public FileSystemRecoveryEntry(String rootDirectory, File file, short status, long size) {
-        this(rootDirectory, file, status, size, false);
-    }
-    
-    public FileSystemRecoveryEntry(String rootDirectory, File file, short status) {
-    	this(rootDirectory, file, status, 0);
-    }
-    
     public FileSystemRecoveryEntry(String rootDirectory, File file) {
-    	this(rootDirectory, file, STATUS_NOT_STORED);
+    	this(rootDirectory, file, STATUS_NOT_STORED, 0, false, false);
     }
     
     public boolean isLink() {
         return isLink;
     }
 
-    public void setLink(boolean isLink) {
+    public boolean isDirectory() {
+		return this.isDirectory;
+	}
+
+	public void setLink(boolean isLink) {
         this.isLink = isLink;
     }
 

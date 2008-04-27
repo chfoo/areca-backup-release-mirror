@@ -59,7 +59,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -591,7 +591,7 @@ implements TargetActions {
 					Map.Entry entry = (Map.Entry)iter.next();
 					File symLink = new File(destination, (String)entry.getKey());
 
-					if (filters == null || Util.passFilter(FileSystemManager.getAbsolutePath(symLink), filters)) {
+					if (filters == null || Util.passFilter(FileSystemManager.getAbsolutePath(symLink).substring(FileSystemManager.getAbsolutePath(destination).length()), filters)) {
 						File parent = symLink.getParentFile();
 						if (! FileSystemManager.exists(parent)) {
 							tool.createDir(parent);
@@ -650,7 +650,7 @@ implements TargetActions {
 				FileSystemManager.applyAttributes(atts, dir);
 			}
 
-			long lastModificationDate = ArchiveTrace.extractDirectoryModificationDateFromTrace(hash);
+			long lastModificationDate = ArchiveTrace.extractDirectoryModificationDateFromTrace(key, hash);
 			if (lastModificationDate > 0) {
 				FileSystemManager.setLastModified(dir, lastModificationDate);
 			}
@@ -1085,6 +1085,9 @@ implements TargetActions {
 	 * Ensures that the stored files are present on the local disk. Useful for some archive handlers that need
 	 * to ensure this before processing the archives.
 	 * <BR>Returns a set of directories where local copies can be found.
+	 * <BR>This set is :
+	 * <BR>- either of length 1
+	 * <BR>- either of exact same length as archivesToProcess
 	 */
 	public abstract File[] ensureLocalCopy(
 			File[] archivesToProcess, 
@@ -1134,7 +1137,7 @@ implements TargetActions {
 					deleteRecur(targetFile, f);
 				} else if (applyAttributes) {
 					// File found --> set additional attributes
-					FileSystemManager.setLastModified(f, ArchiveTrace.extractFileModificationDateFromTrace(hash));
+					FileSystemManager.setLastModified(f, ArchiveTrace.extractFileModificationDateFromTrace(shortPath, hash));
 					Attributes atts = ArchiveTrace.extractFileAttributesFromTrace(hash);
 					if (atts != null) {
 						FileSystemManager.applyAttributes(atts, f);
@@ -1242,7 +1245,9 @@ implements TargetActions {
 						baseDirectory, 
 						new File(baseDirectory, entryPath),
 						referenceMap.containsKey(entryPath) ? RecoveryEntry.STATUS_STORED: RecoveryEntry.STATUS_NOT_STORED,
-						ArchiveTrace.extractFileSizeFromTrace(entryTrace)
+						ArchiveTrace.extractFileSizeFromTrace(entryTrace),
+						false,
+						false
 				));
 			} catch (RuntimeException e) {
 				Logger.defaultLogger().error("Error reading archive trace : for file [" + entryPath + "], trace = [" + entryTrace + "]", e);
@@ -1259,7 +1264,9 @@ implements TargetActions {
 					baseDirectory, 
 					new File(baseDirectory, entryPath),
 					referenceMap.containsKey(entryPath) ? RecoveryEntry.STATUS_STORED: RecoveryEntry.STATUS_NOT_STORED,
-					-1
+					-1,
+					false, 
+					true
 			));
 		}
 
@@ -1270,16 +1277,19 @@ implements TargetActions {
 			String entryTrace = (String)entry.getValue();
 
 			long size = -1;
+			boolean isDirectory = true;
 			if (ArchiveTrace.extractSymLinkFileFromTrace(entryTrace)) {
 				size = 0;
+				isDirectory = false;
 			}
-
+			
 			elements.add(new FileSystemRecoveryEntry(
 					baseDirectory, 
 					new File(baseDirectory, entryPath),
 					referenceMap.containsKey(entryPath) ? RecoveryEntry.STATUS_STORED: RecoveryEntry.STATUS_NOT_STORED,
 					size,
-					true
+					true,
+					isDirectory
 			));
 		}
 
@@ -1403,7 +1413,7 @@ implements TargetActions {
 				String hash = (String)entry.getValue();
 
 				long size = ArchiveTrace.extractFileSizeFromTrace(hash); 
-				ret.add(new FileSystemRecoveryEntry(fileSystemPolicy.getArchivePath(), new File(fileSystemPolicy.getArchivePath(), path), EntryArchiveData.STATUS_DELETED, size));
+				ret.add(new FileSystemRecoveryEntry(fileSystemPolicy.getArchivePath(), new File(fileSystemPolicy.getArchivePath(), path), EntryArchiveData.STATUS_DELETED, size, false, false));
 			}
 
 			// Directories
@@ -1411,7 +1421,7 @@ implements TargetActions {
 			while (iter.hasNext()) {
 				Map.Entry entry = (Map.Entry)iter.next();
 				String path = (String)entry.getKey();               
-				ret.add(new FileSystemRecoveryEntry(fileSystemPolicy.getArchivePath(), new File(fileSystemPolicy.getArchivePath(), path), EntryArchiveData.STATUS_DELETED, 0));
+				ret.add(new FileSystemRecoveryEntry(fileSystemPolicy.getArchivePath(), new File(fileSystemPolicy.getArchivePath(), path), EntryArchiveData.STATUS_DELETED, 0, false, true));
 			}            
 
 			return ret;
@@ -1604,7 +1614,7 @@ implements TargetActions {
 			String name = (String)iter.next();
 			if (matcher.matches(name)) {
 				File path = new File(root, name);
-				FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(root, path, RecoveryEntry.STATUS_STORED);
+				FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(root, path, RecoveryEntry.STATUS_STORED, 0, false, false);
 				SearchResultItem item = new SearchResultItem();
 				item.setCalendar(mf.getDate());
 				item.setEntry(entry);

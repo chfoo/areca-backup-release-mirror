@@ -1,5 +1,6 @@
 package com.myJava.file;
 
+import java.io.File;
 import java.nio.charset.Charset;
 
 import com.myJava.object.PublicClonable;
@@ -9,7 +10,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*

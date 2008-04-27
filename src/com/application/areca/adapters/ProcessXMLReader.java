@@ -18,7 +18,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -45,10 +45,6 @@ public class ProcessXMLReader implements XMLTags {
     protected File configurationFile;
     protected MissingDataListener missingDataListener;
     
-    public ProcessXMLReader(String configurationFile) throws AdapterException {
-        this(new File(configurationFile));
-    }
-    
     public ProcessXMLReader(File configurationFile) throws AdapterException {
         try {
             this.configurationFile = configurationFile;
@@ -58,7 +54,7 @@ public class ProcessXMLReader implements XMLTags {
             xmlConfig = builder.parse(configurationFile);
         } catch (Exception e) {
             AdapterException ex = new AdapterException(e);
-            ex.setSource(FileSystemManager.getAbsolutePath(configurationFile));
+            setSource(ex);
             throw ex;
         }
     }
@@ -100,13 +96,17 @@ public class ProcessXMLReader implements XMLTags {
             
             return process;
         } catch (AdapterException e) {
-            e.setSource(FileSystemManager.getAbsolutePath(configurationFile));
+            setSource(e);
             throw e;            
         } catch (Exception e) {
             // On convertit toutes les exceptions en AdapterException
             AdapterException ex = new AdapterException(e);
-            ex.setSource(FileSystemManager.getAbsolutePath(configurationFile));
+            setSource(ex);
             throw ex;
         }
+    }
+    
+    private void setSource(AdapterException e) {
+        e.setSource(FileSystemManager.getAbsolutePath(configurationFile));
     }
 }

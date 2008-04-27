@@ -12,7 +12,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -43,7 +43,7 @@ extends AbstractFileSystemPolicyXMLHandler {
 	        Node pathNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVEPATH_DEPRECATED);
 	        File f = new File(pathNode.getNodeValue());
 	        policy.setArchivePath(FileSystemManager.getParent(f));
-	        policy.setArchiveName(buildDeprecatedArchiveName(FileSystemManager.getName(f)));
+	        policy.setArchiveName(buildDeprecatedArchiveName(FileSystemManager.getName(f), TargetXMLReader.isOverwrite(mediumNode)));
 		} else {
 	        Node pathNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_PATH);
 	        Node nameNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVENAME);

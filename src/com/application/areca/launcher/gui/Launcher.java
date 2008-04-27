@@ -15,7 +15,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -65,9 +65,8 @@ public class Launcher extends AbstractArecaLauncher {
             }
 
             Application gui = Application.getInstance();
-            gui.loadWorkspace(workspace);
             killOnError = false;  // Now that the gui was initialized, don't kill on error 
-            gui.show();
+            gui.show(workspace);
         } catch (Throwable e) {
             e.printStackTrace();
             Logger.defaultLogger().error("Unexpected error", e);

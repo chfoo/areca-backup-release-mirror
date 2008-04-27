@@ -43,7 +43,7 @@ import com.myJava.util.log.Logger;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
 public class ZipInputStream 
 extends InflaterInputStream 
@@ -210,7 +210,7 @@ implements ZipConstants {
         }
         e.crc = get32(tmpbuf, LOCCRC);
         e.csize = get32(tmpbuf, LOCSIZ);
-        e.size = get32(tmpbuf, LOCLEN);	
+        e.setSize(get32(tmpbuf, LOCLEN));	 //xxxx
         e.isZip64 = requiresZip64(e);	
         len = get16(tmpbuf, LOCEXT);
         if (len > 0) {
@@ -266,11 +266,11 @@ implements ZipConstants {
             } else if (! e.isZip64) {
                 e.crc = get32(tmpbuf, EXTCRC);
                 e.csize = get32(tmpbuf, EXTSIZ);
-                e.size = get32(tmpbuf, EXTLEN);
+                e.setSize(get32(tmpbuf, EXTLEN));
             } else {
                 e.crc = get32(tmpbuf, EXTCRC);
                 e.csize = get64(tmpbuf, EXTSIZ);
-                e.size = get64(tmpbuf, EXTLEN64);
+                e.setSize(get64(tmpbuf, EXTLEN64));
             }
         }
         if ((ZIP_ENABLE_ENTRY_CHECK) && (e.crc != crc.getValue())) {
@@ -278,13 +278,14 @@ implements ZipConstants {
                     "invalid entry CRC (expected 0x" + Long.toHexString(e.crc) +
                     " but got 0x" + Long.toHexString(crc.getValue()) + ")");
         }
-        if ((ZIP_ENABLE_ENTRY_CHECK) && (
-                e.size != getTotalOut())
-                && (Integer.MIN_VALUE + (e.size%Integer.MAX_VALUE) - 1 != getTotalOut())     // Backward compatibility
-        ) {
-            throw new ZipException(
-                    "invalid entry size (expected " + e.size + " but got " +
-                    getTotalOut() + " bytes)");
+        if (ZIP_ENABLE_ENTRY_CHECK && (e.getSize() != getTotalOut())) {
+    		long mod = ((long)Integer.MAX_VALUE) - ((long)Integer.MIN_VALUE) + 1;
+    		long mv = (getTotalOut() - e.getSize())%mod;
+    		if (mv != 0) {  // Backward compatibility
+                throw new ZipException(
+                        "invalid entry size (expected " + e.getSize() + " but got " +
+                        getTotalOut() + " bytes)");
+    		}
         }
     }
 
@@ -312,6 +313,10 @@ implements ZipConstants {
     }
 
     private static boolean requiresZip64(ZipEntry entry) {
-        return (entry.size == -1 || entry.csize == -1 || entry.version >= ZIP64VERSION); 
+        return (entry.getSize() == -1 || entry.csize == -1 || entry.version >= ZIP64VERSION); 
+    }
+    
+    private static void checkSizes(long eSize, long totalOut) {
+
     }
 }

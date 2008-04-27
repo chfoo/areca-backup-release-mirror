@@ -51,7 +51,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -139,7 +139,7 @@ extends AbstractArchiveHandler {
 			return null;
 		}
 	}
-	
+
 	private File getSequenceFileForEntry(File archive, String entry, ProcessContext context) {
 		File seqRoot = (File)context.getSequenceRoots().get(archive);
 		if (seqRoot == null) {
@@ -233,7 +233,7 @@ extends AbstractArchiveHandler {
 		}
 		return f;
 	}
-	
+
 	private static void debug(File f) {
 		try {
 			String path = FileSystemManager.getAbsolutePath(f);
@@ -257,108 +257,109 @@ extends AbstractArchiveHandler {
 		// 2 : Process the files to recover
 		for (int i=0; i<localFiles.length; i++) {
 			File localArchive = localFiles[i];
-
-        	String[] filters = null;
-        	if (filtersByArchive != null) {
-            	List lstFilters = (List)filtersByArchive.get(archivesToRecover[i]);
-            	if (lstFilters != null) {
-            		filters = (String[])lstFilters.toArray(new String[lstFilters.size()]);
-            	} else {
-            		filters = new String[0];
-            	}
-        	}
-			
-			FileSystemIterator iter = new FileSystemIterator(localArchive, filters, false);
-			while (iter.hasNext()) {
-				File f = (File)iter.next();
-
-				if (FileSystemManager.isFile(f)) {
-					String localPath = FileSystemManager.getAbsolutePath(f).substring(FileSystemManager.getAbsolutePath(localArchive).length());
-					File target = new File(context.getRecoveryDestination(), localPath);
-
-					if (! FileSystemManager.exists(target)) { // do not recover if the target file already exists (which means that it has already been recovered)
-						ArrayList localCopies = new ArrayList();
-						localCopies.add(f);
-
-						// Local input stream
-						LayerHandler in = null;
-						if (mode == MODE_RECOVER) {
-							in = new DeltaInputStream();
-						} else {
-							in = new DeltaMerger();
-						}
-
-						try {
-							//debug(f);
-							in.addInputStream(FileSystemManager.getCachedFileInputStream(f), localPath);
-							File latestSequenceFile = null;
-							
-							if (mode == MODE_MERGE) {
-								latestSequenceFile = getSequenceFileForEntry(archivesToRecover[i], localPath, context);
-							}
-							
-							for (int j=i + 1; j<localFiles.length; j++) {
-								File posteriorArchive = localFiles[j];
-								File f2 = new File(posteriorArchive, localPath);
-								if (FileSystemManager.exists(f2)) {
-									localCopies.add(f2);
-									//debug(f2);
-									in.addInputStream(FileSystemManager.getCachedFileInputStream(f2), localPath);
-									
-									if (mode == MODE_MERGE) {
-										latestSequenceFile = getSequenceFileForEntry(archivesToRecover[j], localPath, context);
-									}
-								}
-							}
-
-							// Target File
-							FileTool.getInstance().createDir(FileSystemManager.getParentFile(target));
-							OutputStream out = FileSystemManager.getFileOutputStream(target, false, context.getOutputStreamListener());
-
-							if (mode == MODE_RECOVER) {
-								// recover
-								FileTool.getInstance().copy((DeltaInputStream)in, out, true, true);
-							} else {
-								// merge
-								try {
-									((DeltaMerger)in).setProc(new LayerWriterDeltaProcessor(out));
-									try {
-										((DeltaMerger)in).merge();
-									} catch (DeltaProcessorException e) {
-										Logger.defaultLogger().error(e);
-										throw new ApplicationException("Error during merge.", e);
-									}
-								} finally {
-									if (out != null) {
-										out.close();	
-									}
-								}
-								
-								// Duplicate the sequence file
-								InputStream seqIn = FileSystemManager.getFileInputStream(latestSequenceFile);
-								File seqFile = getSequenceFileForEntry(context.getCurrentArchiveFile(), localPath, context);
-								FileTool.getInstance().createDir(FileSystemManager.getParentFile(seqFile));
-								OutputStream seqOut = FileSystemManager.getFileOutputStream(seqFile);
-								try {
-									FileTool.getInstance().copy(seqIn, seqOut, true, true);
-								} finally {
-									if (seqOut != null) {
-										seqOut.close();	
-									}
-								}
-							}
-						} finally {
-							in.close();
-						}
-
-						// Delete local copies
-						medium.cleanLocalCopies(localCopies, context);
+			if (localArchive != null) {
+				String[] filters = null;
+				if (filtersByArchive != null) {
+					List lstFilters = (List)filtersByArchive.get(archivesToRecover[i]);
+					if (lstFilters != null) {
+						filters = (String[])lstFilters.toArray(new String[lstFilters.size()]);
+					} else {
+						filters = new String[0];
 					}
 				}
-			}
 
-			// Destroy the local archive
-			medium.completeLocalCopyCleaning(localArchive, context);
+				FileSystemIterator iter = new FileSystemIterator(localArchive, filters, false);
+				while (iter.hasNext()) {
+					File f = (File)iter.next();
+
+					if (FileSystemManager.isFile(f)) {
+						String localPath = FileSystemManager.getAbsolutePath(f).substring(FileSystemManager.getAbsolutePath(localArchive).length());
+						File target = new File(context.getRecoveryDestination(), localPath);
+
+						if (! FileSystemManager.exists(target)) { // do not recover if the target file already exists (which means that it has already been recovered)
+							ArrayList localCopies = new ArrayList();
+							localCopies.add(f);
+
+							// Local input stream
+							LayerHandler in = null;
+							if (mode == MODE_RECOVER) {
+								in = new DeltaInputStream();
+							} else {
+								in = new DeltaMerger();
+							}
+
+							try {
+								//debug(f);
+								in.addInputStream(FileSystemManager.getCachedFileInputStream(f), localPath);
+								File latestSequenceFile = null;
+
+								if (mode == MODE_MERGE) {
+									latestSequenceFile = getSequenceFileForEntry(archivesToRecover[i], localPath, context);
+								}
+
+								for (int j=i + 1; j<localFiles.length; j++) {
+									File posteriorArchive = localFiles[j];
+									File f2 = new File(posteriorArchive, localPath);
+									if (FileSystemManager.exists(f2)) {
+										localCopies.add(f2);
+										//debug(f2);
+										in.addInputStream(FileSystemManager.getCachedFileInputStream(f2), localPath);
+
+										if (mode == MODE_MERGE) {
+											latestSequenceFile = getSequenceFileForEntry(archivesToRecover[j], localPath, context);
+										}
+									}
+								}
+
+								// Target File
+								FileTool.getInstance().createDir(FileSystemManager.getParentFile(target));
+								OutputStream out = FileSystemManager.getFileOutputStream(target, false, context.getOutputStreamListener());
+
+								if (mode == MODE_RECOVER) {
+									// recover
+									FileTool.getInstance().copy((DeltaInputStream)in, out, true, true);
+								} else {
+									// merge
+									try {
+										((DeltaMerger)in).setProc(new LayerWriterDeltaProcessor(out));
+										try {
+											((DeltaMerger)in).merge();
+										} catch (DeltaProcessorException e) {
+											Logger.defaultLogger().error(e);
+											throw new ApplicationException("Error during merge.", e);
+										}
+									} finally {
+										if (out != null) {
+											out.close();	
+										}
+									}
+
+									// Duplicate the sequence file
+									InputStream seqIn = FileSystemManager.getFileInputStream(latestSequenceFile);
+									File seqFile = getSequenceFileForEntry(context.getCurrentArchiveFile(), localPath, context);
+									FileTool.getInstance().createDir(FileSystemManager.getParentFile(seqFile));
+									OutputStream seqOut = FileSystemManager.getFileOutputStream(seqFile);
+									try {
+										FileTool.getInstance().copy(seqIn, seqOut, true, true);
+									} finally {
+										if (seqOut != null) {
+											seqOut.close();	
+										}
+									}
+								}
+							} finally {
+								in.close();
+							}
+
+							// Delete local copies
+							medium.cleanLocalCopies(localCopies, context);
+						}
+					}
+				}
+
+				// Destroy the local archive
+				medium.completeLocalCopyCleaning(localArchive, context);
+			}
 		}
 	}
 

@@ -7,7 +7,6 @@ import java.util.Iterator;
 
 import com.myJava.file.delta.Constants;
 import com.myJava.file.delta.tools.IOHelper;
-import com.myJava.util.log.Logger;
 
 /**
  * Format : 
@@ -21,7 +20,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*

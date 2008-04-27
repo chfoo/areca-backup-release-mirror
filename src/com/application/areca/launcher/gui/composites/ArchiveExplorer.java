@@ -39,7 +39,7 @@ import com.myJava.file.FileNameUtil;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -151,7 +151,7 @@ implements MouseListener, Listener
             item.setFont(deriveItalicFont(item));
         }
         
-        if (isDirectory(str)) {
+        if (data.entry == null || data.entry.isDirectory()) {
             str = data.name.substring(0, data.name.length() - 1);
             if (str.length() == 0) {
                 str = "/";
@@ -210,7 +210,7 @@ implements MouseListener, Listener
         TreeItem child = new TreeItem(parent, ITEM_STYLE);
         child.setData(new NodeData(name, status, size, entry));
         
-        if (! isDirectory(name)) {
+        if (! (entry == null || entry.isDirectory())) {
             configure(child);
         } else {
             // If it's a directory, add it to the map of parents
@@ -218,10 +218,6 @@ implements MouseListener, Listener
         }
         
         return child;
-    }
-    
-    private boolean isDirectory(String userObject) {
-        return (userObject != null && FileNameUtil.endsWithSeparator(userObject));
     }
     
     private int resolveParentIndex(String fullPath) {

@@ -4,7 +4,9 @@ import java.io.IOException;
 
 import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
+import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.attributes.Attributes;
 import com.myJava.object.EqualsHelper;
@@ -15,7 +17,7 @@ import com.myJava.util.log.Logger;
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -43,11 +45,8 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
     
     private String owner;
     private String ownerGroup;
-    
-    public FileOwnerArchiveFilter() {
-    }
 
-    public void acceptParameters(String parameters) {
+	public void acceptParameters(String parameters) {
         if (Utils.isEmpty(parameters)) {
             throw new IllegalArgumentException("Invalid parameters : " + parameters);
         }

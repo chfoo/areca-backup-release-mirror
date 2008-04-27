@@ -6,6 +6,7 @@ import java.util.StringTokenizer;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.myJava.file.FileSystemManager;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
@@ -17,7 +18,7 @@ import com.myJava.util.CalendarUtils;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -43,11 +44,8 @@ public class FileDateArchiveFilter extends AbstractArchiveFilter {
     
     private long minDate;
     private boolean greaterThan;
-    
-    public FileDateArchiveFilter() {
-    }
 
-    public void acceptParameters(String parameters) {     
+	public void acceptParameters(String parameters) {     
         if (
                 Utils.isEmpty(parameters) 
                 || (

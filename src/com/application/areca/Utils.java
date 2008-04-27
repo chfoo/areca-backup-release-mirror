@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -90,7 +90,7 @@ public class Utils {
         });
         
         if (files == null) {
-            Logger.defaultLogger().warn("CAUTION : Unable to locate the translation files in " + FileSystemManager.getAbsolutePath(translationsRoot));
+            Logger.defaultLogger().warn("Unable to locate the translation files in " + FileSystemManager.getAbsolutePath(translationsRoot));
             if (! FileSystemManager.exists(getApplicationRoot())) {
                 Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(getApplicationRoot()) + " does not exist.");                
             } else {

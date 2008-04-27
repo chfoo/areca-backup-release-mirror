@@ -71,7 +71,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -158,8 +158,9 @@ implements ActionConstants, Window.IExceptionHandler {
         Window.setExceptionHandler(this);
     }
 
-    public void show() {
+    public void show(String workspacePath) {
         mainWindow = new MainWindow();
+        mainWindow.setWorkspacePath(workspacePath);
         display = Display.getCurrent();
 
         CURSOR_WAIT = new Cursor(display, SWT.CURSOR_WAIT);
@@ -240,17 +241,6 @@ implements ActionConstants, Window.IExceptionHandler {
     public void setLatestVersionRecoveryMode(boolean latestVersionRecoveryMode) {
         this.latestVersionRecoveryMode = latestVersionRecoveryMode;
         AppActionReferenceHolder.refresh();
-    }
-
-    public void loadWorkspace(String path) {
-        try {
-            this.setWorkspace(new Workspace(path, this), false);
-        } catch (AdapterException e) {
-            this.handleException(
-                    ResourceManager.instance().getLabel("error.loadworkspace.message", new Object[] {e.getMessage(), e.getSource()}),
-                    e
-            );
-        }       
     }
 
     public void processCommand(final String command) {
@@ -531,11 +521,12 @@ implements ActionConstants, Window.IExceptionHandler {
         }
     }   
 
-    private void openWorkspace(String path) {
+    public void openWorkspace(String path) {
         if (path != null) {
             try {
                 this.setWorkspace(new Workspace(FileSystemManager.getAbsolutePath(new File(path)), this), true);
             } catch (AdapterException e) {
+            	Logger.defaultLogger().error("Error detected in " + e.getSource());
                 this.handleException(
                         RM.getLabel("error.loadworkspace.message", new Object[] {e.getMessage(), e.getSource()}),
                         e
@@ -548,6 +539,19 @@ implements ActionConstants, Window.IExceptionHandler {
             }                  
         }
     }
+    
+/*
+    public void loadWorkspace(String path) {
+        try {
+            this.setWorkspace(new Workspace(path, this), false);
+        } catch (AdapterException e) {
+            this.handleException(
+                    ResourceManager.instance().getLabel("error.loadworkspace.message", new Object[] {e.getMessage(), e.getSource()}),
+                    e
+            );
+        }       
+    }
+    */
     
     public void checkVersion(final boolean explicit) {
         if (explicit || ArecaPreferences.isCheckNewVersions()) {

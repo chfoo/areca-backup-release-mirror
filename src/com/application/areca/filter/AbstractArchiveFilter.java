@@ -1,12 +1,14 @@
 package com.application.areca.filter;
 
+import com.application.areca.impl.FileSystemRecoveryTarget;
+
 /**
  * Classe de base des filters.
  * D�finit la notion de 'including'/'excluding'
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4765044255727194190
+ * <BR>Areca Build ID : 5323430991191230653
  */
  
  /*
@@ -31,14 +33,7 @@ This file is part of Areca.
 public abstract class AbstractArchiveFilter implements ArchiveFilter {
 
     protected boolean exclude = false;
-    
-    public AbstractArchiveFilter() {
-        this.exclude = false;
-    }
-    
-    public AbstractArchiveFilter(boolean isExclude) {
-        this.exclude = isExclude;
-    }
+    protected FileSystemRecoveryTarget medium;
     
     public boolean isExclude() {
         return exclude;
