@@ -28,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5323430991191230653
+ * <BR>Areca Build ID : 11620171963739279
  */
  
  /*
@@ -363,7 +363,7 @@ public class FTPProxy {
                 Logger.defaultLogger().info("OK : disconnected from server : " + this.remoteServer + ".");
             }
         } catch (IOException e) {
-            Logger.defaultLogger().error("An error occured while trying to disconnect from the following FTP server : " + this.remoteServer, e);
+            Logger.defaultLogger().error("An error occurred while trying to disconnect from the following FTP server : " + this.remoteServer, e);
         }
     }
     

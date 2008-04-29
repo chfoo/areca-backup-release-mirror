@@ -15,7 +15,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5323430991191230653
+ * <BR>Areca Build ID : 11620171963739279
  */
  
  /*
@@ -57,7 +57,7 @@ public class VersionInfos {
     static {
         
         // INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-        BUILD_ID = 5323430991191230653L;
+        BUILD_ID = 11620171963739279L;
         
         // INIT VERSION DATA
         VERSIONS.add(new VersionData("1.0", new GregorianCalendar(2005, 4, 1), "Backup engine implementation."));
@@ -96,7 +96,7 @@ public class VersionInfos {
         VERSIONS.add(new VersionData("3.3.1", new GregorianCalendar(2006, 8, 9), "Internationalization bug fix."));
         VERSIONS.add(new VersionData("3.4", new GregorianCalendar(2006, 8, 12), "Empty directory tracking; Archive mediums refactoring; File size & date filters."));
         VERSIONS.add(new VersionData("3.5", new GregorianCalendar(2006, 9, 10), "New file filters; Major archive medium refactoring."));
-        VERSIONS.add(new VersionData("3.5.1", new GregorianCalendar(2006, 9, 21), "Minor ZIP bug fix (This bug occured on empty archives)."));
+        VERSIONS.add(new VersionData("3.5.1", new GregorianCalendar(2006, 9, 21), "Minor ZIP bug fix (This bug occurred on empty archives)."));
         VERSIONS.add(new VersionData("4.0", new GregorianCalendar(2006, 10, 4), "Post-processors and user preferences; Various optimizations."));
         VERSIONS.add(new VersionData("4.0.5", new GregorianCalendar(2006, 10, 10), "Mail encoding bug fix; Workspace backup feature."));
         VERSIONS.add(new VersionData("4.1", new GregorianCalendar(2006, 10, 22), "Search feature; Toolbar; Minor enhancements & Bug fixes."));
@@ -138,6 +138,7 @@ public class VersionInfos {
         VERSIONS.add(new VersionData("6.0.4", new GregorianCalendar(2008, 3, 9), "Archive trace backward-compatibility bug fix."));
         VERSIONS.add(new VersionData("6.0.5", new GregorianCalendar(2008, 3, 10), "Log bug fix."));
         VERSIONS.add(new VersionData("6.0.6", new GregorianCalendar(2008, 3, 27), "Various bug fixes."));
+        VERSIONS.add(new VersionData("6.0.7", new GregorianCalendar(2008, 3, 28), "log bug fix."));
 
         Iterator iter = VERSIONS.iterator();
         while (iter.hasNext()) {

@@ -31,7 +31,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5323430991191230653
+ * <BR>Areca Build ID : 11620171963739279
  */
  
  /*
@@ -110,7 +110,7 @@ public class FileSystemManager {
                 try {
                     files = FileSystemManager.listFiles(mountPoint);
                 } catch (Exception e) {
-                    Logger.defaultLogger().error("An error occured while trying to list existing file during the driver registration. The driver will still be registered but this can result in an unstable state.", e, "FilesystemManager.registerDriver");
+                    Logger.defaultLogger().error("An error occurred while trying to list existing file during the driver registration. The driver will still be registered but this can result in an unstable state.", e, "FilesystemManager.registerDriver");
                 }
                 
                 if (files != null && files.length != 0) {

@@ -28,7 +28,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5323430991191230653
+ * <BR>Areca Build ID : 11620171963739279
  */
  
  /*
@@ -180,7 +180,7 @@ extends ApplicationWindow {
                 Logger.defaultLogger().error(e);
                 SecuredRunner.execute(VersionCheckWindow.this, new Runnable(){
                     public void run() {
-                        lbl.setText("An error occured during the remote informations retrieval ("+ e.getMessage() + "). Please try again later.");
+                        lbl.setText("An error occurred during the remote informations retrieval ("+ e.getMessage() + "). Please try again later.");
                     }
                 });
             }            

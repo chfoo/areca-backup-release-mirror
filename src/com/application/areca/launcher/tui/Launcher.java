@@ -29,7 +29,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5323430991191230653
+ * <BR>Areca Build ID : 11620171963739279
  */
  
  /*
@@ -137,7 +137,7 @@ implements CommandConstants {
     
     private static void handleError(Throwable e) {
         channel.print(SEPARATOR);
-        channel.print("An error occured during the process : " + e.getMessage());
+        channel.print("An error occurred during the process : " + e.getMessage());
         if (((FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class)) != null) {
             channel.print("Please refer to the log file : " + ((FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class)).getCurrentLogFile());
         }

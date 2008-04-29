@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5323430991191230653
+ * <BR>Areca Build ID : 11620171963739279
  */
  
  /*
@@ -57,7 +57,7 @@ public class Utils {
             try {
                 DF = new SimpleDateFormat(format);
             } catch (Throwable e) {
-                Logger.defaultLogger().warn("The following error occured during date format initialization : " + e.getMessage() + ". A default date format will be used.");
+                Logger.defaultLogger().warn("The following error occurred during date format initialization : " + e.getMessage() + ". A default date format will be used.");
                 DF = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
             }
         } else {

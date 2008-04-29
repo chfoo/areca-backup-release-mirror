@@ -16,7 +16,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5323430991191230653
+ * <BR>Areca Build ID : 11620171963739279
  */
  
  /*
@@ -97,7 +97,7 @@ public class ProcessorList implements PublicClonable {
 	        
 	        String errorMsg = exceptions.toString();
 	        if (errorMsg.length() != 0) {
-	            throw new ApplicationException("The following errors occured during processor : " + errorMsg);
+	            throw new ApplicationException("The following errors occurred during processor : " + errorMsg);
 	        }
         }
     }

@@ -1,13 +1,10 @@
 package com.application.areca.launcher.gui;
 
-import java.io.File;
-
 import javax.swing.JOptionPane;
 
 import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.version.VersionInfos;
-import com.myJava.file.FileTool;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 
@@ -15,7 +12,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5323430991191230653
+ * <BR>Areca Build ID : 11620171963739279
  */
  
  /*

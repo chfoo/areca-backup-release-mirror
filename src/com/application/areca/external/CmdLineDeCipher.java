@@ -21,7 +21,7 @@ import com.myJava.file.driver.FileSystemDriver;
  * <BR>
  * @author Ludovic QUESNELLE
  * <BR>
- * <BR>Areca Build ID : 5323430991191230653
+ * <BR>Areca Build ID : 11620171963739279
  */
  
  /*
@@ -160,7 +160,7 @@ extends AbstractArecaLauncher {
             	deCipher.process();
             }
         } catch (Throwable e) {
-            System.out.println("\nWARNING : An error occured during decryption. You should check that all your arguments are valid (encryption algorithm or password, source directory, ...)");
+            System.out.println("\nWARNING : An error occurred during decryption. You should check that all your arguments are valid (encryption algorithm or password, source directory, ...)");
             showLine();
             e.printStackTrace();
             showLine();

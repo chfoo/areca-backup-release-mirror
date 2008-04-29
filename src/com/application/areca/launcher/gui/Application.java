@@ -71,7 +71,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5323430991191230653
+ * <BR>Areca Build ID : 11620171963739279
  */
  
  /*
@@ -599,7 +599,7 @@ implements ActionConstants, Window.IExceptionHandler {
                             });
                         }
                     } catch (Throwable e) {
-                        handleException("An error occured during version verification : " + e.getMessage(), e);
+                    	handleException("An error occurred during Areca's version verification : " + e.getMessage(), e);
                     }  
                 }
             };

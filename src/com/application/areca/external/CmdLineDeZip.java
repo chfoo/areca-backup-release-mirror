@@ -19,7 +19,7 @@ import com.myJava.file.archive.zip64.ZipVolumeStrategy;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5323430991191230653
+ * <BR>Areca Build ID : 11620171963739279
  */
  
  /*
@@ -140,7 +140,7 @@ extends AbstractArecaLauncher {
             	main.process();
             }
         } catch (Throwable e) {
-            System.out.println("\nWARNING : An error occured during decompression. You should check that all your arguments are valid.");
+            System.out.println("\nWARNING : An error occurred during decompression. You should check that all your arguments are valid.");
             showLine();
             e.printStackTrace();
             showLine();
