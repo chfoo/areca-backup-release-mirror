@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import com.myJava.file.OutputStreamListener;
-import com.myJava.file.attributes.Attributes;
+import com.myJava.file.metadata.FileMetaData;
 
 /**
  * Interface d�finissant un driver pour syst�me de fichier.
@@ -20,7 +20,7 @@ import com.myJava.file.attributes.Attributes;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -134,7 +134,7 @@ public interface FileSystemDriver {
     /**
      * Returns the file's attributes
      */
-    public Attributes getAttributes(File f) throws IOException;
+    public FileMetaData getAttributes(File f) throws IOException;
     
     /**
      * Create a Symbolic link
@@ -144,7 +144,7 @@ public interface FileSystemDriver {
     /**
      * Applies the attributes provided as argument 
      */
-    public void applyAttributes(Attributes p, File f) throws IOException;
+    public void applyAttributes(FileMetaData p, File f) throws IOException;
     
     public boolean supportsLongFileNames();
     

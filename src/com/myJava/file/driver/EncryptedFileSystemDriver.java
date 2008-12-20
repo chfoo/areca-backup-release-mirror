@@ -21,8 +21,8 @@ import javax.crypto.NoSuchPaddingException;
 
 import com.myJava.encryption.EncryptionUtil;
 import com.myJava.file.OutputStreamListener;
-import com.myJava.file.attributes.Attributes;
 import com.myJava.file.driver.hash.HashFileSystemDriver;
+import com.myJava.file.metadata.FileMetaData;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
@@ -33,7 +33,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -136,7 +136,7 @@ extends AbstractLinkableFileSystemDriver {
 		return this.predecessor.getInformations(this.encryptFileName(file));
 	}
 
-	public Attributes getAttributes(File f) throws IOException {
+	public FileMetaData getAttributes(File f) throws IOException {
 		return this.predecessor.getAttributes(this.encryptFileName(f));
 	}
 
@@ -261,7 +261,7 @@ extends AbstractLinkableFileSystemDriver {
 		return this.predecessor.setReadOnly(this.encryptFileName(file));
 	}
 
-	public void applyAttributes(Attributes p, File f) throws IOException {
+	public void applyAttributes(FileMetaData p, File f) throws IOException {
 		this.predecessor.applyAttributes(p, this.encryptFileName(f));
 	}
 
@@ -425,6 +425,7 @@ extends AbstractLinkableFileSystemDriver {
 		 h = HashHelper.hash(h, EncryptionUtil.hash(this.fileNameEncryptionCipher));
 		 h = HashHelper.hash(h, this.directoryRoot);
 		 h = HashHelper.hash(h, this.predecessor);
+		 h = HashHelper.hash(h, this.key);
 		 h = HashHelper.hash(h, this.encryptNames);
 
 		 return h;
@@ -441,6 +442,7 @@ extends AbstractLinkableFileSystemDriver {
 					 && EncryptionUtil.equals(other.fileNameEncryptionCipher, this.fileNameEncryptionCipher) 
 					 && EqualsHelper.equals(other.directoryRoot, this.directoryRoot) 
 					 && EqualsHelper.equals(other.predecessor, this.predecessor) 
+					 && EqualsHelper.equals(other.key, this.key) 
 					 && EqualsHelper.equals(other.encryptNames, this.encryptNames) 					 
 			 );
 		 } else {

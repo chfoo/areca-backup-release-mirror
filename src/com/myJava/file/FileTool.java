@@ -22,7 +22,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -79,7 +79,7 @@ public class FileTool {
         }
         
         if (monitor != null) {
-            monitor.checkTaskCancellation();
+            monitor.checkTaskState();
         }
         
         if (FileSystemManager.isFile(sourceFileOrDirectory)) {
@@ -158,7 +158,7 @@ public class FileTool {
             int nbRead;
             while (true) {
                 if (monitor != null) {
-                    monitor.checkTaskCancellation();
+                    monitor.checkTaskState();
                 }
                 nbRead = inStream.read(in);
                 if (nbRead == -1) {
@@ -258,7 +258,7 @@ public class FileTool {
     public void delete(File fileOrDirectory, boolean waitForAvailability, long deletionDelay, TaskMonitor monitor) 
     throws IOException, TaskCancelledException {
         if (monitor != null) {
-            monitor.checkTaskCancellation();
+            monitor.checkTaskState();
         }
         
         if (FileSystemManager.isDirectory(fileOrDirectory)) {

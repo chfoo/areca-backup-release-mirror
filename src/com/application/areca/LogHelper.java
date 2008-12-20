@@ -7,6 +7,7 @@ import java.util.Properties;
 import com.application.areca.version.VersionInfos;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.metadata.FileMetaDataAccessorHelper;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 
@@ -14,7 +15,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -52,6 +53,7 @@ public class LogHelper {
         log("Language : " + OSTool.getUserLanguage());
         log("Framework overriden properties : " + FrameworkConfiguration.getInstance().toString());
         log("Available translations : " + Utils.getTranslationsAsString());
+        log("File metadata accessor : " + FileMetaDataAccessorHelper.getFileSystemAccessor().getClass().getName());
         Logger.defaultLogger().info(SEPARATOR);
     }
     

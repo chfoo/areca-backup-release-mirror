@@ -9,13 +9,14 @@ import java.util.Date;
 
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.FileTool;
 import com.myJava.system.OSTool;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -44,17 +45,17 @@ implements LogProcessor {
     private static int DEFAULT_LOG_HISTORY = FrameworkConfiguration.getInstance().getDefaultLogHistory();
     
     /**
-     *  Bool�en indiquant si on utilise un fichier unique ou si on utilise un fichier par jour
+     *  Booleen indiquant si on utilise un fichier unique ou si on utilise un fichier par jour
      */
     protected boolean uniqueFile;
     
     /**
-     *  Chemin d'acc�s complet au fichier de log
+     *  Chemin d'acces complet au fichier de log
      */
     private String fileName;
     
     /**
-     * Process de nettoyage �ventuel de la log.
+     * Process de nettoyage eventuel de la log.
      */
     protected LogCleaner cleaner;
     
@@ -70,7 +71,7 @@ implements LogProcessor {
         File parent = FileSystemManager.getParentFile(f);
         if (! FileSystemManager.exists(parent)) {
             try {
-                FileSystemManager.mkdir(parent);
+            	FileTool.getInstance().createDir(parent);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -82,7 +83,7 @@ implements LogProcessor {
     }
     
     /**
-     *  D�clenche l'historisation de la log.
+     *  Declenche l'historisation de la log.
      *  <BR>L'historique s'entend en jours.
      */
     public void enableLogHistory(int history) {
@@ -146,7 +147,7 @@ implements LogProcessor {
     }
     
     /**
-     * Retourne le r�pertoire de log
+     * Retourne le repertoire de log
      */
     public File getLogDirectory() {
         if (this.fileName != null) {
@@ -159,7 +160,7 @@ implements LogProcessor {
     
     /**
      * Efface le fichier de log.
-     * <BR>Retourne true en cas de succ�s, false en cas d'�chec.
+     * <BR>Retourne true en cas de succes, false en cas d'echec.
      */
     public boolean clearLog() {
         if (fileName != null) {

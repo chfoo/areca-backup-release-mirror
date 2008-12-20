@@ -12,7 +12,7 @@ import com.myJava.object.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -73,7 +73,7 @@ public class MergeProcessor extends AbstractProcessor {
     
     public void runImpl(ProcessContext context) throws ApplicationException {
         AbstractRecoveryTarget target = context.getReport().getTarget();
-        target.getProcess().processMergeOnTargetImpl(target, fromDelay, toDelay, keepDeletedEntries, null, new ProcessContext(target, context.getInfoChannel()));
+        target.getGroup().processMergeOnTargetImpl(target, fromDelay, toDelay, keepDeletedEntries, null, new ProcessContext(target, context.getInfoChannel()));
     }
     
     public boolean requiresFilteredEntriesListing() {

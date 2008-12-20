@@ -19,7 +19,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -87,7 +87,7 @@ public class DeltaReader implements Constants {
         }
         
         while (true) {
-        	monitor.checkTaskCancellation();
+        	monitor.checkTaskState();
         	
             int read = in.read();
             if (read == -1) {

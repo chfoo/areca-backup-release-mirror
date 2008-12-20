@@ -12,9 +12,10 @@ import java.io.OutputStream;
 
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.EventOutputStream;
+import com.myJava.file.FileSystemManager;
 import com.myJava.file.OutputStreamListener;
-import com.myJava.file.attributes.Attributes;
-import com.myJava.file.attributes.AttributesHelper;
+import com.myJava.file.metadata.FileMetaDataAccessorHelper;
+import com.myJava.file.metadata.FileMetaData;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
 import com.myJava.system.OSTool;
@@ -25,7 +26,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -107,7 +108,13 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	 public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
 		 checkWriteAccess(symlink);
 		 checkFilePath(symlink);
-		 return AttributesHelper.createSymbolicLink(symlink, realPath);
+		 
+		 if (OSTool.isSystemWindows()) {
+			 return false;
+		 } else {
+	    	OSTool.execute(new String[] {"ln", "-s", realPath, FileSystemManager.getAbsolutePath(symlink)});
+	        return true;
+		 }
 	 }
 
 	 public void mount() throws IOException {
@@ -327,13 +334,13 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 		 }
 	 }
 
-	 public Attributes getAttributes(File f) throws IOException {
-		 return AttributesHelper.readFileAttributes(f);
+	 public FileMetaData getAttributes(File f) throws IOException {
+		 return FileMetaDataAccessorHelper.getFileSystemAccessor().getAttributes(f);
 	 }
 
-	 public void applyAttributes(Attributes p, File f) throws IOException {
+	 public void applyAttributes(FileMetaData p, File f) throws IOException {
 		 checkWriteAccess(f);
-		 AttributesHelper.applyFileAttributes(f, p);
+		 FileMetaDataAccessorHelper.getFileSystemAccessor().setAttributes(f, p);
 	 }
 
 	 public int hashCode() {
@@ -373,7 +380,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	 public FileInformations getInformations(File file) {
 		 return new FileInformations(this, file);
 	 }
-
 
 	 private static void checkWriteAccess(File file) {
 		 if (WRITABLE_DIRECTORIES.length == 0 || WRITABLE_DIRECTORIES == null) {

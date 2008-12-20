@@ -40,7 +40,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -69,7 +69,7 @@ public class MainWindow extends AbstractWindow {
     private CTabFolder tabs;
     private SashForm leftSash;
     private SashForm mainSash;
-    private Composite progressContainer;
+    private ProgressComposite progressContainer;
     private int returnTabIndex = 0;
     private LogicalViewComposite logicalView;
     private SearchComposite searchView;
@@ -193,7 +193,7 @@ public class MainWindow extends AbstractWindow {
         }
     }
 
-    public Composite getProgressContainer() {
+    public ProgressComposite getProgressContainer() {
         return progressContainer;
     }
 

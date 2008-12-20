@@ -3,12 +3,11 @@ package com.application.areca.filter;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 
 /**
- * Classe de base des filters.
- * D�finit la notion de 'including'/'excluding'
+ * Filter base class
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*

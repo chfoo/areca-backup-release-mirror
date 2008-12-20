@@ -24,7 +24,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -59,9 +59,12 @@ implements UserInformationChannel, Colors, Listener {
     private Label lblMessage;
     private ProgressBar pgbProgress;
     private Button btnCancel;
+    private Button btnPause;
     
     protected TaskMonitor taskMonitor;
     protected boolean running;
+    
+    protected String stateBeforePause = "";
     
     protected boolean synthetic = ArecaPreferences.isInformationSynthetic();
 
@@ -78,8 +81,8 @@ implements UserInformationChannel, Colors, Listener {
         Composite grp = this;
         
         GridLayout layout = new GridLayout();
-        layout.numColumns = 2;
-        layout.horizontalSpacing = 40;
+        layout.numColumns = 3;
+        layout.horizontalSpacing = 20;
         layout.verticalSpacing = 1;
         layout.marginHeight = 5;
         layout.marginWidth = 0;
@@ -92,17 +95,28 @@ implements UserInformationChannel, Colors, Listener {
         lblMessage.setLayoutData(gdMessage);
         lblMessage.setForeground(C_INFO);
         
+        btnPause = new Button(grp, SWT.PUSH);
+        btnPause.setText(RM.getLabel("mainpanel.pause.label"));
+        GridData gdPause = new GridData();
+        gdPause.grabExcessHorizontalSpace = false;
+        gdPause.horizontalAlignment = SWT.CENTER;
+        gdPause.verticalAlignment = SWT.BOTTOM;
+        gdPause.verticalSpan = 2;
+        btnPause.setLayoutData(gdPause);
+        btnPause.addListener(SWT.Selection, this);   
+        btnPause.setForeground(C_INFO);
+        
         btnCancel = new Button(grp, SWT.PUSH);
         btnCancel.setText(RM.getLabel("common.cancel.label"));
         GridData gdCancel = new GridData();
         gdCancel.grabExcessHorizontalSpace = false;
-        gdCancel.horizontalAlignment = SWT.RIGHT;
+        gdCancel.horizontalAlignment = SWT.CENTER;
         gdCancel.verticalAlignment = SWT.BOTTOM;
         gdCancel.verticalSpan = 2;
         btnCancel.setLayoutData(gdCancel);
         btnCancel.addListener(SWT.Selection, this);   
         btnCancel.setForeground(C_INFO);
-        
+
         pgbProgress = new ProgressBar(grp, SWT.NONE);
         pgbProgress.setMinimum(0);
         pgbProgress.setMaximum(100);
@@ -116,7 +130,24 @@ implements UserInformationChannel, Colors, Listener {
         this.synthetic = synthetic;
     }
 
-    public void cancellableChanged(final TaskMonitor task) {
+	public void pauseRequested(TaskMonitor task) {
+		if (task.isPauseRequested()) {
+			this.stateBeforePause = lblMessage.getText();
+	        SecuredRunner.execute(parent, new Runnable() {
+	            public void run() {
+	                lblMessage.setText("Paused.");
+	            }
+	        });
+		} else {
+	        SecuredRunner.execute(parent, new Runnable() {
+	            public void run() {
+	                lblMessage.setText(stateBeforePause);
+	            }
+	        });
+		}
+	}
+
+	public void cancellableChanged(final TaskMonitor task) {
         SecuredRunner.execute(parent, new Runnable() {
             public void run() {
                 btnCancel.setEnabled(task.isCancellable());
@@ -193,6 +224,14 @@ implements UserInformationChannel, Colors, Listener {
     public void handleEvent(Event event) {
         if (event.widget == this.btnCancel) {
             taskMonitor.setCancelRequested();
+        } else if (event.widget == this.btnPause) {
+        	taskMonitor.setPauseRequested(! taskMonitor.isPauseRequested());
+        	if (taskMonitor.isPauseRequested()) {
+        		btnPause.setText(ResourceManager.instance().getLabel("mainpanel.resume.label"));
+        	} else {
+        		btnPause.setText(ResourceManager.instance().getLabel("mainpanel.pause.label"));        		
+        	}
+            this.layout();
         }
     }
 

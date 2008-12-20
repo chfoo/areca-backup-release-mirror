@@ -1,5 +1,8 @@
 package com.myJava.system;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -12,6 +15,8 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.myJava.configuration.FrameworkConfiguration;
+import com.myJava.object.ToStringHelper;
+import com.myJava.util.log.Logger;
 
 
 /**
@@ -19,7 +24,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -153,6 +158,52 @@ public class OSTool {
     public static void launchBrowser(URL url) 
     throws OSToolException, NoBrowserFoundException {
         launchBrowser(url.toExternalForm());
+    }
+
+	public static void execute(String[] cmd) throws IOException {
+        Process p = null;
+        int ret = 0;
+        try {
+            p = Runtime.getRuntime().exec(cmd);
+            ret = p.waitFor();
+            
+            if (ret != 0) {
+            	BufferedReader errorReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                String err = errorReader.readLine();
+            	Logger.defaultLogger().warn("Error executing " + ToStringHelper.serialize(cmd) + " : " + err);
+            }
+        } catch (InterruptedException e) {
+            Logger.defaultLogger().error("Error executing " + ToStringHelper.serialize(cmd), e);
+            throw new IOException(e.getMessage());     
+        } catch (RuntimeException e) {
+            Logger.defaultLogger().error("Error executing " + ToStringHelper.serialize(cmd), e);
+            throw e;
+        } catch (IOException ioe) {
+            Logger.defaultLogger().error("Error executing " + ToStringHelper.serialize(cmd), ioe);
+            throw ioe;
+        } finally {
+            try {
+                if (p != null) {
+                    try {
+                        if (p.getErrorStream() != null) {
+                            p.getErrorStream().close();
+                        }
+                    } finally {
+                        try {
+                            if (p.getInputStream() != null) {
+                                p.getInputStream().close();
+                            }
+                        } finally {
+                            if (p.getOutputStream() != null) {
+                                p.getOutputStream().close();
+                            }
+                        }
+                    }
+                }
+            } catch (Throwable e) {
+                Logger.defaultLogger().error("Error closing streams", e);
+            }
+        }
     }
     
     /**

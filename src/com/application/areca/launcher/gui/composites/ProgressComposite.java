@@ -12,7 +12,7 @@ import com.application.areca.launcher.gui.common.Refreshable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -38,10 +38,15 @@ public class ProgressComposite
 extends Composite 
 implements Refreshable {
     protected final ResourceManager RM = ResourceManager.instance();
+    protected Composite mainPane;
     
     public ProgressComposite(Composite parent) {
         super(parent, SWT.NONE);
         this.setLayout(new GridLayout(1, false));
+    }
+    
+    public Composite getMainPane() {
+    	return mainPane;
     }
 
     public Object getRefreshableKey() {

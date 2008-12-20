@@ -14,7 +14,7 @@ import com.myJava.file.multivolumes.VolumeStrategy;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -62,16 +62,24 @@ implements ArchiveAdapter {
         }
     }
 
-    public ZipArchiveAdapter(OutputStream out, boolean useZip64) {
+    public ZipArchiveAdapter(OutputStream out, boolean useZip64, int level) {
         super(ACCESS_WRITE, 0);
         this.zout = new ZipOutputStream(out, useZip64);
-        ((ZipOutputStream)zout).setLevel(9);
+        if (level >= 0) {
+        	((ZipOutputStream)zout).setLevel(level);
+        } else {
+        	((ZipOutputStream)zout).setLevel(9);
+        }
     }
 
-    public ZipArchiveAdapter(VolumeStrategy strategy, long volumeSize, boolean useZip64) {
+    public ZipArchiveAdapter(VolumeStrategy strategy, long volumeSize, boolean useZip64, int level) {
         super(ACCESS_WRITE, 0);
         this.zout = new ZipOutputStream(strategy, volumeSize, useZip64);
-        ((ZipOutputStream)zout).setLevel(9);
+        if (level >= 0) {
+        	((ZipOutputStream)zout).setLevel(level);
+        } else {
+        	((ZipOutputStream)zout).setLevel(9);
+        }
     }
 
     public void addEntry(String entryName, long size) throws IOException {       

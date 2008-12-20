@@ -12,7 +12,7 @@ import com.myJava.object.PublicClonable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -55,7 +55,7 @@ public class DeleteProcessor extends AbstractProcessor {
     
     public void runImpl(ProcessContext context) throws ApplicationException {
         AbstractRecoveryTarget target = context.getReport().getTarget();
-        target.getProcess().processDeleteOnTargetImpl(target, delay, new ProcessContext(target, context.getInfoChannel()));
+        target.getGroup().processDeleteOnTargetImpl(target, delay, new ProcessContext(target, context.getInfoChannel()));
     }
     
     public boolean requiresFilteredEntriesListing() {

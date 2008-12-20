@@ -4,11 +4,11 @@ import com.application.areca.RecoveryEntry;
 import com.myJava.object.PublicClonable;
 
 /**
- * Classe g�n�rique d�finissant un filtre d'entr�e � backuper.
+ * Archive filter interface.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*

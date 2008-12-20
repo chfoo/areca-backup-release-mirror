@@ -37,7 +37,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -73,21 +73,21 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     protected int id; // Numeric unique id of the target within its process
     protected String uid; // Unique identifier
     protected String targetName; // Name of the target
-    protected TargetGroup process;
+    protected TargetGroup group;
     protected String comments;
     protected ProcessorList postProcessors = new ProcessorList();
     protected ProcessorList preProcessors = new ProcessorList();
     protected boolean running;
     protected boolean createSecurityCopyOnBackup = true;
      
-    public void setProcess(TargetGroup process) {
-        this.process = process;
+    public void setGroup(TargetGroup group) {
+        this.group = group;
     }
     
     protected void copyAttributes(Object clone) {
         AbstractRecoveryTarget other = (AbstractRecoveryTarget)clone;
-        other.process = process;
-        other.id = process.getNextFreeTargetId();
+        other.group = group;
+        other.id = group.getNextFreeTargetId();
         other.uid = generateNewUID();
         other.targetName = "Copy of " + targetName;
         other.comments = comments;
@@ -177,12 +177,12 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     
     protected abstract String getSpecificTargetDescription();
     
-    public TargetGroup getProcess() {
-        return this.process;
+    public TargetGroup getGroup() {
+        return this.group;
     }
     
     /**
-     * V�rifie l'�tat du syst�me avant toute action (archivage, backup, fusion) 
+     * Check the system state before critical operations (merges, deletions, ...)
      */
     public ActionReport checkTargetState(int action) {
         return this.medium.checkMediumState(action);
@@ -297,7 +297,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                 // Lance le backup ...
                 context.reset(false);
                 context.getInfoChannel().print("Backup in progress ...");
-                context.getTaskMonitor().checkTaskCancellation();
+                context.getTaskMonitor().checkTaskState();
                 context.getReport().startDataFlowTimer();
                 this.open(manifest, context, backupScheme);
 
@@ -314,7 +314,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                 RecoveryEntry entry = this.nextElement(context);
                 long index = 0;
                 while (entry != null) {
-                    context.getInfoChannel().getTaskMonitor().checkTaskCancellation();
+                    context.getInfoChannel().getTaskMonitor().checkTaskState();
                     if (this.filterEntryBeforeStore(entry)) {
                         try {
                             index++;
@@ -386,7 +386,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
             RecoveryEntry entry = this.nextElement(context);
             long index = 0;
             while (entry != null) {
-                context.getTaskMonitor().checkTaskCancellation();
+                context.getTaskMonitor().checkTaskState();
                 if (this.filterEntryBeforeStore(entry)) {
                     index++;
                     this.medium.simulateEntryProcessing(entry, context);
@@ -406,7 +406,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
                 }
                 entry = this.nextElement(context); 
             }
-            context.getTaskMonitor().checkTaskCancellation();
+            context.getTaskMonitor().checkTaskState();
 
             // Add all deleted files
             List deletedEntries = medium.closeSimulation(context); 
@@ -437,7 +437,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
      */
     protected void commitBackup(ProcessContext context) throws ApplicationException {
     	try {
-            context.getTaskMonitor().checkTaskCancellation();
+            context.getTaskMonitor().checkTaskState();
             context.getTaskMonitor().setCancellable(false);
         	context.getManifest().addProperty(ManifestKeys.FILTERED_ENTRIES, context.getReport().getFilteredEntries());
         	context.getManifest().addProperty(ManifestKeys.BACKUP_DURATION, Utils.formatDuration(System.currentTimeMillis() - context.getReport().getStartMillis()));     
@@ -586,7 +586,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
      */
     protected void commitMerge(ProcessContext context) throws ApplicationException {
         try {
-            context.getTaskMonitor().checkTaskCancellation();
+            context.getTaskMonitor().checkTaskState();
             context.getTaskMonitor().setCancellable(false);
             this.medium.commitMerge(context);
             context.getReport().setCommited();
@@ -795,7 +795,7 @@ implements HistoryEntryTypes, PublicClonable, Identifiable {
     private static String generateNewUID() {
         try {
             SecureRandom prng = SecureRandom.getInstance("SHA1PRNG");
-            return "" + Math.abs(prng.nextInt());
+            return String.valueOf(Math.abs((long)prng.nextInt())); // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE ... hence the cast as "long"
         } catch (NoSuchAlgorithmException e) {
             Logger.defaultLogger().error("Error generating a random integer. Using Math.random instead.", e);
             return "" + Math.abs((int)(Math.random() * 10000000 + System.currentTimeMillis()));

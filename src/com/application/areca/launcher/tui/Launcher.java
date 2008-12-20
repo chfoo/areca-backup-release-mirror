@@ -29,7 +29,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -78,27 +78,33 @@ implements CommandConstants {
                 if (FileSystemManager.exists(f)) {
                     Logger.defaultLogger().remove(FileLogProcessor.class);
                     Logger.defaultLogger().remove(ConsoleLogProcessor.class);
-                    File configFile = new File(Util.replace(command.getOption(OPTION_CONFIG), ".xml", ""));
-                    File logFile = new File(
-                            FileSystemManager.getParentFile(configFile) + "/log/",
-                            FileSystemManager.getName(configFile)
-                    );
+                    File configFile = new File(command.getOption(OPTION_CONFIG));
+                    
+                    String configName = FileSystemManager.getName(configFile);
+                    if (configName.endsWith(".xml")) {
+                    	configName = configName.substring(0, configName.length() - 4);
+                    }
+                    
+                    File logDir = new File(FileSystemManager.getParentFile(configFile), "log");
+                    File logFile = new File(logDir, configName);
         	        FileLogProcessor proc = new FileLogProcessor(logFile);
         	        Logger.defaultLogger().addProcessor(proc);
                 }
             }
             
-            Logger.defaultLogger().info("Starting the process ... config = [" + command.getOption(OPTION_CONFIG) + "].");
-            channel.print("Starting the process ... config = [" + command.getOption(OPTION_CONFIG) + "].");
-            
             ProcessXMLReader adapter = new ProcessXMLReader(new File(command.getOption(OPTION_CONFIG)));
             adapter.setMissingDataListener(new MissingDataListener());
             TargetGroup process = adapter.load();
             AbstractRecoveryTarget target = null;
+            String suffix = ".";
             if (command.hasOption(OPTION_TARGET)) {
                 target = getTarget(process, command.getOption(OPTION_TARGET));
+                suffix = " - target = [" + target.getTargetName() + "].";
             }
             ProcessContext context = new ProcessContext(target, channel, new TaskMonitor("tui-main"));
+            
+            Logger.defaultLogger().info("Starting the process ... config = [" + command.getOption(OPTION_CONFIG) + "]" + suffix);
+            channel.print("Starting the process ... config = [" + command.getOption(OPTION_CONFIG) + "]" + suffix);
             
             if (command.getCommand().equalsIgnoreCase(COMMAND_MERGE.getName())) {
                 processMerge(command, process, context);

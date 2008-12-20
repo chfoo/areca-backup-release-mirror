@@ -12,9 +12,9 @@ import java.util.ArrayList;
 
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.OutputStreamListener;
-import com.myJava.file.attributes.Attributes;
 import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
 import com.myJava.file.driver.FileInformations;
+import com.myJava.file.metadata.FileMetaData;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
@@ -32,7 +32,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -131,7 +131,7 @@ extends AbstractLinkableFileSystemDriver {
 		return this.predecessor.getInformations(this.encodeFileName(file));
 	}
 
-	public Attributes getAttributes(File f) throws IOException {
+	public FileMetaData getAttributes(File f) throws IOException {
 		return this.predecessor.getAttributes(this.encodeFileName(f));
 	}
 
@@ -259,7 +259,7 @@ extends AbstractLinkableFileSystemDriver {
 		return this.predecessor.setLastModified(this.encodeFileName(file), time);
 	}
 
-	public void applyAttributes(Attributes p, File f) throws IOException {
+	public void applyAttributes(FileMetaData p, File f) throws IOException {
 		this.predecessor.applyAttributes(p, this.encodeFileName(f));
 	}
 

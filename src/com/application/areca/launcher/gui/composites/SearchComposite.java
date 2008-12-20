@@ -40,7 +40,7 @@ import com.application.areca.search.TargetSearchResult;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -298,7 +298,7 @@ implements MouseListener, Listener, Refreshable {
             AbstractRecoveryTarget target = (AbstractRecoveryTarget)tgIter.next();
             chk.setSelection(
                     (this.application.isCurrentObjectTarget() && this.application.getCurrentTarget().getUid().equals(target.getUid()))
-                    || (this.application.isCurrentObjectProcess() && this.application.getCurrentProcess().getUid().equals(target.getProcess().getUid()))
+                    || (this.application.isCurrentObjectProcess() && this.application.getCurrentProcess().getUid().equals(target.getGroup().getUid()))
             );
         }
     }

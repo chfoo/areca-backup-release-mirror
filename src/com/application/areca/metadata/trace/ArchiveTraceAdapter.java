@@ -11,6 +11,7 @@ import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.metadata.AbstractMetadataAdapter;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.util.log.Logger;
 
 /**
@@ -18,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -71,7 +72,7 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
         this.trackPermissions = trackPermissions;
     }
     
-    public void writeEntry(FileSystemRecoveryEntry entry) throws IOException {
+    public void writeEntry(FileSystemRecoveryEntry entry) throws IOException, FileMetaDataSerializationException {
         initWriter();
         if (FileSystemManager.isFile(entry.getFile()) || trackDirectories) {
             this.writer.write("\r\n" + ArchiveTrace.serialize(entry, trackPermissions, trackSymlinks));

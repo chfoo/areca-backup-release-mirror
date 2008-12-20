@@ -13,7 +13,7 @@ import com.myJava.file.archive.zip64.ZipEntry;
 import com.myJava.file.archive.zip64.ZipInputStream;
 import com.myJava.file.archive.zip64.ZipOutputStream;
 import com.myJava.file.archive.zip64.ZipVolumeStrategy;
-import com.myJava.file.attributes.Attributes;
+import com.myJava.file.metadata.FileMetaData;
 import com.myJava.file.multivolumes.VolumeInputStream;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
@@ -24,7 +24,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -289,7 +289,11 @@ extends AbstractLinkableFileSystemDriver {
             File target = new File(encode(predecessor.getParentFile(file)), predecessor.getName(file));
             ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, cached, compression.getNbDigits());
             strategy.setListener(listener);
-            zout = new ZipOutputStream(strategy, compression.getVolumeSize() * 1024 * 1024, compression.isUseZip64());
+            zout = new ZipOutputStream(
+            		strategy, 
+            		compression.getVolumeSize() * 1024 * 1024, 
+            		compression.isUseZip64()
+            );
         } else {
         	OutputStream base;
         	if (cached) {
@@ -298,6 +302,11 @@ extends AbstractLinkableFileSystemDriver {
         		base = predecessor.getFileOutputStream(encode(file), false, listener);        		
         	}
             zout = new ZipOutputStream(base, compression.isUseZip64());
+        }
+        if (compression.getLevel() >= 0) {
+            zout.setLevel(compression.getLevel());          	
+        } else {
+        	zout.setLevel(9);
         }
         if (compression.getCharset() != null) {
             zout.setCharset(compression.getCharset());
@@ -327,11 +336,11 @@ extends AbstractLinkableFileSystemDriver {
         }
     }
     
-    public Attributes getAttributes(File file) throws IOException {
+    public FileMetaData getAttributes(File file) throws IOException {
         return this.predecessor.getAttributes(encode(file));
     }
 
-    public void applyAttributes(Attributes p, File file) throws IOException {
+    public void applyAttributes(FileMetaData p, File file) throws IOException {
         File[] f = resolveFiles(file);
         for (int i=0; i<f.length; i++) {
             predecessor.applyAttributes(p, f[i]);
@@ -341,6 +350,8 @@ extends AbstractLinkableFileSystemDriver {
     public int hashCode() {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, this.predecessor);
+		h = HashHelper.hash(h, this.compression);
+		h = HashHelper.hash(h, this.root);
         
         return h;
     }
@@ -353,6 +364,8 @@ extends AbstractLinkableFileSystemDriver {
             
             return (
                     EqualsHelper.equals(other.predecessor, this.predecessor) 
+                    && EqualsHelper.equals(other.compression, this.compression) 
+                    && EqualsHelper.equals(other.root, this.root) 
             );
         } else {
             return false;

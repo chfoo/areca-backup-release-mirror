@@ -1,6 +1,6 @@
 package com.application.areca.plugins;
 
-import java.io.File;
+import java.net.URL;
 
 import com.myJava.util.version.VersionData;
 
@@ -8,7 +8,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -37,8 +37,8 @@ public interface StoragePlugin {
     public String getId();
     public void setId(String id);
     public VersionData getVersionData();
-    public File getSourceJar();
-    public void setSourceJar(File sourceJar);
+    public URL[] getClassPath();
+    public void setClassPath(URL[] classpath);
     
     public FileSystemPolicyXMLHandler buildFileSystemPolicyXMLHandler();
     public StorageSelectionHelper getStorageSelectionHelper();

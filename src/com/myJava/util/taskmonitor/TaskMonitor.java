@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.myJava.object.ToStringHelper;
+import com.myJava.util.log.Logger;
 
 /**
- * Classe d�finissant un moniteur d'avancement de t�che.
- * <BR>Permet d'enregistrer des sous t�ches, de d�finir un �tat d'avancement global
- * <BR>et de lever des �v�nements lors des changements d'�tat (@see TaskMonitorListener)
+ * This task allows to monitor a task completion.
+ * It also holds multiple listeners for event management.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -35,28 +35,51 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class TaskMonitor {
-
-    // Taux de completion de la t�che (hors sous t�che) : double entre 0 et 1
+	public static final long PAUSE_CHECK_DELAY_MS = 500;
+	
+	/**
+	 * Completion rate of the task : between 0 and 1
+	 */
     protected double currentCompletionRate;
 
-    // Sous t�che courante
+    /**
+     * Current subtask
+     */
     protected TaskMonitor currentSubTask;
     
-    // Part de la sous t�che dans l'avancement global de la t�che (double, entre 0 et 1)
+    /**
+     * Part of the subtask in the global task completion (between 0 and 1)
+     */
     protected double currentSubTaskShare;
     
-    // En cas de sous t�che, t�che parent
+    /**
+     * Parent task (null if no parent task)
+     */
     protected TaskMonitor parentTask;   
     
-    // Liste contenant des TaskMonitorListeners
+    /**
+     * Task's listeners
+     */
     protected List listeners; 
     
-    // Boolean telling wether the current tack can be cancelled or not
+    /**
+     * Tells whether a "pause" has been requested by the user
+     */
+    protected boolean pauseRequested = false;
+    
+    /**
+     * Boolean telling whether the current tack can be canceled or not
+     */
     protected boolean cancellable = true;
     
-    // Tells wether a "cancel" has been requested by the user
+    /**
+     * Tells whether a "cancel" has been requested by the user
+     */
     protected boolean cancelRequested = false;
     
+    /**
+     * Task name
+     */
     protected String name = "";
     
     public TaskMonitor(String name) {
@@ -68,7 +91,10 @@ public class TaskMonitor {
         this.clearAllListeners();  
     }
     
-    // Ajoute un listener � la liste
+    /**
+     * Add a new listener
+     * @param listener
+     */
     public void addListener(TaskMonitorListener listener) {
         if (listener == null) {
             throw new NullPointerException();
@@ -77,13 +103,18 @@ public class TaskMonitor {
         }
     }
     
-    // Supprime tous les listeners.
+    /**
+     * remove all listeners
+     */
     public void clearAllListeners() {
         this.listeners = new ArrayList();
     }
     
-    // Retourne le taux d'avancement global de la t�che
-    // (taux courant de la t�che + part de la sous t�che * taux global de la sous t�che.
+    /**
+     * Return the global completion rate of the task
+     * <BR>Task completion rate + subtask share * subtask global completion rate
+     * @return
+     */
     public double getGlobalCompletionRate() {
         if (currentSubTask == null) {
             return this.currentCompletionRate;
@@ -93,9 +124,11 @@ public class TaskMonitor {
         }
     }
     
-    // Initialise la sous t�che courante
-    // subTaskShare repr�sente la part de la sous t�che dans l'avancement global
-    // de la t�che (exemple : 0.1 pour 10%)
+    /**
+     * Set the current sub task.
+     * @param subTask
+     * @param subTaskShare is the share of the subtask in the task's global completion (between 0 and 1)
+     */
     public void setCurrentSubTask(TaskMonitor subTask, double subTaskShare) {
         if (subTask.getGlobalCompletionRate() > 0) {
             throw new IllegalArgumentException("Illegal attempt to add a subTask which has already been started.");
@@ -110,11 +143,15 @@ public class TaskMonitor {
         this.setCurrentSubTask(new TaskMonitor(name), subTaskShare);
     }
 
-    // Initialise le taux d'avancement global de la t�che.
-    // Attention : ceci n'est faisable que si la sous t�che courante a �t� termin�e.    
+    /**
+     * Enforce the task's global completion rate.
+     * It can be done only if the current sub task is completed  
+     * @param completion
+     */ 
     public void setCurrentCompletion(double completion) {
         
-        // On ne fait rien si le taux d'avancement ne change pas. (sauf si la compl�tion est �gale � 0, auquel cas on force l'update quoi qu'il arrive)
+        // Do nothing if the completion rate remains unchanged. 
+    	// Except if the completion is 0 : in this case, we enforce the rate's update
         if (this.currentCompletionRate == completion && completion != 0) {
             return;
         }
@@ -127,10 +164,10 @@ public class TaskMonitor {
             throw new IllegalArgumentException("Illegal Argument : the current completion rate is above the completion rate passed in argument");
         }
         
-        // MAJ du taux d'avancement.
+        // Update completion rate
         this.currentCompletionRate = completion;
         
-        // Lev�e d'�v�nement.
+        // Raise event
         this.completionChanged();
     }
     
@@ -140,7 +177,7 @@ public class TaskMonitor {
     
     public void setCurrentCompletion(long numerator, long denominator) {
         if (denominator == numerator) {
-            this.setCurrentCompletion(1.); // cas "0/0"
+            this.setCurrentCompletion(1.); // "0/0" special case
         } else {
             this.setCurrentCompletion(((double)numerator) / ((double)denominator));
         }
@@ -156,10 +193,12 @@ public class TaskMonitor {
         this.setCurrentCompletion(1.0);
     }
     
-    // Retourne la sous t�che r�ellement active de la t�che courante
-    // <BR>(c'est � dire la derni�re sous t�che ayant �t� ajout�e dans le cha�ne des sous t�ches)
-    // <BR>C'est la seule sous t�che dont le taux d'avancement peut �tre mis � jour par appel direct � 
-    // 'setCurrentCompletion()'.
+    /**
+     * Returns the really active subtask of the current task.
+     * <BR>It is the last subtask which has been added in the subtask tree.
+     * <BR>It is the only task whose completion rate can be set (by calling setCurrentCompletion)
+     * @return
+     */
     public TaskMonitor getCurrentActiveSubTask() {
         if (this.currentSubTask == null) {
             return this;
@@ -168,27 +207,26 @@ public class TaskMonitor {
         }
     }
     
-    // Alerte ses listeners ainsi que la t�che parente que le taux d'avancement a chang�.
+    /**
+     * Call all listeners
+     */
     protected void completionChanged() {
-        // nettoyage de la sous t�che
         if (this.currentSubTask != null && this.currentSubTask.getGlobalCompletionRate() >= 1.) {
             this.completeCurrentSubTask();
         }
         
-        // appel des listeners
         for (int i=0; i<this.listeners.size(); i++) {
             ((TaskMonitorListener)listeners.get(i)).completionChanged(this);
         }
         
-        // appel de la t�che parente
         if (this.parentTask != null) {
             this.parentTask.completionChanged();
         }
     }
     
-    // Supprime la sous t�che courante et int�gre son taux d'avancement dans le taux d'avancement
-    // courant.
-    // Cette sous t�che est suppos�e avoir �t� termin�e (taux d'avancement de la sous t�che = 1);
+    /**
+     * Remove the current sub task and integrates its completion rate in the global task's completion rate
+     */
     private void completeCurrentSubTask() {
         this.currentSubTask.clearAllListeners();
         this.currentSubTask.parentTask = null;
@@ -204,15 +242,31 @@ public class TaskMonitor {
     public synchronized boolean isCancelRequested() {
         return cancelRequested;
     }
-    
-    public void setCancelRequested() {
+
+	public boolean isPauseRequested() {
+		return pauseRequested;
+	}
+
+	public void setPauseRequested(boolean pauseRequested) {
+        synchronized(this) {
+            this.pauseRequested = pauseRequested;
+        }
+        
+        for (int i=0; i<this.listeners.size(); i++) {
+            ((TaskMonitorListener)listeners.get(i)).pauseRequested(this);
+        }
+	}
+
+	public void setCancelRequested() {
         if (cancellable) {
             synchronized(this) {
                 this.cancelRequested = true;
                 this.setCancellable(false);
+                if (this.pauseRequested) {
+                	this.setPauseRequested(false);
+                }
             }
             
-            // appel des listeners
             for (int i=0; i<this.listeners.size(); i++) {
                 ((TaskMonitorListener)listeners.get(i)).cancelRequested(this);
             }
@@ -229,16 +283,35 @@ public class TaskMonitor {
             this.cancellable = cancellable;
         }
         
-        // appel des listeners
         for (int i=0; i<this.listeners.size(); i++) {
             ((TaskMonitorListener)listeners.get(i)).cancellableChanged(this);
         }
     }
     
-    public void checkTaskCancellation() throws TaskCancelledException {
+    /**
+     * Checks whether the task has been canceled or paused.
+     * @throws TaskCancelledException
+     */
+    public void checkTaskState() throws TaskCancelledException {
         if (this.isCancelRequested()) {
-            throw new TaskCancelledException("The task has been cancelled");
+            throw new TaskCancelledException("The [" + this.name + "] task has been cancelled.");
         }
+        
+    	try {
+    		boolean paused = false;
+    		if (pauseRequested) {
+    			paused = true;
+    			Logger.defaultLogger().info("The [" + this.name + "] task has been paused.");
+    		}
+			while (this.pauseRequested) {
+				Thread.currentThread().sleep(PAUSE_CHECK_DELAY_MS);
+			}
+			if (paused) {
+    			Logger.defaultLogger().info("The [" + this.name + "] task has been resumed.");
+			}
+		} catch (InterruptedException e) {
+			Logger.defaultLogger().error("Interrupted", e);
+		}
     }
 
     public String toString() {

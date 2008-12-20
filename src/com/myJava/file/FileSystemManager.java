@@ -16,10 +16,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.myJava.file.attributes.Attributes;
 import com.myJava.file.driver.DefaultFileSystemDriver;
 import com.myJava.file.driver.DriverAlreadySetException;
 import com.myJava.file.driver.FileSystemDriver;
+import com.myJava.file.metadata.FileMetaData;
+import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 
 /**
@@ -31,7 +32,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -375,7 +376,7 @@ public class FileSystemManager {
     
     public static OutputStream getCachedFileOutputStream(File file) throws IOException {
         return getInstance().getDriver(file).getCachedFileOutputStream(file);
-    }   
+    }  
     
     public static OutputStream getFileOutputStream(File file) throws IOException {
         return getInstance().getDriver(file).getFileOutputStream(file);
@@ -417,11 +418,11 @@ public class FileSystemManager {
         return getInstance().getDriver(file).getCachedFileInputStream(file);
     }
     
-    public static Attributes getAttributes(File file) throws IOException {
+    public static FileMetaData getAttributes(File file) throws IOException {
         return getInstance().getDriver(file).getAttributes(file);
     }
     
-    public static void applyAttributes(Attributes p, File f) throws IOException {
+    public static void applyAttributes(FileMetaData p, File f) throws IOException {
         getInstance().getDriver(f).applyAttributes(p, f);
     }
     

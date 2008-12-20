@@ -1,19 +1,28 @@
 package com.myJava.encryption;
 
 import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
+import com.myJava.util.Util;
+import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -36,7 +45,27 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class EncryptionUtil {
-    
+	/**
+	 * Nr of iterations used during encyption key generation phase.
+	 */
+	private static final int KEYGEN_ITERATION_COUNT = FrameworkConfiguration.getInstance().getEncryptionKGIters();
+	
+	/**
+	 * Salt added during encryption key generation phase.
+	 * <BR>This salt is kept constant because we want the key derivation process to be deterministic
+	 * and ONLY based on the password entered by the user (necessary if the target's configuration is
+	 * lost : we must be able to reconstruct the encryption key with no other data than the password.
+	 * <BR>
+	 * <BR>So this 'salt' is quite weak (constant) ... it's only here to force potential attackers to 
+	 * build their own hash table.
+	 * <BR>
+	 * <BR>For a safer encryption key, just use Areca's "raw" key convention, which allow you to simply
+	 * enter the encryption key (as an hexadecimal sequence)
+	 */
+	private static final String KEYGEN_SALT = FrameworkConfiguration.getInstance().getEncryptionKGSalt();
+    private static final String KEY_ALG = FrameworkConfiguration.getInstance().getEncryptionKGAlg();
+    private static final String REF_ENC = FrameworkConfiguration.getInstance().getEncryptionKGSaltEncoding();
+	
     public static boolean equals(Cipher c1, Cipher c2) {
         if (c1 == null && c2 == null) {
             return true;
@@ -62,50 +91,40 @@ public class EncryptionUtil {
         return h;
     }
     
-    /**
-     * Normalizes the key so it can by used by the encryption algorithm.
-     * <BR>- It is platform independant (while the former key creation algorithm depends on the platform's encoding)
-     * <BR>- It generates stronger keys (the password can have any size : it is hashed using MD5 and (if needed) SHA to produce a byte array)
-     * <BR>The key size is expressed in bytes
-     */
-    public static byte[] getNormalizedEncryptionKey(String encryptionSeed, int keySize) {
-        String referenceEncoding = "UTF-8"; // The bytes are extracted using UTF-8 character encoding.
-        try {               
-            // Extract the bytes from the encryption seed
-            byte[] originalBytes = encryptionSeed.getBytes(referenceEncoding);
-            byte[] result = new byte[keySize];
-            
-            // Create a 128 bit key
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(originalBytes);
-            byte[] md5Result = md.digest();
-            
-            for (int i=0; i<result.length && i<md5Result.length; i++) {
-                result[i] = md5Result[i];
-            }
-            
-            // if the requested key size is greater than 128 bits, create another hash using SHA -> 160 bits
-            if (md5Result.length < keySize) {
-                MessageDigest mdSha = MessageDigest.getInstance("SHA");
-                mdSha.update(originalBytes);
-                byte[] shaResult = mdSha.digest();
-                
-                // If still not enough, return an error
-                if (shaResult.length + md5Result.length < keySize) {
-                    throw new IllegalArgumentException("Invalid key size : expected " + keySize + " and got " + (shaResult.length + md5Result.length));
-                }
-                
-                // Append the result.
-                for (int i=0; (i + md5Result.length)<result.length && i<shaResult.length; i++) {
-                    result[i + md5Result.length] = shaResult[i];
-                }
-            }
-            
-            return result;
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException("No such hash function : MD5");
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException("Unsupported encoding : " + referenceEncoding);                
-        }
+    public static Key buildKeyFromRawInput(String rawKey, String alg) {
+    	return new SecretKeySpec(Util.parseHexa(rawKey), alg);
+    }
+    
+    public static Key buildKeyFromPassphrase(String encryptionSeed, int keySize, String alg) {
+        try {
+			SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(KEY_ALG);
+			byte[] salt = KEYGEN_SALT.getBytes(REF_ENC);
+			PBEKeySpec pbKeySpec = new PBEKeySpec(encryptionSeed.toCharArray(), salt, KEYGEN_ITERATION_COUNT, keySize*8);
+			SecretKey pbKey = keyFactory.generateSecret(pbKeySpec);
+			byte[] b = pbKey.getEncoded();
+			
+	    	return new SecretKeySpec(b, alg);
+		} catch (NoSuchAlgorithmException e) {
+			Logger.defaultLogger().error(e);
+			throw new IllegalArgumentException("Unsupported key derivation algorithm : " + KEY_ALG);
+		} catch (UnsupportedEncodingException e) {
+			Logger.defaultLogger().error(e);
+			throw new IllegalArgumentException("Unsupported encoding : " + REF_ENC);
+		} catch (InvalidKeySpecException e) {
+			Logger.defaultLogger().error(e);
+			throw new IllegalArgumentException("Unsupported parameters", e);
+		}
+    }
+
+    public static byte[] generateRandomKey(int keySize) {
+    	try {
+			SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
+			byte[] b = new byte[keySize];
+			sr.nextBytes(b);
+			return b;
+		} catch (NoSuchAlgorithmException e) {
+			Logger.defaultLogger().error("An error was detected while generating encryption key.", e);
+			throw new IllegalArgumentException(e);
+		}
     }
 }

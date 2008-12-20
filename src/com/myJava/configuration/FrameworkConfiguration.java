@@ -18,7 +18,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -43,6 +43,10 @@ This file is part of Areca.
 public class FrameworkConfiguration {
     private static FrameworkConfiguration instance = new FrameworkConfiguration(); 
     
+    public static String KEY_ENCRYPTION_KG_ITER = "encryption.keygen.iterations";
+    public static String KEY_ENCRYPTION_KG_SALT = "encryption.keygen.salt";
+    public static String KEY_ENCRYPTION_KG_SALT_ENC = "encryption.keygen.salt.encoding";
+    public static String KEY_ENCRYPTION_KG_ALG = "encryption.keygen.algorithm";
     public static String KEY_DELTA_DEBUG = "delta.debug";
     public static String KEY_FTP_MAX_PROXIES = "ftp.max.proxies";
     public static String KEY_FTP_DEBUG = "ftp.debug";
@@ -73,7 +77,12 @@ public class FrameworkConfiguration {
     public static String KEY_DELTA_HASHMAP_SIZE = "delta.hashmap.size"; 
     public static String KEY_DELTA_QUICKHASH_MULTIPLIER = "delta.quickhash.multiplier"; 
     public static String KEY_DELTA_QUICKHASH_MODULUS = "delta.quickhash.modulus"; 
+    public static String KEY_FILESYSTEM_ACCESSOR = "filesystem.accessor.impl"; 
     
+    public static int DEF_ENCRYPTION_KG_ITER = 96731;
+    public static String DEF_ENCRYPTION_KG_SALT = "ù%${{²]}}[|`è€$£^¤*!§:/..;;,,_?\"\\°à@@%µ";
+    public static String DEF_ENCRYPTION_KG_SALT_ENC = "UTF-8";
+    public static String DEF_ENCRYPTION_KG_ALG = "PBKDF2WithHmacSHA1";
     public static boolean DEF_DELTA_DEBUG = false;
     public static int DEF_FTP_MAX_PROXIES = 3;
     public static long DEF_FTP_NOOP_DELAY = 30000;    
@@ -104,6 +113,7 @@ public class FrameworkConfiguration {
     public static int DEF_DELTA_HASHMAP_SIZE = 10007;
     public static int DEF_DELTA_QUICKHASH_MULTIPLIER = 691 * 13 * 11; 
     public static int DEF_DELTA_QUICKHASH_MODULUS = 4013423 * 17; 
+    public static String DEF_FILESYSTEM_ACCESSOR = null; 
 
     private static String VM_PROPS_PREFIX = "launcher.d.";
     
@@ -153,6 +163,26 @@ public class FrameworkConfiguration {
                 }
             }
         }
+    }
+    
+    public int getEncryptionKGIters() {
+    	return getProperty(KEY_ENCRYPTION_KG_ITER, DEF_ENCRYPTION_KG_ITER);
+    }
+    
+    public String getFileSystemAccessorImpl() {
+    	return getProperty(KEY_FILESYSTEM_ACCESSOR, DEF_FILESYSTEM_ACCESSOR);
+    }
+    
+    public String getEncryptionKGAlg() {
+    	return getProperty(KEY_ENCRYPTION_KG_ALG, DEF_ENCRYPTION_KG_ALG);
+    }
+    
+    public String getEncryptionKGSalt() {
+    	return getProperty(KEY_ENCRYPTION_KG_SALT, DEF_ENCRYPTION_KG_SALT);
+    }
+    
+    public String getEncryptionKGSaltEncoding() {
+    	return getProperty(KEY_ENCRYPTION_KG_SALT_ENC, DEF_ENCRYPTION_KG_SALT_ENC);
     }
     
     public Map getJavaProperties() {

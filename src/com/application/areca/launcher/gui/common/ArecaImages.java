@@ -11,7 +11,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -35,6 +35,7 @@ This file is part of Areca.
  */
 public class ArecaImages {
     private static final boolean showSmallIcons = false;//OSTool.isSystemWindows(); 
+    private static final String ICON_DIR = "icons";
     private static final String B_PREFIX = showSmallIcons ? "" : "big/";
 
     // General
@@ -94,7 +95,7 @@ public class ArecaImages {
     
     private static Image loadImage(String strUrl) {
         try {
-            URL url = ClassLoader.getSystemClassLoader().getResource(strUrl);
+            URL url = ClassLoader.getSystemClassLoader().getResource(ICON_DIR + "/" + strUrl);
             return new Image(Display.getCurrent(), url.openStream()); 
         } catch (Exception e) {
             Logger.defaultLogger().error(e);

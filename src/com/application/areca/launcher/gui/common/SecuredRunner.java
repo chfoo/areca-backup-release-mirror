@@ -10,7 +10,7 @@ import com.application.areca.launcher.gui.Application;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -69,12 +69,25 @@ implements Runnable {
     }
     
     public static void execute(Runnable runnable) {
-        execute(Application.getInstance().getDisplay(), runnable);
+    	execute(runnable, false);
+    }
+    
+    public static void execute(Runnable runnable, boolean async) {
+        execute(Application.getInstance().getDisplay(), runnable, async);
+    }
+    
+    public static void execute(Display parent, Runnable runnable, boolean async) {
+        if (parent != null && ! parent.isDisposed()) {
+        	SecuredRunner rn = new SecuredRunner(parent, runnable);
+        	if (async) {
+        		parent.asyncExec(rn);        		
+        	} else {
+        		parent.syncExec(rn);
+        	}
+        }
     }
     
     public static void execute(Display parent, Runnable runnable) {
-        if (parent != null && ! parent.isDisposed()) {
-            parent.syncExec(new SecuredRunner(parent, runnable));
-        }
+    	execute(parent, runnable, false);
     }
 }

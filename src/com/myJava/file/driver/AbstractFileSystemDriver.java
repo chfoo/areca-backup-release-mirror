@@ -9,7 +9,7 @@ import java.io.InputStream;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.InvalidPathException;
-import com.myJava.file.attributes.Attributes;
+import com.myJava.file.metadata.FileMetaData;
 import com.myJava.system.OSTool;
 
 /**
@@ -18,7 +18,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -163,11 +163,11 @@ implements FileSystemDriver {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
     }
     
-    public Attributes getAttributes(File f) throws IOException {
+    public FileMetaData getAttributes(File f) throws IOException {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
     }
 
-    public void applyAttributes(Attributes p, File f) throws IOException {
+    public void applyAttributes(FileMetaData p, File f) throws IOException {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
     }
     

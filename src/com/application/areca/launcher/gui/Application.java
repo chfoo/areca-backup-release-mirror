@@ -1,7 +1,6 @@
 package com.application.areca.launcher.gui;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
@@ -12,6 +11,9 @@ import java.util.Set;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -28,8 +30,8 @@ import com.application.areca.ArchiveMedium;
 import com.application.areca.EntryArchiveData;
 import com.application.areca.Identifiable;
 import com.application.areca.RecoveryEntry;
-import com.application.areca.TargetGroup;
 import com.application.areca.ResourceManager;
+import com.application.areca.TargetGroup;
 import com.application.areca.UserInformationChannel;
 import com.application.areca.Utils;
 import com.application.areca.adapters.AdapterException;
@@ -71,7 +73,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -101,7 +103,7 @@ implements ActionConstants, Window.IExceptionHandler {
     private static final ResourceManager RM = ResourceManager.instance();
     private static Application instance = new Application();
     public static boolean SIMPLE_SUBTABS = true;
-    public static boolean SIMPLE_MAINTABS = true;    
+    public static boolean SIMPLE_MAINTABS = true; 
 
     public static Application getInstance() {
         return instance;
@@ -126,7 +128,7 @@ implements ActionConstants, Window.IExceptionHandler {
 
     // Keep a reference on the display used by the swt thread.
     private Display display;
-
+    private Clipboard clipboard;
     private Menu archiveContextMenu;
     private Menu archiveContextMenuLogical;
     private Menu actionContextMenu;
@@ -162,6 +164,7 @@ implements ActionConstants, Window.IExceptionHandler {
         mainWindow = new MainWindow();
         mainWindow.setWorkspacePath(workspacePath);
         display = Display.getCurrent();
+        clipboard = new Clipboard(display);
 
         CURSOR_WAIT = new Cursor(display, SWT.CURSOR_WAIT);
         AppActionReferenceHolder.refresh();
@@ -188,6 +191,10 @@ implements ActionConstants, Window.IExceptionHandler {
                 this.showVendorDialog();
             }
         }
+    }
+    
+    public Clipboard getClipboard() {
+    	return clipboard;
     }
 
     public Menu getArchiveContextMenu() {
@@ -292,7 +299,7 @@ implements ActionConstants, Window.IExceptionHandler {
             if (result == SWT.YES) {
                 if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                     FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
-                    TargetGroup process = target.getProcess();
+                    TargetGroup process = target.getGroup();
                     ProcessRunner rn = new ProcessRunner(target) {
                         public void runCommand() throws ApplicationException {
                             rProcess.processDeleteOnTarget(rTarget, rFromDate, context);
@@ -317,7 +324,7 @@ implements ActionConstants, Window.IExceptionHandler {
             showDeleteTarget();
         } else if (command.equals(CMD_NEW_PROCESS)) {
             // NEW PROCESS
-            showEditProcess(null);            
+            showEditGroup(null);            
         } else if (command.equals(CMD_DUPLICATE_TARGET)) {
             // DUPLICATE TARGET
             try {
@@ -325,9 +332,12 @@ implements ActionConstants, Window.IExceptionHandler {
             } catch (ApplicationException e1) {
                 this.handleException(RM.getLabel("error.duplicatetarget.message", new Object[] {e1.getMessage()}), e1);
             } 
+        } else if (command.equals(CMD_EDIT_PROCESS_XML)) {
+            // EDIT XML CONFIGURATION
+            showEditGroupXML(this.getCurrentProcess());  
         } else if (command.equals(CMD_EDIT_PROCESS)) {
             // EDIT PROCESS
-            showEditProcess(this.getCurrentProcess());            
+            showEditGroup(this.getCurrentProcess());            
         } else if (command.equals(CMD_DEL_PROCESS)) {
             // DELETE PROCESS
             showDeleteProcess();
@@ -396,7 +406,7 @@ implements ActionConstants, Window.IExceptionHandler {
             if (path != null) {
                 if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                     FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
-                    TargetGroup process = target.getProcess();
+                    TargetGroup process = target.getGroup();
                     ProcessRunner rn = new ProcessRunner(target) {
                         public void runCommand() throws ApplicationException {
                             rProcess.processRecoverOnTarget(
@@ -438,11 +448,20 @@ implements ActionConstants, Window.IExceptionHandler {
 
             if (command.equals(CMD_SEARCH_PHYSICAL)) {
                 // Archive detail
-                this.showArchiveDetail(item.getEntry());
+            	this.showArchiveDetail(item.getEntry());
             } else {
                 // Logical view
                 this.showLogicalView(item.getEntry());
             }
+        } else if (command.equals(CMD_COPY_FILENAMES)) {
+        	String[] filter = this.currentFilter.getFilter();
+        	StringBuffer cp = new StringBuffer();
+        	if (filter != null) {
+	        	for (int i=0; i< filter.length; i++) {
+	        		cp.append(filter[i]).append(OSTool.getLineSeparator());
+	        	}
+        	}
+        	copyString(cp.toString());
         } else if (command.equals(CMD_RECOVER_ENTRY) || command.equals(CMD_EDIT_FILE)) {
             // RECOVER ENTRY
             final String path;
@@ -455,7 +474,7 @@ implements ActionConstants, Window.IExceptionHandler {
             if (path != null) {
                 if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
                     FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
-                    TargetGroup process = target.getProcess();
+                    TargetGroup process = target.getGroup();
                     ProcessRunner rn = new ProcessRunner(target) {
                         public void runCommand() throws ApplicationException {
                             File entry = new File(path, rEntry.getName());
@@ -471,14 +490,7 @@ implements ActionConstants, Window.IExceptionHandler {
                                 File entry = new File(path, rEntry.getName());
                                 File f = new File(path, FileSystemManager.getName(entry));
                                 FileSystemManager.deleteOnExit(f);
-                                try {
-                                    String editCommand = ArecaPreferences.getEditionCommand();
-                                    String targetFile = FileSystemManager.getAbsolutePath(f).replace('\\', '/');
-                                    Logger.defaultLogger().info("Launching '" + editCommand + "' on file '"  + targetFile + "'");
-                                    Runtime.getRuntime().exec(new String[] {editCommand, targetFile});
-                                } catch (IOException e) {
-                                    Application.getInstance().handleException("Error attempting to edit " + FileSystemManager.getAbsolutePath(f) + " - Text edition command = " + ArecaPreferences.getEditionCommand(), e);
-                                }
+                                launchFileEditor(FileSystemManager.getAbsolutePath(f), true);
                             }
                         }                        
                     };
@@ -495,21 +507,63 @@ implements ActionConstants, Window.IExceptionHandler {
             this.showArchiveDetail(null);
         } 
     }
+    
+    public void copyString(String s) {
+        TextTransfer textTransfer = TextTransfer.getInstance();
+        clipboard.setContents(new Object[] {s}, new Transfer[] {textTransfer});
+    }
 
     public void showEditTarget(AbstractRecoveryTarget target) {
         TargetEditionWindow frmEdit = new TargetEditionWindow(target);
         showDialog(frmEdit);
         AbstractRecoveryTarget newTarget = frmEdit.getTargetIfValidated();
         if (newTarget != null) {
-            TargetGroup process = newTarget.getProcess();
+            TargetGroup process = newTarget.getGroup();
             process.addTarget(newTarget);
             this.currentObject = newTarget;
             this.saveProcess(process);
             this.mainWindow.refresh(true, true);
         }
     }
+    
+    private void launchFileEditor(String path, boolean async) {
+    	path = path.replace('\\', '/');
+        try {
+            String editCommand = ArecaPreferences.getEditionCommand();
+            Logger.defaultLogger().info("Launching '" + editCommand + "' on file '"  + path + "'");
+            String[] cmd = new String[] {editCommand, path};
+            Process p = Runtime.getRuntime().exec(cmd);            	
+            if (! async) {
+            	int ret = p.waitFor();
+            }
+        } catch (Exception e) {
+            Application.getInstance().handleException("Error attempting to edit " + path + " - Text editor = " + ArecaPreferences.getEditionCommand(), e);
+        }
+    }
+    
+    public void showEditGroupXML(final TargetGroup process) {
+        if (process != null) {
+            Runnable rn = new Runnable() {
+            	public void run() {
+                	launchFileEditor(process.getSourceFile().getAbsolutePath(), false);
+                	/*
+                    SecuredRunner.execute(new Runnable() {
+                    	public void run() {
+                        	openWorkspace(workspace.getPath());
+                    	}
+                    });
+                    */
+            	}
+            };
 
-    public void showEditProcess(TargetGroup process) {
+            Thread th = new Thread(rn);
+            th.setDaemon(true);
+            th.setName("Group XML edition");
+            th.start();
+        }
+    }   
+
+    public void showEditGroup(TargetGroup process) {
         GroupEditionWindow frmEdit = new GroupEditionWindow(process);
         showDialog(frmEdit);
         TargetGroup newProcess = frmEdit.getProcess();
@@ -539,19 +593,6 @@ implements ActionConstants, Window.IExceptionHandler {
             }                  
         }
     }
-    
-/*
-    public void loadWorkspace(String path) {
-        try {
-            this.setWorkspace(new Workspace(path, this), false);
-        } catch (AdapterException e) {
-            this.handleException(
-                    ResourceManager.instance().getLabel("error.loadworkspace.message", new Object[] {e.getMessage(), e.getSource()}),
-                    e
-            );
-        }       
-    }
-    */
     
     public void checkVersion(final boolean explicit) {
         if (explicit || ArecaPreferences.isCheckNewVersions()) {
@@ -989,7 +1030,7 @@ implements ActionConstants, Window.IExceptionHandler {
     }
 
     public void launchBackupOnTarget(AbstractRecoveryTarget target, Manifest manifest, final String backupScheme, final boolean disableCheck) {
-        TargetGroup process = target.getProcess();
+        TargetGroup process = target.getGroup();
         ProcessRunner rn = new ProcessRunner(target) {
             public void runCommand() throws ApplicationException {
                 rProcess.processBackupOnTarget(rTarget, rManifest, context, backupScheme, disableCheck);
@@ -1015,7 +1056,7 @@ implements ActionConstants, Window.IExceptionHandler {
     public void launchMergeOnTarget(final boolean keepDeletedEntries, Manifest manifest) {
         // MERGE
         FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
-        TargetGroup process = target.getProcess();
+        TargetGroup process = target.getGroup();
         ProcessRunner rn = new ProcessRunner(target) {
             public void runCommand() throws ApplicationException {
                 rProcess.processMergeOnTarget(rTarget, rFromDate, rToDate, keepDeletedEntries, rManifest, context);
@@ -1115,7 +1156,7 @@ implements ActionConstants, Window.IExceptionHandler {
         if (TargetGroup.class.isAssignableFrom(this.currentObject.getClass())) {
             return (TargetGroup)this.currentObject;
         } else if (AbstractRecoveryTarget.class.isAssignableFrom(this.currentObject.getClass())) {
-            return ((AbstractRecoveryTarget)this.currentObject).getProcess();
+            return ((AbstractRecoveryTarget)this.currentObject).getGroup();
         } else {
             return null;
         }
@@ -1441,7 +1482,11 @@ implements ActionConstants, Window.IExceptionHandler {
             addChannel(channel);
 
             try {
-                this.context = new ProcessContext(rTarget, channel, new TaskMonitor("application-main"));
+            	String taskName = "Unnamed-Task";
+            	if (rTarget != null) {
+            		taskName = rTarget.getTargetName();
+            	}
+                this.context = new ProcessContext(rTarget, channel, new TaskMonitor(taskName));
 
                 channel.startRunning();
                 registerState(true);

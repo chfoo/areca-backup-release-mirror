@@ -47,8 +47,9 @@ import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemIterator;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
-import com.myJava.file.attributes.Attributes;
 import com.myJava.file.driver.FileSystemDriver;
+import com.myJava.file.metadata.FileMetaData;
+import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
@@ -59,7 +60,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -393,6 +394,9 @@ implements TargetActions {
 			} catch (IOException e) {
 				Logger.defaultLogger().error(e);
 				throw new StoreException("Error during storage.", e);
+			} catch (FileMetaDataSerializationException e) {
+				Logger.defaultLogger().error(e);
+				throw new StoreException("Error during storage.", e);
 			}
 		}
 	}
@@ -426,7 +430,7 @@ implements TargetActions {
 	/**
 	 * Registers a generic entry - wether it has been filtered or not.
 	 */
-	protected abstract void registerGenericEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException;
+	protected abstract void registerGenericEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException, FileMetaDataSerializationException;
 
 	/**
 	 * Registers an entry after it has passed the filters. (hence a stored entry) 
@@ -437,7 +441,7 @@ implements TargetActions {
 	 * Close the archive
 	 */
 	public void commitBackup(ProcessContext context) throws ApplicationException {
-		this.target.secureUpdateCurrentTask("Commiting backup ...", context);
+		this.target.secureUpdateCurrentTask("Committing backup ...", context);
 		long entries = context.getTraceAdapter().getWritten();
 		try {             
 			// Close the trace file
@@ -635,17 +639,17 @@ implements TargetActions {
 					applyDirectoryAttributes(dir, key, trace);
 				}
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
 		}
 	}
 
-	private void applyDirectoryAttributes(File dir, String key, ArchiveTrace trace) throws IOException {
+	private void applyDirectoryAttributes(File dir, String key, ArchiveTrace trace) throws IOException, FileMetaDataSerializationException {
 		String hash = trace.getDirectoryHash(key);
 
 		if (hash != null) {
-			Attributes atts = ArchiveTrace.extractDirectoryAttributesFromTrace(hash);
+			FileMetaData atts = ArchiveTrace.extractDirectoryAttributesFromTrace(hash);
 			if (atts != null) {
 				FileSystemManager.applyAttributes(atts, dir);
 			}
@@ -757,7 +761,7 @@ implements TargetActions {
 					AbstractFileSystemMedium.tool.delete(oldMfFile, true);
 				}
 
-				context.getTaskMonitor().checkTaskCancellation();
+				context.getTaskMonitor().checkTaskState();
 
 				File[] recoveredFiles = context.getReport().getRecoveryResult().getRecoveredArchivesAsArray();
 				File[] processedFiles = context.getReport().getRecoveryResult().getProcessedArchivesAsArray();
@@ -830,7 +834,7 @@ implements TargetActions {
 
 	public void commitMerge(ProcessContext context) throws ApplicationException {
 		if (! this.overwrite) {
-			this.target.secureUpdateCurrentTask("Commiting merge ...", context);
+			this.target.secureUpdateCurrentTask("Committing merge ...", context);
 			super.commitMerge(context);
 
 			try {
@@ -1059,7 +1063,7 @@ implements TargetActions {
 					handler.recoverRawData(optimizedArchives, entriesByArchive, mode, context);
 				}
 
-				context.getTaskMonitor().checkTaskCancellation();
+				context.getTaskMonitor().checkTaskState();
 
 				// Third stage: clean recovery directory
 				if (trace != null) {
@@ -1071,10 +1075,10 @@ implements TargetActions {
 							context);
 				}
 			}
-		} catch (IOException e) {
-			Logger.defaultLogger().error(e);
-			throw new ApplicationException(e);
 		} catch (TaskCancelledException e) {
+			throw new ApplicationException(e);
+		} catch (Exception e) {
+			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
 		} finally {
 			context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);            
@@ -1116,7 +1120,7 @@ implements TargetActions {
 			boolean applyAttributes,
 			boolean cancelSensitive,
 			ProcessContext context
-	) throws IOException, TaskCancelledException {      
+	) throws IOException, TaskCancelledException, FileMetaDataSerializationException {      
 		// Nettoyage : on supprime 
 		// - Tous les fichiers n'apparaissant pas dans la trace
 		// - Tous les repertoires vides
@@ -1124,7 +1128,7 @@ implements TargetActions {
 		Iterator iter = new FileSystemIterator(targetFile, false);
 		while (iter.hasNext()) {
 			if (cancelSensitive) {
-				context.getTaskMonitor().checkTaskCancellation();  // Check for cancels only if we are cancel sensitive --> useful for "commit"
+				context.getTaskMonitor().checkTaskState();  // Check for cancels only if we are cancel sensitive --> useful for "commit"
 			}
 
 			File f = (File)iter.next();
@@ -1138,7 +1142,7 @@ implements TargetActions {
 				} else if (applyAttributes) {
 					// File found --> set additional attributes
 					FileSystemManager.setLastModified(f, ArchiveTrace.extractFileModificationDateFromTrace(shortPath, hash));
-					Attributes atts = ArchiveTrace.extractFileAttributesFromTrace(hash);
+					FileMetaData atts = ArchiveTrace.extractFileAttributesFromTrace(hash);
 					if (atts != null) {
 						FileSystemManager.applyAttributes(atts, f);
 					}

@@ -2,9 +2,7 @@ package com.myJava.file.driver;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 
-import com.myJava.file.OutputStreamListener;
 import com.myJava.object.ToStringHelper;
 
 
@@ -15,7 +13,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*

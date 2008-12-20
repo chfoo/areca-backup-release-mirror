@@ -11,11 +11,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.myJava.file.OutputStreamListener;
-import com.myJava.file.attributes.Attributes;
 import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
 import com.myJava.file.driver.FileInformations;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.driver.LinkableFileSystemDriver;
+import com.myJava.file.metadata.FileMetaData;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
@@ -24,7 +24,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -110,7 +110,7 @@ implements LinkableFileSystemDriver {
         return new FileSystemDriverEvent(event, f, this);
     }
 
-    public void applyAttributes(Attributes p, File f) throws IOException {
+    public void applyAttributes(FileMetaData p, File f) throws IOException {
         FileSystemDriverEvent event = buildEvent("applyAttributes", f);
         event.setArgument(p);
         throwStartEvent(event);
@@ -210,10 +210,10 @@ implements LinkableFileSystemDriver {
         return predecessor.getAccessEfficiency();
     }
 
-    public Attributes getAttributes(File f) throws IOException {
+    public FileMetaData getAttributes(File f) throws IOException {
         FileSystemDriverEvent event = buildEvent("getAttributes", f);
         throwStartEvent(event);
-        Attributes res = predecessor.getAttributes(f);
+        FileMetaData res = predecessor.getAttributes(f);
         throwStopEvent(event);
         return res;
     }

@@ -1,6 +1,6 @@
 package com.application.areca.plugins;
 
-import java.io.File;
+import java.net.URL;
 
 import com.application.areca.ResourceManager;
 import com.myJava.object.ToStringHelper;
@@ -9,7 +9,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -34,22 +34,22 @@ This file is part of Areca.
 public abstract class AbstractStoragePlugin
 implements StoragePlugin {
     protected static final ResourceManager RM = ResourceManager.instance();
-    protected File sourceJar;
+    protected URL[] classpath;
     protected String id;
-
-    public File getSourceJar() {
-        return sourceJar;
-    }
 
     public boolean storageSelectionHelperProvided() {
         return false;
     }
 
-    public void setSourceJar(File sourceJar) {
-        this.sourceJar = sourceJar;
-    }
+	public URL[] getClassPath() {
+		return classpath;
+	}
 
-    public String getId() {
+	public void setClassPath(URL[] cp) {
+		this.classpath = cp;
+	}
+
+	public String getId() {
         return id;
     }
 

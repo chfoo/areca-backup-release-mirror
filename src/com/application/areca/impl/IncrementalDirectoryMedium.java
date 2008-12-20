@@ -17,6 +17,7 @@ import com.myJava.file.FileTool;
 import com.myJava.file.InvalidPathException;
 import com.myJava.file.driver.CompressedFileSystemDriver;
 import com.myJava.file.driver.FileSystemDriver;
+import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.object.PublicClonable;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
@@ -26,7 +27,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -136,7 +137,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
                     	filters = (List)filtersByArchive.get(archivesToProcess[i]);
                 	}
                 	
-                    context.getTaskMonitor().checkTaskCancellation();
+                    context.getTaskMonitor().checkTaskState();
                     context.getInfoChannel().updateCurrentTask(i+1, archivesToProcess.length, FileSystemManager.getPath(archivesToProcess[i]));
                     Logger.defaultLogger().info("Recovering " + FileSystemManager.getPath(archivesToProcess[i]) + " ...");                
                     
@@ -224,9 +225,9 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
                         false,
                         false,
                         context); // --> Call to "clean" in "cancel unsensitive" mode
-            } catch (IOException e) {
-                throw new ApplicationException(e);
             } catch (TaskCancelledException e) {
+                throw new ApplicationException(e);
+            } catch (Exception e) {
                 throw new ApplicationException(e);
             }
         }
@@ -240,7 +241,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
     	super.convertArchiveToFinal(context);
     }
     
-    protected void registerGenericEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException {
+    protected void registerGenericEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException, FileMetaDataSerializationException {
         context.getTraceAdapter().writeEntry(entry);
         if (this.overwrite) {
             context.getContentAdapter().writeEntry(entry); // All entries are stored

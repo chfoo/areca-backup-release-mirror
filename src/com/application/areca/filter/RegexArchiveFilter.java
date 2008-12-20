@@ -5,20 +5,16 @@ import java.util.regex.Pattern;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.application.areca.impl.FileSystemRecoveryEntry;
-import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.PublicClonable;
 
 /**
- * V�rifie si l'entr�e est valid�e par l'expression r�guli�re.
- * <BR>La condition s'applique sur le chemin complet du fichier � tester, hors la racine
- * du r�pertoire en cours de backup.
- * <BR>Par ailleurs, les r�pertoires ne sont pas filtr�s.
+ * Checks that the entry matches the regex passed as argument
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -43,12 +39,12 @@ This file is part of Areca.
 public class RegexArchiveFilter extends AbstractArchiveFilter {
     
 	/**
-	 * Forme non compil�e du pattern
+	 * Uncompiled pattern
 	 */
     private String regex;
     
     /**
-     * Forme compil�e du pattern � matcher
+     * Compiled pattern
      */
     private Pattern pattern;
 

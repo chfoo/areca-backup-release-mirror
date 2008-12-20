@@ -1,13 +1,12 @@
-package com.myJava.file.attributes;
+package com.myJava.file.metadata.posix;
 
-import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -29,40 +28,48 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class PermissionScope {
-    public static PermissionScope OWNER = new PermissionScope("Owner", 2);
-    public static PermissionScope GROUP = new PermissionScope("Group", 1);
-    public static PermissionScope OTHER = new PermissionScope("Other", 0);    
-    
-    private String id;
-    private int order;
-    
-    private PermissionScope(String id, int order) {
-        this.id = id;
-        this.order = order;
+public class PosixMetaDataImpl implements PosixMetaData {
+
+    private int permissions;
+    private String owner;
+    private String ownerGroup;
+
+    public PosixMetaDataImpl() {
     }
 
-    public int getOrder() {
-        return order;
+    public String getOwner() {
+        return owner;
+    }
+
+    public int getPermissions(PermissionScope type) {
+        return (int)(permissions / Math.pow(10, type.getOrder()) % 10);
     }
     
-    public boolean equals(Object obj) {
-        if (obj == null || (! (obj instanceof PermissionScope))) {
-            return false;
-        } else {
-            return this.id.equals(((PermissionScope)obj).id);
-        }
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
     
-    public int hashCode() {
-        int h = HashHelper.initHash(this);
-        h = HashHelper.hash(h, id);
-        return h;
+    public String getOwnerGroup() {
+        return ownerGroup;
+    }
+    
+    public void setOwnerGroup(String ownerGroup) {
+        this.ownerGroup = ownerGroup;
+    }
+    
+    public int getPermissions() {
+        return permissions;
+    }
+    
+    public void setPermissions(int permissions) {
+        this.permissions = permissions;
     }
     
     public String toString() {
         StringBuffer sb = ToStringHelper.init(this);
-        ToStringHelper.append("ID", this.id, sb);
+        ToStringHelper.append("permissions", this.permissions, sb);
+        ToStringHelper.append("owner", this.owner, sb);       
+        ToStringHelper.append("ownerGroup", this.ownerGroup, sb);               
         return ToStringHelper.close(sb);
     }
 }

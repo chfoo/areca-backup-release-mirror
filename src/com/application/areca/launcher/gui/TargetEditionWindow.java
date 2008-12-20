@@ -71,11 +71,13 @@ import com.application.areca.launcher.gui.composites.ProcessorsTable;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.plugins.StorageSelectionHelper;
+import com.myJava.encryption.EncryptionUtil;
 import com.myJava.file.CompressionArguments;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.system.OSTool;
+import com.myJava.util.Util;
 import com.myJava.util.history.History;
 import com.myJava.util.log.Logger;
 
@@ -83,7 +85,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -158,6 +160,7 @@ extends AbstractWindow {
     protected Combo cboEncryptionAlgorithm;
     protected Label lblEncryptionExample;
     protected Label lblEncryptionKey;
+    protected Button btnGenerateKey;
     protected Label lblMultiVolumesUnit;
     protected Label lblEncryptionAlgorithm;
     protected Label lblMultiVolumesDigits;
@@ -165,6 +168,8 @@ extends AbstractWindow {
     protected Text txtZipComment;
     protected Label lblEncoding;
     protected Combo cboEncoding;
+    protected Label lblZipLevel;
+    protected Combo cboZipLevel;
     protected Button rdArchive;
     protected Button rdSingle;
     protected Button rdImage;
@@ -476,6 +481,8 @@ extends AbstractWindow {
         this.chkAddExtension.setEnabled(enable);
         this.lblEncoding.setEnabled(enable);
         this.cboEncoding.setEnabled(enable);
+        this.lblZipLevel.setEnabled(enable);
+        this.cboZipLevel.setEnabled(enable);
         this.rdArchive.setEnabled(enable);
         this.rdSingle.setEnabled(enable);
         this.resetMVData();
@@ -565,6 +572,20 @@ extends AbstractWindow {
         Label lblb = new Label(grpZipOptions, SWT.NONE);
         lblb.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 1));
         
+        lblZipLevel = new Label(grpZipOptions, SWT.NONE);
+        lblZipLevel.setText(RM.getLabel("targetedition.ziplevel.label") + "            ");
+        lblZipLevel.setToolTipText(RM.getLabel("targetedition.ziplevel.tt"));
+        cboZipLevel = new Combo(grpZipOptions, SWT.READ_ONLY);
+        cboZipLevel.setToolTipText(RM.getLabel("targetedition.ziplevel.tt"));
+        for (int i=0; i<=9; i++) {
+        	cboZipLevel.add("" + i);
+        }
+        monitorControl(cboZipLevel);
+        cboZipLevel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+        
+        Label lblb2 = new Label(grpZipOptions, SWT.NONE);
+        lblb2.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 1));
+        
         chkMultiVolumes = new Button(grpZipOptions, SWT.CHECK);
         chkMultiVolumes.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
         chkMultiVolumes.setText(RM.getLabel("targetedition.mv.label"));
@@ -639,14 +660,14 @@ extends AbstractWindow {
         // ENCRYPTION
         grpEncryption = new Group(composite, SWT.NONE);
         grpEncryption.setText(RM.getLabel("targetedition.encryption.label"));
-        grpEncryption.setLayout(new GridLayout(2, false));
+        grpEncryption.setLayout(new GridLayout(3, false));
         grpEncryption.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         
         chkEncrypted = new Button(grpEncryption, SWT.CHECK);
         chkEncrypted.setText(RM.getLabel("targetedition.encryption.label"));
         chkEncrypted.setToolTipText(RM.getLabel("targetedition.encryption.tooltip"));
         monitorControl(chkEncrypted);
-        chkEncrypted.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+        chkEncrypted.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
         chkEncrypted.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
                 resetEcryptionKey();
@@ -655,7 +676,7 @@ extends AbstractWindow {
         chkEncrypNames = new Button(grpEncryption, SWT.CHECK);
         chkEncrypNames.setText(RM.getLabel("targetedition.encryptnames.label"));
         chkEncrypNames.setToolTipText(RM.getLabel("targetedition.encryptnames.tooltip"));
-        chkEncrypNames.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1)); 
+        chkEncrypNames.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1)); 
         
         lblEncryptionAlgorithm = new Label(grpEncryption, SWT.NONE);
         lblEncryptionAlgorithm.setText(RM.getLabel("targetedition.algorithmfield.label"));        
@@ -673,12 +694,12 @@ extends AbstractWindow {
         monitorControl(cboEncryptionAlgorithm);
         cboEncryptionAlgorithm.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
-                updateEncryptionExample();
+                handleAlgorithmModification();
             }
         });
         
-        cboEncryptionAlgorithm.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        String[] algs = EncryptionConfiguration.getAvailableAlgorithms(true);
+        cboEncryptionAlgorithm.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        String[] algs = EncryptionConfiguration.getAvailableAlgorithms();
         for (int i=0; i<algs.length; i++) {
             String id = algs[i];
             EncryptionConfiguration conf = EncryptionConfiguration.getParameters(id);
@@ -691,11 +712,41 @@ extends AbstractWindow {
         lblEncryptionKey.setToolTipText(RM.getLabel("targetedition.keyfield.tooltip"));
         txtEncryptionKey = new Text(grpEncryption, SWT.BORDER);
         monitorControl(txtEncryptionKey);
-        txtEncryptionKey.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        GridData dtenckey = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        txtEncryptionKey.setLayoutData(dtenckey);
+
+        btnGenerateKey = new Button(grpEncryption, SWT.PUSH);
+        btnGenerateKey.setText(RM.getLabel("targetedition.generatekey.label"));
+        btnGenerateKey.setToolTipText(RM.getLabel("targetedition.generatekey.label"));
+        btnGenerateKey.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+        btnGenerateKey.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+            	boolean ok = true;
+            	if (txtEncryptionKey.getText().trim().length() != 0) {
+            		int rep = Application.getInstance().showConfirmDialog(
+            				RM.getLabel("targetedition.generatekey.warningtext"), 
+            				RM.getLabel("targetedition.generatekey.warningtitle")
+            		);
+            		
+            		if (rep != SWT.YES) {
+            			ok = false;
+            		}
+            	}
+            	
+            	if (ok) {
+                    int index = cboEncryptionAlgorithm.getSelectionIndex();
+                    if (index != -1) {
+                        EncryptionConfiguration config = (EncryptionConfiguration)lstEncryptionAlgorithms.get(index);
+            			byte[] b = EncryptionUtil.generateRandomKey(config.getKeySize());
+            			txtEncryptionKey.setText(Util.serializeHexa(b));
+                    }
+            	}
+            }
+        });
+
         new Label(grpEncryption, SWT.NONE);
         lblEncryptionExample = new Label(grpEncryption, SWT.NONE);
-        lblEncryptionExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false)); 
-
+        lblEncryptionExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1)); 
         
         // CONFIG
         grpConfiguration = new Group(composite, SWT.NONE);
@@ -948,9 +999,9 @@ extends AbstractWindow {
     }
     
     private void initValues() {
-        // Tracks wether there is a backward compatibility error
+        // Tracks whether there is a backward compatibility error
         // Indeed, an error can occur if the user tries to open a target which was created with the first versions of
-        // Areca and whose backups are stored at the ROOT of the filesystem (althought it was asked to store them
+        // Areca and whose backups are stored at the ROOT of the filesystem (although it was asked to store them
         // in a SUBDIRECTORY).
         // In this case, Areca refuses to edit this target. The user must fix the problem by hand or delete his target and recreate 
         // a valid one.
@@ -994,6 +1045,10 @@ extends AbstractWindow {
                         ZipConstants.DEFAULT_CHARSET
                 );
                 
+                // Compression level
+                int cpr = fMedium.getCompressionArguments().getLevel() == -1 ? 9 : fMedium.getCompressionArguments().getLevel();
+                cboZipLevel.select(cpr);
+                
                 chkAddExtension.setSelection(fMedium.getCompressionArguments().isAddExtension());
                 
                 if (fMedium.getCompressionArguments().isUseZip64()) {
@@ -1031,7 +1086,7 @@ extends AbstractWindow {
                 chkEncrypNames.setSelection(fMedium.getEncryptionPolicy().isEncryptNames());
                 String algoId = fMedium.getEncryptionPolicy().getEncryptionAlgorithm();
                 
-                if (EncryptionConfiguration.validateAlgorithmId(algoId, true)) {
+                if (EncryptionConfiguration.validateAlgorithmId(algoId)) {
                     for (int i=0; i<lstEncryptionAlgorithms.size(); i++) {
                         EncryptionConfiguration conf = (EncryptionConfiguration)lstEncryptionAlgorithms.get(i);
                         if (conf.getId().equals(algoId)) {
@@ -1042,7 +1097,7 @@ extends AbstractWindow {
                 } else {
                     cboEncryptionAlgorithm.deselectAll();
                 }
-                updateEncryptionExample();
+                handleAlgorithmModification();
             }
             
             // INIT SOURCES
@@ -1067,6 +1122,7 @@ extends AbstractWindow {
             chkTrackDirectories.setSelection(true);
             rdArchive.setSelection(true);
             selectEncoding(ZipConstants.DEFAULT_CHARSET);
+            cboZipLevel.select(9);
             if (OSTool.isSystemWindows()) {
                 this.chkFollowLinks.setSelection(true);
             }
@@ -1146,6 +1202,8 @@ extends AbstractWindow {
             chkAddExtension.setEnabled(false);
             lblEncoding.setEnabled(false);
             cboEncoding.setEnabled(false);
+            cboZipLevel.setEnabled(false);
+            lblZipLevel.setEnabled(false);
             rdArchive.setEnabled(false);
             rdSingle.setEnabled(false);
         }    
@@ -1271,14 +1329,14 @@ extends AbstractWindow {
     }
 
     protected boolean checkBusinessRules() {
-        // - NOM CIBLE
+        // - TARGET NAME
         this.resetErrorState(txtTargetName);        
         if (this.txtTargetName.getText() == null || this.txtTargetName.getText().length() == 0) {
             this.setInError(txtTargetName);
             return false;
         }  
         
-        // - EMPLACEMENT medium + valider qu'il n'est pas un sous r�pertoire des r�pertoires sources
+        // - STORAGE + valider qu'il n'est pas un sous repertoire des repertoires sources
         Text txt = (Text)this.strText.get(this.currentFileSystemPolicyId);
         Button rd = (Button)this.strRadio.get(this.currentFileSystemPolicyId);
         this.resetErrorState(txt);
@@ -1305,7 +1363,7 @@ extends AbstractWindow {
             }
         }
         
-        // - NOM ARCHIVES
+        // - ARCHIVE NAME
         this.resetErrorState(txtArchiveName);        
         if (this.txtArchiveName.getText() == null || this.txtArchiveName.getText().length() == 0) {
             this.setInError(txtArchiveName);
@@ -1405,14 +1463,17 @@ extends AbstractWindow {
     	chkAddExtension.setEnabled((! chkMultiVolumes.getSelection()) && chkMultiVolumes.isEnabled());
     }
     
-    private void updateEncryptionExample() {
+    private void handleAlgorithmModification() {
         int index = cboEncryptionAlgorithm.getSelectionIndex();
         if (index != -1) {
             EncryptionConfiguration config = (EncryptionConfiguration)lstEncryptionAlgorithms.get(index);
             String configId = config.getId();
             String example = RM.getLabel("targetedition.encryption." + configId.toLowerCase() + ".example");
             this.lblEncryptionExample.setText(example);
+            
+            btnGenerateKey.setEnabled(config.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_RAW));
         } else {
+        	btnGenerateKey.setEnabled(false);
             this.lblEncryptionExample.setText("");
         }
     }
@@ -1439,6 +1500,7 @@ extends AbstractWindow {
             this.cboEncryptionAlgorithm.setBackground(null);
             this.lblEncryptionAlgorithm.setEnabled(false);
             this.lblEncryptionKey.setEnabled(false);
+            this.btnGenerateKey.setEnabled(false);
         }
     }
     
@@ -1482,7 +1544,7 @@ extends AbstractWindow {
     protected void saveChanges() {
         try {
             FileSystemRecoveryTarget newTarget = new FileSystemRecoveryTarget();
-            newTarget.setProcess(application.getCurrentProcess());
+            newTarget.setGroup(application.getCurrentProcess());
 
             String storageSubDirectory; // Necessary for backward compatibility
             if (target != null) {
@@ -1566,6 +1628,10 @@ extends AbstractWindow {
 
                 if (cboEncoding.getSelectionIndex() != -1) {
                     compression.setCharset(Charset.forName(cboEncoding.getItem(cboEncoding.getSelectionIndex())));
+                }
+                
+                if (cboZipLevel.getSelectionIndex() != -1) {
+                    compression.setLevel(cboZipLevel.getSelectionIndex());
                 }
                 
                 if ((! this.rdDir.getSelection()) && this.rdArchive.getSelection()) {

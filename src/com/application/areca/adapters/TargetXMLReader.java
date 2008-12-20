@@ -24,6 +24,7 @@ import com.application.areca.filter.LinkFilter;
 import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.filter.RegexArchiveFilter;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
+import com.application.areca.impl.EncryptionConfiguration;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.impl.IncrementalDirectoryMedium;
 import com.application.areca.impl.IncrementalZipMedium;
@@ -41,6 +42,7 @@ import com.application.areca.processor.MailSendProcessor;
 import com.application.areca.processor.MergeProcessor;
 import com.application.areca.processor.Processor;
 import com.application.areca.processor.ShellScriptProcessor;
+import com.application.areca.version.VersionInfos;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.CompressionArguments;
 
@@ -49,7 +51,7 @@ import com.myJava.file.CompressionArguments;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -75,13 +77,13 @@ public class TargetXMLReader implements XMLTags {
     private static final int DEFAULT_ZIP_MV_DIGITS = FrameworkConfiguration.getInstance().getZipMvDigits();
     
     protected int version;
-    protected TargetGroup process;
+    protected TargetGroup group;
     protected Node targetNode;
     protected MissingDataListener missingDataListener = null;
     
-    public TargetXMLReader(Node targetNode, TargetGroup process, int version) throws AdapterException {
+    public TargetXMLReader(Node targetNode, TargetGroup group, int version) throws AdapterException {
         this.targetNode = targetNode;
-        this.process = process;
+        this.group = group;
         this.version = version;
     }
     
@@ -106,7 +108,7 @@ public class TargetXMLReader implements XMLTags {
         FileSystemRecoveryTarget target = new FileSystemRecoveryTarget();
         target.setId(Integer.parseInt(id.getNodeValue()));
         target.setUid(strUid);
-        target.setProcess(process);
+        target.setGroup(group);
         
         // BACKWARD COMPATIBILITY
         Node baseDir = targetNode.getAttributes().getNamedItem(XML_TARGET_BASEDIR);
@@ -416,6 +418,11 @@ public class TargetXMLReader implements XMLTags {
             compression.setComment(commentNode.getNodeValue());
         }
         
+        Node levelNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ZIP_LEVEL);
+        if (levelNode != null) {
+            compression.setLevel(Integer.parseInt(levelNode.getNodeValue()));
+        }
+        
         Node addExtensionNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ZIP_EXTENSION);
         if (addExtensionNode != null) {
             compression.setAddExtension(Boolean.valueOf(addExtensionNode.getNodeValue()).booleanValue());
@@ -549,6 +556,17 @@ public class TargetXMLReader implements XMLTags {
         encrArgs.setEncryptionAlgorithm(encryptionAlgo);
         encrArgs.setEncryptNames(encryptNames);
         encrArgs.setEncryptionKey(encryptionKey);
+        
+        // Encryption management for version 3 and higher id not compatible 
+        // with previous versions. (except for the AES "RAW" key scheme)
+        if (
+        		version <= 2 
+        		&& isEncrypted 
+        		&& (! encryptionAlgo.equals(EncryptionConfiguration.AES_RAW))
+        		&& (! encryptionAlgo.equals(EncryptionConfiguration.AES256_RAW))
+        ) {
+        	throw new AdapterException("\nError reading target \"" + target.getTargetName() + "\" in group \"" + target.getGroup().getName() + "\" (" + target.getGroup().getSourceFile().getAbsolutePath() + ") :\nEncryption management has been refactored in version 6.1 of Areca, and your configuration has been generated with a previous version of Areca. As a result, it is not compatible with your current version (" + VersionInfos.getLastVersion().getVersionId() + ").\nYou must either :\n- re-create your target/targetgroup and use one of the available encryption algorithms, or\n- re-install a previous version of Areca (6.0.7 or before).");
+        }
         
         return encrArgs;
     }

@@ -3,8 +3,6 @@ package com.application.areca.impl.policy;
 import java.io.File;
 import java.security.Key;
 
-import javax.crypto.spec.SecretKeySpec;
-
 import com.application.areca.ApplicationException;
 import com.application.areca.impl.EncryptionConfiguration;
 import com.myJava.encryption.EncryptionUtil;
@@ -20,7 +18,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -52,7 +50,7 @@ public class EncryptionPolicy implements PublicClonable {
     public FileSystemDriver initFileSystemDriver(File basePath, FileSystemDriver predecessor) throws ApplicationException {                 
         if (this.isEncrypted()) {         
             EncryptionConfiguration params = EncryptionConfiguration.getParameters(this.getEncryptionAlgorithm());
-            Key key = new SecretKeySpec(getNormalizedEncryptionKey(this.getEncryptionKey(), params), params.getAlgorithm());
+            Key key = getNormalizedEncryptionKey(this.getEncryptionKey(), params);
             
             // Driver initialization
             AbstractLinkableFileSystemDriver driver = new EncryptedFileSystemDriver(
@@ -73,10 +71,7 @@ public class EncryptionPolicy implements PublicClonable {
     public static boolean validateEncryptionKey(String encryptionKey, EncryptionConfiguration params) {
         if (encryptionKey == null || encryptionKey.trim().length() == 0) {
             return false;
-        } else if (
-                params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_HASH)
-                || params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_OLD)
-        ) {
+        } else if (params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_HASH)) {
             return true;
         } else if (params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_RAW)) {
             try {
@@ -97,23 +92,17 @@ public class EncryptionPolicy implements PublicClonable {
      * <BR>- It is platform independant (while the former key creation algorithm depends on the platform's encoding)
      * <BR>- It generates stronger keys (the password can have any size : it is hashed using MD5 and (if needed) SHA to produce a byte array)
      */
-    private static byte[] getNormalizedEncryptionKey(String encryptionKey, EncryptionConfiguration params) {
+    private static Key getNormalizedEncryptionKey(String encryptionKey, EncryptionConfiguration params) {
         if (! validateEncryptionKey(encryptionKey, params)) {
             throw new IllegalArgumentException("Illegal key : [" + encryptionKey + "] for algorithm : [" + params.getFullName()  + "/" + params.getId() + "]");
         }
 
         if (params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_HASH)) {
-            return EncryptionUtil.getNormalizedEncryptionKey(encryptionKey, params.getKeySize());
-        } else if (params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_RAW)) {
-            return Util.parseHexa(encryptionKey);
+            return EncryptionUtil.buildKeyFromPassphrase(encryptionKey, params.getKeySize(), params.getAlgorithm());
+    	} else if (params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_RAW)) {
+            return EncryptionUtil.buildKeyFromRawInput(encryptionKey, params.getAlgorithm());
         } else {
-            // Older key generation method .... NOT RECOMMENDED (platform dependant and weak)
-	        String normalizedKey = encryptionKey;
-	        while (normalizedKey.length() < params.getKeySize()) {
-	            normalizedKey = normalizedKey + normalizedKey;
-	        }
-	        normalizedKey = normalizedKey.substring(0, params.getKeySize());
-	        return normalizedKey.getBytes();
+        	throw new IllegalArgumentException("Illegal encryption key convention : " + params.getKeyConvention());
         }
     }
     
@@ -122,7 +111,7 @@ public class EncryptionPolicy implements PublicClonable {
     }
     
     public void setEncryptionAlgorithm(String encryptionAlgorithm) {
-        this.encryptionAlgorithm = (encryptionAlgorithm == null ? EncryptionConfiguration.DEFAULT_ALGORITHM : encryptionAlgorithm);
+        this.encryptionAlgorithm = encryptionAlgorithm;
     }
     
     public String getEncryptionKey() {

@@ -10,8 +10,10 @@ import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.metadata.MetadataConstants;
 import com.application.areca.metadata.MetadataEncoder;
 import com.myJava.file.FileSystemManager;
-import com.myJava.file.attributes.Attributes;
-import com.myJava.file.attributes.AttributesHelper;
+import com.myJava.file.metadata.FileMetaDataAccessorHelper;
+import com.myJava.file.metadata.FileMetaData;
+import com.myJava.file.metadata.FileMetaDataSerializationException;
+import com.myJava.file.metadata.FileMetaDataSerializer;
 import com.myJava.util.log.Logger;
 
 /**
@@ -24,7 +26,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -109,7 +111,7 @@ public class ArchiveTrace implements MetadataConstants {
 		}
 	}
 
-	public static Attributes extractFileAttributesFromTrace(String trace) {
+	public static FileMetaData extractFileAttributesFromTrace(String trace) throws FileMetaDataSerializationException {
 		try {
 			int idx1 = trace.indexOf(SEPARATOR);
 			int idx2 = trace.indexOf(SEPARATOR, idx1 + 1);
@@ -117,7 +119,7 @@ public class ArchiveTrace implements MetadataConstants {
 			if (idx2 < 0) {
 				return null;
 			} else {
-				return AttributesHelper.deserialize(trace.substring(idx2 + 1));
+				return FileMetaDataAccessorHelper.getFileSystemAccessor().getAttributesSerializer().deserialize(trace.substring(idx2 + 1));
 			}
 		} catch (RuntimeException e) {
 			processException(trace, e);
@@ -164,13 +166,13 @@ public class ArchiveTrace implements MetadataConstants {
 		}
 	}
 
-	public static Attributes extractDirectoryAttributesFromTrace(String trace) {
+	public static FileMetaData extractDirectoryAttributesFromTrace(String trace) throws FileMetaDataSerializationException {
 		try {
 			int idx1 = trace.indexOf(SEPARATOR);
 			if (idx1 < 0) {
 				return null;
 			} else {
-				return AttributesHelper.deserialize(trace.substring(idx1 + 1));            
+				return FileMetaDataAccessorHelper.getFileSystemAccessor().getAttributesSerializer().deserialize(trace.substring(idx1 + 1));            
 			}
 		} catch (RuntimeException e) {
 			processException(trace, e);
@@ -231,48 +233,44 @@ public class ArchiveTrace implements MetadataConstants {
 	/**
 	 * Builds the key + hash
 	 */
-	protected static String serialize(FileSystemRecoveryEntry fEntry, boolean trackPermissions, boolean trackSymlinks) {
-		try {
-			StringBuffer sb = new StringBuffer();
-			if (fEntry == null) {
-				return null;
-			} else if (fEntry.getName().trim().length() == 0) {
-				throw new IllegalArgumentException("Invalid file : " + FileSystemManager.getAbsolutePath(fEntry.getFile()));
-			} else if (trackSymlinks && FileSystemManager.isLink(fEntry.getFile())) {      
-				sb
-				.append(T_SYMLINK)                
-				.append(MetadataEncoder.encode(fEntry.getName()))
-				.append(SEPARATOR)
-				.append(hash(fEntry, true));  
-			} else if (FileSystemManager.isFile(fEntry.getFile())) {
-				sb
-				.append(T_FILE)
-				.append(MetadataEncoder.encode(fEntry.getName()))
-				.append(SEPARATOR)
-				.append(hash(fEntry, false));
+	protected static String serialize(FileSystemRecoveryEntry fEntry, boolean trackPermissions, boolean trackSymlinks) throws IOException, FileMetaDataSerializationException {
+		FileMetaDataSerializer serializer = FileMetaDataAccessorHelper.getFileSystemAccessor().getAttributesSerializer();
+		StringBuffer sb = new StringBuffer();
+		if (fEntry == null) {
+			return null;
+		} else if (fEntry.getName().trim().length() == 0) {
+			throw new IllegalArgumentException("Invalid file : " + FileSystemManager.getAbsolutePath(fEntry.getFile()));
+		} else if (trackSymlinks && FileSystemManager.isLink(fEntry.getFile())) {      
+			sb
+			.append(T_SYMLINK)                
+			.append(MetadataEncoder.encode(fEntry.getName()))
+			.append(SEPARATOR)
+			.append(hash(fEntry, true));  
+		} else if (FileSystemManager.isFile(fEntry.getFile())) {
+			sb
+			.append(T_FILE)
+			.append(MetadataEncoder.encode(fEntry.getName()))
+			.append(SEPARATOR)
+			.append(hash(fEntry, false));
 
-				if (trackPermissions) {
-					sb.append(SEPARATOR)
-					.append(AttributesHelper.serialize(FileSystemManager.getAttributes(fEntry.getFile())));
-				}
-			} else {
-				sb
-				.append(T_DIR)
-				.append(MetadataEncoder.encode(fEntry.getName()))
-				.append(SEPARATOR)
-				.append(FileSystemManager.lastModified(fEntry.getFile()));
-
-				if (trackPermissions) {
-					sb.append(SEPARATOR)
-					.append(AttributesHelper.serialize(FileSystemManager.getAttributes(fEntry.getFile())));
-				}
+			if (trackPermissions) {
+				sb.append(SEPARATOR);
+				serializer.serialize(FileSystemManager.getAttributes(fEntry.getFile()), sb);
 			}
+		} else {
+			sb
+			.append(T_DIR)
+			.append(MetadataEncoder.encode(fEntry.getName()))
+			.append(SEPARATOR)
+			.append(FileSystemManager.lastModified(fEntry.getFile()));
 
-			return sb.toString();
-		} catch (IOException e) {
-			Logger.defaultLogger().error(e);
-			throw new IllegalArgumentException(fEntry.getName());
+			if (trackPermissions) {
+				sb.append(SEPARATOR);
+				serializer.serialize(FileSystemManager.getAttributes(fEntry.getFile()), sb);
+			}
 		}
+
+		return sb.toString();
 	}  
 
 	/**
@@ -475,29 +473,29 @@ public class ArchiveTrace implements MetadataConstants {
 	/**
 	 * Checks whether the entry has been modified
 	 */
-	 public boolean hasFileBeenModified(FileSystemRecoveryEntry fEntry) throws IOException {
-		 return hasBeenModified(hash(fEntry, false), (String)files.get(fEntry.getName()));
-	 }
+	public boolean hasFileBeenModified(FileSystemRecoveryEntry fEntry) throws IOException {
+		return hasBeenModified(hash(fEntry, false), (String)files.get(fEntry.getName()));
+	}
 
-	 public boolean hasSymLinkBeenModified(FileSystemRecoveryEntry fEntry) throws IOException {
-		 return hasBeenModified(hash(fEntry, true), (String)symLinks.get(fEntry.getName()));
-	 }
+	public boolean hasSymLinkBeenModified(FileSystemRecoveryEntry fEntry) throws IOException {
+		return hasBeenModified(hash(fEntry, true), (String)symLinks.get(fEntry.getName()));
+	}
 
-	 /**
-	  * Checks whether the entry has been modified
-	  */
-	 public static boolean hasBeenModified(String newHash, String oldHash) {
-		 return ! (oldHash + SEPARATOR).startsWith(newHash + SEPARATOR);
-	 }
+	/**
+	 * Checks whether the entry has been modified
+	 */
+	public static boolean hasBeenModified(String newHash, String oldHash) {
+		return ! (oldHash + SEPARATOR).startsWith(newHash + SEPARATOR);
+	}
 
-	 public ArchiveTrace cloneTrace() {
-		 ArchiveTrace ret = new ArchiveTrace();
+	public ArchiveTrace cloneTrace() {
+		ArchiveTrace ret = new ArchiveTrace();
 
-		 ret.files.putAll(this.files);
-		 ret.directories.putAll(this.directories);
-		 ret.symLinks.putAll(this.symLinks);
-		 ret.approximateMemorySize = this.approximateMemorySize;
+		ret.files.putAll(this.files);
+		ret.directories.putAll(this.directories);
+		ret.symLinks.putAll(this.symLinks);
+		ret.approximateMemorySize = this.approximateMemorySize;
 
-		 return ret;
-	 }
+		return ret;
+	}
 }

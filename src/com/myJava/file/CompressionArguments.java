@@ -1,8 +1,9 @@
 package com.myJava.file;
 
-import java.io.File;
 import java.nio.charset.Charset;
 
+import com.myJava.object.EqualsHelper;
+import com.myJava.object.HashHelper;
 import com.myJava.object.PublicClonable;
 import com.myJava.object.ToStringHelper;
 
@@ -10,7 +11,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -42,8 +43,17 @@ public class CompressionArguments implements PublicClonable {
     protected String comment = null;
     protected boolean useZip64 = false;
     protected boolean addExtension = true;
+    protected int level = -1;
 
-    public Charset getCharset() {
+    public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
+	public Charset getCharset() {
         return charset;
     }
 
@@ -103,11 +113,45 @@ public class CompressionArguments implements PublicClonable {
     public boolean isMultiVolumes() {
         return volumeSize != -1;
     }
+    
+	public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o instanceof CompressionArguments) {
+        	CompressionArguments other = (CompressionArguments)o;
+            
+            return (
+                    EqualsHelper.equals(other.addExtension, this.addExtension) 
+                    && EqualsHelper.equals(other.isCompressed, this.isCompressed) 
+                    && EqualsHelper.equals(other.level, this.level) 
+                    && EqualsHelper.equals(other.nbDigits, this.nbDigits) 
+                    && EqualsHelper.equals(other.useZip64, this.useZip64) 
+                    && EqualsHelper.equals(other.volumeSize, this.volumeSize) 
+                    && EqualsHelper.equals(other.charset, this.charset) 
+            );
+        } else {
+            return false;
+        }
+	}
 
-    public PublicClonable duplicate() {
+	public int hashCode() {
+        int h = HashHelper.initHash(this);
+        h = HashHelper.hash(h, this.addExtension);
+		h = HashHelper.hash(h, this.isCompressed);
+		h = HashHelper.hash(h, this.level);
+		h = HashHelper.hash(h, this.nbDigits);
+		h = HashHelper.hash(h, this.useZip64);
+		h = HashHelper.hash(h, this.volumeSize);
+		h = HashHelper.hash(h, this.charset);
+        
+        return h;
+	}
+
+	public PublicClonable duplicate() {
         CompressionArguments clone = new CompressionArguments();
         clone.setCharset(charset);
         clone.setComment(comment);
+        clone.setLevel(level);
         clone.setAddExtension(addExtension);
         clone.setCompressed(isCompressed);
         clone.setUseZip64(useZip64);
@@ -125,6 +169,7 @@ public class CompressionArguments implements PublicClonable {
             ToStringHelper.append("Comment", this.comment, sb);
             ToStringHelper.append("VolumeSize", this.volumeSize, sb);
             ToStringHelper.append("NbDigits", this.nbDigits, sb);
+            ToStringHelper.append("Level", this.level, sb);
         }
         return ToStringHelper.close(sb);
     }

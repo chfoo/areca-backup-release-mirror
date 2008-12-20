@@ -36,7 +36,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -478,6 +478,13 @@ public class TargetXMLWriter extends AbstractXMLWriter {
                 sb.append(XML_MEDIUM_ZIP_COMMENT);
                 sb.append("=");
                 sb.append(encode(medium.getCompressionArguments().getComment()));
+            }
+            
+            if (medium.getCompressionArguments().getLevel() >= 0) {
+	            sb.append(" ");     
+	            sb.append(XML_MEDIUM_ZIP_LEVEL);
+	            sb.append("=");
+	            sb.append(encode(medium.getCompressionArguments().getLevel()));
             }
 
             sb.append(" ");     

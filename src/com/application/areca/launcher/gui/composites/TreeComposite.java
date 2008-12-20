@@ -38,7 +38,7 @@ import com.application.areca.launcher.gui.common.ArecaImages;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -82,7 +82,7 @@ implements MouseListener, Listener {
                 if (application.isCurrentObjectTarget()) {
                     application.showEditTarget(application.getCurrentTarget());
                 } else if (application.isCurrentObjectProcess()) {
-                    application.showEditProcess(application.getCurrentProcess());
+                    application.showEditGroup(application.getCurrentProcess());
                 }
             }
         });
@@ -131,7 +131,7 @@ implements MouseListener, Listener {
                 if (event.item != null) {
                     TreeItem item = (TreeItem) event.item;
                     AbstractRecoveryTarget draggedTarget = Application.getInstance().getCurrentTarget();
-                    TargetGroup sourceProcess = draggedTarget.getProcess();
+                    TargetGroup sourceProcess = draggedTarget.getGroup();
                     TargetGroup destinationProcess = extractRecoveryProcess(item);
 
                     if ( ! destinationProcess.equals(sourceProcess)) {
@@ -143,7 +143,7 @@ implements MouseListener, Listener {
                         }
 
                         destinationProcess.addTarget(draggedTarget);
-                        draggedTarget.setProcess(destinationProcess);
+                        draggedTarget.setGroup(destinationProcess);
                     }
 
                     application.saveProcess(sourceProcess);
@@ -165,7 +165,7 @@ implements MouseListener, Listener {
                 return (TargetGroup)data;
             } else {
                 AbstractRecoveryTarget tg = (AbstractRecoveryTarget)data;
-                return tg.getProcess();
+                return tg.getGroup();
             }
         }
     }
@@ -219,7 +219,7 @@ implements MouseListener, Listener {
     public void setSelectedTarget(AbstractRecoveryTarget target) {
         if (target != null) {
             TreeItem processNode = null;
-            TargetGroup process = target.getProcess();
+            TargetGroup process = target.getGroup();
             TreeItem[] processes = tree.getItems();
             for (int i=0; i<processes.length; i++) {
                 TreeItem child = processes[i];

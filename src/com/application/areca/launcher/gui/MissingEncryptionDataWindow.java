@@ -23,7 +23,7 @@ import com.application.areca.launcher.gui.common.SavePanel;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -90,7 +90,7 @@ extends AbstractWindow {
         mainData1.horizontalAlignment = SWT.FILL;
         cboEncryptionAlgorithm.setLayoutData(mainData1);
         
-        String[] algs = EncryptionConfiguration.getAvailableAlgorithms(false);
+        String[] algs = EncryptionConfiguration.getAvailableAlgorithms();
         for (int i=0; i<algs.length; i++) {
             String id = algs[i];
             EncryptionConfiguration conf = EncryptionConfiguration.getParameters(id);

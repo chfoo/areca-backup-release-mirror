@@ -27,6 +27,7 @@ import com.myJava.file.archive.ArchiveWriter;
 import com.myJava.file.archive.zip64.ZipArchiveAdapter;
 import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.file.archive.zip64.ZipVolumeStrategy;
+import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.file.multivolumes.VolumeStrategy;
 import com.myJava.object.PublicClonable;
 import com.myJava.util.log.Logger;
@@ -37,7 +38,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -87,7 +88,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
             String path = entry.getName();
             
             if (context.getTaskMonitor() != null) {
-                context.getTaskMonitor().checkTaskCancellation();
+                context.getTaskMonitor().checkTaskState();
             }
 
             if (FileNameUtil.startsWithSeparator(path)) {
@@ -136,10 +137,20 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
         ArchiveAdapter adapter = null;
         if (write) {
             if (compressionArguments.isMultiVolumes()) {
-                adapter = new ZipArchiveAdapter(buildVolumeStrategy(f, write, context), compressionArguments.getVolumeSize() * 1024 * 1024, compressionArguments.isUseZip64());   
+                adapter = new ZipArchiveAdapter(
+                		buildVolumeStrategy(f, write, context), 
+                		compressionArguments.getVolumeSize() * 1024 * 1024, 
+                		compressionArguments.isUseZip64(),
+                		compressionArguments.getLevel()
+                );   
+
             } else {
                 AbstractFileSystemMedium.tool.createDir(FileSystemManager.getParentFile(f));
-                adapter =  new ZipArchiveAdapter(FileSystemManager.getFileOutputStream(f, false, context.getOutputStreamListener()), compressionArguments.isUseZip64());   
+                adapter =  new ZipArchiveAdapter(
+                		FileSystemManager.getFileOutputStream(f, false, context.getOutputStreamListener()), 
+                		compressionArguments.isUseZip64(),
+                		compressionArguments.getLevel()
+                );   
             }
             if (compressionArguments.getComment()!= null) {
                 adapter.setArchiveComment(compressionArguments.getComment());
@@ -229,7 +240,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
                 	}
             	}
 
-                context.getTaskMonitor().checkTaskCancellation();  
+                context.getTaskMonitor().checkTaskState();  
                 String scope = filtersByArchive == null ? "All entries" : (filters == null ? "No entry" : filters.length + (filters.length <=1 ? " entry" : " entries"));
                 context.getInfoChannel().updateCurrentTask(i+1, archivesToProcess.length, "Processing " + FileSystemManager.getPath(archivesToProcess[i]) + " (" + scope + ") ...");
                 
@@ -291,7 +302,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
     /**
      * Registers a generic entry - whether it has been filtered or not.
      */
-    protected void registerGenericEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException {
+    protected void registerGenericEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException, FileMetaDataSerializationException {
         context.getTraceAdapter().writeEntry(entry);
     }
     

@@ -4,7 +4,7 @@ package com.application.areca.launcher.gui.common;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -39,6 +39,7 @@ public interface ActionConstants {
     public static final String CMD_RECOVER = "recover";
     public static final String CMD_RECOVER_ENTRY = "recover entry";
     public static final String CMD_EDIT_FILE = "edit entry";
+    public static final String CMD_COPY_FILENAMES = "copy filenames";
     public static final String CMD_RECOVER_WITH_FILTER = "recover with filter";
     public static final String CMD_RECOVER_FROM_LOGICAL = "recover latest version with filter";
     public static final String CMD_MERGE = "merge";
@@ -61,7 +62,8 @@ public interface ActionConstants {
     public static final String CMD_DUPLICATE_TARGET = "duplicate target";
     
     public static final String CMD_NEW_PROCESS = "new process";
-    public static final String CMD_EDIT_PROCESS = "edit process";    
+    public static final String CMD_EDIT_PROCESS = "edit process"; 
+    public static final String CMD_EDIT_PROCESS_XML = "edit process xml";  
     public static final String CMD_DEL_PROCESS = "del process";    
     
     public static final String CMD_SEARCH_PHYSICAL = "show physical";    

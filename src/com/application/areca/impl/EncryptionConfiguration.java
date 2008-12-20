@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -47,22 +47,15 @@ public class EncryptionConfiguration {
 
     public static final String KEYCONV_RAW = "RAW";
     public static final String KEYCONV_HASH = "HASH";
-    public static final String KEYCONV_OLD = "OLD";
+    
+    public static final String AES_HASH = "AES_HASH";
+    public static final String AES_RAW = "AES_RAW";
+    
+    public static final String AES256_HASH = "AES256_HASH";
+    public static final String AES256_RAW = "AES256_RAW";
     
     private static Map DEFAULT_PARAMETERS;
-    public static final String DEFAULT_ALGORITHM = "DESede"; // Default algorithm ... used for backward compatibility
     public static final String RECOMMENDED_ALGORITHM = "AES_HASH"; // Recommended algorithm
-    
-    private static void registerTripleDesConfiguration(int keySize, String id, String keyConvention) {
-        EncryptionConfiguration tDesParam = new EncryptionConfiguration();
-        tDesParam.setKeySize(keySize);
-        tDesParam.setTransformation("DESede/CBC/PKCS5Padding");
-        tDesParam.setAlgorithm("DESede");
-        tDesParam.setId(id);
-        tDesParam.setIV(new IvParameterSpec(new byte[] {0, 0, 0, 0, 0, 0, 0, 0}));
-        tDesParam.setKeyConvention(keyConvention);
-        registerConfiguration(tDesParam);
-    }
     
     private static void registerAESConfiguration(int keySize, String id, String keyConvention) {
         EncryptionConfiguration AESParam = new EncryptionConfiguration();
@@ -84,19 +77,13 @@ public class EncryptionConfiguration {
     static {
         DEFAULT_PARAMETERS = new HashMap();
         
-        // Triple DES 192
-        registerTripleDesConfiguration(24, "DESede", KEYCONV_OLD);
-        registerTripleDesConfiguration(24, "DESede_HASH", KEYCONV_HASH);
-        registerTripleDesConfiguration(24, "DESede_RAW", KEYCONV_RAW);
-        
         // AES 128
-        registerAESConfiguration(16, "AES", KEYCONV_OLD);
-        registerAESConfiguration(16, "AES_HASH", KEYCONV_HASH);
-        registerAESConfiguration(16, "AES_RAW", KEYCONV_RAW);
+        registerAESConfiguration(16, AES_HASH, KEYCONV_HASH);
+        registerAESConfiguration(16, AES_RAW, KEYCONV_RAW);
 
         // AES 256
-        registerAESConfiguration(32, "AES256_HASH", KEYCONV_HASH);
-        registerAESConfiguration(32, "AES256_RAW", KEYCONV_RAW);
+        registerAESConfiguration(32, AES256_HASH, KEYCONV_HASH);
+        registerAESConfiguration(32, AES256_RAW, KEYCONV_RAW);
     }
     
     private boolean isSupported() {
@@ -116,21 +103,17 @@ public class EncryptionConfiguration {
         }
     }
     
-    public static boolean validateAlgorithmId(String id, boolean filterDeprecated) {
-        return 
-            DEFAULT_PARAMETERS.containsKey(id)
-            && ((! filterDeprecated) || (! getParameters(id).isDeprecated()));
+    public static boolean validateAlgorithmId(String id) {
+        return DEFAULT_PARAMETERS.containsKey(id);
     }
     
-    public static String[] getAvailableAlgorithms(boolean filterDeprecated) {
+    public static String[] getAvailableAlgorithms() {
         Iterator algos = DEFAULT_PARAMETERS.keySet().iterator();
         ArrayList ret = new ArrayList();
         while (algos.hasNext()) {
             String k = (String)algos.next();
             EncryptionConfiguration alg = getParameters(k);
-            if ((! filterDeprecated) || (! alg.isDeprecated())) {
-                ret.add(k);
-            }
+            ret.add(k);
         }
         
         String[] algs = (String[])ret.toArray(new String[ret.size()]);
@@ -209,10 +192,6 @@ public class EncryptionConfiguration {
 
     private void setFullName(String fullName) {
         this.fullName = fullName;
-    }
-    
-    public boolean isDeprecated() {
-        return this.keyConvention.equals(KEYCONV_OLD);
     }
     
     public int hashCode() {

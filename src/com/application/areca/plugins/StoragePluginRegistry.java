@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.Utils;
@@ -19,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -43,7 +45,8 @@ This file is part of Areca.
  */
 public class StoragePluginRegistry {
     public static final String KEY_JAR_PATH = "plugin.jar.file";
-    public static final String KEY_CLASS = "plugin.class";    
+    public static final String KEY_CLASS = "plugin.class";
+    public static final String SEPARATOR = ";";    
 
     private static StoragePluginRegistry instance = new StoragePluginRegistry();
 
@@ -118,18 +121,33 @@ public class StoragePluginRegistry {
                         }
                     }
                 }
-                String jarPath = props.getProperty(KEY_JAR_PATH);
+                
+                // Build class loader
+                String classpath = props.getProperty(KEY_JAR_PATH);
+                ArrayList jars = new ArrayList();
+                StringTokenizer stt = new StringTokenizer(classpath, SEPARATOR);
+                while (stt.hasMoreTokens()) {
+                	String jar = stt.nextToken();
+                	jars.add(jar);
+                }
+                
+                URL[] urls = new URL[jars.size()];
+                for (int i=0; i<urls.length; i++) {
+                	String path = (String)jars.get(i);
+                	
+                    // Load Jar
+                    File jarFile = new File(FileSystemManager.getParentFile(configFile), path);
+                    Logger.defaultLogger().info("Loading jar file : " + FileSystemManager.getAbsolutePath(jarFile));
+                    urls[i] = new URL("file:" + FileSystemManager.getAbsolutePath(jarFile));
+                }
+                ClassLoader cl = new URLClassLoader(urls);
+                
+                // Load main class
                 String mainClass = props.getProperty(KEY_CLASS);
-
-                // Load Jar
-                File jarFile = new File(FileSystemManager.getParentFile(configFile), jarPath);
-                Logger.defaultLogger().info("Loading jar file : " + FileSystemManager.getAbsolutePath(jarFile));
-                URL jarUrl = new URL("file:" + FileSystemManager.getAbsolutePath(jarFile));
-                ClassLoader cl = new URLClassLoader(new URL[] {jarUrl});
                 Logger.defaultLogger().info("Instanciating class : " + mainClass);
                 Class pluginClass = cl.loadClass(mainClass);
                 StoragePlugin plugin = (StoragePlugin)pluginClass.newInstance();
-                plugin.setSourceJar(jarFile);
+                plugin.setClassPath(urls);
                 plugin.setId(FileSystemManager.getName(FileSystemManager.getParentFile(configFile)));
                 return plugin;
             } else {

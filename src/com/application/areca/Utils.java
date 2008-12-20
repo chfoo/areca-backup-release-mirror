@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -143,7 +143,7 @@ public class Utils {
     }
     
     public static String extractShortFilePath(File fileDir, String sBaseDir) {
-        String sFileDir = FileSystemManager.getAbsolutePath(fileDir);
+        String sFileDir = FileSystemManager.getPath(fileDir);
         int index = sBaseDir.length();
         
         if (    

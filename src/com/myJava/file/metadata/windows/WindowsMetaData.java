@@ -1,12 +1,13 @@
-package com.myJava.file.attributes;
+package com.myJava.file.metadata.windows;
 
+import com.myJava.file.metadata.FileMetaData;
 import com.myJava.object.ToStringHelper;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -28,12 +29,12 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class WindowsAttributes implements Attributes {
+public class WindowsMetaData implements FileMetaData {
 
     private boolean canRead;
     private boolean canWrite;
 
-    public WindowsAttributes() {
+    public WindowsMetaData() {
     }
     
     public boolean isCanRead() {
@@ -50,16 +51,6 @@ public class WindowsAttributes implements Attributes {
     
     public void setCanWrite(boolean canWrite) {
         this.canWrite = canWrite;
-    }
-
-    public int getPermissions(PermissionScope type) {
-        if (canRead && canWrite) {
-            return 7;   //rwx
-        } else if (canRead) {
-            return 5;	// rx
-        } else {
-            return 0;	// nothing
-        }
     }
     
     public String getOwner() {

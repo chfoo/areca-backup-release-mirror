@@ -1,11 +1,11 @@
 package com.myJava.util.taskmonitor;
 
 /**
- * Interface listener pour un TaskMonitor.
+ * Listener for aTaskMonitor.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -32,6 +32,7 @@ public interface TaskMonitorListener {
     public void completionChanged(TaskMonitor task);
     
     public void cancellableChanged(TaskMonitor task);
-    
     public void cancelRequested(TaskMonitor task);    
+    
+    public void pauseRequested(TaskMonitor task);  
 }

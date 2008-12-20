@@ -15,7 +15,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -84,7 +84,7 @@ public class ArchiveReader {
                     }
                     
                     if (monitor != null) {
-                        monitor.checkTaskCancellation();
+                        monitor.checkTaskState();
                     }
                     
                     if (normalizedEntries == null || Util.passFilter(Util.trimSlashes(fileName), normalizedEntries)) {

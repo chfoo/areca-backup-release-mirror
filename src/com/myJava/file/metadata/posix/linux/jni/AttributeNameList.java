@@ -1,10 +1,13 @@
-package com.myJava.file.attributes;
+package com.myJava.file.metadata.posix.linux.jni;
+
+import com.myJava.object.ToStringHelper;
 
 /**
+ * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 11620171963739279
+ * <BR>Areca Build ID : 8785459451506899793
  */
  
  /*
@@ -26,8 +29,15 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public interface Attributes {
-    public int getPermissions(PermissionScope type);
-    public String getOwner();
-    public String getOwnerGroup();
+public class AttributeNameList {
+	public char[] data;
+	public int length;
+	
+	public String toString() {
+		StringBuffer sb = ToStringHelper.init(this);
+		
+		ToStringHelper.append("length", length, sb);
+		
+		return ToStringHelper.close(sb);
+	}
 }
