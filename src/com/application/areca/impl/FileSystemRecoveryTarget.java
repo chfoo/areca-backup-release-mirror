@@ -14,31 +14,34 @@ import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.Errors;
 import com.application.areca.RecoveryEntry;
+import com.application.areca.SimulationResult;
 import com.application.areca.TargetActions;
 import com.application.areca.context.ProcessContext;
-import com.application.areca.impl.tools.FileSystemLevel;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.iterator.FileSystemIterator;
+import com.myJava.file.metadata.FileMetaDataAccessorHelper;
+import com.myJava.object.Duplicable;
 import com.myJava.object.DuplicateHelper;
-import com.myJava.object.PublicClonable;
 import com.myJava.util.errors.ActionError;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
  * Target implementation that handles files.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -55,33 +58,35 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class FileSystemRecoveryTarget 
-extends AbstractRecoveryTarget 
+public class FileSystemRecoveryTarget
+extends AbstractRecoveryTarget
 implements TargetActions {
 
     public static final String RECOVERY_LOCATION_SUFFIX = "rcv";
-    
+
     protected String sourcesRoot = "";
     protected Set sources;
     protected boolean followSubdirectories = true;
-    
+    protected boolean trackEmptyDirectories = false;
+
     /**
      * Tells whether symbolic are considered as normal files or as symbolic links
      */
     protected boolean trackSymlinks = false;
-    
-    public PublicClonable duplicate() {
+
+    public Duplicable duplicate() {
         FileSystemRecoveryTarget other = new FileSystemRecoveryTarget();
         copyAttributes(other);
         return other;
     }
-    
+
     protected void copyAttributes(Object clone) {
         FileSystemRecoveryTarget other = (FileSystemRecoveryTarget)clone;
         super.copyAttributes(other);
         other.sourcesRoot = sourcesRoot;
         other.trackSymlinks = trackSymlinks;
         other.followSubdirectories = followSubdirectories;
+        other.trackEmptyDirectories = trackEmptyDirectories;
         other.sources = DuplicateHelper.duplicate(sources, false);
     }
 
@@ -99,21 +104,29 @@ implements TargetActions {
         this.followSubdirectories = followSubdirectories;
     }
 
-    /**
+    public boolean isTrackEmptyDirectories() {
+		return trackEmptyDirectories;
+	}
+
+	public void setTrackEmptyDirectories(boolean trackEmptyDirectories) {
+		this.trackEmptyDirectories = trackEmptyDirectories;
+	}
+
+	/**
      * Removes duplicate sources
      */
     private static void deduplicate(Set sources) {
         HashSet toRemove = new HashSet();
         FileTool tool = FileTool.getInstance();
-        
+
         Iterator iter1 = sources.iterator();
         while (iter1.hasNext()) {
             File tested = (File)iter1.next();
-            
+
             Iterator iter2 = sources.iterator();
             while (iter2.hasNext()) {
                 File potentialParent = (File)iter2.next();
-                
+
                 if (potentialParent != tested) {  // Yes, it's an instance check
                     if (tool.isParentOf(potentialParent, tested)) {
                         toRemove.add(tested);
@@ -121,7 +134,7 @@ implements TargetActions {
                 }
             }
         }
-        
+
         sources.removeAll(toRemove);
     }
 
@@ -143,7 +156,7 @@ implements TargetActions {
                     min = path.size();
                 }
             }
-            
+
             int divergenceIndex = -1;
             for (int token=0; token<min && divergenceIndex == -1; token++) {
                 File current = (File)((List)paths.get(0)).get(token);
@@ -155,7 +168,7 @@ implements TargetActions {
                     }
                 }
             }
-            
+
             if (divergenceIndex == 0) {
                 sourcesRoot = "";
             } else if (divergenceIndex == -1) {
@@ -167,7 +180,7 @@ implements TargetActions {
             sourcesRoot = "";
         }
     }
-    
+
     private static void computeParents(File f, List l) {
         l.add(0, f);
         File parent = FileSystemManager.getParentFile(f);
@@ -175,17 +188,17 @@ implements TargetActions {
             computeParents(parent, l);
         }
     }
-    
+
     public String getSourcesRoot() {
         return this.sourcesRoot;
     }
-    
+
     public String getSourceDirectory() {
         if (sourcesRoot.length() == 0) {
             return sourcesRoot;
         } else {
             File f = new File(sourcesRoot);
-            
+
             if (FileSystemManager.isFile(f)) {
                 return FileSystemManager.getAbsolutePath(FileSystemManager.getParentFile(f));
             } else {
@@ -204,143 +217,85 @@ implements TargetActions {
 
     public void commitBackup(ProcessContext context) throws ApplicationException {
         context.getManifest().addProperty(ManifestKeys.UNFILTERED_DIRECTORIES, context.getReport().getUnfilteredDirectories());
-        context.getManifest().addProperty(ManifestKeys.UNFILTERED_FILES, context.getReport().getUnfilteredFiles());        
-        context.getManifest().addProperty(ManifestKeys.SCANNED_ENTRIES, context.getReport().getUnfilteredFiles() + context.getReport().getUnfilteredDirectories() + context.getReport().getFilteredEntries());        
+        context.getManifest().addProperty(ManifestKeys.UNFILTERED_FILES, context.getReport().getUnfilteredFiles());
+        context.getManifest().addProperty(ManifestKeys.SCANNED_ENTRIES, context.getReport().getUnfilteredFiles() + context.getReport().getUnfilteredDirectories() + context.getReport().getFilteredEntries());
         context.getManifest().addProperty(ManifestKeys.SOURCE_PATH, this.sourcesRoot);
-        
+
         super.commitBackup(context);
     }
-    
+
     /**
-     * Retourne le prochain �l�ment.
-     * Attention : ca peut �tre un fichier ou un r�pertoire.
-     * Cet �l�ment est filtr� par appel aux filtres.
+     * Returns the next element. It may be a file or a directory.
+     * <BR>Filters are applied.
      */
     public RecoveryEntry nextElement(ProcessContext context) throws ApplicationException {
-
-    	if (context.getCurrentLevel() == null) {
+    	if (context.getFileSystemIterator() == null) {
     		return null;
-    	}
-    	
-        while (true) {
-            // Locate the first storable file
-            while (context.getCurrentLevel().hasMoreElements()) {
-                File f = context.getCurrentLevel().nextElement();
-                FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(this.getSourceDirectory(), f);
-    
-                double completionStep = 0.98 / (context.getCurrentLevel().getSize() == 0 ? 1 : context.getCurrentLevel().getSize());
-                if (context.getCurrentLevel().getParent() == null) {
-                    completionStep /= Math.max(context.getRootCount(), 1);
-                }
-                                
+    	} else {
+    		File f = context.getFileSystemIterator().nextFile();
+    		if (f == null) {
+    			context.getReport().setUnfilteredDirectories((int)context.getFileSystemIterator().getDirectories());
+    			context.getReport().setUnfilteredFiles((int)context.getFileSystemIterator().getFiles());
+    			context.getReport().setFilteredEntries((int)context.getFileSystemIterator().getFiltered());
+    			return null;
+    		} else {
+    			FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(this.getSourceDirectory(), f);
+                entry.setSize(FileSystemManager.length(f));
                 try {
-                    if (FileSystemManager.isDirectory(f) && ((! trackSymlinks) || (! FileSystemManager.isLink(f)))) {
-                        // check if we can iterate on this directory
-                        if (followSubdirectories && this.acceptEntry(entry, false, context)) {
-                            context.getFileSystemLevels().push(context.getCurrentLevel());
-                            context.setCurrentLevel(new FileSystemLevel(f, context.getCurrentLevel()));
-                            
-                            // Progress information
-                            context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(completionStep, FileSystemManager.getAbsolutePath(f));
-                            Logger.defaultLogger().fine("Processing " + FileSystemManager.getAbsolutePath(f));
-                            
-                            // stats update
-                            context.getReport().addDirectoryCount();
-                        } else {
-                            context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);
-                        }
-                    } else if (FileSystemManager.exists(f)) { // this check is needed because dangling symbolic links may return "false" here ...
-                        // Check if we can store the file
-                        context.getTaskMonitor().getCurrentActiveSubTask().addCompletion(completionStep);
-                        if (this.acceptEntry(entry, true, context)) {
-                            entry.setSize(FileSystemManager.length(f));
-                            context.getReport().addFileCount();
-                            context.getCurrentLevel().setHaveFilesBeenStored(true);
-                            return entry;
-                        }
-                    } else {
-                    	Logger.defaultLogger().warn("Dangling symbolic link detected : " + FileSystemManager.getAbsolutePath(f) + ". It will be excluded from the backup.");
-                    }
-                } catch (IOException e) {
-                    throw new ApplicationException(e);
-                }
-            }
-            
-            // No more elements - process the next file system level
-            FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(
-                    this.getSourceDirectory(), 
-                    context.getCurrentLevel().getBaseDirectory()
-            );
-            
-            // Check if we can store the directory
-            if (
-                    ( ! context.getCurrentLevel().isHasBeenSent())
-                    && (! FileSystemManager.isFile(context.getCurrentLevel().getBaseDirectory()))
-                    && entry.getName().length() != 0
-                    && (
-                            context.getCurrentLevel().isHaveFilesBeenStored()
-                            || this.acceptEntry(entry, true, context)
-                    )
-            ) {
-                context.getCurrentLevel().setHasBeenSent(true);
-                if (context.getCurrentLevel().getParent() != null) {
-                    context.getCurrentLevel().getParent().setHaveFilesBeenStored(true);
-                }
-    
-                return entry;
-            } else {               
-                if (context.getFileSystemLevels().isEmpty()) {
-                    context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
-                    return null;
+					entry.setLink(this.isTrackSymlinks() && FileMetaDataAccessorHelper.getFileSystemAccessor().isSymLink(f));
+				} catch (IOException e) {
+					Logger.defaultLogger().error(e);
+					throw new ApplicationException(e);
+				}
+
+                if (entry.getKey().length() == 0) {
+                	return nextElement(context);
                 } else {
-                    if (context.getCurrentLevel().getParent() != null) {
-                        context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
-                    }
-                    context.setCurrentLevel((FileSystemLevel)context.getFileSystemLevels().pop());
+                	return entry;
                 }
-            }
-        }
+    		}
+    	}
     }
-    
-    public String getFullName() {
-        String tName = this.targetName;
-        if (tName == null) {
-            tName = "Target " + this.getId();
-        }
-        return tName + (this.sourcesRoot.length() != 0 ? " - FileSystem (" + this.sourcesRoot + ")" : "");
-    }
-    
-    public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
+
+	public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
         Logger.defaultLogger().info("Initializing backup context ...");
         Logger.defaultLogger().info("Global source root : " + this.sourcesRoot);
-        
+
         super.open(manifest, context, backupScheme);
         initCurrentLevel(context);
         Logger.defaultLogger().info("Backup context initialized.");
-    }   
-    
+    }
+
     private void initCurrentLevel(ProcessContext context) throws ApplicationException {
-        context.getFileSystemLevels().clear();
         Iterator iter = this.sources.iterator();
-        while (iter.hasNext()) {
+        String[] sourceArray = new String[this.sources.size()];
+        String root = this.getSourceDirectory();
+        for (int i=0; i<sources.size(); i++) {
             File source = (File)iter.next();
             Logger.defaultLogger().info("Registering source directory : " + FileSystemManager.getAbsolutePath(source));
-            context.getFileSystemLevels().push(new FileSystemLevel(source, null));
+            sourceArray[i] = FileSystemManager.getAbsolutePath(source).substring(root.length());
         }
         context.setRootCount(this.sources.size());
-        if (! context.getFileSystemLevels().isEmpty()) {
-        	context.setCurrentLevel((FileSystemLevel)context.getFileSystemLevels().pop());
+        File fRoot = null;
+        if (root != null && root.length() != 0) {
+        	fRoot = new File(root);
+        }
+        if (this.sources.size() != 0) {
+        	FileSystemIterator fsIter = new FileSystemIterator(fRoot, sourceArray, ! this.trackSymlinks, this.followSubdirectories, trackEmptyDirectories, true);
+        	fsIter.setLogProgress(true);
+        	fsIter.setFilter(this.filterGroup);
+        	fsIter.setMonitor(context.getTaskMonitor().getCurrentActiveSubTask());
+        	context.setFileSystemIterator(fsIter);
         }
     }
-    
 
-    public synchronized RecoveryEntry[] processSimulateImpl(ProcessContext context, boolean returnDetailedResults) throws ApplicationException {
+    public synchronized SimulationResult processSimulateImpl(ProcessContext context, boolean returnDetailedResults) throws ApplicationException {
         Logger.defaultLogger().info("Initializing simulation context ...");
         this.initCurrentLevel(context);
         Logger.defaultLogger().info("Simulation context initialized.");
         return super.processSimulateImpl(context, returnDetailedResults);
     }
-    
+
     private File buildRecoveryFile(String destination) {
         File f = new File(normalizeDestination(destination), RECOVERY_LOCATION_SUFFIX);
         for (int i=0; FileSystemManager.exists(f); i++) {
@@ -348,35 +303,72 @@ implements TargetActions {
         }
         return f;
     }
-    
+
+    public void processArchiveCheck(
+    		String destination,
+    		boolean checkOnlyArchiveContent,
+    		GregorianCalendar date,
+    		ProcessContext context) throws ApplicationException {
+
+    	try {
+    		validateTargetState(ACTION_RECOVER);
+			this.medium.checkArchives(destination, checkOnlyArchiveContent, date, context);
+		} catch (TaskCancelledException e) {
+			throw new ApplicationException(e);
+		}
+    }
+
     /**
-     * Lance le recover sur la target
-     */    
-    public void processRecoverImpl(String destination, String[] filters, GregorianCalendar date, boolean recoverDeletedEntries, ProcessContext context) throws ApplicationException {
-        this.medium.recover(
-                buildRecoveryFile(destination), 
-                filters, 
-                date, 
-                recoverDeletedEntries, 
-                context
-         );
-    }  
-    
+     * Recover the data
+     */
+    public void processRecoverImpl(
+    		String destination,
+    		String[] filters,
+    		GregorianCalendar date,
+    		boolean keepDeletedEntries,
+    		boolean checkRecoveredEntries,
+    		ProcessContext context
+    ) throws ApplicationException {
+        try {
+			this.medium.recover(
+			        buildRecoveryFile(destination),
+			        filters,
+			        date,
+			        keepDeletedEntries,
+			        checkRecoveredEntries,
+			        context
+			 );
+		} catch (TaskCancelledException e) {
+			throw new ApplicationException(e);
+		}
+    }
+
     /**
-     * Lance le recover sur la target
-     */    
-    public void processRecoverImpl(String destination, GregorianCalendar date, RecoveryEntry entry, ProcessContext context) throws ApplicationException {
+     * Recover a specific entry
+     */
+    public void processRecoverImpl(
+    		String destination,
+    		GregorianCalendar date,
+    		String entry,
+    		boolean checkRecoveredEntries,
+    		ProcessContext context
+    ) throws ApplicationException {
         File dest = buildRecoveryFile(destination);
-        this.medium.recover(
-                dest, 
-                new String[] {entry.getName()}, 
-                date, 
-                false, 
-                context);
-        
-        File recoveredFile = new File(dest, entry.getName());
+        try {
+			this.medium.recover(
+			        dest,
+			        new String[] {entry},
+			        date,
+			        false,
+			        checkRecoveredEntries,
+			        context);
+		} catch (TaskCancelledException e1) {
+			throw new ApplicationException(e1);
+		}
+
+        File recoveredFile = new File(dest, entry);
         File targetFile = new File(normalizeDestination(destination), FileSystemManager.getName(recoveredFile));
-        
+
         Logger.defaultLogger().info("Moving " + FileSystemManager.getAbsolutePath(recoveredFile) + " to " + FileSystemManager.getAbsolutePath(targetFile));
         FileSystemManager.renameTo(recoveredFile, targetFile);
         try {
@@ -385,30 +377,30 @@ implements TargetActions {
             Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         }
-    } 
-    
+    }
+
     private static String normalizeDestination(String destination) {
         if (destination == null) {
             return null;
         } else if (FileNameUtil.endsWithSeparator(destination)) {
-            return destination.substring(0, destination.length() - 1);  
+            return destination.substring(0, destination.length() - 1);
         } else {
             return destination;
         }
     }
-    
+
     protected String getSpecificTargetDescription() {
         return "Root : " + (this.sourcesRoot.length() != 0 ? this.sourcesRoot: "");
     }
 
     /**
-     * Valide l'�tat de la target
+     * Check the target's state
      */
     public ActionReport checkTargetState(int action) {
-        
+
         // Validation
         ActionReport result = super.checkTargetState(action);
-        
+
         if (action != ACTION_RECOVER && action != ACTION_MERGE_OR_DELETE) {
             Iterator iter = this.sources.iterator();
             while (iter.hasNext()) {
@@ -418,16 +410,16 @@ implements TargetActions {
                 }
             }
         }
-        
+
         return result;
     }
-    
+
     public Manifest buildDefaultMergeManifest(GregorianCalendar fromDate, GregorianCalendar toDate) throws ApplicationException {
         if (! (this.medium instanceof AbstractIncrementalFileSystemMedium)) {
             throw new IllegalArgumentException("Only incremental mediums are supported by this method");
         } else {
             AbstractIncrementalFileSystemMedium mdm = (AbstractIncrementalFileSystemMedium)this.medium;
-            
+
             GregorianCalendar mFromDate = (GregorianCalendar)fromDate.clone();
             mFromDate.add(Calendar.MILLISECOND, -1);
             GregorianCalendar mToDate = (GregorianCalendar)toDate.clone();
@@ -437,3 +429,4 @@ implements TargetActions {
         }
     }
 }
+

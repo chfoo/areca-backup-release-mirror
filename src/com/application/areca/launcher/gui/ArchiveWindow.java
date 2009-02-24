@@ -1,7 +1,7 @@
 package com.application.areca.launcher.gui;
 
+import java.util.GregorianCalendar;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
@@ -16,24 +16,26 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
+import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
-import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.composites.ArchiveExplorer;
 import com.application.areca.metadata.manifest.Manifest;
+import com.application.areca.metadata.trace.TraceEntry;
+import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -54,15 +56,15 @@ public class ArchiveWindow
 extends AbstractWindow {
 
     protected Manifest manifest;
-    protected Set entries;
     protected ArchiveMedium medium;
-    protected RecoveryEntry currentEntry;
+    protected TraceEntry currentEntry;
+    protected GregorianCalendar date;
     
-    public ArchiveWindow(Manifest manifest, Set entries, ArchiveMedium medium) {
+    public ArchiveWindow(Manifest manifest, GregorianCalendar date, ArchiveMedium medium) {
         super();
         this.manifest = manifest;
-        this.entries = entries;
         this.medium = medium;
+        this.date = date;
     }
 
     protected Control createContents(Composite parent) {
@@ -96,9 +98,21 @@ extends AbstractWindow {
 
     private void initContentPanel(Composite parent) {
         parent.setLayout(new FillLayout());
-        ArchiveExplorer explorer = new ArchiveExplorer(parent);
-        explorer.setEntries(entries);
-        explorer.setSelectedEntry(this.currentEntry);
+        ArchiveExplorer explorer = new ArchiveExplorer(parent, false);
+        explorer.setMedium(Application.getInstance().getCurrentTarget().getMedium());
+        explorer.setFromDate(date);
+		explorer.setDisplayNonStoredItemsSize(false);
+        explorer.setLogicalView(false);
+
+		try {
+			explorer.refresh(false);
+		} catch (ApplicationException e) {
+			Logger.defaultLogger().error(e);
+		}
+		
+        if (currentEntry != null) {
+        	explorer.setSelectedEntry(this.currentEntry);
+        }
     }
     
     private void initDataPanel(Composite parent) {
@@ -187,11 +201,11 @@ extends AbstractWindow {
         composite.pack();
     }
 
-    public void setCurrentEntry(RecoveryEntry currentEntry) {
-        this.currentEntry = currentEntry;
-    }
+    public void setCurrentEntry(TraceEntry currentEntry) {
+		this.currentEntry = currentEntry;
+	}
 
-    protected boolean checkBusinessRules() {
+	protected boolean checkBusinessRules() {
         return true;
     }
 

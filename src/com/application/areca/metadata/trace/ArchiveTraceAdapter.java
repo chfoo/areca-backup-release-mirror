@@ -1,30 +1,32 @@
 package com.application.areca.metadata.trace;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
-import com.application.areca.ArchiveMedium;
-import com.application.areca.MemoryHelper;
+import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.application.areca.metadata.AbstractMetaDataEntry;
 import com.application.areca.metadata.AbstractMetadataAdapter;
-import com.myJava.file.FileSystemManager;
-import com.myJava.file.FileTool;
+import com.application.areca.metadata.MetadataConstants;
+import com.application.areca.metadata.MetadataEncoder;
+import com.myJava.file.iterator.FilePathComparator;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
-import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
  * <BR>File adapter for ArchiveTrace read/write operations.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -42,99 +44,114 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
-
     /**
-     * Maximum number of entries that can be securely managed by Areca given the allocated memory
+     * Boolean that sets whether directories must be read or not
      */
-    private static final long MAX_SIZE = MemoryHelper.getMaxManageableEntries();
-    
-    /**
-     * Boolean that sets wether directories must be read or not
-     */
-    protected boolean trackDirectories;
     protected boolean trackSymlinks;
-    protected boolean trackPermissions;
+    protected boolean trackMetaData;
     
-    protected ArchiveMedium medium;
+    protected String previousKey = null;
     
-    public ArchiveTraceAdapter(ArchiveMedium medium, File traceFile) throws IOException {
-        this(medium, traceFile, false, false);
+    public ArchiveTraceAdapter(File traceFile) throws IOException {
+        this(traceFile, false);
     }
     
-    public ArchiveTraceAdapter(ArchiveMedium medium, File traceFile, boolean trackDirectories, boolean trackSymlinks) {
-        this.medium = medium;
-        this.trackDirectories = trackDirectories;
+    public ArchiveTraceAdapter(File traceFile, boolean trackSymlinks) {
         this.trackSymlinks = trackSymlinks;
         this.file = traceFile;
     }
    
-    public void setTrackPermissions(boolean trackPermissions) {
-        this.trackPermissions = trackPermissions;
+    public void setTrackPermissions(boolean trackMetaData) {
+        this.trackMetaData = trackMetaData;
     }
     
-    public void writeEntry(FileSystemRecoveryEntry entry) throws IOException, FileMetaDataSerializationException {
-        initWriter();
-        if (FileSystemManager.isFile(entry.getFile()) || trackDirectories) {
-            this.writer.write("\r\n" + ArchiveTrace.serialize(entry, trackPermissions, trackSymlinks));
-            this.written++;
-        }
+    public void writeEntry(FileSystemRecoveryEntry entry) 
+    throws IOException, FileMetaDataSerializationException {
+    	if (previousKey != null) {
+	    	if (FilePathComparator.instance().compare(entry.getKey(), previousKey) <= 0) {
+	    		throw new IllegalStateException(entry.getKey() + " <= " + previousKey);
+	    	}
+    	}
+    	writeEntry(ArchiveTraceParser.serialize(entry, trackMetaData, trackSymlinks));
     }
     
-    public void writeTrace(ArchiveTrace traceToWrite) throws IOException {
+    public void writeEntry(char type, String key, String data) throws IOException {
+        writeEntry(type + MetadataEncoder.encode(key) + MetadataConstants.SEPARATOR + data);
+    }
+    
+    public void writeEntry(String serializedEntry) throws IOException {
         initWriter();
-        Iterator iter = traceToWrite.fileEntrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry entry = (Map.Entry)iter.next();
-            this.writer.write("\r\n" + traceToWrite.buildFileTraceFileString((String)entry.getKey()));
-        }
-        
-        iter = traceToWrite.directoryEntrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry entry = (Map.Entry)iter.next();
-            this.writer.write("\r\n" + traceToWrite.buildDirectoryTraceFileString((String)entry.getKey()));
-        }
-        
-        iter = traceToWrite.symLinkEntrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry entry = (Map.Entry)iter.next();
-            this.writer.write("\r\n" + traceToWrite.buildSymLinkTraceFileString((String)entry.getKey()));
-        }
+        this.writer.write("\r\n" + serializedEntry);
+        this.written++;
     }
     
     /**
-     * Parses each line initializes the trace content
-     */    
-    public ArchiveTrace readTrace() throws IOException {
-        FileTool tool = FileTool.getInstance();
+     * Read the archive trace file line by line and call the TraceHandler provided as argument
+     * for each line.
+     */
+    public void traverseTraceFile(TraceHandler handler, ProcessContext context) 
+    throws IOException, FileMetaDataSerializationException, TaskCancelledException {
         long version = getVersion();
         String encoding = resolveEncoding(version);
-        String[] traceContent = tool.getInputStreamRows(this.getInputStream(), encoding, true);
-        // Check memory usage
-        long entries = traceContent.length;
-        if (entries > MAX_SIZE) {
-            Logger.defaultLogger().displayApplicationMessage(
-                    "" + this.medium.getTarget().getUid(),
-                   MemoryHelper.getMemoryTitle(this.medium.getTarget(), entries),
-                   MemoryHelper.getMemoryMessage(this.medium.getTarget(), entries)
-            );
-        }
+        handler.setVersion(version);
+        InputStream in = this.getInputStream();
         
-        boolean backWardCompatibility = (version <= 2);
-        
-        // Parse trace
-        ArchiveTrace trace = new ArchiveTrace();
-        if (traceContent.length >= 1) {
-            traceContent[0] = null; // The first line holds version data
-        }
-        for (int i=0; i<traceContent.length; i++) {
-            if (traceContent[i] != null && traceContent[i].trim().length() != 0) {
-                trace.deserialize(
-                		backWardCompatibility ? TraceBackwardCompatibleReencoder.reencode(traceContent[i]) : traceContent[i], 
-                		this.objectPool
-                );
+        try {
+            BufferedReader reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding));            
+            String line = null;
+            boolean header = true;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.length() != 0 && !header) {
+                	TraceEntry entry = (TraceEntry)decodeEntry(line);
+                	
+            		// It is VERY important that the key / hash are compliant with the current serialization
+            		// format. Each line can indeed be written as part of a new trace (case of archive merge)
+            		// and will be assumed to match the current serialization format.
+                	handler.newRow(entry.getType(), entry.getKey(), entry.getData(), context);
+                }
+            	header = false;
+            }
+        	handler.close();
+        } finally {
+            try {
+            	in.close();
+            } catch (Exception ignored) {
             }
         }
-        Logger.defaultLogger().info("" + traceContent.length + " traces read for " + FileSystemManager.getAbsolutePath(file));
-        return trace;
+    }
+    
+    public AbstractMetaDataEntry decodeEntry(String serialized) {
+    	TraceEntry entry = new TraceEntry();
+    	
+		int index = serialized.indexOf(MetadataConstants.SEPARATOR);
+		String key;
+		String hash;
+		if (index == -1) {
+			key = MetadataEncoder.decode(serialized);
+			hash = null;
+		} else {
+			key = MetadataEncoder.decode(serialized.substring(0, index));
+			hash = serialized.substring(index + MetadataConstants.SEPARATOR.length());
+		}
+		//handle current directory
+		entry.setType(key.charAt(0));  	// register the type marker
+		entry.setKey( key.substring(1)); 		// remove the type marker
+    	entry.setData(hash);
+		
+		return entry;
+    }
+    
+    /**
+     * Build a TraceFileIterator
+     */
+    public TraceFileIterator buildIterator() throws IOException {
+		 long version = getVersion();
+	     String encoding = resolveEncoding(version);
+	     InputStream in = this.getInputStream();
+         BufferedReader reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding)); 
+
+         TraceFileIterator iter = new TraceFileIterator(reader, this);
+         return iter;
     }
 }

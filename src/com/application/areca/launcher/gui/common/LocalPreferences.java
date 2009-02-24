@@ -9,6 +9,7 @@ import java.util.Properties;
 
 import com.application.areca.LogHelper;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.FileTool;
 import com.myJava.util.log.Logger;
 
 /**
@@ -17,12 +18,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -43,6 +44,8 @@ This file is part of Areca.
 public class LocalPreferences {
 
     private static final String HEADER = "Areca user preferences";
+    private static final String PATH = ".areca/preferences.properties";
+    private static final String PATH_DEPRECATED = ".areca";
     private static LocalPreferences instance = new LocalPreferences();
 
     private final Properties preferences = new Properties();
@@ -112,35 +115,45 @@ public class LocalPreferences {
 
     public void save() {
         try {
-            FileOutputStream fos = new FileOutputStream(getFile());
+        	File tg = getFile(false);
+        	FileTool.getInstance().createDir(FileSystemManager.getParentFile(tg));
+
+            FileOutputStream fos = new FileOutputStream(tg);
             preferences.store(fos, HEADER);
             fos.close();
         } catch (IOException ioex) {
-            Logger.defaultLogger().warn("Error while saving user preferences into file " + FileSystemManager.getAbsolutePath(getFile()), ioex, "");
+            Logger.defaultLogger().warn("Error while saving user preferences into file " + FileSystemManager.getAbsolutePath(getFile(false)), ioex, "");
         }
     }
 
-    private File getFile() {
-        String userDir = System.getProperty("user.home");
-        return new File(userDir, ".areca");
+    private File getFile(boolean deprecated) {
+    	if (deprecated) {
+    		return new File(System.getProperty("user.home"), PATH_DEPRECATED);
+    	} else {
+    		return new File(System.getProperty("user.home"), PATH);
+    	}
     }
 
     private void load() {
+        File prefFile = this.getFile(false);
+        boolean deprecatedFile = false;
+        if (! prefFile.exists()) {
+        	prefFile = this.getFile(true);
+        	deprecatedFile = true;
+        }
         try {
-            File prefFile = this.getFile();
-            if (prefFile.exists()) {
-	            FileInputStream fis = new FileInputStream(getFile());
+            if (prefFile.exists() && prefFile.isFile()) {
+	            FileInputStream fis = new FileInputStream(prefFile);
 	            preferences.load(fis);
 	            fis.close();
-                
-                // Destroy older preferences
-               preferences.remove("lnf");
-               preferences.remove("mainframe.rightsplitpos");
-               preferences.remove("log.display");
-
+	            
+	            if (deprecatedFile) {
+	            	FileTool.getInstance().delete(prefFile, true);
+	            	save();
+	            }
             }
         } catch (IOException ioex) {
-            Logger.defaultLogger().warn("Error while loading user preferences from file " + FileSystemManager.getAbsolutePath(getFile()), ioex, "");
+            Logger.defaultLogger().warn("Error while loading user preferences from file " + FileSystemManager.getAbsolutePath(prefFile), ioex, "");
         }
     }
     

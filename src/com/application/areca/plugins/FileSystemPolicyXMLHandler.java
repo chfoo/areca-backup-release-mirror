@@ -2,19 +2,22 @@ package com.application.areca.plugins;
 
 import org.w3c.dom.Node;
 
+import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.adapters.AdapterException;
+import com.application.areca.adapters.TargetXMLReader;
+import com.application.areca.adapters.TargetXMLWriter;
 import com.application.areca.impl.policy.FileSystemPolicy;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -32,7 +35,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface FileSystemPolicyXMLHandler {
-    public FileSystemPolicy read(Node mediumNode) throws AdapterException;
-    public void write(FileSystemPolicy policy, StringBuffer sb);
+    public FileSystemPolicy read(Node mediumNode, AbstractRecoveryTarget target, TargetXMLReader reader) throws AdapterException;
+    public void write(FileSystemPolicy policy, TargetXMLWriter writer, boolean removeSensitiveData, StringBuffer sb);
     public void setVersion(int version);
 }

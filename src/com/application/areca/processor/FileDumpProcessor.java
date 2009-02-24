@@ -11,9 +11,9 @@ import com.application.areca.context.ProcessReportWriter;
 import com.application.areca.impl.tools.TagHelper;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.object.PublicClonable;
 import com.myJava.util.log.Logger;
 
 /**
@@ -21,12 +21,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -48,7 +48,6 @@ public class FileDumpProcessor extends AbstractProcessor {
     private File destinationFolder;
     private String reportName = "%TARGET_UID%_%ARCHIVE_NAME%.report";
     private boolean onlyIfError;
-    private boolean listFiltered = true;
 
     /**
      * @param target
@@ -63,14 +62,6 @@ public class FileDumpProcessor extends AbstractProcessor {
 
     public void setDestinationFolder(File destinationFolder) {
         this.destinationFolder = destinationFolder;
-    }
-
-    public boolean isListFiltered() {
-        return listFiltered;
-    }
-
-    public void setListFiltered(boolean listFiltered) {
-        this.listFiltered = listFiltered;
     }
 
     public String getReportName() {
@@ -107,7 +98,7 @@ public class FileDumpProcessor extends AbstractProcessor {
                     FileTool tool = FileTool.getInstance();
                     tool.createDir(destinationFolder);
                 }
-                writer = new ProcessReportWriter(FileSystemManager.getWriter(destination), listFiltered);
+                writer = new ProcessReportWriter(FileSystemManager.getWriter(destination));
                 writer.writeReport(report);
             } catch (FileNotFoundException e) {
                 Logger.defaultLogger().error("The report filename is incorrect : " + FileSystemManager.getAbsolutePath(destination), e);            
@@ -127,19 +118,14 @@ public class FileDumpProcessor extends AbstractProcessor {
         }
     }
 
-    public boolean requiresFilteredEntriesListing() {
-        return listFiltered;
-    }
-
     public String getParametersSummary() {
         return FileSystemManager.getAbsolutePath(this.destinationFolder);
     }
 
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         FileDumpProcessor pro = new FileDumpProcessor();
         pro.destinationFolder = this.destinationFolder;
         pro.reportName = this.reportName;
-        pro.listFiltered = this.listFiltered;
         pro.onlyIfError = this.onlyIfError;
         return pro;
     }
@@ -158,7 +144,6 @@ public class FileDumpProcessor extends AbstractProcessor {
             return 
                 EqualsHelper.equals(this.destinationFolder, other.destinationFolder)
                 && EqualsHelper.equals(this.reportName, other.reportName)
-                && EqualsHelper.equals(this.listFiltered, other.listFiltered)
                 && EqualsHelper.equals(this.onlyIfError, other.onlyIfError)
             ;
         }
@@ -168,7 +153,6 @@ public class FileDumpProcessor extends AbstractProcessor {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, FileSystemManager.getAbsolutePath(this.destinationFolder));
         h = HashHelper.hash(h, this.reportName);
-        h = HashHelper.hash(h, this.listFiltered);
         h = HashHelper.hash(h, this.onlyIfError);
         return h;
     }

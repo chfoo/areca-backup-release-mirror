@@ -6,8 +6,8 @@ import java.util.List;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
+import com.myJava.object.Duplicable;
 import com.myJava.object.DuplicateHelper;
-import com.myJava.object.PublicClonable;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskMonitor;
 
@@ -16,12 +16,12 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -38,36 +38,18 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ProcessorList implements PublicClonable {
+public class ProcessorList implements Duplicable {
 
     protected List processors = new ArrayList();
-    protected boolean requiresFilteredEntriesListing = false;
 
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         ProcessorList other = new ProcessorList();
         other.processors = DuplicateHelper.duplicate(processors);
-        other.requiresFilteredEntriesListing = requiresFilteredEntriesListing;
         return other;
-    }
-    
-    private void updateReportRequired() {
-        Iterator iter = this.processors.iterator();
-        while (iter.hasNext()) {
-            Processor processor = (Processor)iter.next();
-            if (processor.requiresFilteredEntriesListing()) {
-                requiresFilteredEntriesListing = true;
-                return;
-            }
-        }
-    }
-    
-    public boolean requiresFilteredEntriesListing() {
-        return requiresFilteredEntriesListing;
     }
     
     public void addProcessor(Processor processor) {
         this.processors.add(processor);
-        updateReportRequired();
     }
 
     /**

@@ -19,12 +19,12 @@ import com.myJava.file.archive.zip64.ZipVolumeStrategy;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -58,9 +58,14 @@ extends AbstractArecaLauncher {
     public static void main(String[] args) {
         CmdLineDeZip launcher = new CmdLineDeZip();
         launcher.launch(args);
+        launcher.exit();
     }
     
 	public CmdLineDeZip() {
+	}
+	
+	protected boolean returnErrorCode() {
+		return true;
 	}
 		
 	public boolean init(String args[]) {
@@ -140,6 +145,7 @@ extends AbstractArecaLauncher {
             	main.process();
             }
         } catch (Throwable e) {
+        	setErrorCode(ERR_UNEXPECTED);
             System.out.println("\nWARNING : An error occurred during decompression. You should check that all your arguments are valid.");
             showLine();
             e.printStackTrace();

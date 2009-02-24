@@ -15,8 +15,6 @@ import java.util.zip.GZIPOutputStream;
 
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
-import com.myJava.system.OSTool;
-import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 
 /**
@@ -31,12 +29,12 @@ import com.myJava.util.log.Logger;
  * implemented by these classes when "read/writeObject" is called (which results in a growing HashTable)
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -62,10 +60,8 @@ public abstract class SerializedCollection implements Collection {
     private boolean locked = false;
     private Set registeredIterators = new HashSet();
     
-    public SerializedCollection() {
-        long rnd = Util.getRndLong();
-        this.bufferFile = new File(OSTool.getTempDirectory(), "java_serialized_collection_" + rnd + ".tmp");
-        FileSystemManager.deleteOnExit(this.bufferFile);
+    public SerializedCollection() throws IOException {
+    	this.bufferFile = FileTool.getInstance().generateNewWorkingFile("java", "serializedcol", false);
     }
     
     public int size() {

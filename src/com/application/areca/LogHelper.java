@@ -15,12 +15,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -41,9 +41,10 @@ public class LogHelper {
     private static String SEPARATOR = "----------------------------------------";
     
     public static void logStartupInformations() {
-
-        Logger.defaultLogger().info(SEPARATOR);
+    	String mtdtAccessor = FileMetaDataAccessorHelper.getFileSystemAccessor().getClass().getName();
+    	
         log("System informations :");
+        Logger.defaultLogger().info(SEPARATOR);
         log("Version : " + VersionInfos.getLastVersion().getVersionId());
         log("Build ID : " + VersionInfos.getBuildId());
         log("Available Memory : " + OSTool.getMaxMemoryMB() + " MB");
@@ -51,9 +52,9 @@ public class LogHelper {
         log("Java Virtual Machine : " + OSTool.getVMDescription());
         log("File encoding : " + OSTool.getIANAFileEncoding());
         log("Language : " + OSTool.getUserLanguage());
-        log("Framework overriden properties : " + FrameworkConfiguration.getInstance().toString());
+        log("Framework properties : " + FrameworkConfiguration.getInstance().toFullString(FrameworkConfiguration.class));
         log("Available translations : " + Utils.getTranslationsAsString());
-        log("File metadata accessor : " + FileMetaDataAccessorHelper.getFileSystemAccessor().getClass().getName());
+        log("File metadata accessor : " + mtdtAccessor);
         Logger.defaultLogger().info(SEPARATOR);
     }
     
@@ -79,9 +80,8 @@ public class LogHelper {
     
     public static void logProperties(String description, Properties p) {
         try {
-            Logger.defaultLogger().info(SEPARATOR);
             log(description);
-            
+            Logger.defaultLogger().info(SEPARATOR);
             if (p == null) {
                 log("<null>");
             } else {

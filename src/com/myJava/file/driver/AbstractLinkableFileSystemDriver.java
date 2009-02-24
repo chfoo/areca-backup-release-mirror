@@ -7,18 +7,16 @@ import com.myJava.object.ToStringHelper;
 
 
 /**
- * Classe d�riv�e de l'AbstractFileSystemDriver.
- * <BR>D�finit un driver pouvant �tre cha�n�, c'est � dire se reposant sur un autre
- * FileSystemDriver (son "pr�d�cesseur") pour les acc�s.
+ * Implements a decorator pattern
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -39,10 +37,6 @@ public abstract class AbstractLinkableFileSystemDriver
 extends AbstractFileSystemDriver 
 implements LinkableFileSystemDriver {
 
-    /**
-     * Le driver pr�d�cesseur.
-     * <BR>C'est sur ce driver que s'appuiera le driver pour les acc�s au FileSystem.
-     */
     protected FileSystemDriver predecessor;
     
     public FileSystemDriver getPredecessor() {

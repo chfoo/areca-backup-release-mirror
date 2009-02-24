@@ -22,12 +22,12 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -49,7 +49,6 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
     private Text txtDir;
     private Text txtName;
     private Button btnOnlyError;
-    private Button btnListFiltered;
     
     public FileDumpProcessorComposite(Composite composite, Processor proc, final ProcessorEditionWindow window) {
         super(composite, proc, window);
@@ -85,12 +84,6 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
         lblExample.setText(RM.getLabel("procedition.dynparams.label"));
         lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         
-        // List filtered entries
-        btnListFiltered = new Button(this, SWT.CHECK);
-        btnListFiltered.setText(RM.getLabel("procedition.listfiltered.label"));
-        btnListFiltered.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
-        window.monitorControl(btnListFiltered);
-        
         // Send only if in error
         btnOnlyError = new Button(this, SWT.CHECK);
         btnOnlyError.setText(RM.getLabel("procedition.onlyerror.label"));
@@ -101,7 +94,6 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
             FileDumpProcessor sProc = (FileDumpProcessor)proc;
             txtDir.setText(FileSystemManager.getAbsolutePath(sProc.getDestinationFolder()));
             txtName.setText(sProc.getReportName());
-            btnListFiltered.setSelection(sProc.isListFiltered());
             btnOnlyError.setSelection(sProc.isOnlyIfError());
         }
     }
@@ -111,7 +103,6 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
         fProc.setDestinationFolder(new File(txtDir.getText()));
         fProc.setReportName(txtName.getText());
         fProc.setOnlyIfError(btnOnlyError.getSelection());
-        fProc.setListFiltered(btnListFiltered.getSelection());
     }
     
     public boolean validateParams() {

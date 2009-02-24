@@ -16,11 +16,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.driver.DefaultFileSystemDriver;
 import com.myJava.file.driver.DriverAlreadySetException;
+import com.myJava.file.driver.FileCacheableInformations;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.metadata.FileMetaData;
-import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 
 /**
@@ -32,12 +33,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -55,8 +56,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class FileSystemManager {
-
     protected static FileSystemManager instance = new FileSystemManager();
+    protected static int MAX_CACHED_MOUNTPOINTS = FrameworkConfiguration.getInstance().getMaxCachedMountPoints();
     
     /**
      * Drivers indexes par point de montage
@@ -105,7 +106,8 @@ public class FileSystemManager {
      */
     public synchronized void registerDriver(File mountPoint, FileSystemDriver driver) throws DriverAlreadySetException, IOException {
     	FileSystemDriver existing = this.getDriverAtMountPoint(mountPoint);
-        if (existing != null && existing != driver) {    // Yes, it's really an instance check !
+        if (existing != null && ! existing.equals(driver)) {    // The former instance check was replaced by a more standard call to the "equals" method.
+        														// This solves the problems that occured when reopening a target that had already been opened.
             if (driver.isContentSensitive()) {
                 File[] files = null;
                 try {
@@ -147,6 +149,10 @@ public class FileSystemManager {
         this.driversReference.remove(mountPoint);
         
         // Reinitialisation de la map de drivers
+        this.initDriverCache();
+    }
+    
+    private void initDriverCache() {
         this.drivers.clear();
         this.drivers.putAll(this.driversReference);
     }
@@ -194,6 +200,10 @@ public class FileSystemManager {
      */
     private Object registerDriverWithoutCheck(File mountPoint, FileSystemDriver driver) {
         this.hasOnlyDefaultDriver = false;
+        if (this.drivers.size() >= MAX_CACHED_MOUNTPOINTS) {
+        	// Max size reached -> destroy all
+            this.initDriverCache();
+        }
         return this.drivers.put(mountPoint, driver);
     }
     
@@ -234,17 +244,6 @@ public class FileSystemManager {
     
     public static boolean isDirectory(File file) {
         return getInstance().getDriver(file).isDirectory(file);
-    }
-    
-    /**
-     * Tells whether the file is a link or not
-     */
-    public static boolean isLink(File file) throws IOException {
-        if (! exists(file)) {
-            return true;  // Specific case of dangling symbolic links
-        } else {
-            return ! getAbsolutePath(file).equals(getCanonicalPath(file));
-        }
     }
     
     public static long length(File file) {
@@ -410,20 +409,20 @@ public class FileSystemManager {
         return new OutputStreamWriter(getFileOutputStream(new File(file), append));
     }   
     
-    public static boolean directFileAccessSupported(File file) {
-        return getInstance().getDriver(file).directFileAccessSupported();
-    }
-    
     public static InputStream getCachedFileInputStream(File file) throws IOException {
         return getInstance().getDriver(file).getCachedFileInputStream(file);
     }
     
-    public static FileMetaData getAttributes(File file) throws IOException {
-        return getInstance().getDriver(file).getAttributes(file);
+    public static FileCacheableInformations getInformations(File file) {
+        return getInstance().getDriver(file).getInformations(file);
     }
     
-    public static void applyAttributes(FileMetaData p, File f) throws IOException {
-        getInstance().getDriver(f).applyAttributes(p, f);
+    public static FileMetaData getMetaData(File file, boolean onlyBasicAttributes) throws IOException {
+        return getInstance().getDriver(file).getMetaData(file, onlyBasicAttributes);
+    }
+    
+    public static void applyMetaData(FileMetaData p, File f) throws IOException {
+        getInstance().getDriver(f).applyMetaData(p, f);
     }
     
     public static void deleteOnExit(File f) {

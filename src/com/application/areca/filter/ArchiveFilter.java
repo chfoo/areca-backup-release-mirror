@@ -1,19 +1,20 @@
 package com.application.areca.filter;
 
-import com.application.areca.RecoveryEntry;
-import com.myJava.object.PublicClonable;
+import java.io.File;
+
+import com.myJava.object.Duplicable;
 
 /**
  * Archive filter interface.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -31,21 +32,11 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface ArchiveFilter 
-extends PublicClonable {
+extends Duplicable {
 	
-    /**
-     * Indique si l'entr�e doit �tre accept�e ou refus�e
-     * @param entry
-     * @return
-     */
-    public boolean acceptIteration(RecoveryEntry entry);
+    public boolean acceptIteration(File f);
     
-	/**
-	 * Indique si l'entr�e doit �tre accept�e ou refus�e
-	 * @param entry
-	 * @return
-	 */
-    public boolean acceptStorage(RecoveryEntry entry);
+    public boolean acceptStorage(File f);
     
     /**
      * Indique si le filtre fonctionne en inclusion ou exclusion

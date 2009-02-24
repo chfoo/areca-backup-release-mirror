@@ -10,12 +10,12 @@ import com.application.areca.AbstractRecoveryTarget;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -62,7 +62,7 @@ public class TargetSearchResult {
             SearchResultItem i1 = (SearchResultItem)o1;
             SearchResultItem i2 = (SearchResultItem)o2;
             
-            return i1.getEntry().getName().compareTo(i2.getEntry().getName());
+            return i1.getEntry().getKey().compareTo(i2.getEntry().getKey());
         }
     }
 }

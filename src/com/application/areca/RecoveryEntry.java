@@ -6,12 +6,12 @@ package com.application.areca;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -29,12 +29,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface RecoveryEntry {
-	public static final short STATUS_STORED = 1;
-	public static final short STATUS_NOT_STORED = 0;
-	
-	public String getName();
+	public String getKey();
 	public short getStatus();
 	public long getSize();
-    public boolean isLink();
-    public boolean isDirectory();
 }

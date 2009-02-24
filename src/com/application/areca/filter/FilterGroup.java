@@ -1,24 +1,25 @@
 package com.application.areca.filter;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.application.areca.RecoveryEntry;
+import com.myJava.file.iterator.FileSystemIteratorFilter;
+import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.object.PublicClonable;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -35,7 +36,8 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class FilterGroup implements ArchiveFilter {
+public class FilterGroup 
+implements ArchiveFilter, FileSystemIteratorFilter {
 
     private boolean isAnd = true;
     private List filters = new ArrayList();
@@ -64,7 +66,7 @@ public class FilterGroup implements ArchiveFilter {
     /**
      * Accepts (or refuses) an entry
      */         
-    public boolean acceptIteration(RecoveryEntry entry) {
+    public boolean acceptIteration(File entry) {
         boolean matchFilter;
         
         Iterator iter = this.getFilterIterator();
@@ -95,7 +97,7 @@ public class FilterGroup implements ArchiveFilter {
     /**
      * Accepts (or refuses) an entry
      */         
-    public boolean acceptStorage(RecoveryEntry entry) {
+    public boolean acceptStorage(File entry) {
         boolean matchFilter;
         
         Iterator iter = this.getFilterIterator();
@@ -122,6 +124,10 @@ public class FilterGroup implements ArchiveFilter {
         }
         return isExclude ? ! matchFilter : matchFilter;
     }
+    
+    public boolean acceptElement(File element) {
+    	return this.acceptStorage(element);
+	}
     
     public void remove(ArchiveFilter filter) {
         this.filters.remove(filter);
@@ -151,7 +157,7 @@ public class FilterGroup implements ArchiveFilter {
         return hash;
     }
 
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         FilterGroup other = new FilterGroup();
         other.setAnd(this.isAnd);
         other.setExclude(this.isExclude);

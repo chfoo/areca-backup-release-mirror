@@ -17,12 +17,12 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -39,19 +39,12 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ArchiveDataMap 
-	implements ObjectPool  // additional behaviour which allows to pool instances and link their lifecycle to the cache. 
-	{
+public class ArchiveDataMap {
     
     /**
      * <BR>Contains instances of CachedData indexed by File
      */
     private Map content;
-    
-    /**
-     * Set containing pooled instances.
-     */
-    private HashMap pooledData = new HashMap();
     
     /**
      * Keeps a trace of the nr of accesses to this cache
@@ -81,10 +74,6 @@ public class ArchiveDataMap
         }
     }
     
-    public int getPoolSize() {
-        return this.pooledData.size();
-    }
-    
     /**
      * Computes a score used by the eviction strategy 
      */
@@ -101,10 +90,6 @@ public class ArchiveDataMap
         this.sizeApproximation += approximateSize;
     }
     
-    /**
-     * Supprime l'objet correspondant � l'archive pass�e en argument.
-     * <BR>L'objet �ventuellement supprim� est retourn� par la m�thode.
-     */
     public Object remove(File key) {
         CachedData data = (CachedData)this.content.remove(key);
         if (data == null) {
@@ -125,30 +110,10 @@ public class ArchiveDataMap
     public void clear() {
         this.content.clear();
         this.sizeApproximation = 0;
-        this.pooledData.clear();
     }
     
     public boolean isEmpty() {
         return content.isEmpty();
-    }
-    
-    /**
-     * Checks wether the pooled data map already contains this object.
-     * <BR>If the object is already referenced, the existing instance is returned.
-     * <BR>Otherwise, the object is added to the pooled data and returned to the caller.  
-     */
-    public Object intern(Object o) {
-        if (o == null) {
-            return null;
-        }
-        
-        Object old = this.pooledData.get(o);
-        if (old == null) {
-            this.pooledData.put(o, o);
-            return o;
-        } else {
-            return old;
-        }
     }
     
     /**

@@ -24,7 +24,6 @@ import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Refreshable;
-import com.myJava.util.Util;
 import com.myJava.util.history.History;
 import com.myJava.util.history.HistoryEntry;
 
@@ -32,12 +31,12 @@ import com.myJava.util.history.HistoryEntry;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -140,7 +139,7 @@ implements Listener, Refreshable, HistoryEntryTypes {
 
             for (int i=keys.length - 1; i>=0; i--) {
                 HistoryEntry entry = (HistoryEntry)content.get(keys[i]);
-                int type = getEntryType(entry);
+                int type = entry.getType();
 
                 TableItem item = new TableItem(table, SWT.NONE);
 
@@ -172,30 +171,6 @@ implements Listener, Refreshable, HistoryEntryTypes {
                 }
             } catch (ApplicationException e) {
                 this.application.handleException(e);
-            }
-        }
-    }
-    
-    /**
-     * Returns the entry type.
-     * <BR>This method is necessary for backward-compatibility  
-     */
-    private static int getEntryType(HistoryEntry entry) {
-        if (entry.getType() != HistoryEntry.TYPE_UNKNOWN) {
-            return entry.getType();
-        } else {
-            String label = entry.getDescription();
-
-            if (Util.count(label.toLowerCase(), "annulation") != 0 || Util.count(label.toLowerCase(), "cancellation") != 0) {
-                return HISTO_BACKUP_CANCEL;
-            } else if (Util.count(label.toLowerCase(), "archivage") != 0 || Util.count(label.toLowerCase(), "backup") != 0) {
-                return HISTO_BACKUP;
-            } else if (Util.count(label.toLowerCase(), "suppression") != 0 || Util.count(label.toLowerCase(), "deletion") != 0) {
-                return HISTO_DELETE;
-            } else if (Util.count(label.toLowerCase(), "restauration") != 0 || Util.count(label.toLowerCase(), "recovery") != 0) {
-                return HISTO_RECOVER;
-            } else {
-                return HISTO_MERGE;
             }
         }
     }

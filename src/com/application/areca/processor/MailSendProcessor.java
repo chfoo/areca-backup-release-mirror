@@ -24,9 +24,9 @@ import com.application.areca.context.ProcessReport;
 import com.application.areca.context.ProcessReportWriter;
 import com.application.areca.impl.tools.TagHelper;
 import com.application.areca.version.VersionInfos;
+import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.object.PublicClonable;
 import com.myJava.system.OSTool;
 import com.myJava.util.CommonRules;
 import com.myJava.util.log.Logger;
@@ -36,12 +36,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -67,7 +67,6 @@ public class MailSendProcessor extends AbstractProcessor {
     private String user;
     private String password;
     private boolean onlyIfError;
-    private boolean listFiltered = true;
     private String title = "Areca : backup report for target %TARGET_NAME%.";
     private String intro = "Backup report :";
 
@@ -125,14 +124,6 @@ public class MailSendProcessor extends AbstractProcessor {
 
     public void setFrom(String from) {
         this.from = from;
-    }
-
-    public boolean isListFiltered() {
-        return listFiltered;
-    }
-
-    public void setListFiltered(boolean listFiltered) {
-        this.listFiltered = listFiltered;
     }
 
     public String getTitle() {
@@ -213,14 +204,11 @@ public class MailSendProcessor extends AbstractProcessor {
                         str,
                         context
                 );
-                
-                System.out.println(content);
             } catch (Exception e) {
                 Logger.defaultLogger().error("Error during mail processing", e);
                 throw new ApplicationException("Error during mail processing", e);
             } finally {
                 if (baos != null) {
-                    System.out.println(baos.toString());
                     Logger.defaultLogger().info(baos.toString(), "MailSendPostProcessor.run()");
                 }
             }
@@ -291,10 +279,6 @@ public class MailSendProcessor extends AbstractProcessor {
     	}
     }
     
-    public boolean requiresFilteredEntriesListing() {
-        return listFiltered;
-    }
-    
     /**
      * Builds a string representation of the report using a report writer. 
      */
@@ -302,7 +286,7 @@ public class MailSendProcessor extends AbstractProcessor {
         ProcessReportWriter writer = null;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            writer = new ProcessReportWriter(new OutputStreamWriter(baos), this.listFiltered);
+            writer = new ProcessReportWriter(new OutputStreamWriter(baos));
             writer.writeReport(report);
         } finally {
             writer.close();            
@@ -315,14 +299,13 @@ public class MailSendProcessor extends AbstractProcessor {
         return this.recipients + " - " + this.smtpServer;
     }
     
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         MailSendProcessor pro = new MailSendProcessor();
         pro.recipients = this.recipients;
         pro.smtpServer = this.smtpServer;   
         pro.user = this.user;
         pro.password = this.password;
         pro.onlyIfError = this.onlyIfError;
-        pro.listFiltered = this.listFiltered;
         pro.title = this.title;
         pro.smtps = this.smtps;
         pro.intro = this.intro;
@@ -369,7 +352,6 @@ public class MailSendProcessor extends AbstractProcessor {
             	&& EqualsHelper.equals(this.smtpServer, other.smtpServer)
             	&& EqualsHelper.equals(this.recipients, other.recipients)
                 && EqualsHelper.equals(this.onlyIfError, other.onlyIfError)
-                && EqualsHelper.equals(this.listFiltered, other.listFiltered)
                 && EqualsHelper.equals(this.smtps, other.smtps)
                 && EqualsHelper.equals(this.title, other.title)      
                 && EqualsHelper.equals(this.intro, other.intro)      
@@ -384,8 +366,7 @@ public class MailSendProcessor extends AbstractProcessor {
         h = HashHelper.hash(h, this.user);
         h = HashHelper.hash(h, this.smtpServer);
         h = HashHelper.hash(h, this.recipients);
-        h = HashHelper.hash(h, this.onlyIfError);
-        h = HashHelper.hash(h, this.listFiltered);     
+        h = HashHelper.hash(h, this.onlyIfError);   
         h = HashHelper.hash(h, this.smtps);             
         h = HashHelper.hash(h, this.title);
         h = HashHelper.hash(h, this.intro);    

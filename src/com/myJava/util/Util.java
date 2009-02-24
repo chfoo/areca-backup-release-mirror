@@ -1,14 +1,14 @@
 /**
- * Classe h�bergeant des fonctions utilitaires.
+ * Utility class
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -38,6 +38,7 @@ import java.util.Vector;
 
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.Logger;
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
 public abstract class Util {
     
@@ -60,7 +61,7 @@ public abstract class Util {
     }
     
     /**
-     * Remplacement des occurences d'une chaine par une autre chaine
+     * Replace all occurences of "toReplace" in "initialString" by "replacement"
      */
     public static String replace(String initialString, String toReplace, String replacement) {
 
@@ -87,9 +88,6 @@ public abstract class Util {
         }
     }
 
-    /**
-     * comptage des occurences d'une chaine dans une autre chaine
-     */
     public static int count(String chaine, String str) {
         int index = chaine.indexOf(str);
         int nbOcc = 0;
@@ -101,9 +99,6 @@ public abstract class Util {
         return nbOcc;
     }
     
-    /**
-     * comptage des occurences d'une chaine dans une autre chaine
-     */
     public static int count(String chaine, int startIndex, char c) {
         if (chaine == null) {
             return 0;
@@ -121,22 +116,66 @@ public abstract class Util {
     }
 
     /**
-     * Retourne un nombre al�atoire entre -1 et 1
+     * Compute a random double between -1 and 1
      */
     public static double getRnd() {
         return ((rndGenerator.nextDouble() - .5) * 2.);
     }
 
     /**
-     * Retourne un entier long al�atoire
+     * Compute a random long
      */
     public static long getRndLong() {
         return (rndGenerator.nextLong());
     }
+    
+    /**
+     * Return a base 64 String representation of the byte[] passed as argument
+     */
+    public static String base64Encode(byte[] data) {
+		return Base64.encode(data);
+    }
+    
+    /**
+     * Decode the base 64 representation passed as argument and return the corresponding byte[]
+     */
+    public static byte[] base64Decode(String data) {
+		return Base64.decode(data);
+    }
+    
+    /**
+     * Return a base 16 String representation of the byte[] passed as argument
+     */
+    public static String base16Encode(byte[] data) {
+        StringBuffer sb = new StringBuffer();
+        for (int i=0; i<data.length; i++) {
+            int d = data[i];
+            String s = Integer.toString(d+128, 16);
+            if (s.length() < 2) {
+                sb.append("0");
+            }
+            sb.append(s);
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * Decode the base 16 representation passed as argument and return the corresponding byte[]
+     */
+    public static byte[] base16Decode(String input) {
+        if (input.length()%2 == 1) {
+            throw new IllegalArgumentException("The string's length must be even. Current length = " + input.length() + " characters.");
+        }
+        
+        byte[] b = new byte[(int)(input.length() / 2)];
+        for (int i=0; i<b.length; i++) {
+            b[i] = (byte)(Integer.parseInt(input.substring(2*i, 2*i+2), 16) - 128);            
+        }
+        return b;
+    }
 
     /**
-     * Retourne la chaine comprise entre les deux balises (en tenant compte de l'offset)
-     *
+     * Return the String between the second and fourth arguments
      */
     public static String subString(String orig, String balise1, int offset, String balise2) {
         if (orig != null) {
@@ -170,7 +209,7 @@ public abstract class Util {
     }
 
     /**
-     * explose une chaine en sous-chaines et les stocke dans un tableau
+     * Split a String in an array of Strings
      */
     public static Vector split(String orig, String pattern) {
 
@@ -195,7 +234,7 @@ public abstract class Util {
     }
 
     /**
-     * Trim Left sur un caract�re g�n�rique
+     * Generic left trim
      */
     public static String gLTrim(String str, char c) {
         if (str == null) {
@@ -215,8 +254,7 @@ public abstract class Util {
     }
 
     /**
-     * Extrait le nom d'une classe � partir de son chemin complet
-     * (package.souspackage.nomClasse)
+     * Extract the classe's short name
      */
     public static String getClassName(String path) {
         if (path == null) {
@@ -231,9 +269,7 @@ public abstract class Util {
     }
 
     /**
-     * M�thode utilitaire permettant de logger l'int�gralit� de ce qui est
-     * �mis sur un flux d'entr�e.
-     * Utile pour le d�buggage.
+     * Write the whole content of a Stream
      */
     public static void logStreamContent(InputStream is) {
         String content = "";
@@ -256,9 +292,10 @@ public abstract class Util {
     }
 
     /**
-     * Retourne les clefs de la hashtable sous forme de liste
-     * [1 2 6 9] donnera la cha�ne "1,2,6,9" si le s�parateur
-     * fourni est ",".
+     * Return the keys of the HashTable as a single String.
+     * <BR>The separator passed as argument is used.
+     * <BR>For instance, [1=toto 2=tutu 6=titi 9=tata] will give "1,2,6,9" if the separator
+     * is ",".
      */
     public static String getContentList(Hashtable values, String separator) {
         StringBuffer sb = new StringBuffer();
@@ -276,25 +313,25 @@ public abstract class Util {
     }
     
     /**
-     * Retourne le contenu sous forme de liste
-     * S�parateur = ","
+     * Return the keys of the HashTable as a single String.
+     * <BR>Same as getContentList(values, ",")
      */
     public static String getContentList(Hashtable values) {
         return Util.getContentList(values, ",");
     } 
     
     /**
-     * Ajuste la taille du String s � la taille sp�cifi�e (size)
-     * - Si la taille de s est inf�rieure � la taille sp�cifi�e, s est tronqu�
-     * - Sinon, s est compl�t� � l'aide du nombre de caract�res "completion" n�cessaires pour atteindre s
-     * 
-     * "dockRight" indique si c'est la partie gauche ou droite de s qui est conserv�e.
+     * Adjust the String's size to the requested size.
+     * <BR>- If the size of the first argument is inferior to the second argument, the third argument is
+     * added until it reaches the requested size
+     * <BR>- If the size of the first argument is superior to the second argument, it is truncated. 
+     * <BR>
+     * <BR>The fourth argument tells whether it is the left or right part of the first argument which is kept.
      */
     public static String adjustSize(String s, int size, char completion, boolean dockRight) {
         String ret;
         
         if (dockRight) {
-            // Cas 1 : on ajuste en conservant la partie droite
             if (s.length() > size) {
                 ret = s.substring(s.length() - size, size);
             } else {
@@ -303,8 +340,7 @@ public abstract class Util {
                     ret = completion + ret;
                 }
             }
-        } else {
-            // Cas 2 : on ajuste en conservant la partie droite        
+        } else {      
             if (s.length() > size) {
                 ret = s.substring(0, size);
             } else {
@@ -319,7 +355,7 @@ public abstract class Util {
     }   
     
     /**
-     * Duplique nb fois le string s
+     * Duplicates the first argument
      */
     public static String duplicate(String s, int nb) {
         String ret = "";
@@ -330,31 +366,24 @@ public abstract class Util {
     }
 
     /**
-     * Normalise le nom du fichier.
-     * Tous les caract�res ne faisant pas partie de acceptedChars sont
-     * remplac�s par replacementChar.
-     * La comparaison ne tient pas compte de la casse.
-     * 
-     * @param fileName
-     * @param acceptedChars
-     * @param replacementChar
-     * @return
+     * Normalize the String passed as argument.
+     * <BR>All chars which are not in the second argument are replaced by the third argument.
      */
-    public static String normalizeFileName(String fileName, String acceptedChars, char replacementChar) {
-        String lower = fileName.toLowerCase();
-        char[] copy = new char[fileName.length()];
-        for (int i=0; i<fileName.length(); i++) {
+    public static String normalizeString(String s, String acceptedChars, char replacementChar) {
+        String lower = s.toLowerCase();
+        char[] copy = new char[s.length()];
+        for (int i=0; i<s.length(); i++) {
             if (acceptedChars.indexOf(lower.charAt(i)) == -1) {
                 copy[i] = replacementChar; 
             } else {
-                copy[i] = fileName.charAt(i);
+                copy[i] = s.charAt(i);
             }
         }
         return new String(copy);
     }
     
     /**
-     * Supprime les "/" en d�but et fin de nom de fichier
+     * Remove all '/' in the beginning of the file
      */
     public static String trimSlashes(String orig) {
         if (orig == null || orig.length() == 0) {
@@ -380,9 +409,13 @@ public abstract class Util {
         }
     }
     
-    public static boolean passFilter(String entry, String[] filter) {
+    /**
+     * Return true if s equals one of the Strings contained in the "filter" array or
+     * if they start with one of them plus "/"
+     */
+    public static boolean passFilter(String s, String[] filter) {
         for (int i=0; i<filter.length; i++) {
-            if (filter[i].length() == 0 || entry.equals(filter[i]) || entry.startsWith(filter[i] + "/")) {
+            if (filter[i].length() == 0 || s.equals(filter[i]) || s.startsWith(filter[i] + "/")) {
                 return true;
             }
         }
@@ -390,28 +423,21 @@ public abstract class Util {
     }
     
     /**
-     * Identique � normalizeFileName � ceci pr�s que les parties existantes du nom de fichier
-     * (r�pertoires existant d�j� sur le disque) ne sont pas impact�s
-     *  
-     * @param fileName
-     * @param acceptedChars
-     * @param replacementChar
-     * @return
+     * Call "normalizeString" on each non existing part of the file's path.
+     * <BR>Keep the existing parts unchenged.
      */
     public static File normalizeIfNotExists(File file, String acceptedChars, char replacementChar) {
         if (FileSystemManager.exists(file)) {
             return file;
         } else {
-            return new File(FileSystemManager.getAbsoluteFile(normalizeIfNotExists(FileSystemManager.getParentFile(file), acceptedChars, replacementChar)), normalizeFileName(FileSystemManager.getName(file), acceptedChars, replacementChar));
+            return new File(FileSystemManager.getAbsoluteFile(normalizeIfNotExists(FileSystemManager.getParentFile(file), acceptedChars, replacementChar)), normalizeString(FileSystemManager.getName(file), acceptedChars, replacementChar));
         }
     }
     
 
     /**
-     * Fonction utilitaire : lit le flux d'entr�e jusqu'� tomber sur un CRLF (13-10)
-     * OU jusqu'� atteindre la limite du buffer.
-     *
-     * Retourne -1 si la fin du flux est atteinte ou le nombre de bytes lus.
+     * Read the stream until a CRLF (13-10) is reached OR the buffer's limit is reached.
+     * <BR>The actual number of bytes read (or -1 if the end of stream has been reached) is returned.
      */
     public static int readLine(InputStream is, byte[] buff) throws IOException {
         byte b=0, pb;
@@ -422,18 +448,17 @@ public abstract class Util {
             v = is.read();
             if (v == -1) {
                 if (offset == 0) {
-                    // Fin de stream atteint d�s le d�but de la lecture
+                    // End of stream reached
                     return -1;
                 } else {
-                    // Fin de stream attteint en cours de lecture
+                    // End of stream reached
                     return offset;
                 }
             } else {
                 b = (byte)v;
                 buff[offset++] = b;
 
-
-                // On est tomb� sur un CRLF ou on atteint la fin du buffer
+                // CRLF or buffer limit reached
                 if ((pb == 13 && b == 10) || offset == buff.length) {
                     return offset;
                 }
@@ -442,10 +467,8 @@ public abstract class Util {
     }
 
     /**
-     * Lit une ligne du flux
-     * Retourne :
-     * - NULL si le flux est vide
-     * - un tableau de bytes, de taille <= size, correspondant aux bytes lus
+     * Read the stream until a CRLF (13-10) is reached OR the buffer's limit is reached.
+     * <BR>The actual number of bytes read (or -1 if the end of stream has been reached) is returned.
      */
     public static byte[] readLineBA(InputStream is, int size) throws IOException {
         byte[] tmp = new byte[size];
@@ -466,8 +489,7 @@ public abstract class Util {
     }
 
     /**
-     * Lit le flux d'entr�e et retourne les donn�es sous forme de string
-     * la lecture s'arr�te d�s que la fin du flux est rencontr�e ou qu'un CRLF est rencontr�.
+     * Read the stream until a CRLF (13-10)
      */
     public static String readLineString(InputStream is) throws IOException {
         String ret = "";
@@ -485,30 +507,5 @@ public abstract class Util {
         }
 
         return ret;
-    }
-    
-    public static byte[] parseHexa(String input) {
-        if (input.length()%2 == 1) {
-            throw new IllegalArgumentException("The string's length must be even. Current length = " + input.length() + " characters.");
-        }
-        
-        byte[] b = new byte[(int)(input.length() / 2)];
-        for (int i=0; i<b.length; i++) {
-            b[i] = (byte)(Integer.parseInt(input.substring(2*i, 2*i+2), 16) - 128);            
-        }
-        return b;
-    }
-    
-    public static String serializeHexa(byte[] data) {
-        StringBuffer sb = new StringBuffer();
-        for (int i=0; i<data.length; i++) {
-            int d = data[i];
-            String s = Integer.toString(d+128, 16);
-            if (s.length() < 2) {
-                sb.append("0");
-            }
-            sb.append(s);
-        }
-        return sb.toString();
     }
 }

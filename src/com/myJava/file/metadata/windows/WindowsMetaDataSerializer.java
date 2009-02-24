@@ -8,12 +8,12 @@ import com.myJava.file.metadata.FileMetaDataSerializer;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@ This file is part of Areca.
  */
 public class WindowsMetaDataSerializer implements FileMetaDataSerializer {
 
-	public FileMetaData deserialize(String s) throws FileMetaDataSerializationException {
+	public FileMetaData deserialize(String s, long version) throws FileMetaDataSerializationException {
         int nb = Integer.parseInt("" + s.charAt(1));
         WindowsMetaData p = new WindowsMetaData();
         p.setCanRead(nb % 2 == 1);

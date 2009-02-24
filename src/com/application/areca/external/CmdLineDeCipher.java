@@ -10,23 +10,23 @@ import com.myJava.commandline.BooleanCmdLineOption;
 import com.myJava.commandline.CmdLineParserException;
 import com.myJava.commandline.CommandLineParser;
 import com.myJava.commandline.StringCmdLineOption;
-import com.myJava.file.FileSystemIterator;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.driver.DefaultFileSystemDriver;
 import com.myJava.file.driver.DriverAlreadySetException;
 import com.myJava.file.driver.FileSystemDriver;
+import com.myJava.file.iterator.FileSystemIterator;
 
 /**
  * <BR>
  * @author Ludovic QUESNELLE
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -73,11 +73,16 @@ extends AbstractArecaLauncher {
     public static void main(String[] args) {
         CmdLineDeCipher launcher = new CmdLineDeCipher();
         launcher.launch(args);
+        launcher.exit();
     }
     
 	public CmdLineDeCipher() {
 	}
-		
+
+	protected boolean returnErrorCode() {
+		return true;
+	}
+
 	public boolean init(String args[]) {
 		CommandLineParser parser=new CommandLineParser();
         parser.setDescription(DESCRIPTION);
@@ -140,7 +145,8 @@ extends AbstractArecaLauncher {
 	
 	protected void display() {
 		String fileToProcess=(source!=null) ?source  : mountPoint;
-		FileSystemIterator iterator=new FileSystemIterator(new File(fileToProcess), false);
+		File tg = new File(fileToProcess);
+		FileSystemIterator iterator = new FileSystemIterator(tg, false, true, true, true);
         showLine();
 		while(iterator.hasNext()){
 			File currentFile=(File)iterator.next();
@@ -160,6 +166,7 @@ extends AbstractArecaLauncher {
             	deCipher.process();
             }
         } catch (Throwable e) {
+        	setErrorCode(ERR_UNEXPECTED);
             System.out.println("\nWARNING : An error occurred during decryption. You should check that all your arguments are valid (encryption algorithm or password, source directory, ...)");
             showLine();
             e.printStackTrace();

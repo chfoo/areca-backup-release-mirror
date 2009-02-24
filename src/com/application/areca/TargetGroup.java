@@ -12,7 +12,6 @@ import com.application.areca.context.ProcessContext;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.metadata.manifest.Manifest;
 import com.myJava.file.FileSystemManager;
-import com.myJava.util.errors.ActionReport;
 import com.myJava.util.log.Logger;
 
 /**
@@ -20,12 +19,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -43,7 +42,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class TargetGroup 
-implements TargetActions, Identifiable {
+implements Identifiable {
     
     private File source;
     private String comments;
@@ -210,36 +209,24 @@ implements TargetActions, Identifiable {
     public void processBackupOnTarget(
     		AbstractRecoveryTarget target, 
     		Manifest manifest, 
-    		ProcessContext context, 
     		String backupScheme,
-    		boolean disableCheck
+    		boolean disablePreCheck,
+    		boolean disableArchiveCheck,
+    		ProcessContext context
     ) throws ApplicationException {
         initProgress(context);
-        processBackupOnTargetImpl(target, manifest, context, backupScheme, disableCheck);
-    }
-    
-    private void processBackupOnTargetImpl(
-    		AbstractRecoveryTarget target, 
-    		Manifest manifest, 
-    		ProcessContext context, 
-    		String backupScheme,
-    		boolean disableCheck
-    ) throws ApplicationException {
-        checkTarget(target, ACTION_BACKUP);
-        
         try {
-            Logger.defaultLogger().info("Target processing : [Backup] - [" + target.getFullName() + "] - [" + target.getId() + "]");         
-            target.processBackup(manifest, context, backupScheme, disableCheck);
+            Logger.defaultLogger().info("Starting backup on " + target.getTargetName() + " (" + target.getUid() + "). Backup scheme = " + backupScheme);         
+            target.processBackup(manifest, backupScheme, disablePreCheck, disableArchiveCheck, context);
         } finally {
-            Logger.defaultLogger().info("End of target processing : [Backup] - [" + target.getFullName() + "] - [" + target.getId() + "]");
+            Logger.defaultLogger().info("Backup completed on " + target.getTargetName() + " (" + target.getUid() + ")");
         }
     }
     
     /**
      * Launch a simulation on a target
      */
-    public RecoveryEntry[] processSimulateOnTarget(AbstractRecoveryTarget target, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_SIMULATE);
+    public SimulationResult processSimulateOnTarget(AbstractRecoveryTarget target, ProcessContext context) throws ApplicationException {
         this.initProgress(context);
         return target.processSimulate(context);
     }
@@ -248,43 +235,67 @@ implements TargetActions, Identifiable {
      * Compute indicators for a target
      */
     public IndicatorMap processIndicatorsOnTarget(AbstractRecoveryTarget target, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_INDICATORS);
         this.initProgress(context);
         return target.computeIndicators();
     }
     
     /**
-     * Launch a recovery on a target
+     * Launch a check on a target
      */
-    public void processRecoverOnTarget(AbstractRecoveryTarget target, String[] filters, String path, GregorianCalendar date, boolean recoverDeletedEntries, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_RECOVER);
+    public void processCheckOnTarget(
+    		AbstractRecoveryTarget target, 
+    		String destination,
+    		boolean checkOnlyArchiveContent, 
+    		GregorianCalendar date, 
+    		ProcessContext context
+    ) throws ApplicationException {
 		this.initProgress(context);
-        target.processRecover(path, filters, date, recoverDeletedEntries, context);
+        target.processArchiveCheck(destination, checkOnlyArchiveContent, date, context);
     }
     
-    public void processRecoverOnTarget(AbstractRecoveryTarget target, String path, GregorianCalendar date, RecoveryEntry entry, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_RECOVER);
+    /**
+     * Launch a recovery on a target
+     */
+    public void processRecoverOnTarget(
+    		AbstractRecoveryTarget target, 
+    		String[] filters, 
+    		String path, 
+    		GregorianCalendar date, 
+    		boolean keepDeletedEntries,
+    		boolean checkRecoveredEntries, 
+    		ProcessContext context
+    ) throws ApplicationException {
 		this.initProgress(context);
-        target.processRecover(path, date, entry, context);
+        target.processRecover(path, filters, date, keepDeletedEntries, checkRecoveredEntries, context);
+    }
+    
+    public void processRecoverOnTarget(
+    		AbstractRecoveryTarget target, 
+    		String path, 
+    		GregorianCalendar date, 
+    		String entry, 
+    		boolean checkRecoveredEntries, 
+    		ProcessContext context
+    ) throws ApplicationException {
+		this.initProgress(context);
+        target.processRecover(path, date, entry, checkRecoveredEntries, context);
     }
     
     /**
      * Launch a merge on a target
      */
-    public void processMergeOnTarget(AbstractRecoveryTarget target, GregorianCalendar fromDate, GregorianCalendar toDate, boolean keepDeletedEntries, Manifest manifest, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_MERGE_OR_DELETE);     
+    public void processMergeOnTarget(AbstractRecoveryTarget target, GregorianCalendar fromDate, GregorianCalendar toDate, Manifest manifest, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {  
 		this.initProgress(context);
-        target.processMerge(fromDate, toDate, keepDeletedEntries, manifest, context);
+        target.processMerge(fromDate, toDate, manifest, keepDeletedEntries, context);
     }  
     
-    public void processMergeOnTarget(AbstractRecoveryTarget target, int fromDelay, int toDelay, boolean keepDeletedEntries, Manifest manifest, ProcessContext context) throws ApplicationException {
+    public void processMergeOnTarget(AbstractRecoveryTarget target, int fromDelay, int toDelay, Manifest manifest, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
  		this.initProgress(context);
- 		processMergeOnTargetImpl(target, fromDelay, toDelay, keepDeletedEntries, manifest, context);
+ 		processMergeOnTargetImpl(target, fromDelay, toDelay, manifest, keepDeletedEntries, context);
     }  
     
-    public void processMergeOnTargetImpl(AbstractRecoveryTarget target, int fromDelay, int toDelay, boolean keepDeletedEntries, Manifest manifest, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_MERGE_OR_DELETE);    
-        target.processMerge(fromDelay, toDelay, keepDeletedEntries, manifest, context);
+    public void processMergeOnTargetImpl(AbstractRecoveryTarget target, int fromDelay, int toDelay, Manifest manifest, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException { 
+        target.processMerge(fromDelay, toDelay, manifest, keepDeletedEntries, context);
     }
     
     /**
@@ -295,27 +306,14 @@ implements TargetActions, Identifiable {
         processDeleteOnTargetImpl(target, delay, context);
     }  
     
-    public void processDeleteOnTargetImpl(AbstractRecoveryTarget target, int delay, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_MERGE_OR_DELETE);    
+    public void processDeleteOnTargetImpl(AbstractRecoveryTarget target, int delay, ProcessContext context) throws ApplicationException {  
         target.processDeleteArchives(delay, context);
     }  
     
-    public void processDeleteOnTarget(AbstractRecoveryTarget target, GregorianCalendar fromDate, ProcessContext context) throws ApplicationException {
-        checkTarget(target, ACTION_MERGE_OR_DELETE);    
+    public void processDeleteOnTarget(AbstractRecoveryTarget target, GregorianCalendar fromDate, ProcessContext context) throws ApplicationException {   
 		this.initProgress(context);
         target.processDeleteArchives(fromDate, context);
     }  
-    
-    protected void checkTarget(AbstractRecoveryTarget target, int action) throws ApplicationException {
-        if (target == null) {
-            throw new ApplicationException("Invalid target : null");
-        }
-
-        ActionReport report = target.checkTargetState(action);
-        if (! report.isDataValid()) {
-            throw new ApplicationException(report);
-        }        
-    }
     
     public String toString() {
         return "Group : " + this.source;

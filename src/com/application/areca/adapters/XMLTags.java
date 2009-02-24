@@ -5,12 +5,12 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -41,7 +41,8 @@ public interface XMLTags {
     public static final String XML_TARGET_ID = "id";
     public static final String XML_TARGET_UID = "uid";    
     public static final String XML_TARGET_NAME = "name";    
-    public static final String XML_TARGET_FOLLOW_SYMLINKS = "follow_symlinks";    
+    public static final String XML_TARGET_FOLLOW_SYMLINKS = "follow_symlinks";  
+    public static final String XML_TARGET_TRACK_EMPTY_DIRS = "register_empty_directories";
     public static final String XML_TARGET_FOLLOW_SUBDIRECTORIES = "follow_subdirectories";    
     public static final String XML_TARGET_DESCRIPTION = "description";    
     public static final String XML_TARGET_CREATE_XML_SECURITY_COPY = "xml_security_copy";   
@@ -85,7 +86,7 @@ public interface XMLTags {
     public static final String XML_MEDIUM_ENCRYPTIONKEY = "encryption_key";
     public static final String XML_MEDIUM_ENCRYPTIONALGO = "encryption_algo";
     public static final String XML_MEDIUM_ENCRYPTNAMES = "encrypt_names";
-    public static final String XML_MEDIUM_TRACK_DIRS = "track_directories";
+    public static final String XML_MEDIUM_TRACK_DIRS = "track_directories";		// DEPRECATED
     public static final String XML_MEDIUM_TRACK_PERMS = "track_permissions";    
     public static final String XML_MEDIUM_VOLUME_SIZE = "volume_size";
     public static final String XML_MEDIUM_VOLUME_DIGITS = "volume_digits";
@@ -122,13 +123,12 @@ public interface XMLTags {
     public static final String XML_PP_EMAIL_INTRO = "introduction";    
     public static final String XML_PP_EMAIL_USER = "smtp_user";
     public static final String XML_PP_ONLY_IF_ERROR = "failure_only";
-    public static final String XML_PP_LIST_FILTERED = "list_filtered";
     public static final String XML_PP_EMAIL_PASSWORD = "smtp_password";    
     public static final String XML_PP_EMAIL_SMTPS = "smtp_s";    
     public static final String XML_PP_SHELL_SCRIPT = "script";
     public static final String XML_PP_SHELL_PARAMS = "parameters";    
     public static final String XML_PP_DELAY = "delay";   // deprecated 
     public static final String XML_PP_MERGE_FROM_DELAY = "from_delay";  
-    public static final String XML_PP_MERGE_TO_DELAY = "to_delay";      
-    public static final String XML_PP_MERGE_KEEP_DELETED = "keep_deleted";    
+    public static final String XML_PP_MERGE_TO_DELAY = "to_delay";     
+    public static final String XML_PP_MERGE_KEEP_DELETED = "keep_deleted";
 }

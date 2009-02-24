@@ -2,6 +2,7 @@ package com.myJava.configuration;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -18,12 +19,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -43,41 +44,188 @@ This file is part of Areca.
 public class FrameworkConfiguration {
     private static FrameworkConfiguration instance = new FrameworkConfiguration(); 
     
+    /**
+     * Number of iterations used during the key derivation process
+     */
     public static String KEY_ENCRYPTION_KG_ITER = "encryption.keygen.iterations";
+    
+    /**
+     * Static salt added during the key derivation process
+     */
     public static String KEY_ENCRYPTION_KG_SALT = "encryption.keygen.salt";
+    
+    /**
+     * Static salt encoding
+     */
     public static String KEY_ENCRYPTION_KG_SALT_ENC = "encryption.keygen.salt.encoding";
+    
+    /**
+     * Algorithm used during the key derivation process
+     */
     public static String KEY_ENCRYPTION_KG_ALG = "encryption.keygen.algorithm";
+    
+    /**
+     * Activate verbose mode for filediff tools
+     */
     public static String KEY_DELTA_DEBUG = "delta.debug";
+    
+    /**
+     * Maximum number of FTP connections on a remote server
+     */
     public static String KEY_FTP_MAX_PROXIES = "ftp.max.proxies";
+    
+    /**
+     * Activate FTP verbose mode
+     */
     public static String KEY_FTP_DEBUG = "ftp.debug";
+    
+    /**
+     * Tchnical delay - used by the filetool class
+     */
     public static String KEY_FT_DELAY = "filetool.delay";
+    
+    /**
+     * Buffer size for the filetool class
+     */
     public static String KEY_FT_BUFFER_SIZE = "filetool.buffer.size";
+    
+    /**
+     * Number of ms before Areca will send a "noop" instruction to the ftp server
+     */
     public static String KEY_FTP_NOOP_DELAY = "ftp.noop.delay";    
-    public static String KEY_FTP_CACHE_SIZE = "ftp.cache.size";    
+    
+    /**
+     * Local cache size for ftp files' data
+     */
+    public static String KEY_FTP_CACHE_SIZE = "ftp.cache.size";
+    
+    /**
+     * Use (or not) a local cache for ftp files' data
+     */
     public static String KEY_FTP_USE_CACHE = "ftp.use.cache";
-    public static String KEY_HASH_CACHE_SIZE = "hash.cache.size";    
+    
+    /**
+     * Used by the HashFileSystemDriver class
+     */
+    public static String KEY_HASH_CACHE_SIZE = "hash.cache.size";  
+    
+    /**
+     * Used by the HashFileSystemDriver class
+     */
     public static String KEY_HASH_USE_CACHE = "hash.use.cache";
+    
+    /**
+     * Browser list (used to display the online help)
+     */
     public static String KEY_OS_BROWSERS = "os.browsers";  
-    public static String KEY_SSE_PROTOCOLS = "sse.protocols";  
-    public static String KEY_ZIP_BUFFER = "zip.buffer.size"; 
-    public static String KEY_ZIP_MV_DIGITS = "zip.mv.digits"; 
+    
+    /**
+     * Available SSE protocols
+     */
+    public static String KEY_SSE_PROTOCOLS = "sse.protocols";
+    
+    /**
+     * Buffer size used for zip classes
+     */
+    public static String KEY_ZIP_BUFFER = "zip.buffer.size";
+    
+    /**
+     * Number of digits for multivolume zip files
+     */
+    public static String KEY_ZIP_MV_DIGITS = "zip.mv.digits";
+    
+    /**
+     * Log level (1=error; 8=finest)
+     */
     public static String KEY_LOG_LEVEL = "log.level";
+    
+    /**
+     * Always use a buffered for I/O
+     */
     public static String KEY_FS_USE_BUFFER = "fs.use.buffer";   
-    public static String KEY_FS_BUFFER_SIZE = "fs.buffer.size";   
-    public static String KEY_FS_CACHE_DEBUG = "fs.cache.debug";    
-    public static String KEY_LAUNCHER_IH = "launcher.initialheap";  
-    public static String KEY_LAUNCHER_MH = "launcher.maxheap";   
-    public static String KEY_LAUNCHER_WAITFOR = "launcher.waitfor"; 
-    public static String KEY_ZIP_ENTRY_CHECK_ENABLE = "zip.crc.enable";   
+    
+    /**
+     * I/O buffer size
+     */
+    public static String KEY_FS_BUFFER_SIZE = "fs.buffer.size";  
+    
+    /**
+     * Verbose cache access
+     */
+    public static String KEY_FS_CACHE_DEBUG = "fs.cache.debug";  
+    
+    /**
+     * Activate or not zip CRC checks
+     */
+    public static String KEY_ZIP_ENTRY_CHECK_ENABLE = "zip.crc.enable";  
+    
+    /**
+     * Maximum file path length
+     */
     public static String KEY_MAX_FILEPATH_LENGTH = "fs.max.filepath";   
+    
+    /**
+     * Tells whether file path length must be checked and explicit errors raised.
+     * <BR>If value = -1 : Areca will check on windows and ignore on other operating systems
+     * <BR>If value = 0 : Areca won't check, regardless to the operating system
+     * <BR>If value = 1 : Areca will check, regardless to the operating system
+     */
     public static String KEY_FORCE_FILEPATH_LENGTH_CHECK = "fs.max.filepath.check.force";   
+    
+    /**
+     * Number of days the log files are kept before being deleted
+     */
     public static String KEY_DEFAULT_LOG_HISTORY = "log.default.history";
-    public static String KEY_WRITABLE_DIRECTORIES = "fs.writable.directories";  
+    
+    /**
+     * List of directories on which Areca is allowed to write.
+     * <BR>If left empty, Areca will be able to write anywhere
+     */
+    public static String KEY_WRITABLE_DIRECTORIES = "fs.writable.directories";
+    
+    /**
+     * Size of the buffer used by the "filediff" classes
+     */
     public static String KEY_DELTA_LINKEDLIST_BUFFER_SIZE = "delta.linkedlist.buffer.size"; 
+    
+    /**
+     * Size of the hashmap used by the "filediff" classes
+     */
     public static String KEY_DELTA_HASHMAP_SIZE = "delta.hashmap.size"; 
+    
+    /**
+     * Multiplier used by the "filediff" classes to product the quickHash value
+     */
     public static String KEY_DELTA_QUICKHASH_MULTIPLIER = "delta.quickhash.multiplier"; 
+    
+    /**
+     * Modulus used by the "filediff" classes to product the quickHash value
+     */
     public static String KEY_DELTA_QUICKHASH_MODULUS = "delta.quickhash.modulus"; 
+    
+    /**
+     * Filesystem accessor used to read/write file attributes (permissions, owner, group, ACL, extended attributes)
+     * <BR>The current accessors are :
+     * <BR>- com.myJava.file.metadata.windows.WindowsMetaDataAccessor on Windows
+     * <BR>- com.myJava.file.metadata.posix.basic.DefaultMetaDataAccessor on Posix systems (only handles basic attributes, permissions, owner and group)
+     * <BR>- com.myJava.file.metadata.posix.jni.JNIMetaDataAccessor : This advanced accessor uses JNI and native C code to access permissions, owner, group, ACL and extended attributes. It is only available for the systems the C code has been compiled for. Check Areca's website.
+     */
     public static String KEY_FILESYSTEM_ACCESSOR = "filesystem.accessor.impl"; 
+    
+    /**
+     * Algorithm that is used to generate file's hashcode
+     */
+    public static String KEY_FILE_CONTENT_HASH_ALGORITHM = "file.hash.algorithm";
+    
+    /**
+     * Maximum number of cached mount points
+     */
+    public static String KEY_FS_MAX_MOUNT_POINTS = "fs.max.cached.mountpoints";
+    
+    /**
+     * Temporary directory (defaults to the platform's standard temporary directory)
+     */
+    public static String KEY_TMP_DIRECTORY = "fs.tmp.directory";
     
     public static int DEF_ENCRYPTION_KG_ITER = 96731;
     public static String DEF_ENCRYPTION_KG_SALT = "ù%${{²]}}[|`è€$£^¤*!§:/..;;,,_?\"\\°à@@%µ";
@@ -89,7 +237,7 @@ public class FrameworkConfiguration {
     public static boolean DEF_FTP_DEBUG = false;
     public static int DEF_FT_DELAY = 100;
     public static int DEF_FT_BUFFER_SIZE = 100000;
-    public static int DEF_FTP_CACHE_SIZE = 200;    
+    public static int DEF_FTP_CACHE_SIZE = 300;    
     public static boolean DEF_FTP_USE_CACHE = true;    
     public static int DEF_HASH_CACHE_SIZE = 500;    
     public static boolean DEF_HASH_USE_CACHE = true;    
@@ -101,9 +249,6 @@ public class FrameworkConfiguration {
     public static boolean DEF_FS_USE_BUFFER = true;   
     public static int DEF_FS_BUFFER_SIZE = 100000;   
     public static boolean DEF_FS_CACHE_DEBUG = false; 
-    public static int DEF_LAUNCHER_IH = -1;  
-    public static int DEF_LAUNCHER_MH = -1;   
-    public static boolean DEF_LAUNCHER_WAITFOR = true;  
     public static boolean DEF_ZIP_ENTRY_CHECK_ENABLE = true;  
     public static long DEF_MAX_FILEPATH_LENGTH = 256;   
     public static int DEF_FORCE_FILEPATH_LENGTH_CHECK = -1;   // -1 = UNSET, 0 = FORCE DISABLE, 1 = FORCE ENABLE
@@ -113,8 +258,12 @@ public class FrameworkConfiguration {
     public static int DEF_DELTA_HASHMAP_SIZE = 10007;
     public static int DEF_DELTA_QUICKHASH_MULTIPLIER = 691 * 13 * 11; 
     public static int DEF_DELTA_QUICKHASH_MODULUS = 4013423 * 17; 
-    public static String DEF_FILESYSTEM_ACCESSOR = null; 
-
+    //public static String DEF_FILESYSTEM_ACCESSOR = "com.myJava.file.metadata.posix.jni.JNIMetaDataAccessor";
+    public static String DEF_FILESYSTEM_ACCESSOR = "com.myJava.file.metadata.posix.basic.DefaultMetaDataAccessor";
+    public static String DEF_FILE_CONTENT_HASH_ALGORITHM = "SHA";
+    public static int DEF_FS_MAX_MOUNT_POINTS = 2000;
+    public static String DEF_TMP_DIRECTORY = null;
+    
     private static String VM_PROPS_PREFIX = "launcher.d.";
     
     private String strUrl = null;
@@ -165,8 +314,16 @@ public class FrameworkConfiguration {
         }
     }
     
+    public int getMaxCachedMountPoints() {
+    	return getProperty(KEY_FS_MAX_MOUNT_POINTS, DEF_FS_MAX_MOUNT_POINTS);
+    }
+    
     public int getEncryptionKGIters() {
     	return getProperty(KEY_ENCRYPTION_KG_ITER, DEF_ENCRYPTION_KG_ITER);
+    }
+    
+    public String getTemporaryDirectory() {
+    	return getProperty(KEY_TMP_DIRECTORY, (String)DEF_TMP_DIRECTORY);
     }
     
     public String getFileSystemAccessorImpl() {
@@ -204,6 +361,10 @@ public class FrameworkConfiguration {
     public boolean isDeltaDebugMode() {
         return getProperty(KEY_DELTA_DEBUG, DEF_DELTA_DEBUG);
     }
+    
+    public String getFileHashAlgorithm() {
+        return getProperty(KEY_FILE_CONTENT_HASH_ALGORITHM, DEF_FILE_CONTENT_HASH_ALGORITHM);
+    }
 
     public int getFileToolDelay() {
         return getProperty(KEY_FT_DELAY, DEF_FT_DELAY);
@@ -225,16 +386,12 @@ public class FrameworkConfiguration {
         return getProperty(KEY_FTP_DEBUG, DEF_FTP_DEBUG);
     }
     
-    public boolean isFTPCacheMode() {
+    public boolean isRemoteCacheMode() {
         return getProperty(KEY_FTP_USE_CACHE, DEF_FTP_USE_CACHE);
     }
     
     public boolean isFSCacheDebug() {
         return getProperty(KEY_FS_CACHE_DEBUG, DEF_FS_CACHE_DEBUG);
-    }
-    
-    public boolean isLauncherWaitFor() {
-        return getProperty(KEY_LAUNCHER_WAITFOR, DEF_LAUNCHER_WAITFOR);
     }
     
     public long getMaxFilePath() {
@@ -243,14 +400,6 @@ public class FrameworkConfiguration {
     
     public int getForceMaxFilePathCheck() {
         return getProperty(KEY_FORCE_FILEPATH_LENGTH_CHECK, DEF_FORCE_FILEPATH_LENGTH_CHECK);
-    }
-    
-    public int getLauncherInitialHeap() {
-        return getProperty(KEY_LAUNCHER_IH, DEF_LAUNCHER_IH);
-    }
-    
-    public int getLauncherMaxHeap() {
-        return getProperty(KEY_LAUNCHER_MH, DEF_LAUNCHER_MH);
     }
     
     public int getDefaultLogHistory() {
@@ -383,6 +532,38 @@ public class FrameworkConfiguration {
             
             return (String[])data.toArray(new String[0]);
         }
+    }
+    
+    public static Properties getDefaults(Class cls) {
+    	Properties p = new Properties();
+    	Field[] fields = cls.getFields();
+    	for (int i=0; i<fields.length; i++) {
+    		Field f = fields[i];
+    		if (f.getName().startsWith("KEY_")) {
+    			String defName = "DEF_" + f.getName().substring(4);
+    			try {
+        			Field def = cls.getField(defName);
+					String key = (String)f.get(cls);
+					Object value = def.get(cls);
+					p.setProperty(key, value == null ? "":value.toString());
+				} catch (Exception e) {
+					Logger.defaultLogger().error(e);
+				}
+    		}
+    	}
+    	return p;
+    }
+    
+    public Properties getAll() {
+    	Properties p = getDefaults(this.getClass());
+    	p.putAll(props);
+    	return p;
+    }
+    
+    public String toFullString(Class cls) {
+    	Properties p = getDefaults(cls);
+    	p.putAll(props);
+    	return p.toString();
     }
     
     public String toString() {

@@ -22,6 +22,8 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
@@ -36,6 +38,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -77,6 +80,7 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.system.OSTool;
+import com.myJava.util.PasswordQualityEvaluator;
 import com.myJava.util.Util;
 import com.myJava.util.history.History;
 import com.myJava.util.log.Logger;
@@ -85,12 +89,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -161,6 +165,9 @@ extends AbstractWindow {
     protected Label lblEncryptionExample;
     protected Label lblEncryptionKey;
     protected Button btnGenerateKey;
+    protected Label lblQuality;
+    protected ProgressBar pgbPwdQuality;
+    protected Button btnReveal;
     protected Label lblMultiVolumesUnit;
     protected Label lblEncryptionAlgorithm;
     protected Label lblMultiVolumesDigits;
@@ -176,6 +183,7 @@ extends AbstractWindow {
     protected Button rdMultiple;
     protected Button rdDelta;
     
+    private TreeItem transfered;
     protected Tree treFilters;
     protected Button btnAddFilter;
     protected Button btnRemoveFilter;
@@ -636,8 +644,8 @@ extends AbstractWindow {
         
         chkTrackDirectories = new Button(grpFileManagement, SWT.CHECK);
         monitorControl(chkTrackDirectories);
-        chkTrackDirectories.setText(RM.getLabel("targetedition.trackdirs.label"));
-        chkTrackDirectories.setToolTipText(RM.getLabel("targetedition.trackdirs.tooltip"));
+        chkTrackDirectories.setText(RM.getLabel("targetedition.trackemptydirs.label"));
+        chkTrackDirectories.setToolTipText(RM.getLabel("targetedition.trackemptydirs.tooltip"));
         
         chkTrackPermissions = new Button(grpFileManagement, SWT.CHECK);
         monitorControl(chkTrackPermissions);
@@ -711,14 +719,41 @@ extends AbstractWindow {
         lblEncryptionKey.setText(RM.getLabel("targetedition.keyfield.label"));
         lblEncryptionKey.setToolTipText(RM.getLabel("targetedition.keyfield.tooltip"));
         txtEncryptionKey = new Text(grpEncryption, SWT.BORDER);
+        txtEncryptionKey.setEchoChar('*');
+        txtEncryptionKey.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent e) {
+            	evaluatePassword();
+            }
+        });
         monitorControl(txtEncryptionKey);
         GridData dtenckey = new GridData(SWT.FILL, SWT.CENTER, true, false);
         txtEncryptionKey.setLayoutData(dtenckey);
 
+        btnReveal = new Button(grpEncryption, SWT.PUSH);
+        btnReveal.setText(RM.getLabel("targetedition.reveal.label"));
+        btnReveal.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+        btnReveal.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+            	if (txtEncryptionKey.getEchoChar() == '*') {
+            		txtEncryptionKey.setEchoChar('\0');
+                    btnReveal.setText(RM.getLabel("targetedition.mask.label"));
+                    grpEncryption.layout();
+            	} else {
+            		txtEncryptionKey.setEchoChar('*');
+                    btnReveal.setText(RM.getLabel("targetedition.reveal.label"));
+                    grpEncryption.layout();
+            	}
+            }
+        });
+        
+        new Label(grpEncryption, SWT.NONE);
+        lblEncryptionExample = new Label(grpEncryption, SWT.NONE);
+        lblEncryptionExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1)); 
+        
         btnGenerateKey = new Button(grpEncryption, SWT.PUSH);
         btnGenerateKey.setText(RM.getLabel("targetedition.generatekey.label"));
-        btnGenerateKey.setToolTipText(RM.getLabel("targetedition.generatekey.label"));
-        btnGenerateKey.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+        btnGenerateKey.setToolTipText(RM.getLabel("targetedition.generatekey.tooltip"));
+        btnGenerateKey.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
         btnGenerateKey.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
             	boolean ok = true;
@@ -738,15 +773,19 @@ extends AbstractWindow {
                     if (index != -1) {
                         EncryptionConfiguration config = (EncryptionConfiguration)lstEncryptionAlgorithms.get(index);
             			byte[] b = EncryptionUtil.generateRandomKey(config.getKeySize());
-            			txtEncryptionKey.setText(Util.serializeHexa(b));
+            			txtEncryptionKey.setText(Util.base16Encode(b));
                     }
             	}
             }
         });
 
-        new Label(grpEncryption, SWT.NONE);
-        lblEncryptionExample = new Label(grpEncryption, SWT.NONE);
-        lblEncryptionExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1)); 
+        lblQuality = new Label(grpEncryption, SWT.NONE);
+        lblQuality.setText(RM.getLabel("targetedition.pwdquality.label"));
+        lblQuality.setLayoutData(new GridData(SWT.LEFT, SWT.BOTTOM, false, true));
+        pgbPwdQuality = new ProgressBar(grpEncryption, SWT.SMOOTH);
+        pgbPwdQuality.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true, 2, 1));
+        pgbPwdQuality.setMinimum(0);
+        pgbPwdQuality.setMaximum(100);        
         
         // CONFIG
         grpConfiguration = new Group(composite, SWT.NONE);
@@ -760,8 +799,6 @@ extends AbstractWindow {
         monitorControl(chkNoXMLCopy);
         chkNoXMLCopy.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
     }
-    
-    private TreeItem transfered;
     
     private void initFiltersTab(Composite composite) {
         composite.setLayout(initLayout(4));
@@ -999,14 +1036,6 @@ extends AbstractWindow {
     }
     
     private void initValues() {
-        // Tracks whether there is a backward compatibility error
-        // Indeed, an error can occur if the user tries to open a target which was created with the first versions of
-        // Areca and whose backups are stored at the ROOT of the filesystem (although it was asked to store them
-        // in a SUBDIRECTORY).
-        // In this case, Areca refuses to edit this target. The user must fix the problem by hand or delete his target and recreate 
-        // a valid one.
-        boolean backwardCompatibilityError = false;
-
         // INIT VALUES
         if (target != null) {
             txtTargetName.setText(target.getTargetName());
@@ -1022,7 +1051,7 @@ extends AbstractWindow {
                 rdMultiple.setSelection(true);
             }
 
-            chkTrackDirectories.setSelection(fMedium.isTrackDirectories());
+            chkTrackDirectories.setSelection(((FileSystemRecoveryTarget)target).isTrackEmptyDirectories());
             chkFollowSubDirectories.setSelection(((FileSystemRecoveryTarget)target).isFollowSubdirectories());
             chkTrackPermissions.setSelection(fMedium.isTrackPermissions());
             chkNoXMLCopy.setSelection(! target.isCreateSecurityCopyOnBackup());
@@ -1119,7 +1148,6 @@ extends AbstractWindow {
             rdFile.setSelection(true);
             rdMultiple.setSelection(true);
             chkFollowSubDirectories.setSelection(true);
-            chkTrackDirectories.setSelection(true);
             rdArchive.setSelection(true);
             selectEncoding(ZipConstants.DEFAULT_CHARSET);
             cboZipLevel.select(9);
@@ -1150,6 +1178,7 @@ extends AbstractWindow {
         this.resetEcryptionKey();
         this.resetMVData();
         enableZipOptions(! (rdDir.getSelection()));
+        handleAlgorithmModification();
         
         // FREEZE
         if (isFrozen(true)) {
@@ -1184,6 +1213,7 @@ extends AbstractWindow {
             cboEncryptionAlgorithm.setEnabled(false);
             lblEncryptionAlgorithm.setEnabled(false);
             lblEncryptionKey.setEnabled(false);
+            lblQuality.setEnabled(false);
             txtArchiveName.setEnabled(false);
             lblArchiveName.setEnabled(false);
             lblEncryptionExample.setEnabled(false);
@@ -1193,8 +1223,8 @@ extends AbstractWindow {
             txtMultivolumesDigits.setEnabled(false);
             lblMultiVolumesUnit.setEnabled(false);
             lblMultiVolumesDigits.setEnabled(false);
-            chkTrackDirectories.setEnabled(false);
             chkFollowSubDirectories.setEnabled(false);
+            chkTrackDirectories.setEnabled(false);
             chkTrackPermissions.setEnabled(false);
             chkNoXMLCopy.setEnabled(false);
             chkFollowLinks.setEnabled(false);
@@ -1206,11 +1236,10 @@ extends AbstractWindow {
             lblZipLevel.setEnabled(false);
             rdArchive.setEnabled(false);
             rdSingle.setEnabled(false);
+            btnReveal.setEnabled(false);
+            btnGenerateKey.setEnabled(false);
+            pgbPwdQuality.setEnabled(false);
         }    
-
-        if (backwardCompatibilityError) {
-            throw new IllegalArgumentException(RM.getLabel("targetedition.backwardcompatibility"));
-        }
     }
     
     private void selectEncoding(String encoding) {
@@ -1471,11 +1500,26 @@ extends AbstractWindow {
             String example = RM.getLabel("targetedition.encryption." + configId.toLowerCase() + ".example");
             this.lblEncryptionExample.setText(example);
             
-            btnGenerateKey.setEnabled(config.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_RAW));
+            boolean isRaw = config.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_RAW);
+            btnGenerateKey.setVisible(isRaw);
+            btnGenerateKey.setEnabled(true);
+            
+            pgbPwdQuality.setVisible(!isRaw);
+            pgbPwdQuality.setEnabled(true);
+            lblQuality.setVisible(!isRaw);
+            lblQuality.setEnabled(true);
+            evaluatePassword();
         } else {
-        	btnGenerateKey.setEnabled(false);
+        	btnGenerateKey.setVisible(false);
+        	pgbPwdQuality.setVisible(false);
+        	lblQuality.setVisible(false);
             this.lblEncryptionExample.setText("");
         }
+    }
+    
+    private void evaluatePassword() {
+    	double quality = PasswordQualityEvaluator.evaluate(txtEncryptionKey.getText());
+    	this.pgbPwdQuality.setSelection((int)(quality*100));
     }
     
     private void resetEcryptionKey() {
@@ -1487,6 +1531,8 @@ extends AbstractWindow {
             this.chkEncrypNames.setEnabled(true);
             this.lblEncryptionExample.setEnabled(true);
             this.lblEncryptionKey.setEnabled(true);
+            this.btnReveal.setEnabled(true);
+            handleAlgorithmModification();
         } else {
             this.txtEncryptionKey.setEditable(false);
             this.txtEncryptionKey.setEnabled(false);
@@ -1501,6 +1547,9 @@ extends AbstractWindow {
             this.lblEncryptionAlgorithm.setEnabled(false);
             this.lblEncryptionKey.setEnabled(false);
             this.btnGenerateKey.setEnabled(false);
+            this.pgbPwdQuality.setEnabled(false);
+            this.lblQuality.setEnabled(false);
+            this.btnReveal.setEnabled(false);
         }
     }
     
@@ -1544,7 +1593,7 @@ extends AbstractWindow {
     protected void saveChanges() {
         try {
             FileSystemRecoveryTarget newTarget = new FileSystemRecoveryTarget();
-            newTarget.setGroup(application.getCurrentProcess());
+            newTarget.setGroup(application.getCurrentTargetGroup());
 
             String storageSubDirectory; // Necessary for backward compatibility
             if (target != null) {
@@ -1555,9 +1604,9 @@ extends AbstractWindow {
                 File fStorageSubDirectoryFile = ((AbstractIncrementalFileSystemMedium)target.getMedium()).getFileSystemPolicy().getArchiveDirectory();
                 storageSubDirectory = FileSystemManager.getName(fStorageSubDirectoryFile);
             } else {
-                newTarget.setId(application.getCurrentProcess().getNextFreeTargetId());
+                newTarget.setId(application.getCurrentTargetGroup().getNextFreeTargetId());
 
-                // Should be the standard behaviour, but a workaround is necessary for backward compatibility
+                // Should be the standard behavior, but a workaround is necessary for backward compatibility
                 storageSubDirectory = newTarget.getUid();
             }
             
@@ -1565,6 +1614,7 @@ extends AbstractWindow {
             newTarget.setTargetName(txtTargetName.getText());
             newTarget.setCreateSecurityCopyOnBackup(! chkNoXMLCopy.getSelection());
             newTarget.setTrackSymlinks( ! this.chkFollowLinks.getSelection());
+            newTarget.setTrackEmptyDirectories(this.chkTrackDirectories.getSelection());
             newTarget.setFollowSubdirectories(this.chkFollowSubDirectories.getSelection());
             
             // Sources
@@ -1602,17 +1652,16 @@ extends AbstractWindow {
                 storagePolicy.setArchiveName(txtArchiveName.getText());
                 storagePolicy.validate(false);
                 
-                // Permet de sauvegarder l'historique pour le réécrire suite au changement de driver.
+                // Clear the history - it will be written after the drivers have been initialized
                 History historyBck = null;
                 if (target != null) {
-                    // Suppression de l'historique de la target; celui ci sera réécrit après la réinitialisation du driver
                     historyBck = this.target.getHistory();
                     if (historyBck != null) {
                         try {
                             historyBck.clearData();
                         } catch (Exception e) {
                             Logger.defaultLogger().error("Error trying to clear the target's history", e);
-                            // Non - blocking error.
+                            // Non-blocking error.
                         }
                     }
                 }
@@ -1648,7 +1697,6 @@ extends AbstractWindow {
                 medium.setCompressionArguments(compression);
                 medium.setFileSystemPolicy(storagePolicy);
                 medium.setEncryptionPolicy(encrArgs);
-                medium.setTrackDirectories(this.chkTrackDirectories.getSelection());
                 medium.setTrackPermissions(this.chkTrackPermissions.getSelection());
                 
                 if (rdDelta.getSelection()) {
@@ -1662,7 +1710,7 @@ extends AbstractWindow {
                 medium.install();
                 
                 if (historyBck != null && ! historyBck.isEmpty()) {
-                    // Reecriture de l'historique
+                    // Write the history
                     try {
                         newTarget.getHistory().importHistory(historyBck);
                     } catch (Throwable e) {

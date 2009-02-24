@@ -51,12 +51,12 @@ import com.myJava.file.CompressionArguments;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -86,12 +86,16 @@ public class TargetXMLReader implements XMLTags {
         this.group = group;
         this.version = version;
     }
-    
+
     public void setMissingDataListener(MissingDataListener missingDataListener) {
-        this.missingDataListener = missingDataListener;
-    }
-    
-    public FileSystemRecoveryTarget readTarget() throws IOException, AdapterException, ApplicationException {
+		this.missingDataListener = missingDataListener;
+	}
+
+	public MissingDataListener getMissingDataListener() {
+		return missingDataListener;
+	}
+
+	public FileSystemRecoveryTarget readTarget() throws IOException, AdapterException, ApplicationException {
         Node id = targetNode.getAttributes().getNamedItem(XML_TARGET_ID);
         Node uid = targetNode.getAttributes().getNamedItem(XML_TARGET_UID);        
         Node name = targetNode.getAttributes().getNamedItem(XML_TARGET_NAME);     
@@ -127,6 +131,12 @@ public class TargetXMLReader implements XMLTags {
         if (commentsNode != null) {
             target.setComments(commentsNode.getNodeValue());
         }  
+        
+        Node trackEmptyDirsNode = targetNode.getAttributes().getNamedItem(XML_TARGET_TRACK_EMPTY_DIRS);
+        if (trackEmptyDirsNode != null) {
+            boolean trackEmptyDirs = trackEmptyDirsNode.getNodeValue().equalsIgnoreCase("true");
+            target.setTrackEmptyDirectories(trackEmptyDirs); 
+        }
 
         Node followSymLinksNode = targetNode.getAttributes().getNamedItem(XML_TARGET_FOLLOW_SYMLINKS);  
         if (followSymLinksNode != null) {
@@ -241,11 +251,6 @@ public class TargetXMLReader implements XMLTags {
             pp.setOnlyIfError(Boolean.valueOf(failureOnlyNode.getNodeValue()).booleanValue());
         }
         
-        Node listFilteredNode = node.getAttributes().getNamedItem(XML_PP_LIST_FILTERED);
-        if (listFilteredNode != null) {
-            pp.setListFiltered(Boolean.valueOf(listFilteredNode.getNodeValue()).booleanValue());
-        }
-        
         Node nameNode = node.getAttributes().getNamedItem(XML_PP_DUMP_NAME);
         if (nameNode != null) {
             pp.setReportName(nameNode.getNodeValue());
@@ -282,8 +287,7 @@ public class TargetXMLReader implements XMLTags {
             if (toNode == null) {
                 throw new AdapterException("Merge delay not found for merge processor. A '" + XML_PP_DELAY + "' attribute must be set.");
             }
-        }          
-        Node keepNode = node.getAttributes().getNamedItem(XML_PP_MERGE_KEEP_DELETED);
+        }
         pp.setToDelay(Integer.parseInt(toNode.getNodeValue()));
         
         // FROM
@@ -292,13 +296,13 @@ public class TargetXMLReader implements XMLTags {
             pp.setFromDelay(Integer.parseInt(fromNode.getNodeValue()));
         }  
         
-        // KEEP DELETED
+        //KEEP DELETED ENTRIES
+        Node keepNode = node.getAttributes().getNamedItem(XML_PP_MERGE_KEEP_DELETED);
         if (keepNode != null) {
             pp.setKeepDeletedEntries(Boolean.valueOf(keepNode.getNodeValue()).booleanValue());
         } else {
             pp.setKeepDeletedEntries(false);
         }
-        
         return pp;
     }
     
@@ -343,19 +347,10 @@ public class TargetXMLReader implements XMLTags {
             pp.setSmtps(Boolean.valueOf(smtpsNode.getNodeValue()).booleanValue());
         }
         
-        Node listFilteredNode = node.getAttributes().getNamedItem(XML_PP_LIST_FILTERED);
-        if (listFilteredNode != null) {
-            pp.setListFiltered(Boolean.valueOf(listFilteredNode.getNodeValue()).booleanValue());
-        }
-        
         // BACKWARD-COMPATIBILITY //
         Node failureOnlyNode_old = node.getAttributes().getNamedItem("smtp_" + XML_PP_ONLY_IF_ERROR);
         if (failureOnlyNode_old != null) {
             pp.setOnlyIfError(Boolean.valueOf(failureOnlyNode_old.getNodeValue()).booleanValue());
-        }
-        Node listFilteredNode_old = node.getAttributes().getNamedItem("smtp_" + XML_PP_LIST_FILTERED);
-        if (listFilteredNode_old != null) {
-            pp.setListFiltered(Boolean.valueOf(listFilteredNode_old.getNodeValue()).booleanValue());
         }
         // EOF BACKWARD-COMPATIBILITY //
         
@@ -388,16 +383,21 @@ public class TargetXMLReader implements XMLTags {
         Node typeNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_TYPE);
         if (typeNode == null) {
             throw new AdapterException("Medium type not found : your medium must have a '" + XML_MEDIUM_TYPE + "' attribute.");
-        }           
+        }      
         
+        // backward compatibility
         Node trackDirsNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_TRACK_DIRS);
-        boolean trackDirs = (trackDirsNode != null && trackDirsNode.getNodeValue().equalsIgnoreCase("true"));   
+        if (trackDirsNode != null) {
+            boolean trackDirs = trackDirsNode.getNodeValue().equalsIgnoreCase("true");
+            ((FileSystemRecoveryTarget)target).setTrackEmptyDirectories(trackDirs); 
+        }
+        // EOF backward compatibility
         
         Node trackPermsNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_TRACK_PERMS);
         boolean trackPerms = (trackPermsNode != null && trackPermsNode.getNodeValue().equalsIgnoreCase("true"));   
 
         EncryptionPolicy encrArgs = readEncryptionPolicy(mediumNode, target);
-        FileSystemPolicy storage = readFileSystemPolicy(mediumNode);
+        FileSystemPolicy storage = readFileSystemPolicy(mediumNode, target);
         
         CompressionArguments compression = new CompressionArguments();
         Node volumeSizeNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_VOLUME_SIZE);
@@ -481,8 +481,7 @@ public class TargetXMLReader implements XMLTags {
         medium.setFileSystemPolicy(storage);
         medium.setEncryptionPolicy(encrArgs);
         medium.setOverwrite(isOverwrite(mediumNode));
-        medium.setTrackDirectories(trackDirs);
-        medium.setTrackPermissions(trackPerms);   
+        medium.setTrackPermissions(trackPerms); 
         
         if (medium.isOverwrite() && medium.getHandler() instanceof DeltaArchiveHandler) {
         	throw new AdapterException("Illegal state : 'Delta' archive mode is incompatible with 'image' targets.");
@@ -503,7 +502,10 @@ public class TargetXMLReader implements XMLTags {
     }
     
     
-    protected FileSystemPolicy readFileSystemPolicy(Node mediumNode) throws IOException, AdapterException, ApplicationException {
+    protected FileSystemPolicy readFileSystemPolicy(
+    		Node mediumNode, 
+    		AbstractRecoveryTarget target
+    ) throws IOException, AdapterException, ApplicationException {
         Node policyNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_POLICY);
         String policyId;
         if (policyNode != null) {
@@ -521,10 +523,13 @@ public class TargetXMLReader implements XMLTags {
         StoragePlugin plugin = StoragePluginRegistry.getInstance().getById(policyId);
         FileSystemPolicyXMLHandler handler = plugin.buildFileSystemPolicyXMLHandler();
         handler.setVersion(version);
-        return handler.read(mediumNode);
+        return handler.read(mediumNode, target, this);
     }
     
-    protected EncryptionPolicy readEncryptionPolicy(Node mediumNode, AbstractRecoveryTarget target) throws IOException, AdapterException, ApplicationException {
+    protected EncryptionPolicy readEncryptionPolicy(
+    		Node mediumNode, 
+    		AbstractRecoveryTarget target
+    ) throws IOException, AdapterException, ApplicationException {
         Node encryptedNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTED);
         boolean isEncrypted = (encryptedNode != null && encryptedNode.getNodeValue().equalsIgnoreCase("true"));   
         
@@ -538,14 +543,14 @@ public class TargetXMLReader implements XMLTags {
         boolean encryptNames = encryptNamesNode == null ? true : encryptNamesNode.getNodeValue().equalsIgnoreCase("true");  
         
         if (isEncrypted && encryptionKey == null) { // No check for the encryptionAlgorithm because we use a default one if none is specified.
-            if (this.missingDataListener != null) {
-                Object[] encrData = (Object[])missingDataListener.missingEncryptionDataDetected(target);
+        	if (missingDataListener != null) {
+        		Object[] encrData = (Object[])missingDataListener.missingEncryptionDataDetected(target);
                 if (encrData != null) {
 	                encryptionAlgo = (String)encrData[0];
 	                encryptionKey = (String)encrData[1];
                 }
             }
-        }    
+        }
         
         if (isEncrypted && encryptionKey == null) { // Second check .... after missingDataListener invocation.
             throw new AdapterException("No encryption key found : your medium must have a '" + XML_MEDIUM_ENCRYPTIONKEY + "' attribute because it is encrypted (" + XML_MEDIUM_ENCRYPTED + " = true).");

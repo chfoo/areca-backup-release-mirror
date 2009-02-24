@@ -4,12 +4,12 @@ package com.application.areca.launcher.gui.common;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -43,6 +43,7 @@ public interface ActionConstants {
     public static final String CMD_RECOVER_WITH_FILTER = "recover with filter";
     public static final String CMD_RECOVER_FROM_LOGICAL = "recover latest version with filter";
     public static final String CMD_MERGE = "merge";
+    public static final String CMD_CHECK_ARCHIVES = "check archives";
     public static final String CMD_DELETE_ARCHIVES = "delete archives";
     public static final String CMD_ABOUT = "about";
     public static final String CMD_CHECK_VERSION = "check version";

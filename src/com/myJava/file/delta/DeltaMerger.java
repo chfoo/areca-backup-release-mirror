@@ -11,18 +11,20 @@ import com.myJava.file.delta.bucket.NewBytesBucket;
 import com.myJava.file.delta.bucket.ReadPreviousBucket;
 import com.myJava.file.delta.tools.IOHelper;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * To refactor : should be mutualized with the DeltaInputStream
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -79,12 +81,14 @@ implements Constants, LayerHandler {
         }
     }
     
-    public void merge() throws IOException, DeltaProcessorException {
-        while(mergeImpl()) {}
+    public void merge(TaskMonitor monitor) 
+    throws IOException, DeltaProcessorException, TaskCancelledException {
+        while(mergeImpl(monitor)) {}
         proc.end();
     }
 
-    private boolean mergeImpl() throws IOException, DeltaProcessorException {
+    private boolean mergeImpl(TaskMonitor monitor) 
+    throws IOException, DeltaProcessorException, TaskCancelledException {
         int read = 0;
         int highWaterMark = 0;
 
@@ -97,12 +101,17 @@ implements Constants, LayerHandler {
         instructionsToProcess.add(init);
 
         for (int i=layers.size() - 1; i>=0; i--) {          // Iterate on all layers
-            DeltaLayer layer = (DeltaLayer)layers.get(i);
+        	DeltaLayer layer = (DeltaLayer)layers.get(i);
             if (layer.getCurrentBucket() == null) {
                 layer.readNextBucket();
             }
 
             for (int b = 0; b<instructionsToProcess.size(); b++) {
+            	// Check cancellation state
+            	if (monitor != null) {
+                	monitor.checkTaskState();
+                }
+                
                 DeltaReadInstruction instruction = (DeltaReadInstruction)instructionsToProcess.get(b); // Get the next instruction to process
                 long from = instruction.getReadFrom();
                 long to = instruction.getReadTo();

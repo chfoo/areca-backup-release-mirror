@@ -20,20 +20,17 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.Util;
-import com.myJava.util.log.Logger;
 
 /**
- * 
- * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -57,7 +54,6 @@ public class DefaultHistory implements History {
     
     protected File file;
     protected HashMap content;
-    protected GregorianCalendar lastActionDate = null;
     protected FileTool tool = FileTool.getInstance();
     
     public DefaultHistory(File file) throws IOException {
@@ -92,11 +88,10 @@ public class DefaultHistory implements History {
     }
     
     /**
-     * Ferme l'historique et flush son contenu en fichier.
-     * <BR>Ce mode peut para�tre non optimis� dans la mesure ou il r��crit tout
-     * le contenu de l'historique au lieu de n'ajouter que la derni�re entr�e au fichier.
-     * <BR>Ce choix a �t� fait pour rendre cette classe compatible avec les EncryptedFileSystemDrivers,
-     * qui ne supportent pas l'�criture en mode "append" 
+     * Close the history and writes its content.
+     * <BR>This mode may seem unefficient because it writes the whole history data instead of appending the new data.
+     * <BR>The advantage of this approach is that it is compatible with FileSystemDrivers that do not support writing
+     * "append" mode. 
      */
     public synchronized void flush() throws IOException {       
         if (file != null) {
@@ -144,13 +139,8 @@ public class DefaultHistory implements History {
         return (HistoryEntry)(content.get(date));
     }
     
-    public synchronized GregorianCalendar getLastEntryDate() {
-        return lastActionDate;
-    }
-    
     public void clear() {
         this.content.clear();
-        this.lastActionDate = null;
     }
     
     public void load() throws IOException {
@@ -209,25 +199,6 @@ public class DefaultHistory implements History {
         }
     }
     
-    public void updateLocation(Object newLocation) throws IOException {
-        if (newLocation == null || newLocation.equals(this.file)) {
-            return;
-        } else {
-            
-            // Rename File
-            while (! FileSystemManager.renameTo(this.file, (File)newLocation)) {
-                try {
-                    Thread.sleep(300);
-                } catch (InterruptedException e) {
-                    Logger.defaultLogger().error(e);
-                }
-            }
-            
-            // Update file
-            this.file = (File)newLocation;
-        }
-    }
-    
     private String readNextSignificantLine(BufferedReader reader) throws IOException {
         String str = reader.readLine();
         if (str == null || str.length() != 0) {
@@ -238,12 +209,7 @@ public class DefaultHistory implements History {
     }
     
     private void addEntryToContent(HistoryEntry entry) {
-        GregorianCalendar date = entry.getDate();
-        
-        if (this.lastActionDate == null || this.lastActionDate.before(date)) {
-            this.lastActionDate = date;
-        }
-        
+        GregorianCalendar date = entry.getDate();       
         content.put(date, entry); 
     }
     
@@ -259,7 +225,6 @@ public class DefaultHistory implements History {
     }  
     
     protected static class GregorianCalendarComparator implements Comparator {
-        
         public int compare(Object o1, Object o2) {
             GregorianCalendar c1 = (GregorianCalendar)o1;
             GregorianCalendar c2 = (GregorianCalendar)o2;            

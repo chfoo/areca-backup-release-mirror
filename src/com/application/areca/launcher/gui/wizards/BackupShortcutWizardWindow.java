@@ -22,12 +22,12 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -54,6 +54,7 @@ extends AbstractWindow {
     
     private String selectedPath = null;
     private boolean forSelectedOnly = true;
+    private boolean checkArchive = false;
     private boolean differential;
     private boolean full;
     
@@ -64,6 +65,7 @@ extends AbstractWindow {
     private Button radFull;
     private Button radIncremental;
     private Button radDifferential;
+    private Button chkCheckArchive;
 
     public BackupShortcutWizardWindow(String initialDirectory, String initialFileNameSelected, String initialFileNameAll) {
         super();
@@ -75,6 +77,7 @@ extends AbstractWindow {
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(1, false);
+        layout.verticalSpacing = 10;
         composite.setLayout(layout);
                
         Group grpLocation = new Group(composite, SWT.NONE);
@@ -153,6 +156,17 @@ extends AbstractWindow {
         });
         monitorControl(SWT.Selection, radAll);
         
+        Group grpCheckArchive = new Group(composite, SWT.NONE);
+        grpCheckArchive.setText(RM.getLabel("archivedetail.checkgroup.label"));
+        grpCheckArchive.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        grpCheckArchive.setLayout(new GridLayout(1, false));
+        
+        chkCheckArchive = new Button(grpCheckArchive, SWT.CHECK);
+        chkCheckArchive.setText(RM.getLabel("archivedetail.checkarchive.label"));
+        chkCheckArchive.setToolTipText(RM.getLabel("archivedetail.checkarchive.tooltip"));
+        chkCheckArchive.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
+        monitorControl(chkCheckArchive);
+        
         SavePanel pnlSave = new SavePanel(this);
         pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true));        
         saveButton = pnlSave.getBtnSave();
@@ -180,6 +194,7 @@ extends AbstractWindow {
         this.forSelectedOnly = radSelectedOnly.getSelection();
         this.full = radFull.getSelection();
         this.differential = radDifferential.getSelection();
+        this.checkArchive = chkCheckArchive.getSelection();
         
         this.hasBeenUpdated = false;
         this.close();
@@ -204,4 +219,8 @@ extends AbstractWindow {
     public boolean isFull() {
         return full;
     }
+
+	public boolean isCheckArchive() {
+		return checkArchive;
+	}
 }

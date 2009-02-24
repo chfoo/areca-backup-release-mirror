@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileNameUtil;
@@ -13,17 +12,16 @@ import com.myJava.file.metadata.FileMetaData;
 import com.myJava.system.OSTool;
 
 /**
- * Impl�mentation abstraite de l'interface FileSystemDriver
- * <BR>Lance des UnsupportedOperationExceptions.
+ * Abstract implementation for filesystem driver
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -163,24 +161,16 @@ implements FileSystemDriver {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
     }
     
-    public FileMetaData getAttributes(File f) throws IOException {
+    public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
     }
 
-    public void applyAttributes(FileMetaData p, File f) throws IOException {
+    public void applyMetaData(FileMetaData p, File f) throws IOException {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
     }
     
     public void deleteOnExit(File f) {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
-    }
-
-    public static String normalizeIfNeeded(String path) {
-        if (File.separatorChar == '\\') {
-            return FileNameUtil.normalizePath(path);
-        } else {
-            return path;
-        }
     }
     
     protected void checkFilePath(File f) throws InvalidPathException {
@@ -191,8 +181,12 @@ implements FileSystemDriver {
             }
         }
     }
-    
-    public InputStream getCachedFileInputStream(File file) throws IOException {
-        return getFileInputStream(file);
+
+    public static String normalizeIfNeeded(String path) {
+        if (File.separatorChar == '\\') {
+            return FileNameUtil.normalizePath(path);
+        } else {
+            return path;
+        }
     }
 }

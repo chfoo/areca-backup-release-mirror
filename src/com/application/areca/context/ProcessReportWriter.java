@@ -2,9 +2,7 @@ package com.application.areca.context;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Iterator;
 
-import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
@@ -14,12 +12,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -39,10 +37,8 @@ This file is part of Areca.
 public class ProcessReportWriter {
 
     private Writer writer;
-    private boolean writeFilteredEntries = true;
     
-    public ProcessReportWriter(Writer writer, boolean writeFilteredEntries) {
-        this.writeFilteredEntries = writeFilteredEntries;
+    public ProcessReportWriter(Writer writer) {
         this.writer = writer;
     }
 
@@ -68,19 +64,6 @@ public class ProcessReportWriter {
         write("Unfiltered files : " + report.getUnfilteredFiles());
         write("Ignored files (not modified) : " + report.getIgnoredFiles());
         write("Saved files : " + report.getSavedFiles());
-        if (writeFilteredEntries && report.filteredEntriesData != null && (! report.filteredEntriesData.isEmpty())) {
-            writeSeparator();
-            write("Filtered entries :");
-            Iterator iter = report.getFilteredEntriesData().getKeyIterator();
-            while (iter.hasNext()) {
-                Object key = iter.next();               
-                Iterator entries = report.getFilteredEntriesData().getFilteredEntries(key).iterator();
-                while (entries.hasNext()) {
-                    RecoveryEntry entry = (RecoveryEntry)entries.next();
-                    write(entry.getName());
-                }
-            }
-        }
         writeSeparator();
     }
     

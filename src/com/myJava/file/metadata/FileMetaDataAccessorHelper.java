@@ -1,7 +1,7 @@
 package com.myJava.file.metadata;
 
 import com.myJava.configuration.FrameworkConfiguration;
-import com.myJava.file.metadata.posix.linux.LinuxMetaDataAccessor;
+import com.myJava.file.metadata.posix.basic.DefaultMetaDataAccessor;
 import com.myJava.file.metadata.windows.WindowsMetaDataAccessor;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
@@ -10,12 +10,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -39,11 +39,25 @@ public class FileMetaDataAccessorHelper {
 	static {
 		synchronized (FileMetaDataAccessorHelper.class) {
 			String configuredAccessor = FrameworkConfiguration.getInstance().getFileSystemAccessorImpl();
+			
 			if (configuredAccessor != null) {
 				try {
+					// Load the configured accessor
+					Logger.defaultLogger().info("Loading configured file metadata accessor : [" + configuredAccessor + "] ...");
 					INSTANCE = (FileMetaDataAccessor)Class.forName(configuredAccessor).newInstance();
+					Logger.defaultLogger().fine("Configured metadata accessor description : ");
+					Logger.defaultLogger().fine(INSTANCE.getDescription());
+					
+					// Test the configured accessor
+					Logger.defaultLogger().info("Testing configured file metadata accessor ...");
+					if (INSTANCE.test()) {
+						Logger.defaultLogger().info("[" + configuredAccessor + "] validated.");
+					} else {
+						Logger.defaultLogger().warn("[" + configuredAccessor + "] not validated. The default metadata accessor will be used instead.");
+						INSTANCE = null;
+					}
 				} catch (Exception e) {
-					Logger.defaultLogger().error("Error while loading file system accessor : [" + configuredAccessor + "]. Check your configuration.", e);
+					Logger.defaultLogger().error("Error while loading configured file metadata accessor : [" + configuredAccessor + "]. Check your configuration.", e);
 				}
 			}
 			
@@ -52,9 +66,23 @@ public class FileMetaDataAccessorHelper {
 				if (OSTool.isSystemWindows()) {
 					INSTANCE = new WindowsMetaDataAccessor();
 				} else {
-					INSTANCE = new LinuxMetaDataAccessor();			
+					INSTANCE = new DefaultMetaDataAccessor();			
+				}
+				
+				// Test the default accessor
+				Logger.defaultLogger().info("Default file metadata accessor loaded : [" + INSTANCE.getClass().getName() + "].");
+				Logger.defaultLogger().fine("Default metadata accessor description : ");
+				Logger.defaultLogger().fine(INSTANCE.getDescription());
+				if (INSTANCE.test()) {
+					Logger.defaultLogger().info("[" + INSTANCE.getClass().getName() + "] validated.");
+				} else {
+					Logger.defaultLogger().error("Illegal default file metadata accessor : [" + INSTANCE.getClass().getName() + "]. Exiting !");
+					throw new IllegalStateException("Illegal default file metadata accessor : [" + INSTANCE.getClass().getName() + "]");
 				}
 			}
+			
+			Logger.defaultLogger().info("ACL support : " + (INSTANCE.ACLSupported() ? "yes" : "no"));
+			Logger.defaultLogger().info("Extended attributes support : " + (INSTANCE.extendedAttributesSupported() ? "yes" : "no"));
 		}
 	}
 	

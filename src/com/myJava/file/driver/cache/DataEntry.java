@@ -12,12 +12,12 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -94,11 +94,6 @@ public class DataEntry {
         return contentMap;
     }
     
-    private synchronized void clearPopulated() {
-        this.populated = false;
-        this.populatedFilters = null;
-    }
-    
     public synchronized int computeChildren() {
         if (this.contentMap == null || this.contentMap.isEmpty()) {
             return 0;
@@ -115,7 +110,8 @@ public class DataEntry {
     
     public synchronized void clearChildren() {
         this.contentMap = null;
-        this.clearPopulated();
+        this.populated = false;
+        this.populatedFilters = null;
     }
     
     public synchronized void putEntry(String name, DataEntry entry) {
@@ -131,7 +127,7 @@ public class DataEntry {
     /**
      * Returns :
      * <BR>-An entry if it is found
-     * <BR>-Null if nothing was found in the cache we're not sure wether the file/directory exists
+     * <BR>-Null if nothing was found in the cache we're not sure whether the file/directory exists
      * <BR>
      * <BR>Throw a NonExistingEntryException if the entry does not exist
      */
@@ -179,13 +175,6 @@ public class DataEntry {
             return false;
         } else {
             return populatedFilters.contains(filter);
-        }
-    }
-    
-    public synchronized void remove(String name) {
-        if (this.contentMap != null) {
-            this.contentMap.remove(name);
-            clearPopulated();
         }
     }
     

@@ -8,12 +8,12 @@ import com.application.areca.adapters.XMLTags;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -36,4 +36,8 @@ implements com.application.areca.adapters.MissingDataListener, XMLTags {
     public Object missingEncryptionDataDetected(AbstractRecoveryTarget target) throws AdapterException {
         throw new AdapterException("No encryption key found : your medium must have a '" + XML_MEDIUM_ENCRYPTIONKEY + "' attribute because it is encrypted (" + XML_MEDIUM_ENCRYPTED + " = true).");
     }
+
+	public Object missingFTPDataDetected(AbstractRecoveryTarget target) throws AdapterException {
+        throw new AdapterException("No FTP password found : your medium must have a '" + XML_MEDIUM_FTP_PASSWORD + "' attribute.");
+	}
 }

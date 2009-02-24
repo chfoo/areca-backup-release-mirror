@@ -9,21 +9,22 @@ import java.io.Writer;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import com.application.areca.cache.ObjectPool;
+import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.util.log.Logger;
 
 /**
  * Abstract implementation for metada adapters
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -40,19 +41,16 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class AbstractMetadataAdapter {
+public abstract class AbstractMetadataAdapter {
     protected static final String DATA_CHARSET = "UTF-8";
     protected static final String VERSION_HEADER = "#### MDT_FORMAT_VERSION=";
     //protected static final String VERSION = VERSION_HEADER + "1"; // Initial metadata version : uses the default character encoding
     //protected static final String VERSION = VERSION_HEADER + "2"; // uses UTF-8 encoding
-    protected static final String VERSION = VERSION_HEADER + "3"; // new separators
+    //protected static final String VERSION = VERSION_HEADER + "3"; // new separators
+    //protected static final String VERSION = VERSION_HEADER + "4"; // new posix attributes format
+    protected static final String VERSION = VERSION_HEADER + "5"; // traces and contents are now ordered
     
     private FileTool TOOL = FileTool.getInstance();
-    
-    /**
-     * Optional object pool.
-     */
-    protected ObjectPool objectPool = null;
     
     /**
      * Writer
@@ -97,9 +95,13 @@ public class AbstractMetadataAdapter {
             
             this.written = 0;
         }
-    }    
-    
-    protected void initWriter() throws IOException {
+    } 
+ 
+    public File getFile() {
+		return file;
+	}
+
+	protected void initWriter() throws IOException {
         if (writer == null) {
             initOutputStream();
             this.writer = new OutputStreamWriter(this.outputStream, DATA_CHARSET);
@@ -109,10 +111,6 @@ public class AbstractMetadataAdapter {
     
     protected String getVersionHeader() {
         return VERSION;
-    }
-    
-    public void setObjectPool(ObjectPool objectPool) {
-        this.objectPool = objectPool;
     }
     
     public void close() throws IOException {
@@ -132,22 +130,32 @@ public class AbstractMetadataAdapter {
     
     protected InputStream getInputStream() throws IOException {
         if (isCompressed && FileSystemManager.length(file) != 0) {
-	        return new GZIPInputStream(FileSystemManager.getFileInputStream(file));
+	        return new GZIPInputStream(FileSystemManager.getCachedFileInputStream(file));
         } else {
-	        return FileSystemManager.getFileInputStream(file);
+	        return FileSystemManager.getCachedFileInputStream(file);
         }
     }
     
     protected long getVersion() throws IOException {
+    	long version = 1L;
         FileTool tool = FileTool.getInstance();
         String firstLine = tool.getFirstRow(getInputStream(), DATA_CHARSET);
-        if (firstLine != null && firstLine.startsWith(VERSION_HEADER)) {
-	        String str = firstLine.substring(VERSION_HEADER.length()).trim();
-	        return Long.parseLong(str);
-        } else {
-        	return 1L;
+        if (firstLine != null) {
+        	if (firstLine.startsWith(VERSION_HEADER)) {
+		        String str = firstLine.substring(VERSION_HEADER.length()).trim();
+		        version = Long.parseLong(str);
+        	}
+        	
+	        if (version < 5) {
+	        	Logger.defaultLogger().warn("Incompatible metadata format : version=" + version);
+	        	throw new IllegalArgumentException("The archive your are trying to read was created with a old version of Areca. Your current version of Areca (" + VersionInfos.getLastVersion().getVersionId() + ") is not compatible with archives created with older versions than 7.0.");
+	        }
         }
+        
+        return version;
     }
+    
+    public abstract AbstractMetaDataEntry decodeEntry(String line);
     
     protected String resolveEncoding(long version) throws IOException {
         if (version >= 2) {

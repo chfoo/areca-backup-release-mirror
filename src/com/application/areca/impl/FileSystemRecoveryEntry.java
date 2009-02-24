@@ -2,6 +2,7 @@ package com.application.areca.impl;
 
 import java.io.File;
 
+import com.application.areca.EntryStatus;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
 import com.myJava.object.EqualsHelper;
@@ -11,12 +12,12 @@ import com.myJava.object.HashHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -36,39 +37,26 @@ This file is part of Areca.
 public class FileSystemRecoveryEntry implements RecoveryEntry {
     private File file;
     private String rootDirectory;
-    private short status;
-    private long size;
-    private String name;
-    private boolean isLink;
-    private boolean isDirectory;
-    
-    public FileSystemRecoveryEntry(String rootDirectory, File file, short status, long size, boolean isLink, boolean isDirectory) {
-        this.rootDirectory = rootDirectory;            
-        this.file = file;
-        this.status = status;
-        this.size = size;
-        this.isLink = isLink;
-        this.isDirectory = isDirectory;
-        this.name = Utils.extractShortFilePath(this.getFile(), this.rootDirectory);
-    }
+    private short status = EntryStatus.STATUS_NOT_STORED;
+    private long size = 0;
+    private boolean isLink = false;
+    private String key;
     
     public FileSystemRecoveryEntry(String rootDirectory, File file) {
-    	this(rootDirectory, file, STATUS_NOT_STORED, 0, false, false);
-    }
-    
-    public boolean isLink() {
-        return isLink;
+        this.rootDirectory = rootDirectory;            
+        this.file = file;
+        this.key = Utils.extractShortFilePath(this.getFile(), this.rootDirectory);
     }
 
-    public boolean isDirectory() {
-		return this.isDirectory;
+    public boolean isLink() {
+		return isLink;
 	}
 
 	public void setLink(boolean isLink) {
-        this.isLink = isLink;
-    }
+		this.isLink = isLink;
+	}
 
-    public long getSize() {
+	public long getSize() {
 		return size;
 	}
 
@@ -89,11 +77,20 @@ public class FileSystemRecoveryEntry implements RecoveryEntry {
     }
     
     public String toString() {
-        return getName();
+        return getKey();
     }
 
+	public String getKey() {
+	    return key;
+	}
+	
 	public String getName() {
-	    return name;
+		int idx = key.lastIndexOf('/');
+		if (idx == -1) {
+			return key;
+		} else {
+			return key.substring(idx+1);
+		}
 	}
 	
     public boolean equals(Object obj) {
@@ -102,13 +99,13 @@ public class FileSystemRecoveryEntry implements RecoveryEntry {
         } else {
             FileSystemRecoveryEntry other = (FileSystemRecoveryEntry)obj;
             return
-            	EqualsHelper.equals(other.name, this.name);
+            	EqualsHelper.equals(other.key, this.key);
         }
     }
     
     public int hashCode() {
         int hash = HashHelper.initHash(this);
-        hash = HashHelper.hash(hash, this.name);
+        hash = HashHelper.hash(hash, this.key);
         return hash;
     }
 }

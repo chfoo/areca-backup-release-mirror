@@ -10,22 +10,17 @@ import com.myJava.file.OutputStreamListener;
 import com.myJava.file.metadata.FileMetaData;
 
 /**
- * Interface d�finissant un driver pour syst�me de fichier.
- * <BR>Ce driver red�finit les op�rations de base de la classe File (ainsi que les
- * op�rations permettant d'obtenir des flux E/S, etc.), et prend en charge certaines
- * op�rations bas niveau (cryptage, compression, par exemple).
- * <BR>
- * <BR>Il n'apporte aucun autre service que ces op�rations bas niveau (op�rations avanc�es sur les fichiers,
- * par exemple). Ces op�rations restent du ressort des classes utilisatrices.
+ * This interface defines a file access layer.
+ * <BR>It mimics the File class methods.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -93,20 +88,11 @@ public interface FileSystemDriver {
     public boolean setReadOnly(File file);
     public void deleteOnExit(File f);
     
-    /**
-     * Ouvre un flux d'entree sur le fichier
-     */
+
     public InputStream getFileInputStream(File file) throws IOException;
-    
-    /**
-     * Ouvre un flux de sortie sur le fichier 
-     */
     public OutputStream getFileOutputStream(File file) throws IOException;
-    
-    /**
-     * Ouvre un flux de sortie sur le fichier 
-     */
     public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException;
+    public OutputStream getFileOutputStream(File file, boolean append) throws IOException;
     
     /**
      * Returns an OutputStream for the given File
@@ -120,21 +106,9 @@ public interface FileSystemDriver {
     public InputStream getCachedFileInputStream(File file) throws IOException;
     
     /**
-     * Ouvre un flux de sortie sur le fichier 
-     */
-    public OutputStream getFileOutputStream(File file, boolean append) throws IOException;
-    
-    /**
-     * Indique si les acc�s directs au fileSystem sont accept�s.
-     * <BR>Utile pour savoir si les classes utilisant directement des objets "File"
-     * peuvent �tre utilis�es. (Comme par exemple la classe ZipFile)
-     */
-    public boolean directFileAccessSupported();
-    
-    /**
      * Returns the file's attributes
      */
-    public FileMetaData getAttributes(File f) throws IOException;
+    public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException;
     
     /**
      * Create a Symbolic link
@@ -144,7 +118,7 @@ public interface FileSystemDriver {
     /**
      * Applies the attributes provided as argument 
      */
-    public void applyAttributes(FileMetaData p, File f) throws IOException;
+    public void applyMetaData(FileMetaData p, File f) throws IOException;
     
     public boolean supportsLongFileNames();
     
@@ -154,7 +128,7 @@ public interface FileSystemDriver {
     public void unmount() throws IOException;
     
     /**
-     * Tells wether accesses are fast or not
+     * Tells whether accesses are fast or not
      */
     public short getAccessEfficiency();
     
@@ -167,5 +141,5 @@ public interface FileSystemDriver {
     /**
      * Returns a global set of file informations (length, lastmodified, ...)
      */
-    public FileInformations getInformations(File file);
+    public FileCacheableInformations getInformations(File file);
 }

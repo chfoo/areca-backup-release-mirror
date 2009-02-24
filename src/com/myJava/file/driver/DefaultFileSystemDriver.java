@@ -14,8 +14,8 @@ import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.EventOutputStream;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.OutputStreamListener;
-import com.myJava.file.metadata.FileMetaDataAccessorHelper;
 import com.myJava.file.metadata.FileMetaData;
+import com.myJava.file.metadata.FileMetaDataAccessorHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
 import com.myJava.system.OSTool;
@@ -26,12 +26,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -294,6 +294,10 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 		 checkWriteAccess(file);
 		 return file.setReadOnly();
 	 }
+	 
+	 public InputStream getCachedFileInputStream(File file) throws IOException {
+		 return getFileInputStream(file);
+	 }
 
 	 public InputStream getFileInputStream(File file) throws IOException {
 		 if (USE_BUFFER) {
@@ -334,13 +338,13 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 		 }
 	 }
 
-	 public FileMetaData getAttributes(File f) throws IOException {
-		 return FileMetaDataAccessorHelper.getFileSystemAccessor().getAttributes(f);
+	 public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
+		 return FileMetaDataAccessorHelper.getFileSystemAccessor().getMetaData(f, onlyBasicAttributes);
 	 }
 
-	 public void applyAttributes(FileMetaData p, File f) throws IOException {
+	 public void applyMetaData(FileMetaData p, File f) throws IOException {
 		 checkWriteAccess(f);
-		 FileMetaDataAccessorHelper.getFileSystemAccessor().setAttributes(f, p);
+		 FileMetaDataAccessorHelper.getFileSystemAccessor().setMetaData(f, p);
 	 }
 
 	 public int hashCode() {
@@ -377,8 +381,8 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 		 return false;
 	 }
 
-	 public FileInformations getInformations(File file) {
-		 return new FileInformations(this, file);
+	 public FileCacheableInformations getInformations(File file) {
+		 return new FileCacheableInformations(this, file);
 	 }
 
 	 private static void checkWriteAccess(File file) {

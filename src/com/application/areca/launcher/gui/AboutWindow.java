@@ -38,12 +38,12 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -62,6 +62,7 @@ This file is part of Areca.
  */
 public class AboutWindow
 extends AbstractWindow {
+	private static final String CURRENT_YEAR = "2009";
     private static final int widthHint = computeWidth(400);
     private static final int heightHint = computeHeight(250);
     
@@ -118,9 +119,9 @@ extends AbstractWindow {
     private void initAboutContent(Composite composite) {
         Text content = configurePanel(composite, SWT.WRAP);
         String txt =
-                VersionInfos.APP_NAME + " - " + RM.getLabel("about.appdescription.label") +
+                VersionInfos.APP_NAME +
                 "\n" + RM.getLabel("about.version.label") + " " + VersionInfos.getLastVersion().getVersionId() + " - " + VersionInfos.formatVersionDate(VersionInfos.getLastVersion().getVersionDate()) +
-                "\n\n" + RM.getLabel("about.copyright.label");
+                "\n\n" + RM.getLabel("about.copyright.label", new Object[] {CURRENT_YEAR});
         
         content.setText(txt);
     }
@@ -181,11 +182,11 @@ extends AbstractWindow {
         prps.put("system.total.memory", "" + OSTool.getTotalMemory());
         prps.put("system.max.available.memory", "" + OSTool.getMaxMemory());
         prps.put("file.encoding.iana", OSTool.getIANAFileEncoding());
-        prps.put("areca.max.manageable.entries", "" + MemoryHelper.getMaxManageableEntries());
-        prps.put("areca.version", VersionInfos.getLastVersion().getVersionId());
-        prps.put("areca.build.id", "" + VersionInfos.getBuildId());
+        prps.put("areca-backup.max.optimized.entries", "" + MemoryHelper.getMaxManageableEntries());
+        prps.put("areca-backup.version", VersionInfos.getLastVersion().getVersionId());
+        prps.put("areca-backup.build.id", "" + VersionInfos.getBuildId());
         
-        prps.putAll(ArecaTechnicalConfiguration.get().getProperties());
+        prps.putAll(ArecaTechnicalConfiguration.get().getAll());
         
         // User preferences
         prps.putAll(LocalPreferences.instance().getPreferences());
@@ -200,10 +201,10 @@ extends AbstractWindow {
             }
             plugins += plugin.getFullName();
         }
-        prps.put("areca.plugins", plugins);
+        prps.put("areca-backup.plugins", plugins);
         
         // Translations
-        prps.put("areca.available.translations", Utils.getTranslationsAsString());        
+        prps.put("areca-backup.available.translations", Utils.getTranslationsAsString());        
         
         // Encodings
         StringBuffer css = new StringBuffer();

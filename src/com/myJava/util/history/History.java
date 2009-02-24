@@ -6,16 +6,16 @@ import java.util.HashMap;
 
 
 /**
- * Interface d�finisant un historique d'�v�nements.
+ * Interface that defines an history on events
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -34,23 +34,35 @@ This file is part of Areca.
  */
 public interface History {
 
+	/**
+	 * Tells whether the history is empty or not
+	 */
     public boolean isEmpty();
     
+    /**
+     * Add an entry
+     */
     public void addEntry(HistoryEntry entry) throws IOException;
     
     /**
-     * Retourne une map clef/valeur o� :
-     * <BR>- Clef = GregorianCalendar
-     * <BR>- Valeur = HistoryEntry (entry)
+     * Return the internal content of the history as a Map
+     * <BR>Key = GregorianCalendar
+     * <BR>Value = HistoryEntry
      */
     public HashMap getContent();
     
+    /**
+     * Return the keys (dates) as an ordered array
+     */
     public GregorianCalendar[] getOrderedKeys();
     
+    /**
+     * Return the entry for the given date
+     */
     public HistoryEntry getEntry(GregorianCalendar date);
     
     /**
-     * Force l'�criture de l'historique sur le disque 
+     * Write data on disk
      */
     public void flush() throws IOException;
     
@@ -60,22 +72,15 @@ public interface History {
     public void clear();
     
     /**
-     * Ne modifie pas le contenu de l'historique; se contente de supprimer les donn�es �ventuellement �crites sur le support (fichier, base de donn�es).
-     * <BR>Ces donn�es peuvent donc �tre r��crites par appel � la m�thode "flush()" 
+     * Does not clear the internal data; destroys only the data stored on disk.
+     * <BR>The internal data can be written on disk using the "flush" method.
      */
     public void clearData();
     
     /**
-     * Charge l'historique � partir du support (par ex disque ou base de donn�es) 
+     * Load the history from disk
      */
     public void load() throws IOException;
-    
-    public void updateLocation(Object newLocation) throws IOException;
-    
-    /**
-     * Retourne la date de la derni�re entr�e enregistr�e dans l'historique 
-     */
-    public GregorianCalendar getLastEntryDate();
     
     /**
      * Imports the content of the source history

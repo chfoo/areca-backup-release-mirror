@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import com.myJava.file.FileFilterList;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.OutputStreamListener;
@@ -15,12 +16,12 @@ import com.myJava.util.taskmonitor.TaskMonitor;
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -55,18 +56,20 @@ public class ArchiveReader {
         }
     }
     
-    public void injectIntoDirectory(File dir, String[] entriesToRecover, TaskMonitor monitor, OutputStreamListener listener) 
+    public void injectIntoDirectory(
+    		File dir, 
+    		FileFilterList entriesToRecover, 
+    		TaskMonitor monitor, 
+    		OutputStreamListener listener) 
     throws IOException, TaskCancelledException {
         
         String[] normalizedEntries = null;
         boolean hasDirectories = false; /// Count the remaining entries only if there were only files to recover
         if (entriesToRecover != null) {
-            normalizedEntries = new String[entriesToRecover.length];
-            for (int i=0; i<entriesToRecover.length; i++) {
-                if (entriesToRecover[i].endsWith("/")) {
-                    hasDirectories = true;
-                }
-                normalizedEntries[i] = Util.trimSlashes(entriesToRecover[i]);
+        	hasDirectories = entriesToRecover.containsDirectories();
+            normalizedEntries = new String[entriesToRecover.size()];
+            for (int i=0; i<entriesToRecover.size(); i++) {
+                normalizedEntries[i] = Util.trimSlashes(entriesToRecover.get(i));
             }
         }
         
@@ -76,7 +79,7 @@ public class ArchiveReader {
         
         try {
             String fileName;
-            long remaining = (hasDirectories || entriesToRecover == null) ? -1 : entriesToRecover.length;
+            long remaining = (hasDirectories || entriesToRecover == null) ? -1 : entriesToRecover.size();
             while((fileName = adapter.getNextEntry()) != null) {
                 try {
                     if (remaining == 0) {
@@ -97,16 +100,17 @@ public class ArchiveReader {
 	                    }
 
 	                    tool.createDir(FileSystemManager.getParentFile(target));
-	                    tool.copy(adapter.getArchiveInputStream(), FileSystemManager.getFileOutputStream(target, false, listener), false, true);    
+	                    tool.copy(adapter.getArchiveInputStream(), FileSystemManager.getFileOutputStream(target, false, listener), false, true, monitor);    
                     }
+                    
+                    // Close entry only if all was successful
+                    adapter.closeEntry();
                 } catch (IOException e) {
                     Logger.defaultLogger().error(e);
                     throw e;
                 } catch (RuntimeException e) {
                     Logger.defaultLogger().error(e);
                     throw e;
-                } finally {
-                    adapter.closeEntry();
                 }
             }        
         } finally {

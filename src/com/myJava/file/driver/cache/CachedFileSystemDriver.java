@@ -13,7 +13,7 @@ import java.util.Iterator;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.OutputStreamListener;
 import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
-import com.myJava.file.driver.FileInformations;
+import com.myJava.file.driver.FileCacheableInformations;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.driver.LinkableFileSystemDriver;
 import com.myJava.file.driver.event.EventFileSystemDriver;
@@ -28,12 +28,12 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -73,8 +73,8 @@ implements LinkableFileSystemDriver {
         this.cache = new FileDataCache(predecessor.getAbsolutePath(root), maxDepth);
     }
 
-    public void applyAttributes(FileMetaData p, File f) throws IOException {
-        predecessor.applyAttributes(p, f);
+    public void applyMetaData(FileMetaData p, File f) throws IOException {
+        predecessor.applyMetaData(p, f);
     }
 
     public boolean canRead(File file) {
@@ -116,6 +116,7 @@ implements LinkableFileSystemDriver {
             try {
                 DataEntry entry = getOrCreateDataEntry(file, false, true);
                 entry.reset();
+                entry.setDirectory(false);
                 entry.setExists(true);
             } catch (MaxDepthReachedException ignored) {
             }
@@ -145,6 +146,7 @@ implements LinkableFileSystemDriver {
                 DataEntry entry = getDataEntry(file);
                 if (entry != null) {
                     entry.reset();
+                    entry.setDirectory(false);
                     entry.setExists(false);
                 }
             } catch (MaxDepthReachedException ignored) {
@@ -157,10 +159,6 @@ implements LinkableFileSystemDriver {
 
     public void deleteOnExit(File f) {
         predecessor.deleteOnExit(f);
-    }
-
-    public boolean directFileAccessSupported() {
-        return predecessor.directFileAccessSupported();
     }
 
     public boolean exists(File file) {
@@ -188,12 +186,34 @@ implements LinkableFileSystemDriver {
         return predecessor.getAccessEfficiency();
     }
 
-    public FileMetaData getAttributes(File f) throws IOException {
-        return predecessor.getAttributes(f);
+    public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
+        return predecessor.getMetaData(f, onlyBasicAttributes);
     }
 
     public InputStream getFileInputStream(File file) throws IOException {
-        return predecessor.getFileInputStream(file);
+        InputStream in = predecessor.getFileInputStream(file);
+        if (in != null) {
+            try {
+                DataEntry entry = this.getOrCreateDataEntry(file, false, true);
+                entry.setDirectory(false);
+                entry.setExists(true);
+            } catch (MaxDepthReachedException ignored) {
+            }
+        }
+        return in;
+    }
+    
+    public InputStream getCachedFileInputStream(File file) throws IOException {
+        InputStream in = predecessor.getCachedFileInputStream(file);
+        if (in != null) {
+            try {
+                DataEntry entry = this.getOrCreateDataEntry(file, false, true);
+                entry.setDirectory(false);
+                entry.setExists(true);
+            } catch (MaxDepthReachedException ignored) {
+            }
+        }
+        return in;
     }
 
     public OutputStream getCachedFileOutputStream(File file) throws IOException {
@@ -216,6 +236,7 @@ implements LinkableFileSystemDriver {
             try {
                 DataEntry entry = this.getOrCreateDataEntry(file, false, true);
                 entry.reset();
+                entry.setDirectory(false);
                 entry.setExists(true);
             } catch (MaxDepthReachedException ignored) {
             }
@@ -448,8 +469,8 @@ implements LinkableFileSystemDriver {
         if (predecessor.mkdir(file)) {
             try {
                 DataEntry entry = getOrCreateDataEntry(file, false, true);
-                entry.setDirectory(true);
                 entry.reset();
+                entry.setDirectory(true);
                 entry.setExists(true);
             } catch (MaxDepthReachedException ignored) {
             }
@@ -512,13 +533,12 @@ implements LinkableFileSystemDriver {
         predecessor.unmount();
     }
 
-    public FileInformations getInformations(File file) {
-        return new FileInformations(this, file);
+    public FileCacheableInformations getInformations(File file) {
+        return new FileCacheableInformations(this, file);
     }
 
     public int hashCode() {
         int h = HashHelper.initHash(this);
-        h = HashHelper.hash(h, this.maxDepth);
         h = HashHelper.hash(h, this.root);
         h = HashHelper.hash(h, this.predecessor);
         return h;
@@ -531,8 +551,7 @@ implements LinkableFileSystemDriver {
             CachedFileSystemDriver other = (CachedFileSystemDriver)o;
 
             return (
-                    EqualsHelper.equals(other.maxDepth, this.maxDepth) 
-                    && EqualsHelper.equals(other.root, this.root) 
+                    EqualsHelper.equals(other.root, this.root) 
                     && EqualsHelper.equals(other.predecessor, this.predecessor) 
             );
         } else {
@@ -552,7 +571,11 @@ implements LinkableFileSystemDriver {
      * Returns null if the entry /file does not exist
      * Returns an initialized entry otherwise
      */
-    private synchronized DataEntry getOrCreateDataEntry(File file, boolean init, boolean forceCreation) throws MaxDepthReachedException {
+    private synchronized DataEntry getOrCreateDataEntry(
+    		File file, 
+    		boolean init, 
+    		boolean forceCreation
+    ) throws MaxDepthReachedException {
         String path = predecessor.getAbsolutePath(file);
         DataEntry entry = null;
         try {
@@ -594,7 +617,7 @@ implements LinkableFileSystemDriver {
     }
 
     private void initEntry(File file, DataEntry entry) {
-        FileInformations infos = predecessor.getInformations(file);
+        FileCacheableInformations infos = predecessor.getInformations(file);
         if (infos.isDirectorySet()) {
             entry.setDirectory(infos.isDirectory());
         }

@@ -16,12 +16,12 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -109,7 +109,7 @@ implements LogProcessor {
     
     public void log(int level, String message, Throwable e, String source) {
         // Log complete :
-        String logCt = LogHelper.format(level, message, source);
+        String logCt = LogHelper.format(level, message, source, true);
         
     	if (level == 1) {
             System.out.println(logCt);

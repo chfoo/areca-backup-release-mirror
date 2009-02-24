@@ -33,12 +33,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -132,12 +132,12 @@ extends AbstractLinkableFileSystemDriver {
 		return this.predecessor.canWrite(this.encryptFileName(file));
 	}
 
-	public FileInformations getInformations(File file) {
+	public FileCacheableInformations getInformations(File file) {
 		return this.predecessor.getInformations(this.encryptFileName(file));
 	}
 
-	public FileMetaData getAttributes(File f) throws IOException {
-		return this.predecessor.getAttributes(this.encryptFileName(f));
+	public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
+		return this.predecessor.getMetaData(this.encryptFileName(f), onlyBasicAttributes);
 	}
 
 	public boolean createNewFile(File file) throws IOException {
@@ -261,8 +261,13 @@ extends AbstractLinkableFileSystemDriver {
 		return this.predecessor.setReadOnly(this.encryptFileName(file));
 	}
 
-	public void applyAttributes(FileMetaData p, File f) throws IOException {
-		this.predecessor.applyAttributes(p, this.encryptFileName(f));
+	public void applyMetaData(FileMetaData p, File f) throws IOException {
+		this.predecessor.applyMetaData(p, this.encryptFileName(f));
+	}
+	
+	public InputStream getCachedFileInputStream(File file) throws IOException {
+		File target = this.encryptFileName(file);
+		return new CipherInputStream(predecessor.getCachedFileInputStream(target), buildNewCipher(Cipher.DECRYPT_MODE));
 	}
 
 	public InputStream getFileInputStream(File file) throws IOException {

@@ -38,12 +38,12 @@ import com.application.areca.launcher.gui.common.ArecaImages;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -82,7 +82,7 @@ implements MouseListener, Listener {
                 if (application.isCurrentObjectTarget()) {
                     application.showEditTarget(application.getCurrentTarget());
                 } else if (application.isCurrentObjectProcess()) {
-                    application.showEditGroup(application.getCurrentProcess());
+                    application.showEditGroup(application.getCurrentTargetGroup());
                 }
             }
         });
@@ -174,7 +174,7 @@ implements MouseListener, Listener {
         TargetGroup process = extractRecoveryProcess(item);
         return
         process != null
-        && ! (process.getUid().equals(Application.getInstance().getCurrentProcess().getUid()));
+        && ! (process.getUid().equals(Application.getInstance().getCurrentTargetGroup().getUid()));
     }
 
     public void refresh() {
@@ -182,7 +182,7 @@ implements MouseListener, Listener {
         String currentObjectId = Application.getInstance().getCurrentObject() != null ? Application.getInstance().getCurrentObject().getUid() : null;
 
         if (Application.getInstance().getWorkspace() != null) {
-        	Iterator iter = Application.getInstance().getWorkspace().getSortedProcessIterator();
+        	Iterator iter = Application.getInstance().getWorkspace().getSortedGroupIterator();
         	while (iter.hasNext()) {
         		TreeItem processNode = new TreeItem(tree, SWT.NONE);
         		TargetGroup process = (TargetGroup)iter.next();

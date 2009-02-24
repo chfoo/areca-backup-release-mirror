@@ -4,10 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
-import com.application.areca.impl.FileSystemRecoveryEntry;
-import com.application.areca.impl.IncrementalDirectoryMedium;
-import com.application.areca.impl.IncrementalZipMedium;
-import com.myJava.file.FileSystemManager;
+import com.application.areca.impl.handler.DeltaArchiveHandler;
 
 /**
  * This class manages accesses to archives' metadata.
@@ -15,12 +12,12 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -38,67 +35,35 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ArchiveContentManager {
-
-    public static ArchiveContent getContentForArchive(AbstractIncrementalFileSystemMedium medium, File archive) throws IOException {
-        File metadataDir = medium.getDataDirectory(archive);
-        File contentFile = new File(metadataDir, medium.getContentFileName(false));
-        if (! FileSystemManager.exists(contentFile)) {
-            contentFile = new File(metadataDir, medium.getContentFileName(true));
+    
+    public static File resolveContentFileForArchive(AbstractIncrementalFileSystemMedium medium, File archive) throws IOException {
+        if (! medium.checkArchiveCompatibility(archive)) {
+            return null;
         }
-        
-        if (FileSystemManager.exists(contentFile)) {
-            ArchiveContentAdapter contentAdapter = new ArchiveContentAdapter(contentFile);
-            return contentAdapter.readContent();
-        } else {
-            // Manage Backward compatibility : read from dir/zip content
-            ArchiveContent content;
-            if (medium  instanceof IncrementalDirectoryMedium) {
-                content = backwardCompatibleGetContent((IncrementalDirectoryMedium)medium, archive);
-            } else {
-                content = backwardCompatibleGetContent((IncrementalZipMedium)medium, archive);                
-            }
-            
-            // Write the content (use a temporary file name which is renamed afterwards)
-            File tmpCtn = new File(FileSystemManager.getParentFile(contentFile), FileSystemManager.getName(contentFile) + ".tmp");
-            FileSystemManager.delete(tmpCtn);
-            ArchiveContentAdapter adapter = new ArchiveContentAdapter(tmpCtn);
-            adapter.writeContent(content);
-            adapter.close();
-            
-            FileSystemManager.renameTo(tmpCtn, contentFile);
-            
-            return content;
-        }
+    	File metadataDir = medium.getDataDirectory(archive);
+        return new File(metadataDir, medium.getContentFileName());
     }
     
-    private static ArchiveContent backwardCompatibleGetContent(IncrementalDirectoryMedium medium, File archive) throws IOException {
-        ArchiveContent content = new ArchiveContent();
-        addStoredDirectoryToSet(content, archive, FileSystemManager.getAbsolutePath(archive));
-        return content;
+    public static File resolveHashFileForArchive(AbstractIncrementalFileSystemMedium medium, File archive) throws IOException {
+        if (! medium.checkArchiveCompatibility(archive)) {
+            return null;
+        }
+    	File metadataDir = medium.getDataDirectory(archive);
+        return new File(metadataDir, medium.getHashFileName());
     }
     
-    /**
-     * This method returns the archive's content in a way which is compatible with older versions of areca.
-     */
-    private static ArchiveContent backwardCompatibleGetContent(IncrementalZipMedium medium, File archive) throws IOException {       
-        throw new UnsupportedOperationException("This version of Areca is not compatible with archives that have been created with versions anterior to v3.5. Use Areca v4.2.3 to read them.");
+    public static File resolveSequenceFileForArchive(AbstractIncrementalFileSystemMedium medium, File archive) throws IOException {
+        if (! medium.checkArchiveCompatibility(archive)) {
+            return null;
+        }
+    	File metadataDir = medium.getDataDirectory(archive);
+        DeltaArchiveHandler handler = (DeltaArchiveHandler)medium.getHandler();
+        return new File(metadataDir, handler.getSequenceFileName());
     }
-
-	private static void addStoredDirectoryToSet(ArchiveContent content, File directory, String root) throws IOException {
-		File[] files = FileSystemManager.listFiles(directory);
-		for (int i=0; i<files.length; i++) {
-			if (FileSystemManager.isFile(files[i])) {
-			    content.add(new FileSystemRecoveryEntry(
-			            root, 
-			            files[i],
-			            FileSystemRecoveryEntry.STATUS_STORED,
-			            FileSystemManager.length(files[i]),
-			            false,
-			            false
-			    ));
-			} else {
-				addStoredDirectoryToSet(content, files[i], root);
-			}
-		}
-	}
+    
+    public static ContentFileIterator buildIteratorForArchive(AbstractIncrementalFileSystemMedium medium, File archive) throws IOException {
+    	File file = resolveContentFileForArchive(medium, archive);
+    	ArchiveContentAdapter adp = new ArchiveContentAdapter(file);
+    	return adp.buildIterator();
+    }
 }

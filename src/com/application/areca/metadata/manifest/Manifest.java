@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.myJava.object.Duplicable;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.Util;
 import com.myJava.util.collections.CollectionTools;
@@ -17,12 +18,12 @@ import com.myJava.util.collections.CollectionTools;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -39,7 +40,8 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class Manifest {
+public class Manifest
+implements Duplicable {
     public static final long CURRENT_VERSION = 2;
     
     private static final String SEPARATOR = ";"; 
@@ -59,25 +61,31 @@ public class Manifest {
         this.properties = new HashMap();
         this.type = type;
     }
-    
+
     private Manifest() {
         this(TYPE_BACKUP);
     }
+    
     public GregorianCalendar getDate() {
         return date;
     }
+    
     public void setDate(GregorianCalendar date) {
         this.date = date;
     }
+    
     public String getDescription() {
         return description;
     }
+    
     public void setDescription(String description) {
         this.description = description;
     }
+    
     public String getTitle() {
         return title;
     }
+    
     public void setTitle(String title) {
         this.title = title;
     }
@@ -136,8 +144,19 @@ public class Manifest {
         List ret = CollectionTools.toList(objs);
         return ret.iterator();
     }
-    
-    public static final long getCurrentVersion() {
+
+	public Duplicable duplicate() {
+		Manifest clone = new Manifest();
+		clone.setDate((GregorianCalendar)date.clone());
+		clone.setDescription(description);
+		clone.setTitle(title);
+		clone.setType(type);
+		
+		// Properties are not cloned
+		return clone;
+	}
+
+	public static final long getCurrentVersion() {
         return CURRENT_VERSION;
     }
     

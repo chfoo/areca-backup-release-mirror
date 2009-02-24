@@ -12,12 +12,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -314,12 +314,27 @@ public class TaskMonitor {
 		}
     }
 
-    public String toString() {
+    public String toOldString() {
         StringBuffer sb = ToStringHelper.init(this);
         ToStringHelper.append("Name", this.name, sb);
         ToStringHelper.append("Child", this.currentSubTask, sb);
         ToStringHelper.append("ChildShare", this.currentSubTaskShare, sb);
         ToStringHelper.append("Completion", this.currentCompletionRate, sb);
         return ToStringHelper.close(sb);
+    }
+    
+    public String toString() {
+    	return toStringTree("", "");
+    }
+    
+    private String toStringTree(String h1, String h2) {
+    	String tab = "    ";
+    	String ret = h1 + this.name + " : " + this.currentCompletionRate;
+    	if (this.currentSubTask != null) {
+    		String sh1 = h2 + this.currentSubTaskShare + tab;
+    		String sh2 = h2 + tab + tab;
+    		ret += "\n" + currentSubTask.toStringTree(sh1, sh2); 
+    	}
+    	return ret;
     }
 }

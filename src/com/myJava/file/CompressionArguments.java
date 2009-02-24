@@ -4,19 +4,19 @@ import java.nio.charset.Charset;
 
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.object.PublicClonable;
+import com.myJava.object.Duplicable;
 import com.myJava.object.ToStringHelper;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -33,7 +33,7 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class CompressionArguments implements PublicClonable {
+public class CompressionArguments implements Duplicable {
     public static final String ZIP_SUFFIX = ".zip";
 	
     protected boolean isCompressed = false;
@@ -147,7 +147,7 @@ public class CompressionArguments implements PublicClonable {
         return h;
 	}
 
-	public PublicClonable duplicate() {
+	public Duplicable duplicate() {
         CompressionArguments clone = new CompressionArguments();
         clone.setCharset(charset);
         clone.setComment(comment);

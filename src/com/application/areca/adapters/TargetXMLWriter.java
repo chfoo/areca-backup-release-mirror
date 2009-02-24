@@ -36,12 +36,12 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -60,7 +60,7 @@ This file is part of Areca.
  */
 public class TargetXMLWriter extends AbstractXMLWriter {
 
-    protected boolean removeEncryptionData = false;
+    protected boolean removeSensitiveData = false;
     
     public TargetXMLWriter() {
         this(new StringBuffer());
@@ -70,8 +70,8 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         super(sb);
     }
 
-    public void setRemoveEncryptionData(boolean removeEncryptionData) {
-        this.removeEncryptionData = removeEncryptionData;
+    public void setRemoveSensitiveData(boolean removeSensitiveData) {
+        this.removeSensitiveData = removeSensitiveData;
     }
     
     public void serializeTarget(FileSystemRecoveryTarget tg) {
@@ -92,6 +92,11 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XML_TARGET_FOLLOW_SYMLINKS);
         sb.append("=");
         sb.append(encode(! tg.isTrackSymlinks()));
+        
+        sb.append(" ");
+        sb.append(XML_TARGET_TRACK_EMPTY_DIRS);
+        sb.append("=");
+        sb.append(encode(tg.isTrackEmptyDirectories()));
         
         sb.append(" ");
         sb.append(XML_TARGET_FOLLOW_SUBDIRECTORIES);
@@ -191,10 +196,6 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("=");
         sb.append(encode(pp.isOnlyIfError()));     
         sb.append(" ");     
-        sb.append(XML_PP_LIST_FILTERED);
-        sb.append("=");
-        sb.append(encode(pp.isListFiltered()));  
-        sb.append(" ");     
         sb.append(XML_PP_DUMP_NAME);
         sb.append("=");
         sb.append(encode(pp.getReportName()));  
@@ -210,7 +211,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XML_PP_MERGE_TO_DELAY);
         sb.append("=");
         sb.append(encode(pp.getToDelay()));
-        sb.append(" ");        
+        sb.append(" ");
         sb.append(XML_PP_MERGE_KEEP_DELETED);
         sb.append("=");
         sb.append(encode(pp.isKeepDeletedEntries()));
@@ -250,10 +251,6 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XML_PP_EMAIL_SMTPS);
         sb.append("=");
         sb.append(encode(pp.isSmtps()));    
-        sb.append(" ");     
-        sb.append(XML_PP_LIST_FILTERED);
-        sb.append("=");
-        sb.append(encode(pp.isListFiltered()));  
         sb.append(" ");
         sb.append(XML_PP_EMAIL_TITLE);
         sb.append("=");
@@ -444,12 +441,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         serializeFileSystemPolicy(medium.getFileSystemPolicy());
         serializeEncryptionPolicy(medium.getEncryptionPolicy());
-        
-        sb.append(" ");
-        sb.append(XML_MEDIUM_TRACK_DIRS);
-        sb.append("=");
-        sb.append(encode(medium.isTrackDirectories())); 
-        
+         
         sb.append(" ");
         sb.append(XML_MEDIUM_TRACK_PERMS);
         sb.append("=");
@@ -543,7 +535,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("=");
         sb.append(encode(policy.isEncrypted()));     
         
-        if (policy.isEncrypted() && (! removeEncryptionData)) {
+        if (policy.isEncrypted() && (! removeSensitiveData)) {
 	        sb.append(" ");
 	        sb.append(XML_MEDIUM_ENCRYPTIONKEY);
 	        sb.append("=");
@@ -570,6 +562,6 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(encode(id)); 
         
         StoragePlugin plugin = StoragePluginRegistry.getInstance().getById(id);
-        plugin.buildFileSystemPolicyXMLHandler().write(policy, sb);
+        plugin.buildFileSystemPolicyXMLHandler().write(policy, this, removeSensitiveData, sb);
     }
 }

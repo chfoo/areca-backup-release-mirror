@@ -8,15 +8,16 @@ import java.io.OutputStream;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
 import com.application.areca.ArecaTechnicalConfiguration;
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.driver.cache.CachedFileSystemDriver;
-import com.myJava.file.driver.ftp.FTPFileInfoCache;
-import com.myJava.file.driver.ftp.FTPFileSystemDriver;
-import com.myJava.file.driver.ftp.FTPProxy;
-import com.myJava.file.driver.ftp.FictiveFile;
-import com.myJava.object.PublicClonable;
+import com.myJava.file.driver.remote.FictiveFile;
+import com.myJava.file.driver.remote.RemoteFileInfoCache;
+import com.myJava.file.driver.remote.ftp.FTPFileSystemDriver;
+import com.myJava.file.driver.remote.ftp.FTPProxy;
+import com.myJava.object.Duplicable;
 import com.myJava.object.ToStringHelper;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
@@ -25,12 +26,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -113,7 +114,7 @@ implements FileSystemPolicy {
     
     public void validateSimple() throws ApplicationException {
         FTPProxy px = buildProxy();
-        px.setFileInfoCache(new FTPFileInfoCache());
+        px.setFileInfoCache(new RemoteFileInfoCache());
         
         try {
             px.acquireLock("Basic FTP connection test.");
@@ -128,17 +129,17 @@ implements FileSystemPolicy {
     
     public void validateExtended() throws ApplicationException {
         FTPProxy px = buildProxy();
-        px.setFileInfoCache(new FTPFileInfoCache());
+        px.setFileInfoCache(new RemoteFileInfoCache());
         
         Logger.defaultLogger().info("Testing FTP policy : " + this.toString() + " ...");
-        int maxProxies = FTPFileSystemDriver.MAX_PROXIES - 1;
+        int maxProxies = FrameworkConfiguration.getInstance().getMaxFTPProxies() - 1;
         
         Logger.defaultLogger().info("Making tests with " + maxProxies + " concurrent connections ...");
         
         FTPProxy[] pxs = new FTPProxy[maxProxies];
         long[] cnxIds = new long[maxProxies];
         for (int i=0; i<pxs.length; i++) {
-            pxs[i] = px.cloneProxy();
+            pxs[i] = (FTPProxy)px.cloneProxy();
             pxs[i].acquireLock("Proxy Test #" + i);
         }
         
@@ -219,7 +220,7 @@ implements FileSystemPolicy {
         
         // CREATE A FILE WITH SIMULTANEOUS "LS" CHGWORKINGDIR
         Logger.defaultLogger().info("Testing file creation ...");
-        FTPProxy pxClone = px.cloneProxy();
+        FTPProxy pxClone = (FTPProxy)px.cloneProxy();
         try {
             pxClone.acquireLock("outputStream");
             Logger.defaultLogger().info("Writing file : " + testFile + " ...");
@@ -246,7 +247,7 @@ implements FileSystemPolicy {
         
         // READ FILE
         Logger.defaultLogger().info("Testing file reading ...");
-        pxClone = px.cloneProxy();
+        pxClone = (FTPProxy)px.cloneProxy();
         try {
             pxClone.acquireLock("inputStream");
             BufferedReader reader = new BufferedReader(new InputStreamReader(pxClone.getFileInputStream(testFile)));
@@ -262,7 +263,7 @@ implements FileSystemPolicy {
         
         // DELETE FILE
         Logger.defaultLogger().info("Testing file deletion ...");
-        px.delete(testFile);
+        px.deleteFile(testFile);
         sd = px.getRemoteFileInfos(testFile);
         if (sd.exists()) {
             throw new ApplicationException("Invalid FTP Server : Unable to delete created files.");
@@ -270,7 +271,7 @@ implements FileSystemPolicy {
         
         // DESTROY SUBDIRECTORY
         Logger.defaultLogger().info("Testing subdirectory deletion ...");
-        px.delete(subdir);
+        px.deleteDir(subdir);
         sd = px.getRemoteFileInfos(subdir);
         if (sd.exists()) {
             throw new ApplicationException("Invalid FTP Server : Unable to delete created directories.");
@@ -342,7 +343,7 @@ implements FileSystemPolicy {
         policy.setRemoteDirectory(this.remoteDirectory);
     }
     
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         FTPFileSystemPolicy policy = new FTPFileSystemPolicy();
         copyAttributes(policy);
         return policy;

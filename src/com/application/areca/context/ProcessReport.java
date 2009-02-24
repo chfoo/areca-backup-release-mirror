@@ -11,12 +11,12 @@ import com.application.areca.AbstractRecoveryTarget;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -86,11 +86,6 @@ public class ProcessReport {
      * Process start date (ms)
      */
     protected long startMillis = System.currentTimeMillis();
-    
-    /**
-     * Map of filtered entries
-     */
-    protected FilteredEntries filteredEntriesData;
 
     protected AbstractRecoveryTarget target;
 
@@ -112,7 +107,6 @@ public class ProcessReport {
     public void reset() {
         this.unfilteredDirectories = 0;
         this.unfilteredFiles = 0;
-        this.filteredEntriesData = new FilteredEntries();
         this.filteredEntries = 0;
         this.ignoredFiles = 0;
         this.recoveryResult = null;
@@ -164,13 +158,17 @@ public class ProcessReport {
     
     public void addIgnoredFile() {
         this.ignoredFiles++;
-    }   
+    }  
     
-    public void addFilteredEntry() {
-        this.filteredEntries++;
+    public void addDeletedFile() {
+        this.deletedFiles++;
     }   
 
-    public long getStartMillis() {
+    public void setFilteredEntries(int filteredEntries) {
+		this.filteredEntries = filteredEntries;
+	}
+
+	public long getStartMillis() {
         return startMillis;
     }
     
@@ -185,30 +183,19 @@ public class ProcessReport {
     public int getUnfilteredFiles() {
         return unfilteredFiles;
     }
-    
-    public void addDirectoryCount() {
-        this.unfilteredDirectories++;
-    }
-    
-    public void addFileCount() {
-        this.unfilteredFiles++;
-    }
 
-    public FilteredEntries getFilteredEntriesData() {
-        if (filteredEntriesData == null) {
-            filteredEntriesData = new FilteredEntries();
-        }
-        
-        return filteredEntriesData;
-    }
-    
+    public void setUnfilteredDirectories(int unfilteredDirectories) {
+		this.unfilteredDirectories = unfilteredDirectories;
+	}
 
-    public boolean isCommited() {
+	public void setUnfilteredFiles(int unfilteredFiles) {
+		this.unfilteredFiles = unfilteredFiles;
+	}
+
+	public boolean isCommited() {
         return commited;
     }
-    
-    
-    
+
     public long getDataFlowStart() {
 		return this.dataFlowStart;
 	}
@@ -216,6 +203,10 @@ public class ProcessReport {
 	public long getDataFlowStop() {
 		return this.dataFlowStop;
 	}
+	
+	public void unsetCommited() {
+        this.commited = false;
+    }
 
 	public void setCommited() {
         this.commited = true;

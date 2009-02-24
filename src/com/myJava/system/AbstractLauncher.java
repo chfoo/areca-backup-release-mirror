@@ -1,17 +1,20 @@
 package com.myJava.system;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -28,7 +31,13 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public abstract class AbstractLauncher {  
+public abstract class AbstractLauncher {
+	public static final int ERR_UNEXPECTED = 1;
+	public static final int ERR_SYNTAX = 2;
+	
+    private int errorCode = 0;
+    private ArrayList closeCallBacks = new ArrayList();
+    
     public void launch(String[] args) {
         try {
             initialize();
@@ -37,11 +46,42 @@ public abstract class AbstractLauncher {
         } catch (Throwable e) {
             e.printStackTrace();
             Logger.defaultLogger().error("Unexpected error", e);
-            System.exit(-1);
+            setErrorCode(ERR_UNEXPECTED);
+        } finally {
+        	exit();
         }
     }
+    
+    public void exit() {
+    	exit(false);
+    }
+    
+    public void exit(boolean force) {
+    	Iterator iter = closeCallBacks.iterator();
+    	while (iter.hasNext()) {
+    		Runnable rn = (Runnable)iter.next();
+    		rn.run();
+    	}
+    	
+    	if (returnErrorCode() || force) {
+    		System.exit(errorCode);
+    	}
+    }
+    
+    public void addCloseCallBack(Runnable rn) {
+    	this.closeCallBacks.add(rn);
+    }
 
-    protected abstract void initialize();
+    public int getErrorCode() {
+		return errorCode;
+	}
+
+	public void setErrorCode(int errorCode) {
+		this.errorCode = errorCode;
+	}
+
+	protected abstract boolean returnErrorCode();
+	protected abstract void initialize();
     protected abstract void launchImpl(String[] args);
     protected abstract void checkJavaVersion();
 }

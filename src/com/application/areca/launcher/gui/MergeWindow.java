@@ -18,12 +18,12 @@ import com.application.areca.metadata.manifest.Manifest;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -82,7 +82,6 @@ extends AbstractWindow {
         txtDescription.setLayoutData(ldDescription);
         monitorControl(txtDescription);
 
-
         new Label(composite, SWT.NONE);
         btnKeepDeletedEntries = new Button(composite, SWT.CHECK);
         btnKeepDeletedEntries.setSelection(false);
@@ -90,8 +89,7 @@ extends AbstractWindow {
         btnKeepDeletedEntries.setToolTipText(RM.getLabel("archivedetail.keepdeletedentries.tt"));
         btnKeepDeletedEntries.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
         monitorControl(btnKeepDeletedEntries);
-
-
+        
         String saveLabel = RM.getLabel("archivedetail.startmergeaction.label");
 
         SavePanel pnlSave = new SavePanel(saveLabel, this);

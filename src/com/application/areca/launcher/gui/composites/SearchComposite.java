@@ -25,8 +25,8 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.AbstractRecoveryTarget;
-import com.application.areca.TargetGroup;
 import com.application.areca.ResourceManager;
+import com.application.areca.TargetGroup;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
@@ -40,12 +40,12 @@ import com.application.areca.search.TargetSearchResult;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -220,7 +220,7 @@ implements MouseListener, Listener, Refreshable {
             map.put(target.getUid(), target);
         }
         
-        Iterator pIter = this.application.getWorkspace().getProcessIterator();
+        Iterator pIter = this.application.getWorkspace().getGroupIterator();
         boolean hasChanged = false;
         while (pIter.hasNext() && ! hasChanged) {
             TargetGroup process = (TargetGroup)pIter.next();
@@ -269,7 +269,7 @@ implements MouseListener, Listener, Refreshable {
         pnlTargets.pack();
         
         // ADD TGS
-        Iterator pIter = this.application.getWorkspace().getProcessIterator();
+        Iterator pIter = this.application.getWorkspace().getGroupIterator();
         while (pIter.hasNext()) {
             TargetGroup process = (TargetGroup)pIter.next();
             Iterator tIter = process.getSortedTargetIterator();
@@ -298,7 +298,7 @@ implements MouseListener, Listener, Refreshable {
             AbstractRecoveryTarget target = (AbstractRecoveryTarget)tgIter.next();
             chk.setSelection(
                     (this.application.isCurrentObjectTarget() && this.application.getCurrentTarget().getUid().equals(target.getUid()))
-                    || (this.application.isCurrentObjectProcess() && this.application.getCurrentProcess().getUid().equals(target.getGroup().getUid()))
+                    || (this.application.isCurrentObjectProcess() && this.application.getCurrentTargetGroup().getUid().equals(target.getGroup().getUid()))
             );
         }
     }
@@ -364,7 +364,7 @@ implements MouseListener, Listener, Refreshable {
                     SearchResultItem searchItem = (SearchResultItem)items.next();
                     TreeItem item = new TreeItem(targetNode, SWT.NONE);
                     item.setData(searchItem);
-                    item.setText(searchItem.getEntry().getName());
+                    item.setText(searchItem.getEntry().getKey());
                     item.setImage(ArecaImages.ICO_FS_FILE);
                 }
             }

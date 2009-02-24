@@ -3,31 +3,32 @@ package com.application.areca.context;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Stack;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.UserInformationChannel;
-import com.application.areca.impl.tools.FileSystemLevel;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
+import com.application.areca.metadata.content.ContentFileIterator;
 import com.application.areca.metadata.manifest.Manifest;
-import com.application.areca.metadata.trace.ArchiveTrace;
 import com.application.areca.metadata.trace.ArchiveTraceAdapter;
+import com.application.areca.metadata.trace.TraceFileIterator;
 import com.myJava.file.MeteredOutputStreamListener;
 import com.myJava.file.archive.ArchiveWriter;
+import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -47,13 +48,12 @@ This file is part of Areca.
 public class ProcessContext {
     
     /**
-     * Fichier pointant sur l'archive zip en cours de construction (qui sera renommee a l'issue
-     * du commit en archive definitive)
+     * Archive being written
      */
     protected File currentArchiveFile;
     
     /**
-     * Writer pour la trace
+     * Trace writer
      */
     protected ArchiveTraceAdapter traceAdapter;
     
@@ -61,6 +61,8 @@ public class ProcessContext {
      * Archive content adapter (used for read/write operations)
      */
     protected ArchiveContentAdapter contentAdapter;
+    protected ArchiveContentAdapter hashAdapter;
+    protected ArchiveContentAdapter sequenceAdapter;
 
     /**
      * Written bytes
@@ -68,17 +70,17 @@ public class ProcessContext {
     protected long inputBytes = 0;
     
     /**
-     * trace contenant les fichiers listes lors de la derniere execution.
+     * Trace file - as of last backup
      */
-    protected ArchiveTrace previousTrace;
+    protected TraceFileIterator referenceTrace;
     
     /**
-     * Tells wether the context have been initialized or not
+     * Tell whether the context have been initialized or not
      */
     protected boolean isInitialized;
     
     /**
-     * Archive dans laquelle sera faite le backup.
+     * Archive writer
      */
     private ArchiveWriter archiveWriter;   
     
@@ -99,11 +101,12 @@ public class ProcessContext {
      */
     protected ProcessReport currentReport;
     
-    protected Stack fileSystemLevels;
-    protected FileSystemLevel currentLevel;    
+    protected FileSystemIterator fileSystemIterator;  
     
-    protected ArrayList previousContents = new ArrayList();
-    protected ArrayList previousArchives = new ArrayList();
+    /**
+     * Iterator used by delta handlers to locate the HashSequence
+     */
+    protected ArrayList contentIterators = new ArrayList();
     
     protected String backupScheme;
     
@@ -111,22 +114,38 @@ public class ProcessContext {
     
     protected File recoveryDestination;
     
+    protected ArrayList simulationResult;
+    
     protected MeteredOutputStreamListener outputStreamListener = new MeteredOutputStreamListener();
     
-    /**
-     * Logger sp�cifique utilis� pour les retours utilisateur (typiquement : affichage � l'�cran)
-     */
     private UserInformationChannel infoChannel;
+    
+    /**
+     * This object is used to keep the archive's content in case of uncompressed "image" targets.
+     * <BR>See "prepareContext()" method.
+     */
+    private ContentFileIterator previousHashIterator;
+    
+    private List invalidRecoveredFiles = new ArrayList();
+    private List uncheckedRecoveredFiles = new ArrayList();
 
     public void reset(boolean operationalOnly) {
         this.rootCount = 0;
         this.manifest = null;
         this.archiveWriter = null;
+        this.hashAdapter = null;
         this.contentAdapter = null;
+        this.sequenceAdapter = null;
         this.isInitialized = false;
-        this.previousTrace = null;
+        this.referenceTrace = null;
         this.traceAdapter = null;
-        inputBytes = 0;
+        this.contentIterators.clear();
+        this.sequenceRoots.clear();
+        this.simulationResult = null;
+        this.invalidRecoveredFiles.clear();
+        this.uncheckedRecoveredFiles.clear();
+        this.previousHashIterator = null;
+        this.inputBytes = 0;
         this.outputStreamListener = new MeteredOutputStreamListener();
         if (! operationalOnly) {
             this.getReport().reset();
@@ -139,7 +158,6 @@ public class ProcessContext {
     
     public ProcessContext(AbstractRecoveryTarget target, UserInformationChannel channel, TaskMonitor taskMonitor) {
         this.currentReport = new ProcessReport(target);
-        this.fileSystemLevels = new Stack();
         this.infoChannel = channel;
         if (taskMonitor != null) {
             this.infoChannel.setTaskMonitor(taskMonitor);
@@ -154,27 +172,31 @@ public class ProcessContext {
         return recoveryDestination;
     }
 
-    public void setRecoveryDestination(File recoveryDestination) {
+    public ArrayList getSimulationResult() {
+		return simulationResult;
+	}
+
+	public void setSimulationResult(ArrayList simulationResult) {
+		this.simulationResult = simulationResult;
+	}
+
+	public void setRecoveryDestination(File recoveryDestination) {
         this.recoveryDestination = recoveryDestination;
     }
-    
+
 	public MeteredOutputStreamListener getOutputStreamListener() {
 		return this.outputStreamListener;
 	}
-
-	public ArrayList getPreviousArchives() {
-        return previousArchives;
-    }
 
     public Map getSequenceRoots() {
         return sequenceRoots;
     }
 
-    public ArrayList getPreviousContents() {
-        return previousContents;
-    }
+    public ArrayList getContentIterators() {
+		return contentIterators;
+	}
 
-    public String getBackupScheme() {
+	public String getBackupScheme() {
         return backupScheme;
     }
 
@@ -185,36 +207,60 @@ public class ProcessContext {
     public void setContentAdapter(ArchiveContentAdapter contentAdapter) {
         this.contentAdapter = contentAdapter;
     }
-    
-    public File getCurrentArchiveFile() {
+
+    public ArchiveContentAdapter getSequenceAdapter() {
+		return sequenceAdapter;
+	}
+
+	public void setSequenceAdapter(ArchiveContentAdapter sequenceAdapter) {
+		this.sequenceAdapter = sequenceAdapter;
+	}
+
+	public File getCurrentArchiveFile() {
         return currentArchiveFile;
     }
 
-    public Properties getOverridenDynamicProperties() {
+	public List getInvalidRecoveredFiles() {
+		return invalidRecoveredFiles;
+	}
+	
+	public List getUncheckedRecoveredFiles() {
+		return uncheckedRecoveredFiles;
+	}
+
+	public Properties getOverridenDynamicProperties() {
         return overridenDynamicProperties;
     }
 
     public void setCurrentArchiveFile(File currentArchiveFile) {
         this.currentArchiveFile = currentArchiveFile;
     }
-    
-    public ArchiveTrace getPreviousTrace() {
-        return previousTrace;
-    }
-    
-    public void setPreviousTrace(ArchiveTrace previousTrace) {
-        this.previousTrace = previousTrace;
-    }
 
-    public ArchiveTraceAdapter getTraceAdapter() {
+    public TraceFileIterator getReferenceTrace() {
+		return referenceTrace;
+	}
+
+	public void setReferenceTrace(TraceFileIterator referenceTrace) {
+		this.referenceTrace = referenceTrace;
+	}
+
+	public ArchiveContentAdapter getHashAdapter() {
+		return hashAdapter;
+	}
+
+	public void setHashAdapter(ArchiveContentAdapter hashAdapter) {
+		this.hashAdapter = hashAdapter;
+	}
+
+	public ArchiveTraceAdapter getTraceAdapter() {
         return traceAdapter;
     }
     
     public void setTraceAdapter(ArchiveTraceAdapter traceAdapter) {
         this.traceAdapter = traceAdapter;
     } 
-    
-    public boolean isInitialized() {
+
+	public boolean isInitialized() {
         return isInitialized;
     }
     
@@ -241,8 +287,16 @@ public class ProcessContext {
     public ProcessReport getReport() {
         return currentReport;
     }
-    
-    public void addInputBytes(long w) {
+
+    public ContentFileIterator getPreviousHashIterator() {
+		return previousHashIterator;
+	}
+
+	public void setPreviousHashIterator(ContentFileIterator previousHashIterator) {
+		this.previousHashIterator = previousHashIterator;
+	}
+
+	public void addInputBytes(long w) {
         inputBytes += w;
     }
     
@@ -262,19 +316,15 @@ public class ProcessContext {
         return (long)(1000.0 / 1024.0 * getOutputStreamListener().getWritten() / (getReport().getDataFlowStop() - getReport().getDataFlowStart()));
     }
 
-    public FileSystemLevel getCurrentLevel() {
-        return currentLevel;
-    }
-    
-    public void setCurrentLevel(FileSystemLevel currentLevel) {
-        this.currentLevel = currentLevel;
-    }
-    
-    public Stack getFileSystemLevels() {
-        return fileSystemLevels;
-    }
+    public FileSystemIterator getFileSystemIterator() {
+		return fileSystemIterator;
+	}
 
-    public UserInformationChannel getInfoChannel() {
+	public void setFileSystemIterator(FileSystemIterator fileSystemIterator) {
+		this.fileSystemIterator = fileSystemIterator;
+	}
+
+	public UserInformationChannel getInfoChannel() {
         return infoChannel;
     }
     

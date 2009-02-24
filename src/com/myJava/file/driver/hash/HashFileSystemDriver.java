@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.OutputStreamListener;
 import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
-import com.myJava.file.driver.FileInformations;
+import com.myJava.file.driver.FileCacheableInformations;
 import com.myJava.file.metadata.FileMetaData;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
@@ -32,12 +32,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -127,12 +127,12 @@ extends AbstractLinkableFileSystemDriver {
 		return this.predecessor.lastModified(this.encodeFileName(file));
 	}
 
-	public FileInformations getInformations(File file) {
+	public FileCacheableInformations getInformations(File file) {
 		return this.predecessor.getInformations(this.encodeFileName(file));
 	}
 
-	public FileMetaData getAttributes(File f) throws IOException {
-		return this.predecessor.getAttributes(this.encodeFileName(f));
+	public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
+		return this.predecessor.getMetaData(this.encodeFileName(f), onlyBasicAttributes);
 	}
 
 	public long length(File file) {
@@ -259,12 +259,17 @@ extends AbstractLinkableFileSystemDriver {
 		return this.predecessor.setLastModified(this.encodeFileName(file), time);
 	}
 
-	public void applyAttributes(FileMetaData p, File f) throws IOException {
-		this.predecessor.applyAttributes(p, this.encodeFileName(f));
+	public void applyMetaData(FileMetaData p, File f) throws IOException {
+		this.predecessor.applyMetaData(p, this.encodeFileName(f));
 	}
 
 	public boolean setReadOnly(File file) {
 		return this.predecessor.setReadOnly(this.encodeFileName(file));
+	}
+	
+	public InputStream getCachedFileInputStream(File file) throws IOException {
+		File target = this.encodeFileName(file);
+		return predecessor.getCachedFileInputStream(target);
 	}
 
 	public InputStream getFileInputStream(File file) throws IOException {

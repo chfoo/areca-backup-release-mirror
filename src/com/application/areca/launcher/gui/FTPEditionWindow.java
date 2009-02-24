@@ -20,7 +20,7 @@ import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.configuration.FrameworkConfiguration;
-import com.myJava.file.driver.ftp.SecuredSocketFactory;
+import com.myJava.file.driver.remote.ftp.SecuredSocketFactory;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 
@@ -28,12 +28,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -81,6 +81,7 @@ extends AbstractWindow {
     protected Button btnSave;
     protected Button btnCancel;
     protected Combo cboProtection;
+    protected Button btnReveal;
     
     public FTPEditionWindow(FTPFileSystemPolicy currentPolicy) {
         super();
@@ -191,22 +192,40 @@ extends AbstractWindow {
         
         new Label(composite, SWT.NONE);
         
-        Group grpAuthent = new Group(composite, SWT.NONE);
+        final Group grpAuthent = new Group(composite, SWT.NONE);
         grpAuthent.setText(RM.getLabel("ftpedition.authentgroup.label"));
-        grpAuthent.setLayout(new GridLayout(2, false));
+        grpAuthent.setLayout(new GridLayout(3, false));
         grpAuthent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
         
         Label lblLogin = new Label(grpAuthent, SWT.NONE);
         lblLogin.setText(RM.getLabel("ftpedition.login.label"));
         txtLogin = new Text(grpAuthent, SWT.BORDER);
-        txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         monitorControl(txtLogin);
         
         Label lblPassword = new Label(grpAuthent, SWT.NONE);
         lblPassword.setText(RM.getLabel("ftpedition.password.label"));
         txtPassword = new Text(grpAuthent, SWT.BORDER);
+		txtPassword.setEchoChar('*');
         txtPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         monitorControl(txtPassword);
+        
+        btnReveal = new Button(grpAuthent, SWT.PUSH);
+        btnReveal.setText(RM.getLabel("targetedition.reveal.label"));
+        btnReveal.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+        btnReveal.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+            	if (txtPassword.getEchoChar() == '*') {
+            		txtPassword.setEchoChar('\0');
+                    btnReveal.setText(RM.getLabel("targetedition.mask.label"));
+                    grpAuthent.layout();
+            	} else {
+            		txtPassword.setEchoChar('*');
+                    btnReveal.setText(RM.getLabel("targetedition.reveal.label"));
+                    grpAuthent.layout();
+            	}
+            }
+        });
         
         return composite;
     }

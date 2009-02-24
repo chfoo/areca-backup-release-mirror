@@ -1,6 +1,6 @@
 package com.application.areca.launcher.gui.menus;
 
-import com.application.areca.EntryArchiveData;
+import com.application.areca.EntryStatus;
 import com.application.areca.TargetGroup;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.launcher.gui.Application;
@@ -14,12 +14,12 @@ import com.application.areca.launcher.gui.common.SecuredRunner;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -63,6 +63,7 @@ public class AppActionReferenceHolder implements ActionConstants{
     public static AppAction AC_MERGE = new AppAction("app.mergearchivesaction", ArecaImages.ICO_ACT_MERGE, ArecaImages.ICO_ACT_MERGE_B, CMD_MERGE);
     public static AppAction AC_DELETE_ARCHIVES = new AppAction("app.deletearchivesaction", ArecaImages.ICO_ACT_DELETE, ArecaImages.ICO_ACT_DELETE_B, CMD_DELETE_ARCHIVES);
     public static AppAction AC_RECOVER = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, ArecaImages.ICO_ACT_RESTAURE_B, CMD_RECOVER);
+    public static AppAction AC_CHECK_ARCHIVES = new AppAction("app.checkfilesaction", null, null, CMD_CHECK_ARCHIVES);    
 
     public static AppAction AC_HELP = new AppAction("app.helpaction", ArecaImages.ICO_HELP, ArecaImages.ICO_HELP_B, CMD_HELP);
     public static AppAction AC_ABOUT = new AppAction("app.aboutaction", CMD_ABOUT);
@@ -92,7 +93,7 @@ public class AppActionReferenceHolder implements ActionConstants{
                     AC_NEW_PROCESS.setEnabled(true);
                     AC_BACKUP_ALL.setEnabled(true);
                 } else if (TargetGroup.class.isAssignableFrom(application.getCurrentObject().getClass())) {
-                    boolean available = ! application.getCurrentProcess().isRunning();
+                    boolean available = ! application.getCurrentTargetGroup().isRunning();
                     
                     AC_BUILD_BATCH.setEnabled(true);
                     AC_BUILD_STRATEGY.setEnabled(false);
@@ -113,6 +114,7 @@ public class AppActionReferenceHolder implements ActionConstants{
                     AC_MERGE.setEnabled(false);
                     AC_DELETE_ARCHIVES.setEnabled(false);
                     AC_RECOVER.setEnabled(false);
+                    AC_CHECK_ARCHIVES.setEnabled(false);
                     AC_INDICATORS.setEnabled(false);
                     AC_HISTORY.setEnabled(false);
                     AC_EDIT_TARGET.setEnabled(false);
@@ -149,6 +151,11 @@ public class AppActionReferenceHolder implements ActionConstants{
                             && application.getCurrentDate() != null
                             && ! application.isLatestVersionRecoveryMode()
                      );
+                    AC_CHECK_ARCHIVES.setEnabled(
+                            available 
+                            && application.getCurrentDate() != null
+                            && ! application.isLatestVersionRecoveryMode()
+                     );
                     AC_VIEW_MANIFEST.setEnabled(
                             application.getCurrentDate() != null
                     );
@@ -159,21 +166,17 @@ public class AppActionReferenceHolder implements ActionConstants{
                     AC_RECOVER_HISTORY.setEnabled(
                             available
                             && application.getCurrentEntryData() != null
-                            && application.getCurrentEntryData().getStatus() != EntryArchiveData.STATUS_DELETED
-                            && application.getCurrentEntryData().getStatus() != EntryArchiveData.STATUS_MISSING                    
+                            && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_DELETED
+                            && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_MISSING                    
                     );
 
                     AC_TEXTEDIT_HISTORY.setEnabled(
                             available 
                             && cmd != null 
                             && cmd.length() != 0 
-                            && (
-                                    application.getCurrentEntry() == null 
-                                    || ! application.getCurrentEntry().isLink()
-                            )
                             && application.getCurrentEntryData() != null
-                            && application.getCurrentEntryData().getStatus() != EntryArchiveData.STATUS_DELETED
-                            && application.getCurrentEntryData().getStatus() != EntryArchiveData.STATUS_MISSING
+                            && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_DELETED
+                            && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_MISSING
                     );
                     
                     AC_COPY_FILENAMES.setEnabled(true);
@@ -194,6 +197,7 @@ public class AppActionReferenceHolder implements ActionConstants{
         AC_MERGE.setEnabled(enabled);
         AC_DELETE_ARCHIVES.setEnabled(enabled);        
         AC_RECOVER.setEnabled(enabled);
+        AC_CHECK_ARCHIVES.setEnabled(enabled);
         AC_INDICATORS.setEnabled(enabled);
         AC_EDIT_PROCESS.setEnabled(enabled);
         AC_EDIT_PROCESS_XML.setEnabled(enabled);

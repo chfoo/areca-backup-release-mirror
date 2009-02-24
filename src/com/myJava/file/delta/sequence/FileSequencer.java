@@ -1,6 +1,5 @@
 package com.myJava.file.delta.sequence;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -8,12 +7,12 @@ import java.io.InputStream;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -47,17 +46,5 @@ public class FileSequencer {
         }
         proc.close();
         return proc.getSequence();
-    }
-
-    public static void main(String[] args) {
-        try {
-            FileInputStream f = new FileInputStream("/home/olivier/Desktop/idees_areca.txt");
-            FileSequencer s = new FileSequencer(f, 50);
-            HashSequence seq = s.getHash();
-            System.out.println(seq.toString());
-            f.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }

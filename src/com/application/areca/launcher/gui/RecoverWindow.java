@@ -24,12 +24,12 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -51,16 +51,26 @@ extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
     
     private Text txtLocation;
+    private Button chkCheckRecoveredFiles;
     private Button chkRecoverDeletedEntries;
     private Button btnSave;
     
     private String location;
+    private boolean checkRecoveredFiles;
     private boolean recoverDeletedEntries;
+    private boolean fullMode;
 
-    protected Control createContents(Composite parent) {
+    public RecoverWindow(boolean fullMode) {
+		this.fullMode = fullMode;
+	}
+
+	public void setRecoverDeletedEntries(boolean recoverDeletedEntries) {
+		this.recoverDeletedEntries = recoverDeletedEntries;
+	}
+
+	protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(1, false);
-        layout.verticalSpacing = 20;
         composite.setLayout(layout);
 
         final Group grpLocation = new Group(composite, SWT.NONE);
@@ -88,22 +98,31 @@ extends AbstractWindow {
         });
         btnBrowse.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
         
-        final Label lblLocation = new Label(grpLocation, SWT.NONE);
-        GridData dtLocation = new GridData(SWT.RIGHT, SWT.CENTER, true, false);
-        lblLocation.setLayoutData(dtLocation);
-        txtLocation.addModifyListener(new ModifyListener() {
-            public void modifyText(ModifyEvent e) {
-                lblLocation.setText("(" + txtLocation.getText() + "/" + FileSystemRecoveryTarget.RECOVERY_LOCATION_SUFFIX + ")");
-                grpLocation.layout();
-            }
-        });
-
-        chkRecoverDeletedEntries = new Button(composite, SWT.CHECK);
-        chkRecoverDeletedEntries.setText(RM.getLabel("recover.recoverdeleted.label"));
-        chkRecoverDeletedEntries.setToolTipText(RM.getLabel("recover.recoverdeleted.tt"));
-        chkRecoverDeletedEntries.setLayoutData(new GridData());
-        chkRecoverDeletedEntries.setSelection(recoverDeletedEntries);
-        monitorControl(SWT.Selection, chkRecoverDeletedEntries);
+        if (fullMode) {
+	        final Label lblLocation = new Label(grpLocation, SWT.NONE);
+	        GridData dtLocation = new GridData(SWT.RIGHT, SWT.CENTER, true, false);
+	        lblLocation.setLayoutData(dtLocation);
+	        txtLocation.addModifyListener(new ModifyListener() {
+	            public void modifyText(ModifyEvent e) {
+	                lblLocation.setText("(" + txtLocation.getText() + "/" + FileSystemRecoveryTarget.RECOVERY_LOCATION_SUFFIX + ")");
+	                grpLocation.layout();
+	            }
+	        });
+	        
+	        chkRecoverDeletedEntries = new Button(composite, SWT.CHECK);
+	        chkRecoverDeletedEntries.setText(RM.getLabel("recover.recoverdeleted.label"));
+	        chkRecoverDeletedEntries.setToolTipText(RM.getLabel("recover.recoverdeleted.tt"));
+	        chkRecoverDeletedEntries.setLayoutData(new GridData());
+	        chkRecoverDeletedEntries.setSelection(recoverDeletedEntries);
+	        monitorControl(SWT.Selection, chkRecoverDeletedEntries);
+        }
+        
+        chkCheckRecoveredFiles = new Button(composite, SWT.CHECK);
+        chkCheckRecoveredFiles.setText(RM.getLabel("recover.check.label"));
+        chkCheckRecoveredFiles.setToolTipText(RM.getLabel("recover.check.tt"));
+        chkCheckRecoveredFiles.setLayoutData(new GridData());
+        chkCheckRecoveredFiles.setSelection(checkRecoveredFiles);
+        monitorControl(SWT.Selection, chkCheckRecoveredFiles);
 
         SavePanel pnlSave = new SavePanel(RM.getLabel("common.ok.label"), RM.getLabel("common.cancel.label"), this);
         pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false));        
@@ -123,17 +142,20 @@ extends AbstractWindow {
     public String getLocation() {
         return location;
     }
-
-    public void setRecoverDeletedEntries(boolean recoverDeletedEntries) {
-        this.recoverDeletedEntries = recoverDeletedEntries;
-    }
-
+    
+    public boolean isCheckRecoveredFiles() {
+		return checkRecoveredFiles;
+	}
+    
     public boolean isRecoverDeletedEntries() {
-        return recoverDeletedEntries;
-    }
+		return recoverDeletedEntries;
+	}
 
-    protected boolean checkBusinessRules() {
-        // Nom obligatoire
+	public void setCheckRecoveredFiles(boolean checkRecoveredFiles) {
+		this.checkRecoveredFiles = checkRecoveredFiles;
+	}
+
+	protected boolean checkBusinessRules() {
         this.resetErrorState(txtLocation);     
         if (this.txtLocation.getText() == null || this.txtLocation.getText().length() == 0) {
             this.setInError(txtLocation);
@@ -145,6 +167,7 @@ extends AbstractWindow {
     protected void saveChanges() {    
         this.location = this.txtLocation.getText();
         this.recoverDeletedEntries = this.chkRecoverDeletedEntries.getSelection();
+        this.checkRecoveredFiles = this.chkCheckRecoveredFiles.getSelection();
         this.hasBeenUpdated = false;
         this.close();
     }

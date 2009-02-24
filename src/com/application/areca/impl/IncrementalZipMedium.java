@@ -8,16 +8,15 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Map;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.context.ProcessContext;
+import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.manifest.Manifest;
-import com.application.areca.metadata.manifest.ManifestKeys;
-import com.application.areca.version.VersionInfos;
 import com.myJava.file.CompressionArguments;
+import com.myJava.file.FileFilterList;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -27,9 +26,8 @@ import com.myJava.file.archive.ArchiveWriter;
 import com.myJava.file.archive.zip64.ZipArchiveAdapter;
 import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.file.archive.zip64.ZipVolumeStrategy;
-import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.file.multivolumes.VolumeStrategy;
-import com.myJava.object.PublicClonable;
+import com.myJava.object.Duplicable;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -38,12 +36,12 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -61,12 +59,11 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
-
     private static String MV_ARCHIVE_NAME = "archive";
     
     public String getDescription() {
         String type = "incremental";
-        if (overwrite) {
+        if (imageBackups) {
             type = "image"; 
         }
         return "Compressed " + type + " medium. (" + fileSystemPolicy.getArchivePath() + ")";        
@@ -81,11 +78,11 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
         context.setArchiveWriter(new ArchiveWriter(buildArchiveAdapter(archive, true, context)));
     }
 
-    protected void storeFileInArchive(FileSystemRecoveryEntry entry, ProcessContext context) 
+    protected void storeFileInArchive(FileSystemRecoveryEntry entry, InputStream in, ProcessContext context) 
     throws ApplicationException, TaskCancelledException {
         try {
             File file = entry.getFile();
-            String path = entry.getName();
+            String path = entry.getKey();
             
             if (context.getTaskMonitor() != null) {
                 context.getTaskMonitor().checkTaskState();
@@ -97,7 +94,6 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
             
             long length = FileSystemManager.length(file);
             context.getArchiveWriter().getAdapter().addEntry(path, length);            
-            InputStream in = FileSystemManager.getFileInputStream(entry.getFile());
             
             OutputStream out = context.getArchiveWriter().getAdapter().getArchiveOutputStream();
             this.handler.store(entry, in, out, context);
@@ -109,7 +105,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
     }  
 
     public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
-        if (overwrite) {
+        if (imageBackups) {
             // Delete all archives
             context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2, "backup-delete");
             this.deleteArchives(null, context);
@@ -127,10 +123,13 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
     public boolean supportsBackupScheme(String backupScheme) {
         return 
             super.supportsBackupScheme(backupScheme)
-            && ! (backupScheme.equals(AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL) && this.overwrite);
+            && ! (backupScheme.equals(AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL) && this.imageBackups);
     }
 
-    /**
+    protected void prepareContext(ProcessContext context) {
+	}
+
+	/**
      * Builds an ArchiveAdapter for the file passed as argument. 
      */
     protected ArchiveAdapter buildArchiveAdapter(File f, boolean write, ProcessContext context) throws IOException, ApplicationException {      
@@ -169,29 +168,9 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
         
         if (compressionArguments.getCharset() != null) {
             adapter.setCharset(compressionArguments.getCharset());
+        } else {
+    		adapter.setCharset(Charset.forName(ZipConstants.DEFAULT_CHARSET));
         }
-        
-        // BACKWARD-COMPATIBILITY : versions bellow 6.0 didn't handle charsets correctly -> set UTF-8 as default
-        if (! write) {
-        	Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, f);
-        	boolean isOld = false;
-        	if (mf == null) {
-        		Logger.defaultLogger().warn("No manifest found for " + FileSystemManager.getAbsolutePath(f) + " ... assuming that this archive was created by an older version than 6.0");
-        		isOld = true;
-        	} else {
-        		String version = mf.getStringProperty(ManifestKeys.VERSION);
-        		if (version == null) {
-        			isOld = true;
-        		} else {
-        			isOld = VersionInfos.isBeforeOrEquals(version, "5.5.7");
-        		}
-        	}
-        	
-        	if (isOld) {
-        		adapter.setCharset(Charset.forName(ZipConstants.DEFAULT_CHARSET));
-        	}
-        }
-        // EOF BACKWARD-COMPATIBILITY
         
         return adapter;
     }
@@ -205,7 +184,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
         return strat;
     }
     
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         IncrementalZipMedium other = new IncrementalZipMedium();
         copyAttributes(other);
         return other;
@@ -221,9 +200,9 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
             File[] archivesToProcess, 
             boolean overrideRecoveredFiles, 
             File destination, 
-            Map filtersByArchive, 
+            RecoveryFilterMap filtersByArchive, 
             ProcessContext context
-    ) throws IOException, ApplicationException {
+    ) throws IOException, ApplicationException, TaskCancelledException {
         try {
             context.getInfoChannel().print("Data recovery ...");   
             List ret = new ArrayList();
@@ -232,19 +211,14 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
             }
             
             for (int i=0; i<archivesToProcess.length; i++) {
-            	String[] filters = null;
+            	FileFilterList filters = null;
             	if (filtersByArchive != null) {
-                	List lstFilters = (List)filtersByArchive.get(archivesToProcess[i]);
-                	if (lstFilters != null) {
-                		filters = (String[])lstFilters.toArray(new String[lstFilters.size()]);
-                	}
+            		filters = (FileFilterList)filtersByArchive.get(archivesToProcess[i]);
             	}
 
-                context.getTaskMonitor().checkTaskState();  
-                String scope = filtersByArchive == null ? "All entries" : (filters == null ? "No entry" : filters.length + (filters.length <=1 ? " entry" : " entries"));
-                context.getInfoChannel().updateCurrentTask(i+1, archivesToProcess.length, "Processing " + FileSystemManager.getPath(archivesToProcess[i]) + " (" + scope + ") ...");
-                
-            	if (filtersByArchive == null || (filters != null && filters.length != 0)) {
+            	logRecoveryStep(filtersByArchive, filters, archivesToProcess[i], context);
+
+            	if (filtersByArchive == null || (filters != null && filters.size() != 0)) {
 	                ArchiveReader zrElement = new ArchiveReader(buildArchiveAdapter(archivesToProcess[i], false, context));
 	
 	                File realDestination;
@@ -263,7 +237,11 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
             }
             
             return (File[])ret.toArray(new File[ret.size()]);       
-        } catch (Throwable e) {
+        } catch (TaskCancelledException e) {
+        	throw e;
+        } catch (IOException e) {
+        	throw e;        	
+        } catch (Exception e) {
             throw new ApplicationException(e);
         }    
     }
@@ -279,7 +257,10 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
         }
     }
 
-    protected void computeMergeDirectories(ProcessContext context) throws ApplicationException {
+    protected void registerUnstoredFile(FileSystemRecoveryEntry entry, ProcessContext context) {
+	}
+
+	protected void computeMergeDirectories(ProcessContext context) throws ApplicationException {
 		File[] recoveredFiles = context.getReport().getRecoveryResult().getRecoveredArchivesAsArray();
     	GregorianCalendar lastArchiveDate = ArchiveManifestCache.getInstance().getManifest(this, recoveredFiles[recoveredFiles.length - 1]).getDate();
 		context.setCurrentArchiveFile(new File(computeArchivePath(lastArchiveDate)));
@@ -297,19 +278,5 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
         } catch (TaskCancelledException e) {
             throw new ApplicationException(e);
         }
-    }
-
-    /**
-     * Registers a generic entry - whether it has been filtered or not.
-     */
-    protected void registerGenericEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException, FileMetaDataSerializationException {
-        context.getTraceAdapter().writeEntry(entry);
-    }
-    
-    /**
-     * Registers an entry after it has passed the filters. (hence a stored entry) 
-     */
-    protected void registerStoredEntry(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException {
-        context.getContentAdapter().writeEntry(entry);
     }
 }

@@ -4,12 +4,12 @@ package com.myJava.util.log;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -28,15 +28,25 @@ This file is part of Areca.
  */
 public class ConsoleLogProcessor 
 implements LogProcessor {
+	
+	private boolean fullLog = true;
     
     public ConsoleLogProcessor() {
     }
-    
-    public void log(int level, String message, Throwable e, String source) {
-        // Log compl�te :
-        String logCt = LogHelper.format(level, message, source);
+
+	public boolean isFullLog() {
+		return fullLog;
+	}
+
+	public void setFullLog(boolean fullLog) {
+		this.fullLog = fullLog;
+	}
+
+	public void log(int level, String message, Throwable e, String source) {
+        // build log string
+        String logCt = LogHelper.format(level, message, source, fullLog);
         
-        // Ecriture de la log.
+        // write log
         System.out.println(logCt);
         if (e != null) {      
             System.out.println("");

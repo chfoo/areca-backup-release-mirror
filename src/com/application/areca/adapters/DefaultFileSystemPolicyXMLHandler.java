@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.w3c.dom.Node;
 
+import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.impl.policy.DefaultFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.myJava.file.FileSystemManager;
@@ -12,12 +13,12 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -36,7 +37,11 @@ This file is part of Areca.
  */
 public class DefaultFileSystemPolicyXMLHandler
 extends AbstractFileSystemPolicyXMLHandler {
-	public FileSystemPolicy read(Node mediumNode) throws AdapterException {
+	public FileSystemPolicy read(
+			Node mediumNode, 
+			AbstractRecoveryTarget target, 
+			TargetXMLReader reader
+	) throws AdapterException {
         DefaultFileSystemPolicy policy = new DefaultFileSystemPolicy();
         policy.setId(POLICY_HD);
 		if (version == 1) {
@@ -53,7 +58,7 @@ extends AbstractFileSystemPolicyXMLHandler {
         return policy;
     }
 
-    public void write(FileSystemPolicy policy, StringBuffer sb) {
+    public void write(FileSystemPolicy policy, TargetXMLWriter writer, boolean removeSensitiveData, StringBuffer sb) {
         sb.append(" ");
         sb.append(XML_MEDIUM_PATH);
         sb.append("=");

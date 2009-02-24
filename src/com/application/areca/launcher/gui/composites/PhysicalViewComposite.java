@@ -1,7 +1,6 @@
 package com.application.areca.launcher.gui.composites;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.GregorianCalendar;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -34,21 +33,17 @@ import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.Refreshable;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
-import com.myJava.file.FileSystemManager;
-import com.myJava.file.FileTool;
-import com.myJava.file.driver.FileSystemDriver;
-import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -67,10 +62,7 @@ This file is part of Areca.
  */
 public class PhysicalViewComposite 
 extends Composite 
-implements SelectionListener, Refreshable { 
-    
-    private static final FileTool TOOL = FileTool.getInstance();
-    
+implements SelectionListener, Refreshable {    
     private Table table;
     private TableViewer viewer;
     private Application application = Application.getInstance();
@@ -180,13 +172,14 @@ implements SelectionListener, Refreshable {
                         medium, 
                         archives[i]
                 );
+                
+                String prp = null;
                 if (manifest != null) {
                     item.setText(1, Utils.formatDisplayDate(manifest.getDate()));
                     initText(item, 0, manifest);
+                    prp = manifest.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME);
                 }
-                
-                String prp = manifest.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME);
-                
+    
                 if (
                         (prp != null && prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL))
                         || i == 0

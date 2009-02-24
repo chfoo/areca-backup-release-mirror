@@ -1,37 +1,37 @@
 package com.application.areca.impl.handler;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.cache.ArchiveManifestCache;
-import com.application.areca.cache.ArchiveTraceCache;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.FileSystemRecoveryEntry;
-import com.application.areca.metadata.content.ArchiveContent;
+import com.application.areca.impl.tools.RecoveryFilterMap;
+import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.content.ArchiveContentManager;
+import com.application.areca.metadata.content.ContentEntry;
+import com.application.areca.metadata.content.ContentFileIterator;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
-import com.application.areca.metadata.trace.ArchiveTrace;
+import com.application.areca.metadata.trace.ArchiveTraceAdapter;
+import com.application.areca.metadata.trace.ArchiveTraceManager;
+import com.application.areca.metadata.trace.TraceFileIterator;
 import com.myJava.configuration.FrameworkConfiguration;
-import com.myJava.file.FileSystemIterator;
+import com.myJava.file.FileFilterList;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.delta.DeltaInputStream;
-import com.myJava.file.delta.DeltaLayer;
 import com.myJava.file.delta.DeltaMerger;
 import com.myJava.file.delta.DeltaProcessor;
 import com.myJava.file.delta.DeltaProcessorException;
@@ -42,7 +42,10 @@ import com.myJava.file.delta.sequence.ByteProcessorException;
 import com.myJava.file.delta.sequence.FileSequencerByteProcessor;
 import com.myJava.file.delta.sequence.HashSequence;
 import com.myJava.file.delta.sequence.SequenceAdapter;
-import com.myJava.object.PublicClonable;
+import com.myJava.file.iterator.FileSystemIterator;
+import com.myJava.object.Duplicable;
+import com.myJava.system.OSTool;
+import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -51,12 +54,12 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -76,44 +79,106 @@ This file is part of Areca.
 public class DeltaArchiveHandler
 extends AbstractArchiveHandler {
 	private static final boolean DEBUG = FrameworkConfiguration.getInstance().isDeltaDebugMode();
-	private static final String LOCAL_COPY_SUFFIX = "lc";
-
-	private static final String SEQUENCE_FOLDER = "seq";
 	private static final int MIN_BLOCK_SIZE_BYTE = ArecaTechnicalConfiguration.get().getDeltaMinBucketSize();
 	private static final int MAX_BLOCK_SIZE_BYTE = ArecaTechnicalConfiguration.get().getDeltaMaxBucketSize();
 	private static final int TARGET_BUCKET_NUMBER = ArecaTechnicalConfiguration.get().getDeltaTargetBucketNumber();
+	
+	private static final String LOCAL_COPY_SUFFIX = "lc";
+	private static final String SEQUENCE_FOLDER = "seq";
 
 	/**
-	 * Returns the first archives which contains the requested entry
+	 * sequence filename
 	 */
-	private File lookupInArchive(FileSystemRecoveryEntry entry, ProcessContext context)
-	throws ApplicationException, IOException {
-		if (
-				(! context.getPreviousTrace().containsFile(entry))
-				|| context.getBackupScheme().equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL)
-		) {
-			return null;
-		} else {
-			// Look within the already loaded archived
-			Iterator archives = context.getPreviousArchives().iterator();
-			Iterator contents = context.getPreviousContents().iterator();
+	protected static final String SEQUENCE_FILE = "sequence";
 
-			File archive = null;
-			while (archives.hasNext()) {
-				ArchiveContent ctn = (ArchiveContent)contents.next();
-				archive = (File)archives.next();
+    
+    /**
+     * Temporary directory where all sequence files are stored
+     * <BR>This allows quicker sequence retrieval and limits bandwidth usage
+     */
+    private static final File LOCAL_DATA_DIRECTORY = new File(OSTool.getTempDirectory(), "areca");
+	
+	/**
+	 * Return the final sequence file name
+	 */
+	public String getSequenceFileName() {
+		return SEQUENCE_FILE;
+	}
 
+	public void close(ProcessContext context) 
+	throws IOException, ApplicationException {
+		try {
+		context.getSequenceAdapter().close();
+		context.setSequenceAdapter(null);
+		} finally {
+			Iterator iter = context.getContentIterators().iterator();
+			while (iter.hasNext()) {
+				ContentFileIterator ctnIter = (ContentFileIterator)iter.next();
+				ctnIter.close();
+			}
+			context.getContentIterators().clear();
+		}
+	}
+
+	public void init(ProcessContext context) 
+	throws IOException {
+		File file = new File(medium.getDataDirectory(context.getCurrentArchiveFile()), getSequenceFileName());
+		context.setSequenceAdapter(new ArchiveContentAdapter(file));  
+	}
+	
+	/**
+	 * Return the local folder where sequence data are temporarily stored.
+	 */
+	private File getLocalSequenceDirectory(File archive) {
+		return new File(
+				new File(
+						new File(LOCAL_DATA_DIRECTORY, medium.getTarget().getUid()),
+						FileSystemManager.getName(archive)
+				), 
+				SEQUENCE_FOLDER
+		);
+	}
+
+	/**
+	 * Locate the entry in the target's archives and return its HashSequence.
+	 */
+	private HashSequence lookupSequenceForEntry(FileSystemRecoveryEntry entry, ProcessContext context)
+	throws ApplicationException, IOException, TaskCancelledException {
+		Iterator contents = context.getContentIterators().iterator();
+		ContentFileIterator ctnIter = null;
+		
+		// Look among the already initialized iterators
+		File lastArchive = null;
+		while (contents.hasNext()) {
+			ContentFileIterator currentCtnIter = (ContentFileIterator)contents.next();
+			lastArchive = currentCtnIter.getReferenceArchive();
+			if (DEBUG) {
+				Logger.defaultLogger().fine("Entry " + entry.getKey() + " : checking sequence file contained in " + FileSystemManager.getAbsolutePath(currentCtnIter.getReferenceArchive()));
+			}
+			boolean found = currentCtnIter.fetchUntil(entry.getKey());
+			if (found) {
 				if (DEBUG) {
-					Logger.defaultLogger().fine("Looking in " + FileSystemManager.getAbsolutePath(archive));
+					Logger.defaultLogger().fine("Entry " + entry.getKey() + " : OK ");
 				}
-				if (ctn.contains(entry)) {
-					return archive;
+				ctnIter = currentCtnIter;
+				break;
+			} else {
+				if (DEBUG) {
+					Logger.defaultLogger().fine("Entry " + entry.getKey() + " : NOK ");
 				}
 			}
-
-			// Load older archives
-			GregorianCalendar toDate = archive == null ? null : ArchiveManifestCache.getInstance().getManifest(medium, archive).getDate();
+		}
+		
+		// Not found -> search among older archives
+		while (ctnIter == null) {
+			GregorianCalendar toDate = null;
+			if (lastArchive != null) {
+				toDate = (GregorianCalendar)ArchiveManifestCache.getInstance().getManifest(medium, lastArchive).getDate().clone();
+				toDate.add(GregorianCalendar.MILLISECOND, -1);
+			}
 			File[] previousArchives = medium.listArchives(null, toDate);
+			
+			// Locate a new archive to load
 			for (int i=previousArchives.length - 1; i>=0; i--) {
 				boolean validated = true;
 				if (context.getBackupScheme().equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
@@ -124,59 +189,56 @@ extends AbstractArchiveHandler {
 				}
 
 				if (validated) {
-					ArchiveContent ctn = ArchiveContentManager.getContentForArchive(medium, previousArchives[i]);
-					context.getPreviousArchives().add(previousArchives[i]);
-					context.getPreviousContents().add(ctn);
-
-					if (ctn.contains(entry)) {
-						return previousArchives[i];
-					}
+					lastArchive = previousArchives[i];
+					break;
 				}
 			}
-
-			// Not found -> SUSPECT
-			Logger.defaultLogger().warn("Warning : " + entry.getName() + " has not been found in archives - It SHOULD have been found !!");
-			return null;
-		}
-	}
-
-	private File getSequenceFileForEntry(File archive, String entry, ProcessContext context) {
-		File seqRoot = (File)context.getSequenceRoots().get(archive);
-		if (seqRoot == null) {
-			File metaDataRoot = medium.getDataDirectory(archive);
-			seqRoot = new File(metaDataRoot, SEQUENCE_FOLDER);
-			context.getSequenceRoots().put(archive, seqRoot);
-		}
-
-		return new File(seqRoot, entry);
-	}
-
-	private File getSequenceFileForEntry(File archive, FileSystemRecoveryEntry entry, ProcessContext context) {
-		return getSequenceFileForEntry(archive, entry.getName(), context);
-	}
-
-	private HashSequence lookupSequenceForEntry(FileSystemRecoveryEntry entry, ProcessContext context)
-	throws ApplicationException, IOException {
-		File archive = lookupInArchive(entry, context);
-		if (archive != null) {
+			
+			if (lastArchive == null) {
+				if (DEBUG) {
+					Logger.defaultLogger().fine("Entry " + entry.getKey() + " : using <null> as sequence");
+				}
+				return null;
+			}
+			
+			// Build an iterator
 			if (DEBUG) {
-				Logger.defaultLogger().fine("Entry : " + entry.getFile() + " - Using sequence located in " + FileSystemManager.getAbsolutePath(archive) + ".");
+				Logger.defaultLogger().fine("Opening hash file for : " + FileSystemManager.getAbsolutePath(lastArchive));
 			}
-			File sequenceFile = getSequenceFileForEntry(archive, entry, context);
-			SequenceAdapter adapter = new SequenceAdapter();
-			InputStream in = new GZIPInputStream(FileSystemManager.getFileInputStream(sequenceFile));
-			HashSequence seq = null;
-			try {
-				seq = adapter.deserialize(in);
-			} finally {
-				if (in != null) {
-					in.close();
-				}
+	    	File sequenceFile = ArchiveContentManager.resolveSequenceFileForArchive(medium, lastArchive);
+	    	ArchiveContentAdapter adp = new ArchiveContentAdapter(sequenceFile);
+	    	ctnIter = adp.buildIterator();
+	    	ctnIter.setReferenceArchive(lastArchive);
+	    	
+	    	// Add the new iterator to the collection of already loaded iterators
+	    	context.getContentIterators().add(ctnIter);
+	    	
+	    	// Check whether the entry can be found
+			boolean found = ctnIter.fetchUntil(entry.getKey());
+			if (! found) {
+				ctnIter = null;
 			}
-			return seq;
-		} else {
-			return null;
 		}
+		
+		// Once a suitable iterator has bee found, extract the raw hash data
+		if (DEBUG) {
+			Logger.defaultLogger().fine("Entry " + entry.getKey() + " : using sequence file contained in " + FileSystemManager.getAbsolutePath(ctnIter.getReferenceArchive()));
+		}
+		ContentEntry hashEntry = ctnIter.current();
+		byte[] rawData = Util.base64Decode(hashEntry.getData());
+		
+		// Deserialize the hashSequence
+		SequenceAdapter adapter = new SequenceAdapter();
+		InputStream in = new GZIPInputStream(new ByteArrayInputStream(rawData));
+		HashSequence seq = null;
+		try {
+			seq = adapter.deserialize(in);
+		} finally {
+			if (in != null) {
+				in.close();
+			}
+		}
+		return seq;
 	}
 
 	private int computeBlockSize(File file) {
@@ -195,7 +257,6 @@ extends AbstractArchiveHandler {
 				Logger.defaultLogger().fine("Entry : " + entry.getFile() + " - BlockSize = " + blockSize + (seq == null ? "C" : "R"));
 			}
 			FileSequencerByteProcessor sequencer = new FileSequencerByteProcessor(blockSize);
-			sequencer.activateSerialization(getSequenceFileForEntry(context.getCurrentArchiveFile(), entry, context));
 			DeltaReader reader;
 
 			if (seq == null) {
@@ -215,15 +276,28 @@ extends AbstractArchiveHandler {
 			}
 
 			reader.read(context.getTaskMonitor());
+
+			// Add sequence data
+			HashSequence returnedSequence = sequencer.getSequence();
+			context.getSequenceAdapter().writeSequenceEntry(entry, returnedSequence);
 		} catch (DeltaProcessorException e) {
 			Logger.defaultLogger().error(e);
-			throw new ApplicationException("Error storing " + entry.getName() + ".", e);
+			throw new ApplicationException("Error storing " + entry.getKey() + ".", e);
 		} catch (ByteProcessorException e) {
 			Logger.defaultLogger().error(e);
-			throw new ApplicationException("Error storing " + entry.getName() + ".", e);            
+			throw new ApplicationException("Error storing " + entry.getKey() + ".", e);            
 		} finally {
 			in.close();
 		}
+	}
+
+	/**
+	 * Delete the local sequence files associated to the deleted archive
+	 */
+	public void archiveDeleted(File archive) 
+	throws IOException {
+		File f = getLocalSequenceDirectory(archive);
+		FileTool.getInstance().delete(f, true);
 	}
 
 	private File buildRecoveryFile(File destination) {
@@ -234,6 +308,7 @@ extends AbstractArchiveHandler {
 		return f;
 	}
 
+	/*
 	private static void debug(File f) {
 		try {
 			String path = FileSystemManager.getAbsolutePath(f);
@@ -244,13 +319,14 @@ extends AbstractArchiveHandler {
 			Logger.defaultLogger().error(e);
 		}
 	}
+	 */
 
 	public void recoverRawData(
 			File[] archivesToRecover, 
-			Map filtersByArchive, 
+			RecoveryFilterMap filtersByArchive, 
 			short mode,
 			ProcessContext context
-	) throws IOException, ApplicationException {
+	) throws IOException, ApplicationException, TaskCancelledException {
 		// 1 : Ensure that there is a local copy of the files to recover
 		File[] localFiles = medium.ensureLocalCopy(archivesToRecover, false, buildRecoveryFile(context.getRecoveryDestination()), filtersByArchive, context);
 
@@ -260,18 +336,19 @@ extends AbstractArchiveHandler {
 			if (localArchive != null) {
 				String[] filters = null;
 				if (filtersByArchive != null) {
-					List lstFilters = (List)filtersByArchive.get(archivesToRecover[i]);
-					if (lstFilters != null) {
-						filters = (String[])lstFilters.toArray(new String[lstFilters.size()]);
-					} else {
-						filters = new String[0];
+					FileFilterList lstFilters = (FileFilterList)filtersByArchive.get(archivesToRecover[i]);
+					if (lstFilters == null) {
+						lstFilters = new FileFilterList();
 					}
+					filters = lstFilters.toArray();
 				}
 
-				FileSystemIterator iter = new FileSystemIterator(localArchive, filters, false);
+				FileSystemIterator iter = new FileSystemIterator(localArchive, filters, false, true, true, true);
+				iter.setWarnDanglingLinks(false);
 				while (iter.hasNext()) {
-					File f = (File)iter.next();
+					context.getTaskMonitor().checkTaskState();
 
+					File f = (File)iter.next();
 					if (FileSystemManager.isFile(f)) {
 						String localPath = FileSystemManager.getAbsolutePath(f).substring(FileSystemManager.getAbsolutePath(localArchive).length());
 						File target = new File(context.getRecoveryDestination(), localPath);
@@ -291,11 +368,7 @@ extends AbstractArchiveHandler {
 							try {
 								//debug(f);
 								in.addInputStream(FileSystemManager.getCachedFileInputStream(f), localPath);
-								File latestSequenceFile = null;
-
-								if (mode == MODE_MERGE) {
-									latestSequenceFile = getSequenceFileForEntry(archivesToRecover[i], localPath, context);
-								}
+								//File latestSequenceFile = null;
 
 								for (int j=i + 1; j<localFiles.length; j++) {
 									File posteriorArchive = localFiles[j];
@@ -304,10 +377,6 @@ extends AbstractArchiveHandler {
 										localCopies.add(f2);
 										//debug(f2);
 										in.addInputStream(FileSystemManager.getCachedFileInputStream(f2), localPath);
-
-										if (mode == MODE_MERGE) {
-											latestSequenceFile = getSequenceFileForEntry(archivesToRecover[j], localPath, context);
-										}
 									}
 								}
 
@@ -317,13 +386,13 @@ extends AbstractArchiveHandler {
 
 								if (mode == MODE_RECOVER) {
 									// recover
-									FileTool.getInstance().copy((DeltaInputStream)in, out, true, true);
+									FileTool.getInstance().copy((DeltaInputStream)in, out, true, true, context.getTaskMonitor());
 								} else {
 									// merge
 									try {
 										((DeltaMerger)in).setProc(new LayerWriterDeltaProcessor(out));
 										try {
-											((DeltaMerger)in).merge();
+											((DeltaMerger)in).merge(context.getTaskMonitor());
 										} catch (DeltaProcessorException e) {
 											Logger.defaultLogger().error(e);
 											throw new ApplicationException("Error during merge.", e);
@@ -331,19 +400,6 @@ extends AbstractArchiveHandler {
 									} finally {
 										if (out != null) {
 											out.close();	
-										}
-									}
-
-									// Duplicate the sequence file
-									InputStream seqIn = FileSystemManager.getFileInputStream(latestSequenceFile);
-									File seqFile = getSequenceFileForEntry(context.getCurrentArchiveFile(), localPath, context);
-									FileTool.getInstance().createDir(FileSystemManager.getParentFile(seqFile));
-									OutputStream seqOut = FileSystemManager.getFileOutputStream(seqFile);
-									try {
-										FileTool.getInstance().copy(seqIn, seqOut, true, true);
-									} finally {
-										if (seqOut != null) {
-											seqOut.close();	
 										}
 									}
 								}
@@ -362,37 +418,62 @@ extends AbstractArchiveHandler {
 			}
 		}
 	}
+	
+	public RecoveryFilterMap dispatchEntries(File[] archives, String[] entriesToRecover) 
+	throws ApplicationException, IOException {
+		RecoveryFilterMap entriesByArchive = new RecoveryFilterMap(true);
 
-	public Map dispatchEntries(File[] archives, Set entriesToRecover) throws ApplicationException, IOException {
-		Map entriesByArchive = new HashMap();
+		// Build content iterators
+		ContentFileIterator[] citers = new ContentFileIterator[archives.length];
+		TraceFileIterator[] titers = new TraceFileIterator[archives.length];
 
-		// Build a list of entries to recover indexed by archive
-		Set detected = new HashSet();
-		for (int i=archives.length - 1; i>=0 && entriesToRecover.size() > 0; i--) {
-			Set toRemove = new HashSet();
-			ArchiveTrace trace = ArchiveTraceCache.getInstance().getTrace(this.medium, archives[i]);
-			Iterator detectedIter = detected.iterator();
-			while (detectedIter.hasNext()) {
-				FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)detectedIter.next();
-				if (! trace.containsFile(entry)) {
-					toRemove.add(entry);
+		try {
+			for (int i=0; i<archives.length; i++) {
+				ArchiveContentAdapter cadapter = new ArchiveContentAdapter(ArchiveContentManager.resolveContentFileForArchive(this.medium, archives[i]));
+				citers[i] = cadapter.buildIterator();
+				
+				ArchiveTraceAdapter tadapter = new ArchiveTraceAdapter(ArchiveTraceManager.resolveTraceFileForArchive(this.medium, archives[i]));
+				titers[i] = tadapter.buildIterator();
+			}
+
+			// Build a list of entries to recover indexed by archive
+			for (int e=0; e<entriesToRecover.length; e++) {
+				List indexes = new ArrayList();
+				for (int i=archives.length-1; i>=0; i--) {
+					boolean found = titers[i].fetchUntil(entriesToRecover[e]);
+					if (! found) {
+						// Not found in trace anymore -> stop searching
+						break;
+					}
+					
+					found = citers[i].fetchUntil(entriesToRecover[e]);
+					if (found) {
+						indexes.add(new Integer(i));
+					}
+				}
+				
+				if (indexes.isEmpty()) {
+					throw new IllegalStateException(entriesToRecover[e] + " was not found in ANY archive.");
+				} else {
+					Iterator iter = indexes.iterator();
+					while (iter.hasNext()) {
+						int index = ((Integer)iter.next()).intValue();
+						FileFilterList entries = (FileFilterList)entriesByArchive.get(archives[index]);
+						if (entries == null) {
+							entries = new FileFilterList();
+							entriesByArchive.put(archives[index], entries);
+						}
+						entries.add(entriesToRecover[e]);
+					}
 				}
 			}
-			entriesToRecover.removeAll(toRemove);
-			detected.removeAll(toRemove);
-
-			ArchiveContent content = ArchiveContentManager.getContentForArchive(this.medium, archives[i]);
-			Iterator iter = entriesToRecover.iterator();
-			while (iter.hasNext()) {
-				FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)iter.next();
-				if (content.contains(entry)) {
-					List entries = (List)entriesByArchive.get(archives[i]);
-					if (entries == null) {
-						entries = new ArrayList();
-						entriesByArchive.put(archives[i], entries);
-					}
-					entries.add(entry.getName());
-					detected.add(entry);
+		} finally {
+			for (int i=0; i<archives.length; i++) {
+				if (citers[i] != null) {
+					citers[i].close();
+				}
+				if (titers[i] != null) {
+					titers[i].close();
 				}
 			}
 		}
@@ -400,7 +481,19 @@ extends AbstractArchiveHandler {
 		return entriesByArchive;
 	}
 
-	public PublicClonable duplicate() {
+	public Duplicable duplicate() {
 		return new DeltaArchiveHandler();
+	}
+	
+	public boolean supportsImageBackup() {
+		return false;
+	}
+
+	public File getContentFile(File archive) {
+		return new File(medium.getDataDirectory(archive), this.getSequenceFileName());
+	}
+	
+	public boolean autonomousArchives() {
+		return false;
 	}
 }

@@ -22,17 +22,18 @@ import com.application.areca.indicator.IndicatorTypes;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.Refreshable;
+import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -125,6 +126,8 @@ implements Listener, Refreshable, HistoryEntryTypes {
                 item.setText(1, AbstractWindow.configureForTable(RM.getLabel("indicators." + resourceBaseKey + ".description")));
             }
         } catch (ApplicationException e) {
+            application.handleException(e);
+        } catch (TaskCancelledException e) {
             application.handleException(e);
         }
     }

@@ -24,12 +24,12 @@ import com.application.areca.processor.Processor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -58,7 +58,6 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
     private Button btnTest;
     private Button btnOnlyError;
     private Button btnSMTPS;
-    private Button btnListFiltered;
     
     public MailSendProcessorComposite(Composite composite, Processor proc, ProcessorEditionWindow window) {
         super(composite, proc, window);
@@ -157,12 +156,6 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
             }
         });
         
-        // List filtered entries
-        btnListFiltered = new Button(this, SWT.CHECK);
-        btnListFiltered.setText(RM.getLabel("procedition.listfiltered.label"));
-        btnListFiltered.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
-        window.monitorControl(btnListFiltered);
-        
         // Send only if in error
         btnOnlyError = new Button(this, SWT.CHECK);
         btnOnlyError.setText(RM.getLabel("procedition.onlyerror.label"));
@@ -176,7 +169,6 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
             txtUser.setText(mProc.getUser());
             txtPassword.setText(mProc.getPassword());
             btnOnlyError.setSelection(mProc.isOnlyIfError());
-            btnListFiltered.setSelection(mProc.isListFiltered());
             txtTitle.setText(mProc.getTitle());
             btnSMTPS.setSelection(mProc.isSmtps());
             if (mProc.getIntro() != null) {
@@ -195,7 +187,6 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         mProc.setUser(txtUser.getText());
         mProc.setPassword(txtPassword.getText());
         mProc.setOnlyIfError(btnOnlyError.getSelection());
-        mProc.setListFiltered(btnListFiltered.getSelection());
         mProc.setTitle(txtTitle.getText());
         mProc.setSmtps(btnSMTPS.getSelection());
         mProc.setIntro(txtIntro.getText());

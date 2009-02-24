@@ -1,20 +1,15 @@
 package com.myJava.file.driver;
 
 /**
- * Interface d�finissant un driver "chainable", c'est � dire s'appuyant sur un driver pr�d�cesseur
- * pour les acc�s disque.
- * <BR>L'impl�mentation d'un tel driver impose donc de se r�f�rer syst�matiquement au pr�d�cesseur pour
- * l'acc�s au FileSystem, et interdit tout acc�s direct. 
- *
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify

@@ -7,12 +7,12 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -37,51 +37,15 @@ public class MemoryHelper {
     private static double MEMORY_SAFETY_MARGIN = ArecaTechnicalConfiguration.get().getMemorySafetyMargin();
     private static double MEMORY_USAGE_RATE = 1 - MEMORY_SAFETY_MARGIN;  
     
-    /**
-     * Checks that enough memory has been allocated to Areca 
-     * to store the number of entries provided as argument. 
-     */
-    public static boolean isOverQuota(long entries) {
-        return OSTool.getMaxMemoryKB() < getTheoreticalMemoryKB(entries);
-    }
-    
-    public static long getTheoreticalMemoryKB(long entries) {
-        double theoreticalMemoryUsage = MEMORY_BASE_KB + entries * MEMORY_BY_ENTRY_KB;
-        return (long)(theoreticalMemoryUsage / MEMORY_USAGE_RATE);
-    }
-    
-    public static long getTheoreticalMemoryMB(long entries) {
-        return (long)(getTheoreticalMemoryKB(entries) / 1024);
-    }
-    
     public static long getMaxManageableEntries() {
         double nb = OSTool.getMaxMemoryKB() * MEMORY_USAGE_RATE - MEMORY_BASE_KB;
         return (long)(nb / MEMORY_BY_ENTRY_KB);
     }
 
-    public static String getMemoryTitle(AbstractRecoveryTarget target, long entries) {
-        return "Target " + target.getId() + " (" + target.getTargetName() + ") - Memory Warning !";
-    }
-    
-    public static String getMemoryMessage(AbstractRecoveryTarget target, long entries) {
-        return 
-                "Areca's current settings only allocate a maximum of " 
-                + OSTool.getMaxMemoryMB() 
-                + " MBytes to process this backup target (" 
-                + target.getTargetName() 
-                + "). This may be insufficient to securely process this target (approximately " 
-                + entries 
-                + " files).\n\nYou can either:\n- split this target into smaller targets (it is advisable that your target's size does not exceed " 
-                + MemoryHelper.getMaxManageableEntries() 
-                + " files for the current maximum memory), or\n- increase the amount of memory that Areca allocates (for a target of this size, it is advisable to allocate at least " 
-                + MemoryHelper.getTheoreticalMemoryMB(entries) 
-                + " MBytes).\n\nFurther information on how to increase the memory Areca allocates may be found within the FAQ on Areca's Website.";       
-    }
-
     /**
      * Returns the ratio of memory which is kept free for Areca.
      * <BR>For instance a ratio of 0.3 means that Areca's caching strategy will always attempts to keep 30% of
-     * the overall memory available, and will trigger a GC if the free memory falls bellow this limit.
+     * the overall memory available, and will trigger a GC if the free memory falls below this limit.
      */
     public static double getMemorySafetyMargin() {
         return MEMORY_SAFETY_MARGIN;

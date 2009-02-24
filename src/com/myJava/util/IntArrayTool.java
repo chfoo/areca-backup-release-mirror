@@ -1,16 +1,22 @@
 package com.myJava.util;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 /**
- * Classe utilitaire regroupant des fonctions d�di�es aux tableaux d'entiers
+ * Int array utility class
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -30,9 +36,6 @@ This file is part of Areca.
 
 public abstract class IntArrayTool {
 
-    /**
-     * Somme les valeurs d'un tableau
-     */
     public static int sum(int[] values) {
         int total = 0;
         for (int i=0; i<values.length; i++) {
@@ -41,9 +44,6 @@ public abstract class IntArrayTool {
         return total;
     }
     
-    /**
-     * Max des valeurs d'un tableau
-     */
     public static int max(int[] values) {
     	if (values == null || values.length == 0) {
     		return 0;
@@ -57,9 +57,6 @@ public abstract class IntArrayTool {
         return max;
     }
     
-    /**
-     * Min des valeurs d'un tableau
-     */
     public static int min(int[] values) {
     	if (values == null || values.length == 0) {
     		return 0;
@@ -74,9 +71,7 @@ public abstract class IntArrayTool {
     }
 
     /**
-     * Retourne le contenu sous forme de liste
-     * [1 2 6 9] donnera "1,2,6,9" si le s�parateur
-     * fourni est ",".
+     * Return the int[] content as a list
      */
     public static String getContentList(int[] values, String separator) {
         StringBuffer sb = new StringBuffer();
@@ -89,16 +84,12 @@ public abstract class IntArrayTool {
     }
 
     /**
-     * Retourne le contenu sous forme de liste
-     * S�parateur = ","
+     * Return the int[] content as a list
      */
     public static String getContentList(int[] values) {
         return IntArrayTool.getContentList(values, ",");
     }
 
-    /**
-     * Indique si le tableau contient la valeur sp�cifi�e
-     */
     public static boolean contains(int[] values, int value) {
         for (int i=0; i<values.length; i++) {
             if (values[i] == value) {
@@ -106,5 +97,83 @@ public abstract class IntArrayTool {
             }
         }
         return false;
+    }
+    
+    /**
+     * List contains byte[]
+     */
+    public static List sort(List data, int nbDigits) {
+    	int maxVal = 256;
+    	List[] grouped = new List[maxVal];
+    	
+    	for (int d=nbDigits-1; d>=0; d--) {
+        	for (int g=0; g<maxVal; g++) {
+        		grouped[g] = new ArrayList();
+        	}
+        	
+        	// Pass 1 : group by digit value
+    		Iterator iter = data.iterator();
+    		int digitValue;
+    		int index = 0;
+    		while (iter.hasNext()) {
+    			byte[] number = (byte[])iter.next();
+    			digitValue = number[d] + 128;
+    			grouped[digitValue].add(new Integer(index));
+    			index++;
+    		}
+    		
+    		// Pass 2 : append data
+    		List sorted = new ArrayList();
+    		for (digitValue = 0; digitValue<maxVal; digitValue++) {
+    			List toAdd = grouped[digitValue];
+    			Iterator iter2 = toAdd.iterator();
+    			while (iter2.hasNext()) {
+    				int idx = ((Integer)iter2.next()).intValue();
+    				sorted.add(data.get(idx));
+    			}
+    		}
+    		
+    		data = sorted;
+    	}
+    	
+    	return data;
+    }
+    
+    public static void main(String[] args) {
+    	int maxNb = 1000000;
+    	int wordLength = 20;
+    	List data = new ArrayList();
+    	
+    	for (int i=0; i<maxNb; i++) {
+    		byte[] d = new byte[wordLength];
+    		for (int j=0; j<wordLength; j++) {
+    			d[j] = (byte)(Util.getRnd() * 127);
+    			//System.out.print(" " + d[j]);
+    		}
+    		data.add(d);
+			//System.out.print("\n");
+    	}
+    	
+    	System.out.println("");
+    	long s = System.currentTimeMillis();
+    	List ret = sort(data, wordLength);
+    	System.out.println(System.currentTimeMillis() - s);
+    	
+    	for (int i=0; i<maxNb; i++) {
+    		byte[] d = (byte[])ret.get(i);
+    		for (int j=0; j<wordLength; j++) {
+    			//System.out.print(" " + d[j]);
+    		}
+			//System.out.print("\n");
+    	}
+    	
+    	long[] aa = new long[maxNb];
+    	for (int i=0; i<maxNb; i++) {
+    		aa[i] = Util.getRndLong();
+    	}
+    	
+    	s = System.currentTimeMillis();
+    	Arrays.sort(aa);
+    	System.out.println(System.currentTimeMillis() - s);
     }
 }

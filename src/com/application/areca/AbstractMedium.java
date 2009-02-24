@@ -3,7 +3,8 @@ package com.application.areca;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.application.areca.metadata.trace.ArchiveTrace;
+import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.metadata.trace.ArchiveTraceParser;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.util.history.History;
@@ -13,12 +14,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -37,7 +38,7 @@ This file is part of Areca.
  */
 public abstract class AbstractMedium implements ArchiveMedium {
 
-    protected AbstractRecoveryTarget target;
+    protected FileSystemRecoveryTarget target;
     
     /**
      * Historique
@@ -54,10 +55,6 @@ public abstract class AbstractMedium implements ArchiveMedium {
     }
     
     protected void copyAttributes(Object clone) {
-    }
-
-    public void setTarget(AbstractRecoveryTarget target, boolean revalidate) {
-        this.target = target;
     }
     
     public AbstractRecoveryTarget getTarget() {
@@ -79,29 +76,27 @@ public abstract class AbstractMedium implements ArchiveMedium {
     	List list = new ArrayList();
     	
         String prevHash;
-    	short status = EntryArchiveData.STATUS_UNKNOWN;
         String hash = null;
     	for (int i=0; i<data.length; i++) {
             EntryArchiveData e = data[i];
             prevHash = hash;
-    		status = e.getStatus();
             hash = e.getHash();
     		
             if (hash == null) {
                 if (prevHash != null) {
-                    e.setStatus(EntryArchiveData.STATUS_DELETED);
+                    e.setStatus(EntryStatus.STATUS_DELETED);
                     list.add(e);
                 }
-            } else if (ArchiveTrace.hasBeenModified(hash, prevHash)) {
+            } else if (ArchiveTraceParser.hasBeenModified(hash, prevHash)) {
                 //if (status != EntryArchiveData.STATUS_STORED) {
                 //    e.setStatus(EntryArchiveData.STATUS_MISSING);
                 //} else 
             	if (i == 0) {
-                    e.setStatus(EntryArchiveData.STATUS_FIRST_BACKUP);
+                    e.setStatus(EntryStatus.STATUS_FIRST_BACKUP);
                 } else if (prevHash == null) {
-                    e.setStatus(EntryArchiveData.STATUS_CREATED);
+                    e.setStatus(EntryStatus.STATUS_CREATED);
                 } else {
-                    e.setStatus(EntryArchiveData.STATUS_MODIFIED);
+                    e.setStatus(EntryStatus.STATUS_MODIFIED);
                 }
                 list.add(e);
             }

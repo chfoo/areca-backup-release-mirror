@@ -5,17 +5,16 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**
- * Classe charg�e de g�rer des fichiers de ressources.
- * Utile pour les applications localis�es.
+ * Utility class for localized applications
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -35,37 +34,27 @@ This file is part of Areca.
 
 public class ResourceManager {
 
-    /**
-     * La Hashtable contenant les dictionnaires.
-     */
+	/**
+	 * Dictionnaries
+	 */
     protected Hashtable resources;
 
-    /**
-     * Constructeur par d�faut
-     */
     public ResourceManager() {
         this.resources = new Hashtable();
     }
 
     /**
-     * Retourne le dictionnaire demand�, ou tente de l'initialiser s'il
-     * ne l'a pas encore �t�.
+     * Return or load the requested dictionnary
      */
     protected ResourceBundle getResource(String name, String language) throws IllegalArgumentException {
-        // V�rification des param�tres
         if (language == null || language.length() != 2) {
             throw new IllegalArgumentException("Le code langue est obligatoire et correspond au code ISO-639 de la langue. (2 caract�res)");
         }
-
-        // On tente de r�cup�rer le dictionnaire depuis le cache
         ResourceBundle res = (ResourceBundle)(resources.get(name + "." + language.toLowerCase()));
 
-        // S'il n'est pas dans le cache, on l'instancie et on le stocke
         if (res == null) {
             Locale loc = new Locale(language.toLowerCase(), "");
             res = ResourceBundle.getBundle(name, loc);
-
-            // Stockage en cache
             this.store(res, name, language);
         }
 
@@ -73,14 +62,14 @@ public class ResourceManager {
     }
 
     /**
-     * Stocke le dictionnaire propos� en cache
+     * Store the dictionnary passed as argument
      */
     protected void store(ResourceBundle resource, String name, String language) {
         this.resources.put(name + "." + language.toLowerCase(), resource);
     }
 
     /**
-     * Retourne la traduction demand�e
+     * Return the requested translation
      */
     public String getString(String key, String resourceName, String language) throws IllegalArgumentException {
         if (key == null || key.trim().length() == 0) {

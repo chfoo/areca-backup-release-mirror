@@ -5,16 +5,16 @@ import java.util.GregorianCalendar;
 import java.util.StringTokenizer;
 
 /**
- * Calsse utilitaire pour le traitement de calendars
+ * Calendar utility class
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -41,9 +41,6 @@ public class CalendarUtils {
     /**
      * expected date format : YYYY MM DD [HH] [mm] [ss] [ms]
      * <BR>accepted separators : /-_ HhMm:.,; 
-     * 
-     * @param date
-     * @return
      */
     public static GregorianCalendar resolveDate(String date, GregorianCalendar defaultValue) {
         if (date == null) {
@@ -88,7 +85,7 @@ public class CalendarUtils {
     
     
     /**
-     * Retourne l'heure formattee <HH>h<mm> 
+     * Return [HH]h[mm] 
      */
     public static String getTimeToString(GregorianCalendar argCal) {
         GregorianCalendar cal = argCal;
@@ -111,7 +108,7 @@ public class CalendarUtils {
     }
     
     /**
-     * Retourne l'heure formattee <HH>h<mm>-<ss>-<ms> 
+     * Return [HH]h[mm]-[ss]-[ms]
      */
     public static String getFullTimeToString(GregorianCalendar argCal) {
         GregorianCalendar cal = argCal;
@@ -137,7 +134,7 @@ public class CalendarUtils {
     }    
     
     /**
-     * Retourne la date formattee YYYYMMDD 
+     * Return YYYYMMDD 
      */
     public static String getDateToString(GregorianCalendar argCal) {
         GregorianCalendar cal = argCal;
@@ -158,24 +155,15 @@ public class CalendarUtils {
         return date;
     }
     
-    /**
-     * Retourne la date et heure formattee 
-     */
     public static String getFullDateToString(GregorianCalendar cal) {
         return getDateToString(cal) + " " + getFullTimeToString(cal);
     }
     
     
-    /**
-     * Retourne la date courante formattee 
-     */
     public static String getDateToString() {
         return getDateToString(null);
     }
-    
-    /**
-     * Retourne l'heure courante formattee
-     */
+
     public static String getTimeToString() {
         return getTimeToString(null);
     }     

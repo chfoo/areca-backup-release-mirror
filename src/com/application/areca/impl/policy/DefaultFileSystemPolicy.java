@@ -9,7 +9,7 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.driver.DefaultFileSystemDriver;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.driver.cache.CachedFileSystemDriver;
-import com.myJava.object.PublicClonable;
+import com.myJava.object.Duplicable;
 import com.myJava.object.ToStringHelper;
 import com.myJava.util.log.Logger;
 
@@ -17,12 +17,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -77,7 +77,7 @@ implements FileSystemPolicy {
         policy.setArchivePath(archivePath);
     }
 
-	public PublicClonable duplicate() {
+	public Duplicable duplicate() {
         DefaultFileSystemPolicy policy = new DefaultFileSystemPolicy();
         copyAttributes(policy);
         return policy;

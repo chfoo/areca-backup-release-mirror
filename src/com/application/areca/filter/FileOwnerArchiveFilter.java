@@ -1,26 +1,26 @@
 package com.application.areca.filter;
 
+import java.io.File;
 import java.io.IOException;
 
-import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
-import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.metadata.FileMetaData;
 import com.myJava.file.metadata.posix.PosixMetaData;
+import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.object.PublicClonable;
 import com.myJava.util.log.Logger;
 
 /**
  * @author Olivier PETRUCCI <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * 
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -42,7 +42,7 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 	private static final char SEPARATOR = ':';
 
 	private String owner;
-	private String ownerGroup;
+	private String group;
 
 	public void acceptParameters(String parameters) {
 		if (Utils.isEmpty(parameters)) {
@@ -50,7 +50,7 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 		}
 
 		owner = null;
-		ownerGroup = null;
+		group = null;
 
 		String params = parameters.trim();
 		int index = params.indexOf(SEPARATOR);
@@ -60,49 +60,48 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 			if (index != 0) {
 				this.owner = params.substring(0, index).trim();
 			}
-			this.ownerGroup = params.substring(index + 1).trim();
+			this.group = params.substring(index + 1).trim();
 		}
 	}
 
-	public boolean acceptIteration(RecoveryEntry entry) {
+	public boolean acceptIteration(File entry) {
 		return acceptStorage(entry);
 	}
 
-	public boolean acceptStorage(RecoveryEntry entry) {
-		FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry) entry;
-		if (fEntry == null) {
+	public boolean acceptStorage(File entry) {
+		if (entry == null) {
 			return false;
 		} else {
 			try {
-				FileMetaData atts = FileSystemManager.getAttributes(fEntry.getFile());
+				FileMetaData atts = FileSystemManager.getMetaData(entry, true);
 				boolean match;
 				if (atts instanceof PosixMetaData) {
 					PosixMetaData pmtd = (PosixMetaData)atts;
 					match = (owner == null || owner.equals(pmtd.getOwner()));
-					match = match && (ownerGroup == null || ownerGroup.equals(pmtd.getOwnerGroup()));
+					match = match && (group == null || group.equals(pmtd.getGroup()));
 				} else {
 					match = true;
 				}
 				return match ? !exclude : exclude;
 			} catch (IOException e) {
-				String msg = "Error reading file permissions for "+ FileSystemManager.getAbsolutePath(fEntry.getFile());
+				String msg = "Error reading file permissions for "+ FileSystemManager.getAbsolutePath(entry);
 				Logger.defaultLogger().info(msg);
 				throw new IllegalArgumentException(msg);
 			}
 		}
 	}
 
-	public PublicClonable duplicate() {
+	public Duplicable duplicate() {
 		FileOwnerArchiveFilter filter = new FileOwnerArchiveFilter();
 		filter.exclude = this.exclude;
 		filter.owner = this.owner;
-		filter.ownerGroup = this.ownerGroup;
+		filter.group = this.group;
 		return filter;
 	}
 
 	public String getStringParameters() {
 		return (owner == null ? "" : owner)
-				+ (ownerGroup == null ? "" : (SEPARATOR + ownerGroup));
+				+ (group == null ? "" : (SEPARATOR + group));
 	}
 
 	public boolean equals(Object obj) {
@@ -112,7 +111,7 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 			FileOwnerArchiveFilter other = (FileOwnerArchiveFilter) obj;
 			return EqualsHelper.equals(this.exclude, other.exclude)
 					&& EqualsHelper.equals(this.owner, other.owner)
-					&& EqualsHelper.equals(this.ownerGroup, other.ownerGroup);
+					&& EqualsHelper.equals(this.group, other.group);
 		}
 	}
 
@@ -120,7 +119,7 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 		int h = HashHelper.initHash(this);
 		h = HashHelper.hash(h, this.owner);
 		h = HashHelper.hash(h, this.exclude);
-		h = HashHelper.hash(h, this.ownerGroup);
+		h = HashHelper.hash(h, this.group);
 		return h;
 	}
 }

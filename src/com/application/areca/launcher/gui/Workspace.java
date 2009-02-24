@@ -4,20 +4,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 
-import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.LogHelper;
 import com.application.areca.ResourceManager;
 import com.application.areca.TargetGroup;
 import com.application.areca.adapters.AdapterException;
 import com.application.areca.adapters.ProcessXMLReader;
-import com.application.areca.cache.CacheInitializer;
-import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.launcher.gui.common.LocalPreferences;
-import com.application.areca.processor.Processor;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.ConsoleLogProcessor;
@@ -25,17 +20,17 @@ import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
 
 /**
- * <BR>Classe implementant un workspace
- * <BR>Un workspace reference un ensemble de groupes (un par fichier de configuration)
+ * <BR>This class implements a workspace.
+ * <BR>A workspace is a collection of target groups, each group containing a collection of targets.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -55,60 +50,62 @@ This file is part of Areca.
 public class Workspace {
 
     protected String path;
-    protected HashMap processes;
+    protected HashMap groups;
     protected HashMap xmlFiles;
     protected Application application;
     
     public Workspace(String path, Application application) throws AdapterException {
         this.application = application;
         this.path = FileSystemManager.getAbsolutePath(new File(path));
-        this.processes = new HashMap(10);
+        this.groups = new HashMap(10);
         this.xmlFiles = new HashMap(10);        
         this.loadDirectory(this.path);
     }
     
-    public int getProcessCount() {
-        return this.processes.size();
+    /**
+     * Return the number of groups contained in the workspace
+     */
+    public int getGroupCount() {
+        return this.groups.size();
     }
     
-    public TargetGroup getProcessById(String source) {
-        return (TargetGroup)processes.get(source);
+    public TargetGroup getGroupById(String source) {
+        return (TargetGroup)groups.get(source);
     }
     
-    public File getConfigFile(TargetGroup process) {
-        return (File)this.xmlFiles.get(process);
+    public File getConfigFile(TargetGroup group) {
+        return (File)this.xmlFiles.get(group);
     }
     
     public String toString() {
         return "Workspace : " + path;
     }
     
-    public void removeProcess(String source) {
-    	TargetGroup process = this.getProcessById(source);
-    	if (process != null) {
-    		process.doBeforeDelete();
+    public void removeGroup(String source) {
+    	TargetGroup group = this.getGroupById(source);
+    	if (group != null) {
+    		group.doBeforeDelete();
     	}
-        this.processes.remove(source);
-    	if (process != null) {
-    		process.doAfterDelete();
+        this.groups.remove(source);
+    	if (group != null) {
+    		group.doAfterDelete();
     	}
     }
     
-    public void removeProcess(TargetGroup process) {
-        this.removeProcess(process.getSource());
+    public void removeGroup(TargetGroup group) {
+        this.removeGroup(group.getSource());
     }
     
-    public Iterator getProcessIterator() {
-        return this.processes.values().iterator();
+    public Iterator getGroupIterator() {
+        return this.groups.values().iterator();
     }    
     
     /**
-     * It�rateur sur les process, tri�s par ID 
+     * Return an iterator. All target are sorted by ID
      */
-    public Iterator getSortedProcessIterator() {
-
-        String[] ids = new String[processes.size()];
-        Iterator iter = getProcessIterator();
+    public Iterator getSortedGroupIterator() {
+        String[] ids = new String[groups.size()];
+        Iterator iter = getGroupIterator();
         int i = 0;
         while (iter.hasNext()) {
             ids[i++] = ((TargetGroup)iter.next()).getSource();
@@ -117,7 +114,7 @@ public class Workspace {
         
         ArrayList list = new ArrayList();
         for (i=0; i<ids.length; i++) {
-            list.add(this.getProcessById(ids[i]));
+            list.add(this.getGroupById(ids[i]));
         }
         return list.iterator();
     }    
@@ -126,17 +123,26 @@ public class Workspace {
         return this.path;
     }
     
-    public void addProcess(TargetGroup process) {
-        this.processes.put(process.getSource(), process);
+    public void addGroup(TargetGroup group) {
+        this.groups.put(group.getSource(), group);
     }
     
+    /**
+     * Load the workspace denoted by the path passed as argument.
+     * <BR>If xml files are found, they are parsed as a TargetGroup configuration
+     */
     private void loadDirectory(String path) throws AdapterException {
 	    try {
             File f = new File(path);
             if (FileSystemManager.exists(f)) {
                 Logger.defaultLogger().remove(FileLogProcessor.class);
                 Logger.defaultLogger().remove(ConsoleLogProcessor.class);
-                FileLogProcessor proc = new FileLogProcessor(new File(FileSystemManager.getAbsolutePath(f) + "/log/", VersionInfos.APP_NAME.toLowerCase()));
+                FileLogProcessor proc;
+                if (ArecaTechnicalConfiguration.get().getLogLocationOverride() == null) {
+                	proc = new FileLogProcessor(new File(FileSystemManager.getAbsolutePath(f) + "/log/", VersionInfos.APP_SHORT_NAME.toLowerCase()));
+                } else {
+                	proc = new FileLogProcessor(new File(ArecaTechnicalConfiguration.get().getLogLocationOverride(), VersionInfos.APP_NAME.toLowerCase()));
+                }
                 Logger.defaultLogger().addProcessor(proc);
 
                 LogHelper.logStartupInformations();
@@ -150,9 +156,9 @@ public class Workspace {
                     	try {
 	                        ProcessXMLReader adapter = new ProcessXMLReader(children[i]);
 	                        adapter.setMissingDataListener(new MissingDataListener());
-	                        TargetGroup process = adapter.load();
-	                        this.addProcess(process);
-	                        this.xmlFiles.put(process, children[i]);
+	                        TargetGroup group = adapter.load();
+	                        this.addGroup(group);
+	                        this.xmlFiles.put(group, children[i]);
                     	} catch (AdapterException e) {
                         	Logger.defaultLogger().error("Error detected in " + e.getSource());
                             Application.getInstance().handleException(
@@ -164,53 +170,10 @@ public class Workspace {
                 } 
             }
             
-            Logger.defaultLogger().info("Path : [" + path + "] - " + this.processes.size() + " groups loaded.");
-            
-            // Une fois que le workspace est charg�, on lance la t�che de remplissage de cache
-            if (ArecaTechnicalConfiguration.get().isCachePreload()) {
-                CacheInitializer.populateCache(this);
-            }
+            Logger.defaultLogger().info("Path : [" + path + "] - " + this.groups.size() + " groups loaded.");
         } catch (RuntimeException e) {
             Logger.defaultLogger().error(e);
             throw e;
         }
     }  
-    
-    public ArchiveFilter[] buildFilterArray() {
-        Iterator iter = this.getProcessIterator();
-        HashSet set = new HashSet();
-        while (iter.hasNext()) {
-            TargetGroup process = (TargetGroup)iter.next();
-            Iterator tgIter = process.getTargetIterator();
-            while (tgIter.hasNext()) {
-                AbstractRecoveryTarget tg = (AbstractRecoveryTarget)tgIter.next();
-                Iterator fIter = tg.getFilterIterator();
-                while (fIter.hasNext()) {
-                    set.add(fIter.next());
-                }
-            }
-        }
-        ArchiveFilter[] ret = (ArchiveFilter[])set.toArray(new ArchiveFilter[0]);
-        Arrays.sort(ret);
-        return ret;
-    }
-    
-    public Processor[] buildPostProcessorArray() {
-        Iterator iter = this.getProcessIterator();
-        HashSet set = new HashSet();
-        while (iter.hasNext()) {
-            TargetGroup process = (TargetGroup)iter.next();
-            Iterator tgIter = process.getTargetIterator();
-            while (tgIter.hasNext()) {
-                AbstractRecoveryTarget tg = (AbstractRecoveryTarget)tgIter.next();
-                Iterator pIter = tg.getPostProcessors().iterator();
-                while (pIter.hasNext()) {
-                    set.add(pIter.next());
-                }
-            }
-        }
-        Processor[] ret = (Processor[])set.toArray(new Processor[0]);
-        Arrays.sort(ret);
-        return ret;
-    }
 }

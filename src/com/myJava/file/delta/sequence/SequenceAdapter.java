@@ -1,12 +1,17 @@
 package com.myJava.file.delta.sequence;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import com.myJava.file.delta.Constants;
 import com.myJava.file.delta.tools.IOHelper;
+import com.myJava.util.log.Logger;
 
 /**
  * Format : 
@@ -20,12 +25,12 @@ import com.myJava.file.delta.tools.IOHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -45,6 +50,12 @@ This file is part of Areca.
 public class SequenceAdapter implements Constants {
     private static final short VERSION = 1;
 
+    private static SequenceAdapter INSTANCE = new SequenceAdapter();
+    
+    public static SequenceAdapter getInstance() {
+    	return INSTANCE;
+    }
+    
     public void serialize(OutputStream out, HashSequence sequence) throws IOException {
         IOHelper.writeShort(VERSION, out);
         IOHelper.writeLong(sequence.getBlockSize(), out);
@@ -89,5 +100,37 @@ public class SequenceAdapter implements Constants {
             //Logger.defaultLogger().fine("Sequence adapter : " + nbBuckets + " buckets read.");
             return seq;
         }
+    }
+    
+    public HashSequence deserialize(byte[] data) {
+    	HashSequence ret = null;
+    	try {
+        	GZIPInputStream in = new GZIPInputStream(new ByteArrayInputStream(data));
+    		try {
+				ret = deserialize(in);
+			} finally {
+				in.close();
+			}
+    	} catch (IOException e) {
+    		Logger.defaultLogger().error(e);
+    		throw new IllegalArgumentException(e);
+    	}
+    	return ret;
+    }
+    
+    public byte[] serialize(HashSequence sequence) {
+       	ByteArrayOutputStream out = new ByteArrayOutputStream();
+    	try {
+        	GZIPOutputStream zout = new GZIPOutputStream(out);
+	    	try {
+	    		serialize(zout, sequence);
+	    	} finally {
+	    		zout.close();
+	    	}
+    	} catch (IOException e) {
+    		Logger.defaultLogger().error(e);
+    		throw new IllegalArgumentException(e);
+    	}
+    	return out.toByteArray();
     }
 }

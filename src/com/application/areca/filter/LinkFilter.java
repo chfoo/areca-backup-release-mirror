@@ -1,14 +1,13 @@
 package com.application.areca.filter;
 
+import java.io.File;
 import java.io.IOException;
 
-import com.application.areca.RecoveryEntry;
-import com.application.areca.impl.FileSystemRecoveryEntry;
-import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.metadata.FileMetaDataAccessorHelper;
+import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.object.PublicClonable;
 import com.myJava.util.log.Logger;
 
 /**
@@ -16,12 +15,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -43,33 +42,28 @@ public class LinkFilter extends AbstractArchiveFilter {
 	public void acceptParameters(String parameters) {
     }
     
-    public boolean acceptIteration(RecoveryEntry entry) {
+    public boolean acceptIteration(File entry) {
         return acceptStorage(entry);
     }
     
-    /**
-     * Cette condition ne s'applique que sur les r�pertoires (pour des raisons d'optimisation).
-     * Les fichiers retournent syst�matiquement "true"
-     */
-    public boolean acceptStorage(RecoveryEntry entry) {
-        FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;        
-        if (fEntry == null) {
+    public boolean acceptStorage(File entry) {   
+        if (entry == null) {
             return false;
         } else {
             try {
-                if (FileSystemManager.isLink(fEntry.getFile())) {
+                if (FileMetaDataAccessorHelper.getFileSystemAccessor().isSymLink(entry)) {
                     return ! exclude;
                 } else {
                     return exclude;
                 }
             } catch (IOException e) {
-                Logger.defaultLogger().error("Error during filtering of " + FileSystemManager.getAbsolutePath(fEntry.getFile()), e);
-                throw new IllegalArgumentException("Error during filtering of " + FileSystemManager.getAbsolutePath(fEntry.getFile()));
+                Logger.defaultLogger().error("Error during filtering of " + FileSystemManager.getAbsolutePath(entry), e);
+                throw new IllegalArgumentException("Error during filtering of " + FileSystemManager.getAbsolutePath(entry));
             }
         }
     }
     
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         LinkFilter filter = new LinkFilter();
         filter.exclude = this.exclude;
         return filter;

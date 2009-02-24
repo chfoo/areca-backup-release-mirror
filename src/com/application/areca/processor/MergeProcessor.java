@@ -3,21 +3,21 @@ package com.application.areca.processor;
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
+import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.object.PublicClonable;
 
 /**
  * Merge archives
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@ public class MergeProcessor extends AbstractProcessor {
     private int fromDelay = 0; // 0 = -infinity
     private int toDelay = 0; // 0 = now
     private boolean keepDeletedEntries = false;
-
+    
     /**
      * @param target
      */
@@ -58,11 +58,11 @@ public class MergeProcessor extends AbstractProcessor {
     public int getFromDelay() {
         return fromDelay;
     }
-
+    
     public boolean isKeepDeletedEntries() {
         return keepDeletedEntries;
     }
-
+    
     public void setKeepDeletedEntries(boolean keepDeletedEntries) {
         this.keepDeletedEntries = keepDeletedEntries;
     }
@@ -73,7 +73,14 @@ public class MergeProcessor extends AbstractProcessor {
     
     public void runImpl(ProcessContext context) throws ApplicationException {
         AbstractRecoveryTarget target = context.getReport().getTarget();
-        target.getGroup().processMergeOnTargetImpl(target, fromDelay, toDelay, keepDeletedEntries, null, new ProcessContext(target, context.getInfoChannel()));
+        target.getGroup().processMergeOnTargetImpl(
+        		target, 
+        		fromDelay, 
+        		toDelay, 
+        		null, 
+                keepDeletedEntries,
+        		new ProcessContext(target, context.getInfoChannel())
+       );
     }
     
     public boolean requiresFilteredEntriesListing() {
@@ -92,7 +99,7 @@ public class MergeProcessor extends AbstractProcessor {
         return ret;
     }
     
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         MergeProcessor pro = new MergeProcessor();
         pro.fromDelay = this.fromDelay;
         pro.toDelay = this.toDelay;

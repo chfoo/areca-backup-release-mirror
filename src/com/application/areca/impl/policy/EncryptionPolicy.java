@@ -9,7 +9,7 @@ import com.myJava.encryption.EncryptionUtil;
 import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
 import com.myJava.file.driver.EncryptedFileSystemDriver;
 import com.myJava.file.driver.FileSystemDriver;
-import com.myJava.object.PublicClonable;
+import com.myJava.object.Duplicable;
 import com.myJava.object.ToStringHelper;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
@@ -18,12 +18,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class EncryptionPolicy implements PublicClonable {
+public class EncryptionPolicy implements Duplicable {
 
     protected String encryptionKey = null;
     protected String encryptionAlgorithm = null;
@@ -75,7 +75,7 @@ public class EncryptionPolicy implements PublicClonable {
             return true;
         } else if (params.getKeyConvention().equals(EncryptionConfiguration.KEYCONV_RAW)) {
             try {
-                byte[] b = Util.parseHexa(encryptionKey);
+                byte[] b = Util.base16Decode(encryptionKey);
                 return (b.length == params.getKeySize());
             } catch (Throwable e) {
                 return false;
@@ -138,7 +138,7 @@ public class EncryptionPolicy implements PublicClonable {
         this.isEncrypted = isEncrypted;
     }
     
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         EncryptionPolicy other = new EncryptionPolicy();
         other.encryptionAlgorithm = encryptionAlgorithm;
         other.encryptionKey = encryptionKey;

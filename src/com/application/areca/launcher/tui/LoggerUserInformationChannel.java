@@ -2,6 +2,7 @@ package com.application.areca.launcher.tui;
 
 import com.application.areca.UserInformationChannel;
 import com.application.areca.launcher.AbstractInformationChannel;
+import com.myJava.util.log.ConsoleLogProcessor;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskMonitor;
 
@@ -9,12 +10,12 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -35,13 +36,14 @@ public class LoggerUserInformationChannel
 extends AbstractInformationChannel
 implements UserInformationChannel {
     
-    protected Logger userLogger = new Logger();
+    protected Logger userLogger;
     protected boolean running;
     protected int previousProgress = -1;
     protected boolean displayThreadName = false;
     
     public LoggerUserInformationChannel(boolean displayThreadName) {
-        super();
+    	userLogger = new Logger();
+    	((ConsoleLogProcessor)userLogger.find(ConsoleLogProcessor.class)).setFullLog(false);
         this.displayThreadName = displayThreadName;
     }
 
@@ -53,7 +55,23 @@ implements UserInformationChannel {
         }
     }
 
-    public void updateProgress(double percent) {
+    public void warn(String info) {
+        if (displayThreadName) {
+            this.userLogger.warn(info, Thread.currentThread().getName());
+        } else {
+            this.userLogger.warn(info);
+        }
+	}
+    
+    public void error(String info) {
+        if (displayThreadName) {
+            this.userLogger.error(info, Thread.currentThread().getName());
+        } else {
+            this.userLogger.error(info);
+        }
+	}
+
+	public void updateProgress(double percent) {
         int pc = (int)(0.1*percent);
         if (pc != previousProgress) {
             previousProgress = pc;

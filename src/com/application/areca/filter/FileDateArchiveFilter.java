@@ -1,16 +1,14 @@
 package com.application.areca.filter;
 
+import java.io.File;
 import java.util.GregorianCalendar;
 import java.util.StringTokenizer;
 
-import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
-import com.application.areca.impl.FileSystemRecoveryEntry;
-import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.myJava.file.FileSystemManager;
+import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.object.PublicClonable;
 import com.myJava.util.CalendarUtils;
 
 /**
@@ -18,12 +16,12 @@ import com.myJava.util.CalendarUtils;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -86,17 +84,16 @@ public class FileDateArchiveFilter extends AbstractArchiveFilter {
         return prefix + CalendarUtils.getDateToString(c).replace('_', ' ');
     }
     
-    public boolean acceptIteration(RecoveryEntry entry) {
+    public boolean acceptIteration(File entry) {
         return true;
     }
     
-    public boolean acceptStorage(RecoveryEntry entry) {
-        FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;        
-        if (fEntry == null) {
+    public boolean acceptStorage(File entry) {   
+        if (entry == null) {
             return false;
         } else {         
             boolean value;
-            if (FileSystemManager.lastModified(fEntry.getFile()) > minDate) {
+            if (FileSystemManager.lastModified(entry) > minDate) {
                 value = greaterThan;
             } else {
                 value = ! greaterThan;
@@ -110,7 +107,7 @@ public class FileDateArchiveFilter extends AbstractArchiveFilter {
         }
     }
     
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         FileDateArchiveFilter filter = new FileDateArchiveFilter();
         filter.exclude = this.exclude;
         filter.minDate = this.minDate;

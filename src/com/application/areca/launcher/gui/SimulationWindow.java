@@ -1,7 +1,7 @@
 package com.application.areca.launcher.gui;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
@@ -20,12 +20,11 @@ import org.eclipse.swt.widgets.TableItem;
 
 import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.ApplicationException;
-import com.application.areca.EntryArchiveData;
-import com.application.areca.RecoveryEntry;
+import com.application.areca.EntryStatus;
+import com.application.areca.SimulationResult;
 import com.application.areca.Utils;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryEntry;
-import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.metadata.manifest.Manifest;
@@ -36,12 +35,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -61,205 +60,194 @@ This file is part of Areca.
 public class SimulationWindow 
 extends AbstractWindow
 implements Listener {
-    
-    protected RecoveryEntry[] entries;
-    
-    protected Table table;
-    protected Button btnBackupManifest;
-    protected Label lblCreated;
-    protected Label lblModified;
-    protected Label lblTotalSize;
-    protected AbstractRecoveryTarget target;
-    protected Font italic;
-    
-    public SimulationWindow(RecoveryEntry[] entries, AbstractRecoveryTarget target) {
-        super();
-        this.entries = entries;
-        this.target = target;
-    }
 
-    protected Control createContents(Composite parent) {
-        Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout();
-        layout.numColumns = 1;
-        composite.setLayout(layout);
-        
-        GridData mainData1 = new GridData(SWT.FILL, SWT.FILL, true, true);
-        mainData1.widthHint = computeWidth(700);
-        mainData1.heightHint = computeHeight(300);
-        createTopComposite(composite).setLayoutData(mainData1);
-        
-        GridData mainData2 = new GridData(SWT.FILL, SWT.FILL, true, false);
-        createBottomComposite(composite).setLayoutData(mainData2);
-        
-        GridData saveData = new GridData(SWT.FILL, SWT.FILL, true, false);
-        createSaveComposite(composite).setLayoutData(saveData);
-        
-        initContent();
-        composite.pack();
-        
-        return composite;
-    }
-    
-    private Table createTopComposite(Composite parent) {
-        table = new Table(parent, SWT.BORDER);   
-        TableColumn col1 = new TableColumn(table, SWT.NONE);
-        col1.setWidth(AbstractWindow.computeWidth(400));
-        col1.setMoveable(true);
-        col1.setText(RM.getLabel("simulation.filecolumn.label"));
-        TableColumn col2 = new TableColumn(table, SWT.NONE);
-        col2.setWidth(AbstractWindow.computeWidth(150));
-        col2.setMoveable(true);
-        col2.setText(RM.getLabel("simulation.sizecolumn.label"));
+	protected SimulationResult entries;
 
-        table.setHeaderVisible(true);
-        table.setLinesVisible(AbstractWindow.getTableLinesVisible());
-        
-        GridData dt1 = new GridData();
-        dt1.grabExcessHorizontalSpace = true;
-        dt1.grabExcessVerticalSpace = true;
-        dt1.horizontalAlignment = SWT.FILL;
-        dt1.verticalAlignment = SWT.FILL;
-        
-        table.setLayoutData(dt1);
-        
-        return table;
-    }
-    
-    private Composite createBottomComposite(Composite parent) {
-        Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout();
-        layout.numColumns = 6;
-        composite.setLayout(layout);
-        
-        Label lblTCreated = new Label(composite, SWT.NONE); 
-        lblTCreated.setText(RM.getLabel("simulation.newfilesfield.label"));
-        lblCreated = new Label(composite, SWT.NONE);
-        GridData dt1 = new GridData();
-        dt1.grabExcessHorizontalSpace = true;
-        lblCreated.setLayoutData(dt1);
-        
-        Label lblTModified = new Label(composite, SWT.NONE);
-        lblTModified.setText(RM.getLabel("simulation.modifiedfilesfield.label"));
-        lblModified = new Label(composite, SWT.NONE);
-        GridData dt2 = new GridData();
-        dt2.grabExcessHorizontalSpace = true;
-        lblModified.setLayoutData(dt2);
-        
-        Label lblTTotalSize = new Label(composite, SWT.NONE); 
-        lblTTotalSize.setText(RM.getLabel("simulation.estimatedsizefield.label"));
-        lblTotalSize = new Label(composite, SWT.NONE);
-        GridData dt3 = new GridData();
-        dt3.grabExcessHorizontalSpace = true;
-        lblTotalSize.setLayoutData(dt3);
-        
-        return composite;
-    }
-    
-    private Composite createSaveComposite(Composite parent) {
-        Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout();
-        layout.numColumns = 1;
-        composite.setLayout(layout);
-        
-        GridData dt1 = new GridData();
-        dt1.grabExcessHorizontalSpace = true;
-        dt1.horizontalAlignment = SWT.RIGHT;
-        
-        // BACKUP MANIFEST       
-        btnBackupManifest = new Button(composite, SWT.PUSH);
-        btnBackupManifest.setText(RM.getLabel("simulation.backupaction.label"));
-        btnBackupManifest.addListener(SWT.Selection, this);
-        btnBackupManifest.setLayoutData(dt1);
-        
-        return composite;
-    }
-    
-    private void initContent() {        
-        long totalSize = 0;
-        long nbNew = 0;
-        long nbModified = 0;
-        long nbDeleted = 0;
-        
-        for (int i=0; i<entries.length; i++) {
-            try {
-                TableItem item = new TableItem(table, SWT.NONE);
-                item.setText(0, entries[i].getName());
-                item.setText(1, Utils.formatFileSize(entries[i].getSize()));
+	protected Table table;
+	protected Button btnBackupManifest;
+	protected Label lblCreated;
+	protected Label lblModified;
+	protected Label lblTotalSize;
+	protected AbstractRecoveryTarget target;
+	protected Font italic;
 
-                if (entries[i].getStatus() == EntryArchiveData.STATUS_CREATED) {
-                    nbNew++;
-                    File f = ((FileSystemRecoveryEntry)entries[i]).getFile();
-                    boolean link = ((FileSystemRecoveryTarget)this.target).isTrackSymlinks() && FileSystemManager.isLink(f);
-                    
-                    if (link) {
-                        // SymLinks
-                        item.setText(1, "");
-                        item.setFont(deriveItalicFont(item));
-                    }
-                    
-                    if (FileSystemManager.isFile(f)) {
-                        item.setImage(0, ArecaImages.ICO_HISTO_NEW);
-                        if (! link) {
-                            totalSize += entries[i].getSize();
-                        }
-                    } else {
-                        item.setImage(0, ArecaImages.ICO_HISTO_FOLDER_NEW);
-                    }
-                } else if (entries[i].getStatus() == EntryArchiveData.STATUS_DELETED) {
-                    nbDeleted++;     
-                    item.setImage(0, ArecaImages.ICO_HISTO_DELETE); 
-                } else {
-                    nbModified++;
-                    item.setImage(0, ArecaImages.ICO_HISTO_EDIT); 
+	public SimulationWindow(SimulationResult entries, AbstractRecoveryTarget target) {
+		super();
+		this.entries = entries;
+		this.target = target;
+	}
 
-                    if (! FileSystemManager.isLink(((FileSystemRecoveryEntry)entries[i]).getFile())) {
-                        totalSize += entries[i].getSize();
-                    }
-                }
-            } catch (IOException e) {
-                Logger.defaultLogger().error(e);
-            }
-        }
-        
-        this.lblCreated.setText("" + nbNew);
-        this.lblModified.setText("" + nbModified);
-        this.lblTotalSize.setText(Utils.formatFileSize(totalSize));
-    }
-    
-    private Font deriveItalicFont(TableItem item) {
-        if (this.italic == null) {
-            FontData dt = item.getFont().getFontData()[0];
-            FontData dtItalic = new FontData(dt.getName(), dt.height, SWT.ITALIC);
-            return new Font(item.getDisplay(), new FontData[] {dtItalic});
-        } 
-        return italic;
-    }
+	protected Control createContents(Composite parent) {
+		Composite composite = new Composite(parent, SWT.NONE);
+		GridLayout layout = new GridLayout();
+		layout.numColumns = 1;
+		composite.setLayout(layout);
 
-    public String getTitle() {
-        return RM.getLabel("simulation.dialog.title", new Object[] {target.getTargetName()});
-    }
+		GridData mainData1 = new GridData(SWT.FILL, SWT.FILL, true, true);
+		mainData1.widthHint = computeWidth(700);
+		mainData1.heightHint = computeHeight(300);
+		createTopComposite(composite).setLayoutData(mainData1);
 
-    protected boolean checkBusinessRules() {
-        return true;
-    }
+		GridData mainData2 = new GridData(SWT.FILL, SWT.FILL, true, false);
+		createBottomComposite(composite).setLayoutData(mainData2);
 
-    protected void saveChanges() {
-    }
+		GridData saveData = new GridData(SWT.FILL, SWT.FILL, true, false);
+		createSaveComposite(composite).setLayoutData(saveData);
 
-    protected void updateState(boolean rulesSatisfied) {
-    }
+		initContent();
+		composite.pack();
 
-    public void handleEvent(Event event) {
-        this.close();
-        Manifest mf;
-        try {
-            mf = ((AbstractIncrementalFileSystemMedium)target.getMedium()).buildDefaultBackupManifest();
-        } catch (ApplicationException e1) {
-            Logger.defaultLogger().error(e1);
-            mf = new Manifest(Manifest.TYPE_BACKUP);
-        }
-        
-        this.application.showBackupWindow(target, mf, true);
-    }
+		return composite;
+	}
+
+	private Table createTopComposite(Composite parent) {
+		table = new Table(parent, SWT.BORDER);   
+		TableColumn col1 = new TableColumn(table, SWT.NONE);
+		col1.setWidth(AbstractWindow.computeWidth(400));
+		col1.setMoveable(true);
+		col1.setText(RM.getLabel("simulation.filecolumn.label"));
+		TableColumn col2 = new TableColumn(table, SWT.NONE);
+		col2.setWidth(AbstractWindow.computeWidth(150));
+		col2.setMoveable(true);
+		col2.setText(RM.getLabel("simulation.sizecolumn.label"));
+
+		table.setHeaderVisible(true);
+		table.setLinesVisible(AbstractWindow.getTableLinesVisible());
+
+		GridData dt1 = new GridData();
+		dt1.grabExcessHorizontalSpace = true;
+		dt1.grabExcessVerticalSpace = true;
+		dt1.horizontalAlignment = SWT.FILL;
+		dt1.verticalAlignment = SWT.FILL;
+
+		table.setLayoutData(dt1);
+
+		return table;
+	}
+
+	private Composite createBottomComposite(Composite parent) {
+		Composite composite = new Composite(parent, SWT.NONE);
+		GridLayout layout = new GridLayout();
+		layout.numColumns = 6;
+		composite.setLayout(layout);
+
+		Label lblTCreated = new Label(composite, SWT.NONE); 
+		lblTCreated.setText(RM.getLabel("simulation.newfilesfield.label"));
+		lblCreated = new Label(composite, SWT.NONE);
+		GridData dt1 = new GridData();
+		dt1.grabExcessHorizontalSpace = true;
+		lblCreated.setLayoutData(dt1);
+
+		Label lblTModified = new Label(composite, SWT.NONE);
+		lblTModified.setText(RM.getLabel("simulation.modifiedfilesfield.label"));
+		lblModified = new Label(composite, SWT.NONE);
+		GridData dt2 = new GridData();
+		dt2.grabExcessHorizontalSpace = true;
+		lblModified.setLayoutData(dt2);
+
+		Label lblTTotalSize = new Label(composite, SWT.NONE); 
+		lblTTotalSize.setText(RM.getLabel("simulation.estimatedsizefield.label"));
+		lblTotalSize = new Label(composite, SWT.NONE);
+		GridData dt3 = new GridData();
+		dt3.grabExcessHorizontalSpace = true;
+		lblTotalSize.setLayoutData(dt3);
+
+		return composite;
+	}
+
+	private Composite createSaveComposite(Composite parent) {
+		Composite composite = new Composite(parent, SWT.NONE);
+		GridLayout layout = new GridLayout();
+		layout.numColumns = 1;
+		composite.setLayout(layout);
+
+		GridData dt1 = new GridData();
+		dt1.grabExcessHorizontalSpace = true;
+		dt1.horizontalAlignment = SWT.RIGHT;
+
+		// BACKUP MANIFEST       
+		btnBackupManifest = new Button(composite, SWT.PUSH);
+		btnBackupManifest.setText(RM.getLabel("simulation.backupaction.label"));
+		btnBackupManifest.addListener(SWT.Selection, this);
+		btnBackupManifest.setLayoutData(dt1);
+
+		return composite;
+	}
+
+	private void initContent() {        
+		Iterator iter = entries.iterator();
+		while (iter.hasNext()) {
+			FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)iter.next();
+			TableItem item = new TableItem(table, SWT.NONE);
+			item.setText(0, entry.getKey());
+
+			if (entry.isLink()) {
+				// SymLinks
+				item.setText(1, "");
+				item.setFont(deriveItalicFont(item));
+			} else {
+				item.setText(1, Utils.formatFileSize(entry.getSize()));
+			}
+			
+			if (entry.getStatus() == EntryStatus.STATUS_CREATED) {
+				File f = ((FileSystemRecoveryEntry)entry).getFile();
+
+				if (FileSystemManager.isFile(f)) {
+					item.setImage(0, ArecaImages.ICO_HISTO_NEW);
+				} else {
+					item.setImage(0, ArecaImages.ICO_HISTO_FOLDER_NEW);
+				}
+			} else if (entry.getStatus() == EntryStatus.STATUS_DELETED) {
+				// Shall not happen anymore -> deleted files are not tracked by the backup simulation
+				item.setImage(0, ArecaImages.ICO_HISTO_DELETE); 
+			} else {
+				item.setImage(0, ArecaImages.ICO_HISTO_EDIT); 
+			}
+		}
+
+		if (entries.isMaxEntriesReached()) {
+			TableItem item = new TableItem(table, SWT.NONE);
+			item.setText(0, "...");
+		}
+
+		this.lblCreated.setText("" + entries.getNewFiles());
+		this.lblModified.setText("" + entries.getModifiedFiles());
+		this.lblTotalSize.setText(Utils.formatFileSize(entries.getGlobalSize()));
+	}
+
+	private Font deriveItalicFont(TableItem item) {
+		if (this.italic == null) {
+			FontData dt = item.getFont().getFontData()[0];
+			FontData dtItalic = new FontData(dt.getName(), dt.height, SWT.ITALIC);
+			return new Font(item.getDisplay(), new FontData[] {dtItalic});
+		} 
+		return italic;
+	}
+
+	public String getTitle() {
+		return RM.getLabel("simulation.dialog.title", new Object[] {target.getTargetName()});
+	}
+
+	protected boolean checkBusinessRules() {
+		return true;
+	}
+
+	protected void saveChanges() {
+	}
+
+	protected void updateState(boolean rulesSatisfied) {
+	}
+
+	public void handleEvent(Event event) {
+		this.close();
+		Manifest mf;
+		try {
+			mf = ((AbstractIncrementalFileSystemMedium)target.getMedium()).buildDefaultBackupManifest();
+		} catch (ApplicationException e1) {
+			Logger.defaultLogger().error(e1);
+			mf = new Manifest(Manifest.TYPE_BACKUP);
+		}
+
+		this.application.showBackupWindow(mf, target, true);
+	}
 }

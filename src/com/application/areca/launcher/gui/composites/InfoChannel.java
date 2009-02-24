@@ -24,12 +24,12 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -186,7 +186,15 @@ implements UserInformationChannel, Colors, Listener {
         Logger.defaultLogger().info(info);
     }
 
-    public void startRunning() {
+    public void warn(String info) {
+        Logger.defaultLogger().warn(info);
+	}
+    
+    public void error(String info) {
+        Logger.defaultLogger().error(info);
+	}
+
+	public void startRunning() {
         SecuredRunner.execute(parent, new Runnable() {
             public void run() {
                 running = true;

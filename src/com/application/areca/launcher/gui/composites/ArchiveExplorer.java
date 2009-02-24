@@ -1,10 +1,8 @@
 package com.application.areca.launcher.gui.composites;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Hashtable;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -14,6 +12,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.TreeEvent;
+import org.eclipse.swt.events.TreeListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FillLayout;
@@ -25,26 +25,30 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
-import com.application.areca.RecoveryEntry;
+import com.application.areca.ApplicationException;
+import com.application.areca.ArchiveMedium;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
+import com.application.areca.impl.AggregatedViewContext;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.RecoveryFilter;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
-import com.myJava.file.FileNameUtil;
+import com.application.areca.metadata.MetadataConstants;
+import com.application.areca.metadata.trace.TraceEntry;
+import com.myJava.util.log.Logger;
 
 /**
  * <BR>
- * @author Olivier PETRUCCI
- * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * 
+ * @author Olivier PETRUCCI <BR>
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -61,300 +65,287 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ArchiveExplorer 
-extends Composite 
-implements MouseListener, Listener
-{
-    private static int ITEM_STYLE = SWT.NONE;
-    private final ResourceManager RM = ResourceManager.instance();
-    
-    private Tree tree;
-    private RecoveryEntry[] entries;
-    private boolean displayNonStoredItemsSize = false;
-    private boolean logicalView = false;
-    private Font italic;
-    
-    public ArchiveExplorer(Composite parent) {
-        super(parent, SWT.NONE);
-        
-        setLayout(new FillLayout());
-        TreeViewer viewer = new TreeViewer(this, SWT.BORDER | SWT.MULTI); 
-        tree = viewer.getTree();
-        tree.setLinesVisible(AbstractWindow.getTableLinesVisible());
-        tree.setHeaderVisible(true);
-        tree.addMouseListener(this);
-        tree.addListener(SWT.Selection, this);
-        
-        TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
-        column1.setText(RM.getLabel("mainpanel.name.label"));
-        column1.setWidth(AbstractWindow.computeWidth(400));
-        TreeColumn column2 = new TreeColumn(tree, SWT.LEFT);
-        column2.setText(RM.getLabel("mainpanel.size.label"));
-        column2.setWidth(AbstractWindow.computeWidth(120));
-        
-        viewer.addDoubleClickListener(new IDoubleClickListener() {
-            public void doubleClick(DoubleClickEvent event) {
-                TreeItem item = tree.getSelection()[0];
-                item.setExpanded(! item.getExpanded());
-            }
-        });
-    }
+public class ArchiveExplorer extends Composite implements MouseListener,
+		Listener {
+	private static int ITEM_STYLE = SWT.NONE;
+	private final ResourceManager RM = ResourceManager.instance();
 
-    public void setDisplayNonStoredItemsSize(boolean displayNonStoredItemsSize) {
-        this.displayNonStoredItemsSize = displayNonStoredItemsSize;
-    }
-    
-    public void setLogicalView(boolean logicalView) {
-        this.logicalView = logicalView;
-    }
+	private Tree tree;
+	private boolean displayNonStoredItemsSize = false;
+	private boolean logicalView = false;
+	private Font italic;
+	private ArchiveMedium medium;
+	private AggregatedViewContext context = new AggregatedViewContext();
+	private GregorianCalendar fromDate;
+	private boolean aggregated = false;
 
-    private void initContent() {
-        tree.removeAll();
-        TreeItem root = new TreeItem(tree, ITEM_STYLE);
-        root.setText("/");
-        root.setData(new NodeData("/", RecoveryEntry.STATUS_STORED, 0, null));
-        root.setImage(ArecaImages.ICO_FS_FOLDER);
+	public ArchiveExplorer(Composite parent, boolean aggregated) {
+		super(parent, SWT.NONE);
+		this.aggregated = aggregated;
+		
+		setLayout(new FillLayout());
+		TreeViewer viewer = new TreeViewer(this, SWT.BORDER | SWT.MULTI);
+		tree = viewer.getTree();
+		tree.setLinesVisible(AbstractWindow.getTableLinesVisible());
+		tree.setHeaderVisible(true);
+		tree.addMouseListener(this);
+		tree.addListener(SWT.Selection, this);
 
-        Hashtable directoryMap = new Hashtable();
-        directoryMap.put("/", root);
-        
-        for (int i=0; i<entries.length; i++) {
-            if (entries[i].getSize() == -1) {
-                addNode("/" + entries[i].getName() + "/", entries[i].getStatus(), 0, entries[i], directoryMap);                
-            } else {
-                addNode("/" + entries[i].getName(), entries[i].getStatus(), entries[i].getSize(), entries[i], directoryMap);
-            }
-        }
-        
-        Iterator iter = directoryMap.values().iterator();
-        while (iter.hasNext()) {
-            TreeItem item = (TreeItem)iter.next();
-            configure(item);
-        }
-        
-        root.setExpanded(true);
-    }
-    
-    private void configure(TreeItem item) {
-        NodeData data = (NodeData)item.getData();
-        
-        if (data.status == RecoveryEntry.STATUS_STORED) {
-            item.setForeground(Colors.C_BLACK);
-        } else {
-            item.setForeground(Colors.C_LIGHT_GRAY);
-        }
-        
-        String str = data.name;
-        
-        if (data.entry != null && data.entry.isLink()) {
-            // SymLinks
-            item.setFont(deriveItalicFont(item));
-        }
-        
-        if (data.entry == null || data.entry.isDirectory()) {
-            str = data.name.substring(0, data.name.length() - 1);
-            if (str.length() == 0) {
-                str = "/";
-            }
-            item.setImage(ArecaImages.ICO_FS_FOLDER);
-        } else {
-            item.setImage(ArecaImages.ICO_FS_FILE);           
-        }
+		TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
+		column1.setText(RM.getLabel("mainpanel.name.label"));
+		column1.setWidth(AbstractWindow.computeWidth(400));
+		TreeColumn column2 = new TreeColumn(tree, SWT.LEFT);
+		column2.setText(RM.getLabel("mainpanel.size.label"));
+		column2.setWidth(AbstractWindow.computeWidth(120));
 
-        item.setText(0, str);
-        if (
-                (
-                        data.status == RecoveryEntry.STATUS_NOT_STORED
-                        || (data.entry != null && data.entry.isLink())
-                ) && (! displayNonStoredItemsSize)
-        ) {
-            item.setText(1, " ");
-        } else {
-            item.setText(1, Utils.formatFileSize(data.size));
-        }
-    }
-    
-    private Font deriveItalicFont(TreeItem item) {
-        if (this.italic == null) {
-            FontData dt = item.getFont().getFontData()[0];
-            FontData dtItalic = new FontData(dt.getName(), dt.height, SWT.ITALIC);
-            return new Font(item.getDisplay(), new FontData[] {dtItalic});
-        } 
-        return italic;
-    }
-    
-    private TreeItem addNode(String fullPath, short status, long size, RecoveryEntry entry, Hashtable table) {        
-        int i= resolveParentIndex(fullPath);
-        String parentKey = fullPath.substring(0, i + 1);
-        String name = fullPath.substring(i + 1);
-        
-        // Parent node lookup
-        TreeItem parent = (TreeItem)table.get(parentKey);
-        if (parent == null) {
-            parent = addNode(parentKey, RecoveryEntry.STATUS_NOT_STORED, 0, null, table);
-        }
-        
-        if (status == RecoveryEntry.STATUS_STORED || displayNonStoredItemsSize){
-            // Update the node's parents' status
-            TreeItem tmpParent = parent;
-            TreeItem tmpParentBck = null;
-            while (tmpParent != null && ! tmpParent.equals(tmpParentBck)) {
-                NodeData parentData = (NodeData)tmpParent.getData();
-                parentData.status = (parentData.status == RecoveryEntry.STATUS_STORED || status == RecoveryEntry.STATUS_STORED) ? RecoveryEntry.STATUS_STORED : RecoveryEntry.STATUS_NOT_STORED;
-                parentData.size += size;
-                tmpParentBck = tmpParent;
-                tmpParent = (TreeItem)tmpParent.getParentItem();
-            }
-        }
-        
-        TreeItem child = new TreeItem(parent, ITEM_STYLE);
-        child.setData(new NodeData(name, status, size, entry));
-        
-        if (! (entry == null || entry.isDirectory())) {
-            configure(child);
-        } else {
-            // If it's a directory, add it to the map of parents
-            table.put(fullPath, child);
-        }
-        
-        return child;
-    }
-    
-    private int resolveParentIndex(String fullPath) {
-        if (FileNameUtil.endsWithSeparator(fullPath)) {
-            return fullPath.lastIndexOf("/", fullPath.length() - 2);
-        } else {
-            return fullPath.lastIndexOf("/");
-        }
-    }
+		viewer.addDoubleClickListener(new IDoubleClickListener() {
+			public void doubleClick(DoubleClickEvent event) {
+				TreeItem item = tree.getSelection()[0];
+				item.setExpanded(!item.getExpanded());
+			}
+		});
 
-    private static class RecoveryEntryComparator implements Comparator {
-        public int compare(Object arg0, Object arg1) {
-            RecoveryEntry en0 = (RecoveryEntry)arg0;
-            RecoveryEntry en1 = (RecoveryEntry)arg1;
-            
-            return en0.getName().toLowerCase().compareTo(en1.getName().toLowerCase());
-        }
-    }
-    
-    public static class NodeData {
-        public String name;
-        public short status;
-        public long size;
-        public RecoveryEntry entry;
+		TreeListener listener = new TreeListener() {
+			public void treeCollapsed(TreeEvent arg0) {
+				TreeItem item = (TreeItem) arg0.item;
+				item.removeAll();
+				new TreeItem(item, ITEM_STYLE);
+			}
 
-        public NodeData(String name, short status, long size, RecoveryEntry entry) {
-            super();
-            this.name = name;
-            this.status = status;
-            this.size = size;
-            this.entry = entry;
-        }
-    }
+			public void treeExpanded(TreeEvent event) {
+				try {
+					TreeItem item = (TreeItem) event.item;
+					refreshNode(item, (TraceEntry) item.getData(), null);
+				} catch (ApplicationException e) {
+					Logger.defaultLogger().error(e);
+				}
+			}
+		};
+		tree.addTreeListener(listener);
+	}
 
-    public void setEntries(Set files) {
-        this.entries = (RecoveryEntry[])files.toArray(new RecoveryEntry[files.size()]);
-        Arrays.sort(this.entries, new RecoveryEntryComparator());
-        initContent();
-    }
-    
-    public void reset() {
-        this.tree.removeAll();
-    }
+	public GregorianCalendar getFromDate() {
+		return fromDate;
+	}
 
-    public void widgetDefaultSelected(SelectionEvent e) {
-    }
+	public void setFromDate(GregorianCalendar fromDate) {
+		this.fromDate = fromDate;
+	}
 
-    public void setSelectedEntry(RecoveryEntry entry) {
-        if (entry != null) {
-            StringTokenizer stt = new StringTokenizer(entry.getName(), "/");
-            TreeItem parent = tree.getItem(0);
-            while (stt.hasMoreTokens()) {
-                String element = stt.nextToken();
-                if (stt.hasMoreTokens()) {
-                    element += "/";
-                }
-                parent = getElement(parent, element);
-            }
-            this.tree.setSelection(parent);
-            
-            Application.getInstance().setCurrentEntry(entry);
-            Application.getInstance().setCurrentFilter(buildFilter(entry));
-        }
-    }
-    
-    private TreeItem getElement(TreeItem parent, String name) {
-        if (parent == null) {
-            return null;
-        }
-        
-        TreeItem[] items = parent.getItems();
-        for (int i=0; i<items.length; i++) {
-            TreeItem child = items[i];
-            NodeData data = (NodeData)child.getData();
-            if (name.equals(data.name)) {
-                return child;
-            }
-        }
-        
-        return null;
-    }
+	public ArchiveMedium getMedium() {
+		return medium;
+	}
 
-    private RecoveryFilter buildFilter(TreeItem[] nodes) {
+	public void setMedium(ArchiveMedium medium) {
+		this.medium = medium;
+	}
+
+	public void setDisplayNonStoredItemsSize(boolean displayNonStoredItemsSize) {
+		this.displayNonStoredItemsSize = displayNonStoredItemsSize;
+	}
+
+	public void setLogicalView(boolean logicalView) {
+		this.logicalView = logicalView;
+	}
+
+	public void refresh(boolean aggregated) throws ApplicationException {
+		this.aggregated = aggregated;
+		reset();
+		if (medium != null) {
+			TraceEntry entry = new TraceEntry();
+			entry.setKey("");
+			entry.setType(MetadataConstants.T_DIR);
+
+			refreshNode(null, entry, tree);
+		}
+	}
+
+	private void refreshNode(TreeItem item, TraceEntry entry, Tree tree)
+			throws ApplicationException {
+		// Get data to display
+		List entries;
+		if (logicalView) {
+			entries = this.medium.getLogicalView(context, entry.getKey(), aggregated);
+		} else {
+			entries = this.medium.getEntries(context, entry.getKey(), fromDate);
+		}
+
+		// Remove existing items
+		if (item != null) {
+			item.removeAll();
+		}
+		if (tree != null) {
+			tree.removeAll();
+		}
+
+		// Add new items
+		Iterator iter = entries.iterator();
+		while (iter.hasNext()) {
+			TreeItem chld;
+			if (tree == null) {
+				chld = new TreeItem(item, ITEM_STYLE);
+			} else {
+				chld = new TreeItem(tree, ITEM_STYLE);
+			}
+			chld.setData(iter.next());
+			configure(chld);
+		}
+	}
+
+	private void configure(final TreeItem item) {
+		TraceEntry data = (TraceEntry) item.getData();
+		long length = 0;
+		boolean stored = true;
+		if (data.getType() != MetadataConstants.T_SYMLINK) {
+			length = Math.max(0, Long.parseLong(data.getData().substring(1)));
+			stored = data.getData().charAt(0) == '1';
+		}
+
+		if (stored) {
+			item.setForeground(Colors.C_BLACK);
+		} else {
+			item.setForeground(Colors.C_LIGHT_GRAY);
+		}
+
+		if (data.getType() == MetadataConstants.T_SYMLINK) {
+			// SymLinks
+			item.setFont(deriveItalicFont(item));
+		}
+
+		if (data.getType() == MetadataConstants.T_DIR
+				|| (data.getType() == MetadataConstants.T_SYMLINK && data
+						.getData().equals("0"))) {
+			item.setImage(ArecaImages.ICO_FS_FOLDER);
+		} else {
+			item.setImage(ArecaImages.ICO_FS_FILE);
+		}
+
+		int idx = data.getKey().lastIndexOf('/');
+		String label = data.getKey();
+		if (idx != -1) {
+			label = data.getKey().substring(idx + 1);
+		}
+		item.setText(0, label);
+		if (((!stored) && (!displayNonStoredItemsSize))) {
+			item.setText(1, " ");
+		} else {
+			item.setText(1, Utils.formatFileSize(length));
+		}
+
+		if (data.getType() == MetadataConstants.T_DIR) {
+			new TreeItem(item, ITEM_STYLE);
+		}
+	}
+
+	private Font deriveItalicFont(TreeItem item) {
+		if (this.italic == null) {
+			FontData dt = item.getFont().getFontData()[0];
+			FontData dtItalic = new FontData(dt.getName(), dt.height,
+					SWT.ITALIC);
+			return new Font(item.getDisplay(), new FontData[] { dtItalic });
+		}
+		return italic;
+	}
+
+	public void reset() {
+		this.tree.removeAll();
+		this.context.setData(null);
+	}
+
+	public void widgetDefaultSelected(SelectionEvent e) {
+	}
+
+	public void setSelectedEntry(TraceEntry entry) {
+		if (entry != null) {
+			StringTokenizer stt = new StringTokenizer(entry.getKey(), "/");
+			TreeItem parent = null;
+			String element = null;
+			while (stt.hasMoreTokens()) {
+				element = element == null ? stt.nextToken() : element + "/"
+						+ stt.nextToken();
+				parent = getElement(parent, element);
+				try {
+					refreshNode(parent, (TraceEntry) parent.getData(), null);
+				} catch (ApplicationException e) {
+					Logger.defaultLogger().error(e);
+				}
+			}
+			this.tree.setSelection(parent);
+
+			Application.getInstance().setCurrentEntry(entry);
+			Application.getInstance().setCurrentFilter(buildFilter(entry));
+		}
+	}
+
+	private TreeItem getElement(TreeItem parent, String name) {
+		TreeItem[] items = parent == null ? tree.getItems() : parent.getItems();
+		for (int i = 0; i < items.length; i++) {
+			TreeItem child = items[i];
+			TraceEntry data = (TraceEntry) child.getData();
+			if (name.equals(data.getKey())) {
+				return child;
+			}
+		}
+		return null;
+	}
+
+	private RecoveryFilter buildFilter(TreeItem[] nodes) {
         RecoveryFilter ret = new RecoveryFilter();
         
         String[] filter = new String[nodes.length];
         for (int i=0; i<nodes.length; i++) {
             TreeItem current = nodes[i];
-            while (current != null) {
-                NodeData data = (NodeData)current.getData();
-                filter[i] = data.name + (filter[i] == null ? "" : filter[i]); 
-                current = (TreeItem)current.getParentItem();
-                
-                if (data.status != RecoveryEntry.STATUS_STORED) {
-                    ret.setContainsDeletedDirectory(true);
-                }
+            TraceEntry data = (TraceEntry)current.getData();
+            filter[i] = data.getKey();
+            
+            if (data.getType() != MetadataConstants.T_SYMLINK && data.getData() != null && data.getData().length() > 0 && data.getData().charAt(0) == '0') {
+                ret.setContainsDeletedDirectory(true);
             }
         }
         
         ret.setFilter(filter);
         return ret;
     }
-    
-    private RecoveryFilter buildFilter(RecoveryEntry entry) {
-        RecoveryFilter filter = new RecoveryFilter();
-        filter.setContainsDeletedDirectory(false);
-        filter.setFilter(new String[] {entry.getName()});
-        return filter;
-    }
-    
-    public void mouseDoubleClick(MouseEvent e) {}
-    public void mouseUp(MouseEvent e) {}
-    
-    public void mouseDown(MouseEvent e) {
-        showMenu(e, logicalView ? Application.getInstance().getArchiveContextMenuLogical() : Application.getInstance().getArchiveContextMenu());
-    }
-    
-    private void showMenu(MouseEvent e, Menu m) {
-        if (e.button == 3) {
-            m.setVisible(true);
-        }
-    }
 
-    public void handleEvent(Event event) {
-        TreeItem[] selection = tree.getSelection();
-        
-        if (selection.length == 1) {
-            ArchiveExplorer.NodeData data = (ArchiveExplorer.NodeData)(selection[0].getData());
-            Application.getInstance().setCurrentEntry(data.entry);
-        } else {
-            Application.getInstance().setCurrentEntry(null);
-        }
-        
-        Application.getInstance().setCurrentFilter(buildFilter(selection));
-    }
+	private RecoveryFilter buildFilter(TraceEntry entry) {
+		RecoveryFilter filter = new RecoveryFilter();
+		filter.setContainsDeletedDirectory(false);
+		filter.setFilter(new String[] { entry.getKey() });
+		return filter;
+	}
 
-    public Tree getTree() {
-        return tree;
-    }
+	public void mouseDoubleClick(MouseEvent e) {
+	}
+
+	public void mouseUp(MouseEvent e) {
+	}
+
+	public void mouseDown(MouseEvent e) {
+		showMenu(e, logicalView ? Application.getInstance()
+				.getArchiveContextMenuLogical() : Application.getInstance()
+				.getArchiveContextMenu());
+	}
+
+	private void showMenu(MouseEvent e, Menu m) {
+		if (e.button == 3) {
+			m.setVisible(true);
+		}
+	}
+
+	public void handleEvent(Event event) {
+		TreeItem[] selection = tree.getSelection();
+
+		if (selection.length == 1) {
+			TraceEntry data = (TraceEntry) (selection[0].getData());
+			Application.getInstance().setCurrentEntry(data);
+		} else {
+			Application.getInstance().setCurrentEntry(null);
+		}
+
+		Application.getInstance().setCurrentFilter(buildFilter(selection));
+	}
+
+	public Tree getTree() {
+		return tree;
+	}
 }

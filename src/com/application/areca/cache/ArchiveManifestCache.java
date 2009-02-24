@@ -13,12 +13,12 @@ import com.application.areca.metadata.manifest.ManifestManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -71,7 +71,7 @@ public class ArchiveManifestCache extends AbstractArchiveDataCache {
     }
     
     /**
-     * Inits the data in cache.
+     * Init the data in cache.
      * <BR>Returns true if the cache still can grow (ie if no gc has been required after having added the data)
      */
     public synchronized boolean init(AbstractFileSystemMedium medium, File key) throws ApplicationException {

@@ -24,12 +24,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -98,7 +98,8 @@ public class OSTool {
             }
         }
         
-        TMP_DIR = System.getProperty("java.io.tmpdir");
+        String configuredTmpDir = FrameworkConfiguration.getInstance().getTemporaryDirectory();
+        TMP_DIR = configuredTmpDir == null ? System.getProperty("java.io.tmpdir") : configuredTmpDir;
         USER_HOME = System.getProperty("user.home");
         USER_NAME = System.getProperty("user.name");
         

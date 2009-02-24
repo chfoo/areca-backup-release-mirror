@@ -4,21 +4,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.FileSystemRecoveryEntry;
-import com.application.areca.metadata.content.ArchiveContent;
+import com.application.areca.impl.tools.RecoveryFilterMap;
+import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.content.ArchiveContentManager;
+import com.application.areca.metadata.content.ContentFileIterator;
+import com.myJava.file.FileFilterList;
 import com.myJava.file.FileTool;
-import com.myJava.object.PublicClonable;
+import com.myJava.object.Duplicable;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
@@ -26,12 +22,12 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -51,54 +47,99 @@ This file is part of Areca.
 public class DefaultArchiveHandler
 extends AbstractArchiveHandler {
 
-    public void store(FileSystemRecoveryEntry entry, InputStream in, OutputStream out, ProcessContext context)
-    throws ApplicationException, IOException, TaskCancelledException {    
-        FileTool.getInstance().copy(in, out, true, false, context.getTaskMonitor());
-    }
+	public void store(FileSystemRecoveryEntry entry, InputStream in, OutputStream out, ProcessContext context)
+	throws ApplicationException, IOException, TaskCancelledException {    
+		FileTool.getInstance().copy(in, out, true, false, context.getTaskMonitor());
+	}
 
-    public void recoverRawData(
-            File[] archivesToRecover, 
-            Map filtersByArchive, 
-            short mode,
-            ProcessContext context
-    ) throws IOException, ApplicationException {
-        // Simply recover the files
-        medium.ensureLocalCopy(
-        		archivesToRecover, 
-        		true, 
-        		context.getRecoveryDestination(), 
-        		filtersByArchive, 
-        		context
-        );
-    }
+	public void recoverRawData(
+			File[] archivesToRecover, 
+			RecoveryFilterMap filtersByArchive, 
+			short mode,
+			ProcessContext context
+	) throws IOException, ApplicationException, TaskCancelledException {
+		// Simply recover the files
+		medium.ensureLocalCopy(
+				archivesToRecover, 
+				true, 
+				context.getRecoveryDestination(), 
+				filtersByArchive, 
+				context
+		);
+	}
 
-    public PublicClonable duplicate() {
-        return new DefaultArchiveHandler();
-    }
+	public void archiveDeleted(File archive) 
+	throws IOException {
+	}
 
-	public Map dispatchEntries(File[] archives, Set entriesToRecover) throws ApplicationException, IOException {
-		Map entriesByArchive = new HashMap();
-		
-		// Build a list of entries to recover indexed by archive
-		for (int i=archives.length - 1; i>=0 && entriesToRecover.size() > 0; i--) {
-			ArchiveContent content = ArchiveContentManager.getContentForArchive(this.medium, archives[i]);
-			Iterator iter = entriesToRecover.iterator();
-			Set toRemove = new HashSet();
-			while (iter.hasNext()) {
-				FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)iter.next();
-				if (content.contains(entry)) {
-					List entries = (List)entriesByArchive.get(archives[i]);
-					if (entries == null) {
-						entries = new ArrayList();
-						entriesByArchive.put(archives[i], entries);
+	public void close(ProcessContext context) 
+	throws IOException {
+	}
+
+	public void init(ProcessContext context) 
+	throws IOException {
+	}
+
+	public Duplicable duplicate() {
+		return new DefaultArchiveHandler();
+	}
+
+	public RecoveryFilterMap dispatchEntries(File[] archives, String[] entriesToRecover) 
+	throws ApplicationException, IOException {
+		RecoveryFilterMap entriesByArchive = new RecoveryFilterMap(true);
+
+		// Build content iterators
+		ContentFileIterator[] iters = new ContentFileIterator[archives.length];
+
+		try {
+			for (int i=0; i<archives.length; i++) {
+				ArchiveContentAdapter adapter = new ArchiveContentAdapter(ArchiveContentManager.resolveContentFileForArchive(this.medium, archives[i]));
+				iters[i] = adapter.buildIterator();
+			}
+
+			// Build a list of entries to recover indexed by archive
+			for (int e=0; e<entriesToRecover.length; e++) {
+				int index = -1;
+				for (int i=archives.length-1; i>=0; i--) {
+					boolean found = iters[i].fetchUntil(entriesToRecover[e]);
+					if (found) {
+						index = i;
+						break;
 					}
-					entries.add(entry.getName());
-					toRemove.add(entry);
+				}
+				
+				if (index == -1) {
+					// This can happen if the user tries to recover a symbolic link
+					// throw new IllegalStateException(entriesToRecover[e] + " was not found in ANY archive.");
+				} else {
+					FileFilterList entries = (FileFilterList)entriesByArchive.get(archives[index]);
+					if (entries == null) {
+						entries = new FileFilterList();
+						entriesByArchive.put(archives[index], entries);
+					}
+					entries.add(entriesToRecover[e]);
 				}
 			}
-			entriesToRecover.removeAll(toRemove);
+		} finally {
+			for (int i=0; i<archives.length; i++) {
+				if (iters[i] != null) {
+					iters[i].close();
+				}
+			}
 		}
-		
+
 		return entriesByArchive;
+	}
+
+	public boolean supportsImageBackup() {
+		return true;
+	}
+
+	public File getContentFile(File archive) {
+		return null;
+	}
+
+	public boolean autonomousArchives() {
+		return true;
 	}
 }

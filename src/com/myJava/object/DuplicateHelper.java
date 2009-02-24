@@ -9,12 +9,12 @@ import java.util.Set;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -33,7 +33,7 @@ This file is part of Areca.
  */
 public class DuplicateHelper {
     
-    public static PublicClonable duplicate(PublicClonable o) {
+    public static Duplicable duplicate(Duplicable o) {
         if (o == null) {
             return null;
         } else {
@@ -110,8 +110,8 @@ public class DuplicateHelper {
     public static Object duplicate(Object o) {
         if (o == null) {
             return null;
-        } else if (o instanceof PublicClonable) {
-            return ((PublicClonable)o).duplicate();
+        } else if (o instanceof Duplicable) {
+            return ((Duplicable)o).duplicate();
         } else if (o instanceof List) {
             return duplicate((List)o);
         } else if (o instanceof Set) {

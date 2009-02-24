@@ -17,7 +17,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
 import com.application.areca.AbstractRecoveryTarget;
-import com.application.areca.RecoveryEntry;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
@@ -34,18 +33,19 @@ import com.application.areca.launcher.gui.composites.TreeComposite;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.application.areca.launcher.gui.menus.MenuBuilder;
 import com.application.areca.launcher.gui.menus.ToolBarBuilder;
+import com.application.areca.metadata.trace.TraceEntry;
 import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -180,7 +180,7 @@ public class MainWindow extends AbstractWindow {
         this.application.getFolderMonitor().handleSelection(this.tabs.getItem(TAB_PROGRESS));
     }
     
-    public void focusOnLogicalView(RecoveryEntry entry) {
+    public void focusOnLogicalView(TraceEntry entry) {
         this.tabs.setSelection(TAB_LOGICAL);
         this.application.getFolderMonitor().handleSelection(this.tabs.getItem(TAB_LOGICAL));
         this.logicalView.setSelectedEntry(entry);

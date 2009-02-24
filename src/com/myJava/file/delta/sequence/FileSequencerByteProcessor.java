@@ -1,27 +1,19 @@
 package com.myJava.file.delta.sequence;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.zip.GZIPOutputStream;
-
-import com.myJava.file.FileSystemManager;
-import com.myJava.file.FileTool;
 import com.myJava.file.delta.Constants;
 import com.myJava.file.delta.tools.HashTool;
 import com.myJava.file.delta.tools.LinkedList;
-import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -43,7 +35,6 @@ implements ByteProcessor, Constants {
 
     private String hashAlgorithm = HASH_ALG;
     private int blockSize;
-    private File fileToWrite; 
 
     private long totalRead = 0;
     private long position = 0;
@@ -53,10 +44,6 @@ implements ByteProcessor, Constants {
 
     public FileSequencerByteProcessor(int blockSize) {
         this.blockSize = blockSize;
-    }
-
-    public void activateSerialization(File target) {
-        fileToWrite = target;
     }
 
     public void close() throws ByteProcessorException {
@@ -74,6 +61,7 @@ implements ByteProcessor, Constants {
             }
         }
 
+        /*
         if (fileToWrite != null) {
             OutputStream bos = null;
             try {
@@ -97,6 +85,7 @@ implements ByteProcessor, Constants {
                 }
             }
         }
+        */
     }
 
     public void open() {

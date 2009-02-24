@@ -1,23 +1,23 @@
 package com.application.areca.filter;
 
-import com.application.areca.RecoveryEntry;
-import com.application.areca.impl.FileSystemRecoveryEntry;
+import java.io.File;
+
 import com.myJava.file.FileSystemManager;
+import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.object.PublicClonable;
 
 /**
  * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@ public class LockedFileFilter extends AbstractArchiveFilter {
 	public void acceptParameters(String parameters) {
     }
     
-    public boolean acceptIteration(RecoveryEntry entry) {
+    public boolean acceptIteration(File entry) {
         return true;
     }
     
@@ -47,17 +47,15 @@ public class LockedFileFilter extends AbstractArchiveFilter {
      * Cette condition ne s'applique que sur les fichiers (pour des raisons d'optimisation).
      * Les repertoires retournent systematiquement "true"
      */
-    public boolean acceptStorage(RecoveryEntry entry) {
-        FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;      
-        
-        if (fEntry == null) {
+    public boolean acceptStorage(File entry) {
+        if (entry == null) {
             return false;
-        } else if (FileSystemManager.isDirectory(fEntry.getFile())) {
+        } else if (FileSystemManager.isDirectory(entry)) {
             return true;
         } else {
             if (
-            		(! FileSystemManager.exists(fEntry.getFile())) 			// Cas specifique des liens symboliques qui ne pointent sur rien : on les accepte qd même
-            		|| (FileSystemManager.isReadable(fEntry.getFile()))
+            		(! FileSystemManager.exists(entry)) 			// Cas specifique des liens symboliques qui ne pointent sur rien : on les accepte qd même
+            		|| (FileSystemManager.isReadable(entry))
             ) {
                 return exclude;
             } else {
@@ -66,7 +64,7 @@ public class LockedFileFilter extends AbstractArchiveFilter {
         }
     }
     
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         LockedFileFilter filter = new LockedFileFilter();
         filter.exclude = this.exclude;
         return filter;

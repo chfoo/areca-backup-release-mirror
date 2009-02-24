@@ -8,19 +8,19 @@ import java.util.Map;
 import com.application.areca.impl.AbstractFileSystemMedium;
 
 /**
- * Classe abstraite impl�mentant un cache de donn�es d'archives.
- * <BR>Ces donn�es sont index�es par :
+ * Abstract cache implementation.
+ * <BR>Data are indexed by :
  * <BR>- FileSystemArchiveMedium
  * <BR>- File
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -95,8 +95,8 @@ public abstract class AbstractArchiveDataCache {
     }
     
     /**
-     * Supprime l'objet correspondant � l'archive pass�e en argument.
-     * <BR>L'objet �ventuellement supprim� est retourn� par la m�thode.
+     * Remove an entry.
+     * <BR>Return the removed entry
      */    
     public synchronized Object remove(AbstractFileSystemMedium medium, File key) {
         ArchiveDataMap map = this.findArchiveDataMap(medium);
@@ -108,14 +108,14 @@ public abstract class AbstractArchiveDataCache {
     }    
     
     /**
-     * Supprime toutes les donn�es du cache.
+     * Clear the cache
      */
     public synchronized void removeAllArchiveData() {
         this.dataByArchiveMedium.clear();
     }
     
     /**
-     * Supprime toutes les donn�es relatives au medium pass� en argument.
+     * Clear all data for the medium passed as argument
      */
     public synchronized void removeAllArchiveData(AbstractFileSystemMedium medium) {
         this.dataByArchiveMedium.remove(medium);

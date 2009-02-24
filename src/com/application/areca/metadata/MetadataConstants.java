@@ -4,12 +4,12 @@ package com.application.areca.metadata;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -37,6 +37,7 @@ public interface MetadataConstants {
     public static final char SEPARATOR_CHAR = ';';
     public static final String SC_AROBASE = "@@";
     public static final String SC_SEMICOLON = "@P";
+    public static final String SC_RESERVED = "@>";
     public static final char T_DIR = 'd';
     public static final char T_FILE = 'f';
     public static final char T_SYMLINK = 's';

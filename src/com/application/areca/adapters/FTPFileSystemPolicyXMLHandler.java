@@ -2,6 +2,7 @@ package com.application.areca.adapters;
 
 import org.w3c.dom.Node;
 
+import com.application.areca.AbstractRecoveryTarget;
 import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 
@@ -9,12 +10,12 @@ import com.application.areca.impl.policy.FileSystemPolicy;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -34,7 +35,12 @@ This file is part of Areca.
 public class FTPFileSystemPolicyXMLHandler
 extends AbstractFileSystemPolicyXMLHandler {
 	
-    public FileSystemPolicy read(Node mediumNode) throws AdapterException {
+    public FileSystemPolicy read(
+    		Node mediumNode, 
+    		AbstractRecoveryTarget target,
+    		TargetXMLReader reader
+    ) throws AdapterException {
+    	
         Node serverNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_HOST);
         Node portNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PORT);
         Node passivNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PASSIV);
@@ -61,9 +67,6 @@ extends AbstractFileSystemPolicyXMLHandler {
         if (loginNode == null) {
             throw new AdapterException("FTP login not found : your medium must have a '" + XML_MEDIUM_FTP_LOGIN + "' attribute.");
         } 
-        if (passwordNode == null) {
-            throw new AdapterException("FTP password not found : your medium must have a '" + XML_MEDIUM_FTP_PASSWORD + "' attribute.");
-        } 
         if (dirNode == null) {
             throw new AdapterException("FTP remote directory not found : your medium must have a '" + XML_MEDIUM_FTP_REMOTEDIR + "' attribute.");
         } 
@@ -72,6 +75,7 @@ extends AbstractFileSystemPolicyXMLHandler {
         policy.setRemoteServer(serverNode.getNodeValue());
         policy.setRemotePort(Integer.parseInt(portNode.getNodeValue()));
         policy.setPassivMode(passivNode != null && passivNode.getNodeValue().equalsIgnoreCase("true"));
+        
         if (protocolNode != null) {
             policy.setProtocol(protocolNode.getNodeValue());
             policy.setImplicit(implicitNode != null && implicitNode.getNodeValue().equalsIgnoreCase("true"));    
@@ -82,8 +86,24 @@ extends AbstractFileSystemPolicyXMLHandler {
                 policy.setProtection("P");
             }
         }
+
         policy.setLogin(loginNode.getNodeValue());
-        policy.setPassword(passwordNode.getNodeValue());
+        if (passwordNode != null) {
+        	// Standard case
+        	policy.setPassword(passwordNode.getNodeValue());
+        } else {
+        	// FTP Password missing
+        	if (reader.getMissingDataListener() != null) {
+        		Object[] ftpData = (Object[])reader.getMissingDataListener().missingFTPDataDetected(target);
+                if (ftpData != null) {
+                	policy.setPassword((String)ftpData[0]);
+                }
+            }
+            
+            if (policy.getPassword() == null || policy.getPassword().trim().length() == 0) { // Second check .... after missingDataListener invocation.
+                throw new AdapterException("No FTP password found : your medium must have a '" + XML_MEDIUM_FTP_PASSWORD + "' attribute.");
+            }
+        }
         policy.setRemoteDirectory(dirNode.getNodeValue());
         policy.setId(POLICY_FTP);
         
@@ -96,7 +116,12 @@ extends AbstractFileSystemPolicyXMLHandler {
         return policy;
     }
 
-    public void write(FileSystemPolicy source, StringBuffer sb) {
+    public void write(
+    		FileSystemPolicy source, 
+    		TargetXMLWriter writer, 
+    		boolean removeSensitiveData, 
+    		StringBuffer sb) {
+    	
         FTPFileSystemPolicy policy = (FTPFileSystemPolicy)source;
         
         sb.append(" ");
@@ -141,10 +166,12 @@ extends AbstractFileSystemPolicyXMLHandler {
         sb.append("=");
         sb.append(AbstractXMLWriter.encode(policy.getLogin()));
         
-        sb.append(" ");
-        sb.append(XML_MEDIUM_FTP_PASSWORD);
-        sb.append("=");
-        sb.append(AbstractXMLWriter.encode(policy.getPassword()));
+        if (! removeSensitiveData) {
+	        sb.append(" ");
+	        sb.append(XML_MEDIUM_FTP_PASSWORD);
+	        sb.append("=");
+	        sb.append(AbstractXMLWriter.encode(policy.getPassword()));
+        }
         
         sb.append(" ");
         sb.append(XML_MEDIUM_FTP_REMOTEDIR);

@@ -1,6 +1,5 @@
 package com.application.areca.metadata.manifest;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,12 +20,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -51,20 +50,10 @@ public class ManifestManager {
         try {
             File dataDir = medium.getDataDirectory(archive);
             File manifestFile = new File(dataDir, medium.getManifestName());
-            File oldManifestFile = new File(dataDir, medium.getOldManifestName());
             if (FileSystemManager.exists(manifestFile)) {
-                // Newest version
                 InputStream is = new GZIPInputStream(FileSystemManager.getFileInputStream(manifestFile));
                 String content = tool.getInputStreamContent(is, ENCODING, true);
                 return Manifest.decode(content);
-            } else if (FileSystemManager.exists(oldManifestFile)) {
-                // Older versions
-                InputStream is = FileSystemManager.getFileInputStream(oldManifestFile);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                tool.copy(is, baos, true, true);
-                byte[] content = baos.toByteArray();
-                
-                return Manifest.decode(new String(content));
             } else {
                 return null;
             }

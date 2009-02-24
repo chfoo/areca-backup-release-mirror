@@ -22,12 +22,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -92,7 +92,7 @@ public class EncryptionUtil {
     }
     
     public static Key buildKeyFromRawInput(String rawKey, String alg) {
-    	return new SecretKeySpec(Util.parseHexa(rawKey), alg);
+    	return new SecretKeySpec(Util.base16Decode(rawKey), alg);
     }
     
     public static Key buildKeyFromPassphrase(String encryptionSeed, int keySize, String alg) {

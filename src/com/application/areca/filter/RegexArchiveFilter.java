@@ -1,25 +1,24 @@
 package com.application.areca.filter;
 
+import java.io.File;
 import java.util.regex.Pattern;
 
-import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
-import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.object.PublicClonable;
 
 /**
  * Checks that the entry matches the regex passed as argument
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -55,16 +54,15 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
         setRegex(parameters);
     }
     
-    public boolean acceptIteration(RecoveryEntry entry) {
+    public boolean acceptIteration(File entry) {
         return true;
     }
     
-    public boolean acceptStorage(RecoveryEntry entry) {
-        FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;        
-        if (fEntry == null) {
+    public boolean acceptStorage(File entry) {
+        if (entry == null) {
             return false;
         } else {
-            if (pattern.matcher(fEntry.getName()).find()) {
+            if (pattern.matcher(entry.getName()).find()) {
             	return !exclude;
             } else {
             	return exclude;
@@ -72,7 +70,7 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
         }
     }
     
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         RegexArchiveFilter filter = new RegexArchiveFilter();
         filter.exclude = this.exclude;
         filter.setRegex(this.regex);

@@ -7,18 +7,19 @@ import com.application.areca.version.VersionInfos;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.system.AbstractLauncher;
 import com.myJava.system.OSTool;
+import com.myJava.util.log.ConsoleLogProcessor;
 import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -37,9 +38,23 @@ This file is part of Areca.
  */
 public abstract class AbstractArecaLauncher 
 extends AbstractLauncher {
+	public static final int ERR_JAVA_VERSION = 3;
     public static String SEPARATOR = "------------------------------------------------------------------";
     
+	private static AbstractArecaLauncher INSTANCE;
+	
+	public static AbstractArecaLauncher getInstance() {
+		return INSTANCE;
+	}
+	
+	// Not beautiful but safe enough because gui.Launcher
+	// and tui.Launcher are mutually exclusive ... to be refactored when i'll have some time
+	public static void setInstance(AbstractArecaLauncher instance) {
+		INSTANCE = instance;
+	}
+    
     protected void initialize() {
+    	((ConsoleLogProcessor)Logger.defaultLogger().find(ConsoleLogProcessor.class)).setFullLog(false);
         ArecaTechnicalConfiguration.initialize();
         Map javaargs = FrameworkConfiguration.getInstance().getJavaProperties();
         if (javaargs != null) {
@@ -52,15 +67,16 @@ extends AbstractLauncher {
             }
         }
     }
-    
-    protected void checkJavaVersion() {
+
+	protected void checkJavaVersion() {
         if (!
                 OSTool.isJavaVersionGreaterThanOrEquals(VersionInfos.REQUIRED_JAVA_VERSION)
         ) {
             System.out.println(SEPARATOR + "\n ");
             System.out.println(VersionInfos.VERSION_MSG);
             showLine();
-            System.exit(-1);
+            setErrorCode(ERR_JAVA_VERSION);
+            exit();
         }
         
         if (! VersionInfos.checkJavaVendor()) {

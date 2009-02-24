@@ -12,7 +12,7 @@ import java.util.List;
 
 import com.myJava.file.OutputStreamListener;
 import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
-import com.myJava.file.driver.FileInformations;
+import com.myJava.file.driver.FileCacheableInformations;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.driver.LinkableFileSystemDriver;
 import com.myJava.file.metadata.FileMetaData;
@@ -24,12 +24,12 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -110,11 +110,11 @@ implements LinkableFileSystemDriver {
         return new FileSystemDriverEvent(event, f, this);
     }
 
-    public void applyAttributes(FileMetaData p, File f) throws IOException {
+    public void applyMetaData(FileMetaData p, File f) throws IOException {
         FileSystemDriverEvent event = buildEvent("applyAttributes", f);
         event.setArgument(p);
         throwStartEvent(event);
-        predecessor.applyAttributes(p, f);
+        predecessor.applyMetaData(p, f);
         throwStopEvent(event);
     }
 
@@ -134,10 +134,10 @@ implements LinkableFileSystemDriver {
         return res;
     }
 
-    public FileInformations getInformations(File file) {
+    public FileCacheableInformations getInformations(File file) {
         FileSystemDriverEvent event = buildEvent("getInformations", file);
         throwStartEvent(event);
-        FileInformations res =  predecessor.getInformations(file);
+        FileCacheableInformations res =  predecessor.getInformations(file);
         throwStopEvent(event);
         return res;
     }
@@ -174,10 +174,6 @@ implements LinkableFileSystemDriver {
         throwStopEvent(event);
     }
 
-    public boolean directFileAccessSupported() {
-        return predecessor.directFileAccessSupported();
-    }
-
     public boolean exists(File file) {
         FileSystemDriverEvent event = buildEvent("exists", file);
         throwStartEvent(event);
@@ -210,10 +206,10 @@ implements LinkableFileSystemDriver {
         return predecessor.getAccessEfficiency();
     }
 
-    public FileMetaData getAttributes(File f) throws IOException {
+    public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
         FileSystemDriverEvent event = buildEvent("getAttributes", f);
         throwStartEvent(event);
-        FileMetaData res = predecessor.getAttributes(f);
+        FileMetaData res = predecessor.getMetaData(f, onlyBasicAttributes);
         throwStopEvent(event);
         return res;
     }
@@ -242,6 +238,18 @@ implements LinkableFileSystemDriver {
         FileSystemDriverEvent event = buildEvent("getCanonicalPath", file);
         throwStartEvent(event);
         String res = predecessor.getCanonicalPath(file);
+        throwStopEvent(event);
+        return res;
+    }
+    
+    public InputStream getCachedFileInputStream(File file) throws IOException {
+        FileSystemDriverEvent event = buildEvent("getCachedFileInputStream", file);
+        throwStartEvent(event);
+        InputStream res = new EventInputStream(
+                predecessor.getCachedFileInputStream(file),
+                file,
+                this
+        );
         throwStopEvent(event);
         return res;
     }

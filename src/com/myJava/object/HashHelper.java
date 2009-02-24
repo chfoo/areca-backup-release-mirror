@@ -11,12 +11,12 @@ import java.util.Set;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -54,6 +54,18 @@ public class HashHelper {
 	}
     
     public static int hash(int result, int[] argument) {
+        if (argument == null) {
+            return result;
+        } else {
+            int ret = result;
+            for (int i=0; i<argument.length; i++) {
+                ret = hash(ret, argument[i]);
+            }
+            return ret;
+        }   
+    }
+    
+    public static int hash(int result, byte[] argument) {
         if (argument == null) {
             return result;
         } else {
@@ -110,7 +122,9 @@ public class HashHelper {
         } else if (argument instanceof Object[]) {
             return hash(result, (Object[])argument);
         } else if (argument instanceof int[]) {
-            return hash(result, (int[])argument);            
+            return hash(result, (int[])argument);    
+        } else if (argument instanceof byte[]) {
+            return hash(result, (byte[])argument);              
         } else if (argument instanceof Set) {
             return hash(result, (Set)argument);
         } else if (argument instanceof List) {

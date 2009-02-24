@@ -4,16 +4,16 @@ import com.application.areca.metadata.manifest.Manifest;
 
 
 /**
- * Donnees pour une version historisee d'une RecoveryEntry
+ * Data for a stored entry
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -31,20 +31,6 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class EntryArchiveData {
-	// status par defaut
-	public static final short STATUS_UNKNOWN = -1;
-	
-	// status historiques, affichables a l'utilisateur
-	public static final short STATUS_MISSING = 0;
-	public static final short STATUS_CREATED = 1;
-	public static final short STATUS_FIRST_BACKUP = 2;
-	public static final short STATUS_MODIFIED = 3;
-	public static final short STATUS_DELETED = 4;
-
-	// status binaires : existe / n'existe pas (archives non incrementales)
-	public static final short STATUS_NOT_STORED = 6;
-	public static final short STATUS_STORED = 7;
-
 	protected short status;    
     protected Manifest manifest;
     protected String hash;
@@ -66,7 +52,7 @@ public class EntryArchiveData {
     }
 	
 	public EntryArchiveData() {
-		this.status = STATUS_UNKNOWN;
+		this.status = EntryStatus.STATUS_UNKNOWN;
 	}
 	
 	public short getStatus() {

@@ -1,33 +1,26 @@
 package com.application.areca.launcher.gui;
 
-import java.util.Iterator;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.Utils;
 import com.application.areca.context.ProcessReport;
-import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ArecaImages;
-import com.myJava.file.FileSystemManager;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -48,8 +41,6 @@ public class ReportWindow
 extends AbstractWindow {
     
     protected ProcessReport report;
-    
-    protected Tree tree;
     
     protected Label lblProcessed;
     protected Label lblFiltered;
@@ -77,14 +68,6 @@ extends AbstractWindow {
         GridLayout layout = new GridLayout(1, false);
         composite.setLayout(layout);
         
-        Label lblTop = new Label(composite, SWT.NONE);
-        lblTop.setText(RM.getLabel("report.filtered.label"));
-        
-        GridData mainData1 = new GridData(SWT.FILL, SWT.FILL, true, true);
-        mainData1.widthHint = computeWidth(700);
-        mainData1.heightHint = computeHeight(300);
-        createTopComposite(composite).setLayoutData(mainData1);
-        
         GridData mainData2 = new GridData(SWT.FILL, SWT.FILL, true, false);
         createBottomComposite(composite).setLayoutData(mainData2);
         
@@ -92,14 +75,6 @@ extends AbstractWindow {
         composite.pack();
         
         return composite;
-    }
-    
-    private Tree createTopComposite(Composite parent) {
-        tree = new Tree(parent, SWT.BORDER);   
-        tree.setLinesVisible(AbstractWindow.getTableLinesVisible());
-        tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        
-        return tree;
     }
     
     private Composite createBottomComposite(Composite parent) {
@@ -167,33 +142,7 @@ extends AbstractWindow {
         return composite;
     }
     
-    private void initContent() {        
-        Iterator iter = report.getFilteredEntriesData().getKeyIterator();
-        while (iter.hasNext()) {
-            Object key = iter.next();
-            
-            TreeItem keyNode =new TreeItem(tree, SWT.NONE); 
-            keyNode.setData(key);
-            keyNode.setText(RM.getLabel("report.filtered.label"));
-            keyNode.setImage(ArecaImages.ICO_FILTER);
-            
-            Iterator entries = report.getFilteredEntriesData().getFilteredEntries(key).iterator();
-            while (entries.hasNext()) {
-                TreeItem item = new TreeItem(keyNode, SWT.NONE);
-                
-                FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)entries.next();
-                item.setText(entry.getName());
-                if (FileSystemManager.isFile(entry.getFile())) {
-                    item.setImage(ArecaImages.ICO_FS_FILE);
-                } else {
-                    item.setImage(ArecaImages.ICO_FS_FOLDER);                        
-                }
-
-                item.setText(entry.getName());
-                item.setData(entry);
-            }
-        }
-        
+    private void initContent() {               
         this.lblUnfilteredDirs.setText("" + report.getUnfilteredDirectories());
         this.lblUnfilteredFiles.setText("" + report.getUnfilteredFiles());
         this.lblFiltered.setText("" + report.getFilteredEntries());

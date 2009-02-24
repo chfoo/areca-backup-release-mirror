@@ -1,17 +1,19 @@
 package com.myJava.file.metadata.posix;
 
+import com.myJava.object.EqualsHelper;
+import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -29,10 +31,15 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class PosixMetaDataImpl implements PosixMetaData {
-
-    private int permissions;
+	public static final int UNDEF_MODE = -1;
+	
+    private int mode = UNDEF_MODE;
     private String owner;
-    private String ownerGroup;
+    private String group;
+    private long lastmodified = UNDEF_DATE;
+    private ACL accessAcl;
+    private ACL defaultAcl;
+    private ExtendedAttributeList xattrList;
 
     public PosixMetaDataImpl() {
     }
@@ -41,35 +48,112 @@ public class PosixMetaDataImpl implements PosixMetaData {
         return owner;
     }
 
-    public int getPermissions(PermissionScope type) {
-        return (int)(permissions / Math.pow(10, type.getOrder()) % 10);
-    }
-    
-    public void setOwner(String owner) {
+	public void setOwner(String owner) {
         this.owner = owner;
     }
     
-    public String getOwnerGroup() {
-        return ownerGroup;
+    public String getGroup() {
+        return group;
+    }
+
+	public void setGroup(String group) {
+        this.group = group;
     }
     
-    public void setOwnerGroup(String ownerGroup) {
-        this.ownerGroup = ownerGroup;
+    public int getMode() {
+        return mode;
     }
     
-    public int getPermissions() {
-        return permissions;
-    }
+    public int getModeBase10() {
+		int o = mode%8;
+		int g = ((mode-o)/8)%8;
+		int u = (mode-8*g-o)/64;
+		
+		return o+10*g+100*u;
+	}
     
-    public void setPermissions(int permissions) {
-        this.permissions = permissions;
-    }
+    public void setModeBase10(int m) {
+		int o = m%10;
+		int g = ((m-o)/10)%10;
+		int u = (m-10*g-o)/100;
+		
+		mode = o+8*g+64*u;
+	}
     
-    public String toString() {
+    public void setMode(int mode) {
+        this.mode = mode;
+    }
+
+    public ACL getAccessAcl() {
+		return accessAcl;
+	}
+
+	public void setAccessAcl(ACL acl) {
+		this.accessAcl = acl;
+	}
+
+	public ACL getDefaultAcl() {
+		return defaultAcl;
+	}
+
+	public void setDefaultAcl(ACL defaultAcl) {
+		this.defaultAcl = defaultAcl;
+	}
+
+	public ExtendedAttributeList getXattrList() {
+		return xattrList;
+	}
+
+	public void setXattrList(ExtendedAttributeList xattrList) {
+		this.xattrList = xattrList;
+	}
+
+	public long getLastmodified() {
+		return lastmodified;
+	}
+
+	public void setLastmodified(long lastmodified) {
+		this.lastmodified = lastmodified;
+	}
+
+	public String toString() {
         StringBuffer sb = ToStringHelper.init(this);
-        ToStringHelper.append("permissions", this.permissions, sb);
+        ToStringHelper.append("mode", this.mode, sb);
         ToStringHelper.append("owner", this.owner, sb);       
-        ToStringHelper.append("ownerGroup", this.ownerGroup, sb);               
+        ToStringHelper.append("group", this.group, sb); 
+        ToStringHelper.append("lastmodified", this.lastmodified, sb);    
+        ToStringHelper.append("access acl", this.accessAcl, sb);
+        ToStringHelper.append("default acl", this.defaultAcl, sb);
+        ToStringHelper.append("xattr list", this.xattrList, sb);
         return ToStringHelper.close(sb);
     }
+	
+	public boolean equals(Object obj) {
+		if (! EqualsHelper.checkClasses(obj, this)) {
+			return false;
+		} else {
+			PosixMetaDataImpl other = (PosixMetaDataImpl)obj;
+			return
+				EqualsHelper.equals(other.mode, this.mode)
+				&& EqualsHelper.equals(other.owner, this.owner)
+				&& EqualsHelper.equals(other.group, this.group)
+				&& EqualsHelper.equals(other.lastmodified, this.lastmodified)				
+				&& EqualsHelper.equals(other.defaultAcl, this.defaultAcl)
+				&& EqualsHelper.equals(other.accessAcl, this.accessAcl)
+				&& EqualsHelper.equals(other.xattrList, this.xattrList)		
+			;
+		}
+	}
+
+	public int hashCode() {
+		int h = HashHelper.initHash(this);
+		h = HashHelper.hash(h, mode);
+		h = HashHelper.hash(h, owner);
+		h = HashHelper.hash(h, group);
+		h = HashHelper.hash(h, lastmodified);
+		h = HashHelper.hash(h, defaultAcl);
+		h = HashHelper.hash(h, accessAcl);
+		h = HashHelper.hash(h, xattrList);
+		return h;
+	}
 }

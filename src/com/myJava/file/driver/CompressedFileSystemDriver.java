@@ -24,12 +24,12 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -94,10 +94,10 @@ extends AbstractLinkableFileSystemDriver {
         return this.predecessor.exists(encode(file));
     }
 
-    public FileInformations getInformations(File file) {
+    public FileCacheableInformations getInformations(File file) {
         File[] f = resolveFiles(file);
         boolean bool = true;
-        FileInformations fi = null;
+        FileCacheableInformations fi = null;
         long length = -1;
         for (int i=0; i<f.length; i++) {
             fi = predecessor.getInformations(f[i]);
@@ -260,11 +260,21 @@ extends AbstractLinkableFileSystemDriver {
     }
     
     public InputStream getFileInputStream(File file) throws IOException {
+    	return getFileInputStream(file, false);
+    }
+    
+    public InputStream getCachedFileInputStream(File file) throws IOException {
+    	return getFileInputStream(file, true);
+    }
+    
+    public InputStream getFileInputStream(File file, boolean cached) throws IOException {
         ZipInputStream zin;
         if (compression.isMultiVolumes()) {
             File target = new File(encode(predecessor.getParentFile(file)), predecessor.getName(file));
-            ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, false, compression.getNbDigits());
+            ZipVolumeStrategy strategy = new ZipVolumeStrategy(target, predecessor, cached, compression.getNbDigits());
             zin = new ZipInputStream(new VolumeInputStream(strategy));
+        } else if (cached){
+            zin = new ZipInputStream(predecessor.getCachedFileInputStream(encode(file)));
         } else {
             zin = new ZipInputStream(predecessor.getFileInputStream(encode(file)));
         }
@@ -336,14 +346,14 @@ extends AbstractLinkableFileSystemDriver {
         }
     }
     
-    public FileMetaData getAttributes(File file) throws IOException {
-        return this.predecessor.getAttributes(encode(file));
+    public FileMetaData getMetaData(File file, boolean onlyBasicAttributes) throws IOException {
+        return this.predecessor.getMetaData(encode(file), onlyBasicAttributes);
     }
 
-    public void applyAttributes(FileMetaData p, File file) throws IOException {
+    public void applyMetaData(FileMetaData p, File file) throws IOException {
         File[] f = resolveFiles(file);
         for (int i=0; i<f.length; i++) {
-            predecessor.applyAttributes(p, f[i]);
+            predecessor.applyMetaData(p, f[i]);
         }
     }
     

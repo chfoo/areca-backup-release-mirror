@@ -4,16 +4,17 @@ import java.util.Locale;
 
 import com.application.areca.Utils;
 import com.application.areca.context.ReportingConfiguration;
+import com.myJava.configuration.FrameworkConfiguration;
 
 /**
  * @author Stephane Brunel
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -45,10 +46,14 @@ public final class ArecaPreferences {
     private static final String DATE_FORMAT = "date.format";
     private static final String DISPLAY_JAVA_VENDOR_MESSAGE = "display.java.vendor.message";
 	private static final String CHECK_NEW_VERSIONS = "check.new.versions";
+	private static final String GUI_LOG_LEVEL = "gui.log.level";
     
 	public static final int UNDEFINED = -1;
 	public static final int LAST_WORKSPACE_MODE = 0;
 	public static final int DEFAULT_WORKSPACE_MODE = 1;
+	
+    private static final String STARTUP_MODE_LAST = "last";
+    private static final String STARTUP_MODE_DEFAULT = "default";
 	
 	static {
 	    synchronizeClientConfigurations();
@@ -86,6 +91,11 @@ public final class ArecaPreferences {
 	    LocalPreferences.instance().set(LAST_WORKSPACE_COPY_LOCATION, dir);
 	    synchronizeClientConfigurations();
 	}
+	
+    public static void setLogLevel(int level) {
+        LocalPreferences.instance().set(GUI_LOG_LEVEL, level);
+        synchronizeClientConfigurations();
+    }
     
     public static void setEditionCommand(String command) {
         LocalPreferences.instance().set(TEXT_EDITOR, command);
@@ -117,6 +127,10 @@ public final class ArecaPreferences {
 	public static boolean getLastWorkspaceCopyMask() {
 	    return LocalPreferences.instance().getBoolean(LAST_WORKSPACE_COPY_MASK);
 	}
+	
+	public static int getLogLevel() {
+	    return LocalPreferences.instance().getInt(GUI_LOG_LEVEL, FrameworkConfiguration.getInstance().getLogLevel());
+	}
     
     public static boolean isInformationSynthetic() {
         return LocalPreferences.instance().getBoolean(INFO_SYNTHETIC, false);
@@ -137,7 +151,7 @@ public final class ArecaPreferences {
 	
 	public static int getStartupMode() {
 	    String mode = LocalPreferences.instance().get(STARTUP_MODE);
-	    if ("last".equals(mode)) {
+	    if (STARTUP_MODE_LAST.equals(mode)) {
 	        return LAST_WORKSPACE_MODE;
 	    } else if ("default".equals(mode)) {
 	        return DEFAULT_WORKSPACE_MODE;
@@ -146,7 +160,7 @@ public final class ArecaPreferences {
 	}
 	
 	public static void setStartupMode(int mode) {
-	    LocalPreferences.instance().set(STARTUP_MODE, mode == LAST_WORKSPACE_MODE ? "last" : "default");
+	    LocalPreferences.instance().set(STARTUP_MODE, mode == LAST_WORKSPACE_MODE ? STARTUP_MODE_LAST : STARTUP_MODE_DEFAULT);
 	    synchronizeClientConfigurations();
 	}
 	

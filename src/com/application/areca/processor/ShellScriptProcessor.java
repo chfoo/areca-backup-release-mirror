@@ -10,9 +10,9 @@ import java.util.StringTokenizer;
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.tools.TagHelper;
+import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.object.PublicClonable;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 
@@ -21,12 +21,12 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -153,7 +153,7 @@ public class ShellScriptProcessor extends AbstractProcessor {
         return s;
     }
     
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         ShellScriptProcessor pro = new ShellScriptProcessor();
         pro.command = this.command;
         return pro;

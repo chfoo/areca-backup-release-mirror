@@ -7,12 +7,12 @@ import java.util.Date;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -34,7 +34,13 @@ public class LogHelper {
     public static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yy-MM-dd HH:mm");
     public static String SEPARATOR = " - ";
     
-    public static String format(int level, String message, String source) {
+    public static String format(int level, String message, String source, boolean verbose) {   	
+    	return verbose ?
+    			formatVerbose(level, message, source)
+    			: formatNonVerbose(level, message, source);
+    }
+    
+    private static String formatVerbose(int level, String message, String source) {
         // Date de la log
         String logDate = "" + DATE_FORMAT.format(new Date());
         
@@ -55,6 +61,26 @@ public class LogHelper {
         
         // Log complete :
         return logDate + logLev + logSource + logMess;
+    }
+    
+    private static String formatNonVerbose(int level, String message, String source) {
+        // Level de la log
+        String logLev = (level <= 4 ? resolveLevel(level) + SEPARATOR : "");
+        
+        // Source de la log
+        String logSource = "";
+        if (source != null && !source.equals("")) {
+            logSource = source + SEPARATOR;
+        }
+        
+        // Message de la log
+        String logMess = "";
+        if (message!= null && !message.equals("")) {
+            logMess = message;
+        }
+        
+        // Log complete :
+        return logLev + logSource + logMess;
     }
     
     private static String resolveLevel(int l) {

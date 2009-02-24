@@ -1,17 +1,17 @@
 package com.myJava.util;
 
 /**
- * Classe abstraite charg�e d'impl�menter les r�gles standard :
- * V�rification de non nullit�, de format num�rique, email, password, etc.
+ * Utility class used to check common rules : non-nullity, numeric format, emails, 
+ * password strength, ...
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -31,16 +31,10 @@ This file is part of Areca.
 
 public abstract class CommonRules {
 
-    /**
-     * V�rification de nullit�
-     */
     public static boolean checkEmptyString(Object value) {
         return (value == null || value.toString().trim().equals(""));
     }
 
-    /**
-     * V�rification de valeur d�cimale
-     */
     public static boolean checkDouble(String value, boolean checkPositiveValue) {
         try {
             double d = Double.parseDouble(value);
@@ -50,9 +44,6 @@ public abstract class CommonRules {
         }
     }
 
-    /**
-     * V�rification de valeur d�cimale
-     */
     public static boolean checkDouble(String value, double minValue, double maxValue) {
         try {
             double d = Double.parseDouble(value);
@@ -62,9 +53,6 @@ public abstract class CommonRules {
         }
     }
 
-    /**
-     * V�rification de valeur d�cimale
-     */
     public static boolean checkDouble(String value, double maxValue) {
         try {
             double d = Double.parseDouble(value);
@@ -74,16 +62,10 @@ public abstract class CommonRules {
         }
     }
 
-    /**
-     * V�rification de valeur d�cimale
-     */
     public static boolean checkDouble(String value) {
         return CommonRules.checkDouble(value, false);
     }
 
-    /**
-     * V�rification de valeur enti�re
-     */
     public static boolean checkInteger(String value, boolean checkPositiveValue) {
         try {
             int i = Integer.parseInt(value);
@@ -93,9 +75,6 @@ public abstract class CommonRules {
         }
     }
 
-    /**
-     * V�rification de valeur enti�re
-     */
     public static boolean checkInteger(String value, int minValue, int maxValue) {
         try {
             int i = Integer.parseInt(value);
@@ -105,9 +84,6 @@ public abstract class CommonRules {
         }
     }
 
-    /**
-     * V�rification de valeur enti�re
-     */
     public static boolean checkInteger(String value, int maxValue) {
         try {
             int i = Integer.parseInt(value);
@@ -117,25 +93,18 @@ public abstract class CommonRules {
         }
     }
 
-    /**
-     * V�rification de valeur enti�re
-     */
     public static boolean checkInteger(String value) {
         return CommonRules.checkInteger(value, false);
     }
 
-    /**
-     * V�rification de longueur maximale
-     */
     public static boolean checkMaxLength(Object value, int maxLength) {
         return (value == null || value.toString().length() <= maxLength);
     }
 
     /**
-     * V�rification format d'email
-     * - non nul
-     * - contient un "@"
-     * - se termine par "." qq chose
+     * - not null
+     * <BR>- contains a "@"
+     * <BR>- ends with ".something"
      */
     public static boolean checkEmail(String value) {
         if (value == null) {
@@ -148,15 +117,6 @@ public abstract class CommonRules {
         }
     }
 
-    /**
-     * V�rifie la "force" d'un mot de passe :
-     * - minimumNonAlpha d�signe le nombre minimum de caract�re non alpha (a-z, A-Z) que doit
-     *   comporter le password
-     * - minimumNonAlphaNumeric d�signe le nombre minimum de caract�re non alphanum�riques (a-z, A-Z, 0-9) que doit
-     *   comporter le password
-     * - �tre diff�rent de la valeur "oldValue"
-     * - Avoir une taille sup�rieure � minLength
-     */
     public static boolean checkPasswordStrength(
                                                     String value,
                                                     String oldValue,
@@ -186,14 +146,6 @@ public abstract class CommonRules {
         }
     }
 
-    /**
-     * V�rifie la "force" d'un mot de passe :
-     * - minimumNonAlpha d�signe le nombre minimum de caract�re non alpha (a-z, A-Z) que doit
-     *   comporter le password
-     * - minimumNonAlphaNumeric d�signe le nombre minimum de caract�re non alphanum�riques (a-z, A-Z, 0-9) que doit
-     *   comporter le password
-     * - Avoir une taille sup�rieure � minLength
-     */
     public static boolean checkPasswordStrength(
                                                     String value,
                                                     int minimumNonAlpha,

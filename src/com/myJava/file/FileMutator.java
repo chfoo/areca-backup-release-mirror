@@ -7,18 +7,19 @@ import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.util.Util;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -65,7 +66,7 @@ public class FileMutator {
 			log("Destination : " + FileSystemManager.getAbsolutePath(dest));
 			log("Output file : " + FileSystemManager.getAbsolutePath(out));
 			
-			FileSystemIterator iter = new FileSystemIterator(source, false);
+			FileSystemIterator iter = new FileSystemIterator(source, false, true,true, true);
 			while (iter.hasNext()) {
 				File f1 = (File)iter.next();
 				if (FileSystemManager.isFile(f1)) {

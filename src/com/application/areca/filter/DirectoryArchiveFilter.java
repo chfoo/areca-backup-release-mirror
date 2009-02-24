@@ -2,27 +2,23 @@ package com.application.areca.filter;
 
 import java.io.File;
 
-import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
-import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.myJava.file.FileSystemManager;
+import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.object.PublicClonable;
 import com.myJava.util.log.Logger;
 
 /**
- * V�rifie si l'entr�e est bien contenue (directement ou indirectement) dans le r�pertoire
- * sp�cifi�.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -53,22 +49,21 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
         }
     }
     
-    public boolean acceptIteration(RecoveryEntry entry) {
+    public boolean acceptIteration(File entry) {
         return acceptStorage(entry);
     }
     
     /**
      */
-    public boolean acceptStorage(RecoveryEntry entry) {
-        FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;        
-        if (fEntry == null) {
+    public boolean acceptStorage(File entry) {  
+        if (entry == null) {
             return false;
-        } else if (FileSystemManager.isFile(fEntry.getFile())) {
-            return contains(directory, fEntry.getFile()) ? ! exclude : exclude;
+        } else if (FileSystemManager.isFile(entry)) {
+            return contains(directory, entry) ? ! exclude : exclude;
         } else {
-            if (contains(directory, fEntry.getFile())) {
+            if (contains(directory, entry)) {
                 return ! exclude;
-            } else if (contains(fEntry.getFile(), directory)) {
+            } else if (contains(entry, directory)) {
                 return true; // Always accept parent directories (exclusion or not)
             } else {
                 return exclude;
@@ -76,7 +71,7 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
         }
     }
     
-    public PublicClonable duplicate() {
+    public Duplicable duplicate() {
         DirectoryArchiveFilter filter = new DirectoryArchiveFilter();
         filter.exclude = this.exclude;
         filter.directory = this.directory;

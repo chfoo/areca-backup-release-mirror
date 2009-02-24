@@ -8,12 +8,12 @@ import java.util.Set;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -87,6 +87,19 @@ public class EqualsHelper {
 	        return true;
 	    }
 	}
+	
+    public static boolean equals(byte[] o1, byte[] o2) {
+        if (o1.length != o2.length) {
+            return false;
+        } else {
+            for (int i=0; i<o1.length; i++) {
+                if (o1[i] != o2[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
     
     public static boolean equals(int[] o1, int[] o2) {
         if (o1.length != o2.length) {

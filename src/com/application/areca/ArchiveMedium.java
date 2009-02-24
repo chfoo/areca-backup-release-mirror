@@ -2,29 +2,29 @@ package com.application.areca;
 
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Set;
 
 import com.application.areca.context.ProcessContext;
+import com.application.areca.impl.AggregatedViewContext;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
-import com.myJava.object.PublicClonable;
+import com.myJava.object.Duplicable;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.History;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
- * <BR>Interface d�finissant un support de stockage et pouvant h�berger des archives.
+ * <BR>Interface that defines an abstract storage medium.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -41,153 +41,191 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public interface ArchiveMedium extends PublicClonable {
+public interface ArchiveMedium extends Duplicable {
 
-    /**
-     * V�rifie l'�tat du syst�me avant l'action sp�cifi�e (archivage, backup, fusion) 
-     */
+	/**
+	 * Check the medium's state
+	 */
     public ActionReport checkMediumState(int action);
     
     /**
-     * Stocke une entree sur le support
+     * Stores the entry passed as argument
      */
-    public void store(RecoveryEntry entry, ProcessContext context) throws StoreException, ApplicationException, TaskCancelledException;
+    public void store(RecoveryEntry entry, ProcessContext context) 
+    throws StoreException, ApplicationException, TaskCancelledException;
     
     /**
-     * Fusionne les archives jusqu'a la date donnee.
-     * <BR>Le comportement de cette methode varie avec l'implementation.
-     * <BR>Cette methode sert a eliminer des informations redondantes eventuellement stockees au
-     * fil des archivages. 
+     * Merge the archives that have been created between fromDate and toDate.
      */
     public void merge(
             GregorianCalendar fromDate, 
             GregorianCalendar toDate, 
-            boolean keepDeletedEntries,
             Manifest manifest,
+            boolean keepDeletedEntries,
             ProcessContext context
-    ) throws ApplicationException;
+    ) throws ApplicationException, TaskCancelledException;
 
     /**
-     * Supprime les archives comprises entre "fromDate" et la date courante
+     * Delete the archives that have been created between fromDate and toDate
      */
     public void deleteArchives(
             GregorianCalendar fromDate,
             ProcessContext context            
-    ) throws ApplicationException;
+    ) throws ApplicationException, TaskCancelledException;
     
     /**
-     * Restaure l'archive correspondant � la date. Les informations sont restaur�es � l'emplacement
-     * d�sign� par "destination". 
+     * Recovers all entries matching the filter passed as argument, as of the date passed
+     * as argument.
      */
     public void recover(
             Object destination, 
             String[] filter,
             GregorianCalendar date,
-            boolean recoverDeletedEntries,
+            boolean keepDeletedEntries,
+            boolean checkRecoveredFiles,
             ProcessContext context            
-    ) throws ApplicationException;
+    ) throws ApplicationException, TaskCancelledException;
+    
+	/**
+	 * Check the archive denoted by the date passed as argument.
+	 * <BR>Files are recovered at the location passed as argument and verified against their hash code.
+	 * <BR>The result is stored in the context (see {@link ProcessContext#getUncheckedRecoveredFiles()} and
+	 * {@link ProcessContext#getInvalidRecoveredFiles()}).
+	 * <BR>
+	 * <BR>The destination can be null. In this case, archives are temporarily recovered in a subdirectory of
+	 * their storage location.
+	 */
+	public void checkArchives(
+			Object destination, 
+			boolean checkOnlyArchiveContent, 
+			GregorianCalendar date, 
+			ProcessContext context) 
+	throws ApplicationException, TaskCancelledException;
     
     /**
-     * D�truit toutes les archives et donn�es les concernant.
+     * Destroy all archives.
+     * <BR>Useful when the target is deleted.
      */
-    public void destroyRepository() throws ApplicationException;
+    public void destroyRepository() 
+    throws ApplicationException, TaskCancelledException;
     
     /**
-     * Ouvre le support avec le manifest sp�cifi�.
-     * Ceci signifie que les entr�es ajout�es le seront avec ce manifest.
-     * Selon le mode de traitement du support, ce manifest peut �craser un manifest �ventuellement
-     * existant, ou au contraire le compl�ter.
+     * Open the medium. This method is called before the backup is performed.
      */
-    public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException;
+    public void open(Manifest manifest, ProcessContext context, String backupScheme) 
+    throws ApplicationException;
     
     /**
-     * Valide le backup
+     * Validate the backup
      */
-    public void commitBackup(ProcessContext context) throws ApplicationException;
+    public void commitBackup(ProcessContext context) 
+    throws ApplicationException;
     
     /**
-     * Annule le backup
+     * Cancel the backup
      */
-    public void rollbackBackup(ProcessContext context) throws ApplicationException;
+    public void rollbackBackup(ProcessContext context) 
+    throws ApplicationException;
     
     /**
-     * Valide le merge
+     * Validate the "merge"
      */
-    public void commitMerge(ProcessContext context) throws ApplicationException;
+    public void commitMerge(ProcessContext context) 
+    throws ApplicationException;
     
     /**
-     * Annule le merge
+     * Cancel the "merge"
      */
-    public void rollbackMerge(ProcessContext context) throws ApplicationException;
+    public void rollbackMerge(ProcessContext context) 
+    throws ApplicationException;
     
     /**
-     * Retourne la cible � laquelle est affect� le support 
+     * Return the target to which the medium is bound
      */
     public AbstractRecoveryTarget getTarget();
     
     /**
-     * Retourne une description du support de stockage 
+     * Return a description of the storage medium 
      */
     public String getDescription();
     
     /**
-     * Retourne l'historique des op�rations effectu�es sur le support 
+     * Return the history of all operations performed on the medium (merges, backups, ...)
      */
     public History getHistory();
     
     /**
-     * Retourne les entr�es contenues dans l'archive pour la date donn�e. (sous forme de RecoveryEntries)
+     * Return the content of the archive matching the date passed as argument
      */
-    public Set getEntries(GregorianCalendar date) throws ApplicationException;
-    
-    public Set getLogicalView() throws ApplicationException;
+    public List getEntries(AggregatedViewContext context, String root, GregorianCalendar date) 
+    throws ApplicationException;
     
     /**
-     * Retourne l'historique d'une entr�e donn�e
+     * Return a "logical view" of the target's content
      */
-    public EntryArchiveData[] getHistory(RecoveryEntry entry) throws ApplicationException;
+    public List getLogicalView(AggregatedViewContext context, String root, boolean aggregatedView) 
+    throws ApplicationException;
     
     /**
-     * Appel�e avant la suppression de la target � laquelle appartient le medium
+     * Return the entry's history
+     */
+    public EntryArchiveData[] getHistory(String entry) 
+    throws ApplicationException;
+    
+    /**
+     * Callback which is invoked before deletion
      */
     public void doBeforeDelete();
     
     /**
-     * Appel�e apr�s la suppression de la target � laquelle appartient le medium
+     * Callback which is invoked after deletion
      */
     public void doAfterDelete();
     
     /**
-     * Simule le traitement d'une RecoveryEntry durant un backup en mettant � jour son status.
-     * Permet � la target de simuler un backup.
+     * Simulates the processing of the entry passed as argument.
+     * <BR>Used during backup simulation.
      */
-    public void simulateEntryProcessing(RecoveryEntry entry, ProcessContext context) throws ApplicationException;
+    public void simulateEntryProcessing(RecoveryEntry entry, boolean haltOnFirstDifference, ProcessContext context) 
+    throws ApplicationException;
     
     /**
      * Closes the simulation and returns all unprocessed entries (ie entries which have been deleted). 
      */
-    public List closeSimulation(ProcessContext context) throws ApplicationException;
+    public void closeSimulation(ProcessContext context) 
+    throws ApplicationException;
 
     /**
-     * Indique s'il est utile de faire une pr�v�rification avant de d�clencher le backup.
-     * <BR>Cette m�thode sera par exemple utile pour les supports de stockage incr�mentaux : ceci
-     * leur permet de v�rifier qu'au moins un fichier a �t� modifi� avant de lancer le backup.
+     * Tells whether it is useful to perform a pre-check before backup.
+     * <BR>It can be used, for instance, to check whether at least one file has been modified.
      */
     public boolean isPreBackupCheckUseful();
     
     /**
      * Computes indicators on the archives stored by the medium.
      */
-    public IndicatorMap computeIndicators() throws ApplicationException;
+    public IndicatorMap computeIndicators() 
+    throws ApplicationException, TaskCancelledException;
     
     /**
      * Searches entries within the archives 
      */
-    public TargetSearchResult search(SearchCriteria criteria) throws ApplicationException;
+    public TargetSearchResult search(SearchCriteria criteria) 
+    throws ApplicationException;
     
-    public void install() throws ApplicationException;
+    /**
+     * Set up all necessary objects for the medium (for instance file system drivers)
+     */
+    public void install() 
+    throws ApplicationException;
     
+    /**
+     * Set the medium's target
+     */
     public void setTarget(AbstractRecoveryTarget target, boolean revalidate);
     
+    /**
+     * Tells whether the backup scheme passed as argument is supported by the medium or not
+     */
     public boolean supportsBackupScheme(String backupScheme);
 }

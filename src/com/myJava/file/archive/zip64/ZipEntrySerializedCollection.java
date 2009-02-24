@@ -14,12 +14,12 @@ import com.myJava.util.collections.SerializedCollection;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -41,7 +41,7 @@ public class ZipEntrySerializedCollection extends SerializedCollection {
     /**
      * @param bufferFile
      */
-    public ZipEntrySerializedCollection() {
+    public ZipEntrySerializedCollection() throws IOException {
         super();
         
         // Override the buffer file

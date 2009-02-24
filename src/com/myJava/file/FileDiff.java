@@ -7,16 +7,18 @@ import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+import com.myJava.file.iterator.FileSystemIterator;
+
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -62,7 +64,7 @@ public class FileDiff {
 			log("Sources : " + FileSystemManager.getAbsolutePath(source1) + ", " + FileSystemManager.getAbsolutePath(source2));
 			log("Output file : " + FileSystemManager.getAbsolutePath(out));
 			
-			FileSystemIterator iter = new FileSystemIterator(source1, false);
+			FileSystemIterator iter = new FileSystemIterator(source1, false, true, true, true);
 			boolean ok = true;
 			while (iter.hasNext()) {
 				File f1 = (File)iter.next();

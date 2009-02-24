@@ -3,7 +3,7 @@ package com.application.areca.search;
 import java.util.GregorianCalendar;
 
 import com.application.areca.AbstractRecoveryTarget;
-import com.application.areca.RecoveryEntry;
+import com.application.areca.metadata.trace.TraceEntry;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 
@@ -11,12 +11,12 @@ import com.myJava.object.HashHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -36,7 +36,7 @@ This file is part of Areca.
 public class SearchResultItem {
 
     private AbstractRecoveryTarget target;
-    private RecoveryEntry entry;
+    private TraceEntry entry;
     private GregorianCalendar calendar;
     
     public SearchResultItem() {
@@ -50,11 +50,11 @@ public class SearchResultItem {
         this.calendar = calendar;
     }
     
-    public RecoveryEntry getEntry() {
+    public TraceEntry getEntry() {
         return entry;
     }
     
-    public void setEntry(RecoveryEntry entry) {
+    public void setEntry(TraceEntry entry) {
         this.entry = entry;
     }
     

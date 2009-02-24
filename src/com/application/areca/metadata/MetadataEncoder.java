@@ -6,12 +6,12 @@ import com.myJava.util.Util;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8785459451506899793
+ * <BR>Areca Build ID : 8156499128785761244
  */
- 
+
  /*
- Copyright 2005-2007, Olivier PETRUCCI.
- 
+ Copyright 2005-2009, Olivier PETRUCCI.
+
 This file is part of Areca.
 
     Areca is free software; you can redistribute it and/or modify
@@ -32,39 +32,16 @@ public class MetadataEncoder implements MetadataConstants {
     
     public static String encode(String in) {
     	String out = in;
-    	out = Util.replace(out, "@", SC_AROBASE);
-    	out = Util.replace(out, ";", SC_SEMICOLON);
+    	out = Util.replace(out, SPEC_CHAR, SC_AROBASE);
+    	out = Util.replace(out, SEPARATOR, SC_SEMICOLON);
     	return out;
     }
     
     public static String decode(String in) {
     	String out = in;
-    	out = Util.replace(out, SC_AROBASE, "@>");
-    	out = Util.replace(out, SC_SEMICOLON, ";");
-    	out = Util.replace(out, "@>", "@");
+    	out = Util.replace(out, SC_AROBASE, SC_RESERVED);
+    	out = Util.replace(out, SC_SEMICOLON, SEPARATOR);
+    	out = Util.replace(out, SC_RESERVED, SPEC_CHAR);
     	return out;
-    }
-    
-    public static void main(String[] a) {
-    	String[] in = new String[] {
-    			"test",
-    			"test@cjc",
-    			"test;gh",
-    			"test@@vcdsvc",
-    			"ghj;;cdc",
-    			"gcjhsd@;cdsc",
-    			"gcjhsd@;cdsc@Pxsq",
-    			"@cdsc;@@;cds;cds@d@s;@@sqs;;"
-    	};
-    	
-    	for (int i=0; i<in.length; i++) {
-    		String encoded = encode(in[i]);
-    		String decoded = decode(encoded);
-    		if (! decoded.equals(in[i])) {
-    			System.out.println("ERROR !");
-    		}
-    		
-    		System.out.println("Orig=" + in[i] + ", Encoded=" + encoded + ", Decoded=" + decoded);
-    	}
     }
 }
