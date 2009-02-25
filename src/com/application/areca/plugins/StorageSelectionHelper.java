@@ -7,7 +7,7 @@ import com.application.areca.launcher.gui.TargetEditionWindow;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8156499128785761244
+ * <BR>Areca Build ID : 4370643633314966344
  */
 
  /*

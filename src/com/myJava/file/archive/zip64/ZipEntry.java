@@ -25,7 +25,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 8156499128785761244
+ * <BR>Areca Build ID : 4370643633314966344
  */
 public
 class ZipEntry implements ZipConstants, Cloneable, Serializable {

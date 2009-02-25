@@ -25,7 +25,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8156499128785761244
+ * <BR>Areca Build ID : 4370643633314966344
  */
 
  /*
@@ -141,7 +141,7 @@ public class Workspace {
                 if (ArecaTechnicalConfiguration.get().getLogLocationOverride() == null) {
                 	proc = new FileLogProcessor(new File(FileSystemManager.getAbsolutePath(f) + "/log/", VersionInfos.APP_SHORT_NAME.toLowerCase()));
                 } else {
-                	proc = new FileLogProcessor(new File(ArecaTechnicalConfiguration.get().getLogLocationOverride(), VersionInfos.APP_NAME.toLowerCase()));
+                	proc = new FileLogProcessor(new File(ArecaTechnicalConfiguration.get().getLogLocationOverride(), VersionInfos.APP_SHORT_NAME.toLowerCase()));
                 }
                 Logger.defaultLogger().addProcessor(proc);
 

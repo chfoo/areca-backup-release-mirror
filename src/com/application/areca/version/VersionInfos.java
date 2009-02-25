@@ -15,7 +15,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 8156499128785761244
+ * <BR>Areca Build ID : 4370643633314966344
  */
 
  /*
@@ -57,7 +57,7 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 8156499128785761244L;
+		BUILD_ID = 4370643633314966344L;
 
 		// INIT VERSION DATA
 		VERSIONS.add(new VersionData("7.0", new GregorianCalendar(2009, 1, 15), "ACL and extended attributes support for Linux; New 'archive check' feature; Heavy memory management refactoring. CAUTION : this version is NOT backward compatible with previous versions of Areca."));

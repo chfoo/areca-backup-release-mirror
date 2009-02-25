@@ -43,7 +43,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * 
  * @author Olivier PETRUCCI <BR>
- * <BR>Areca Build ID : 8156499128785761244
+ * <BR>Areca Build ID : 4370643633314966344
  */
 
  /*
@@ -296,7 +296,7 @@ public class ArchiveExplorer extends Composite implements MouseListener,
         for (int i=0; i<nodes.length; i++) {
             TreeItem current = nodes[i];
             TraceEntry data = (TraceEntry)current.getData();
-            filter[i] = data.getKey();
+            filter[i] = data.getKey() + (data.getType() == MetadataConstants.T_DIR ? "/" : "");
             
             if (data.getType() != MetadataConstants.T_SYMLINK && data.getData() != null && data.getData().length() > 0 && data.getData().charAt(0) == '0') {
                 ret.setContainsDeletedDirectory(true);
