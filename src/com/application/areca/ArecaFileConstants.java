@@ -1,6 +1,7 @@
-package com.myJava.file.driver.cache;
+package com.application.areca;
 
 /**
+ * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -26,10 +27,13 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class MaxDepthReachedException 
-extends Exception {
-    private static final long serialVersionUID = 15678010234L;
-    public MaxDepthReachedException() {
-        super();
-    }
+public interface ArecaFileConstants {
+	public static final String USER_ROOT_DIRECTORY = ".areca";
+	public static final String USER_PREFERENCES_PATH = USER_ROOT_DIRECTORY + "/preferences.properties";
+	public static final String USER_PREFERENCES_PATH_DEPRECATED = ".areca";
+	public static final String USER_DEFAULT_WORKSPACE = USER_ROOT_DIRECTORY + "/workspace";
+	public static final String LOG_SUBDIRECTORY_NAME = "log";
+	public static final String DEFAULT_PLUGIN_SUBDIRECTORY_NAME = "plugins";
+	public static final String DEFAULT_BIN_SUBDIRECTORY_NAME = "bin";
+	public static final String DEFAULT_TRANSLATION_SUBDIRECTORY_NAME = "translations";
 }

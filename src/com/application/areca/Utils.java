@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4370643633314966344
+ * <BR>Areca Build ID : 5570316944386086207
  */
 
  /*
@@ -41,11 +41,13 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class Utils {
+public class Utils implements ArecaFileConstants {
     private static final ResourceManager RM = ResourceManager.instance();
     private static DateFormat DF;
     public static final String FILE_DATE_SEPARATOR = ".";
     private static final NumberFormat NF = new DecimalFormat();
+    private static final String LN_DIRECTORY = ArecaTechnicalConfiguration.get().getLanguageLocationOverride();
+    private static final String EXEC_DIRECTORY = ArecaTechnicalConfiguration.get().getBinLocationOverride();
 
     static {
         NF.setGroupingUsed(true);
@@ -72,8 +74,8 @@ public class Utils {
         } else {
             Logger.defaultLogger().warn("Unable to load the 'user.dir' java property. Using classpath to detect application root.");
             URL url = ClassLoader.getSystemClassLoader().getResource(ResourceManager.RESOURCE_NAME + "_en.properties");
-            File licenseFile = new File(URLDecoder.decode(url.getFile()));
-            return FileSystemManager.getParentFile(FileSystemManager.getParentFile(licenseFile));
+            File file = new File(URLDecoder.decode(url.getFile()));
+            return FileSystemManager.getParentFile(FileSystemManager.getParentFile(file));
         }
     }
 
@@ -82,7 +84,13 @@ public class Utils {
         final String prefix = ResourceManager.RESOURCE_NAME + "_";
         final String suffix = ".properties";
 
-        File translationsRoot = new File(getApplicationRoot(), "translations");
+    	File translationsRoot;
+    	if (LN_DIRECTORY == null) {
+    		translationsRoot = new File(getApplicationRoot(), DEFAULT_TRANSLATION_SUBDIRECTORY_NAME);
+    	} else {
+    		translationsRoot = new File(LN_DIRECTORY);
+    	}
+
         File[] files = FileSystemManager.listFiles(translationsRoot, new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.length() == length && name.startsWith(prefix) && name.endsWith(suffix);
@@ -91,12 +99,8 @@ public class Utils {
 
         if (files == null) {
             Logger.defaultLogger().warn("Unable to locate the translation files in " + FileSystemManager.getAbsolutePath(translationsRoot));
-            if (! FileSystemManager.exists(getApplicationRoot())) {
-                Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(getApplicationRoot()) + " does not exist.");
-            } else {
-                if (! FileSystemManager.exists(translationsRoot)) {
-                    Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(translationsRoot) + " does not exist.");
-                }
+            if (! FileSystemManager.exists(translationsRoot)) {
+                Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(translationsRoot) + " does not exist.");
             }
             return new String[0];
         } else {
@@ -107,6 +111,32 @@ public class Utils {
 
             return languages;
         }
+    }
+    
+    /**
+     * Build the "areca_cl" file name according to the user's system and technical configuration
+     */
+    public static File buildExecutableFile() {
+    	String executableName;
+        if (OSTool.isSystemWindows()) {
+        	executableName = "areca_cl.exe";
+        } else {
+        	executableName = "areca_cl.sh";
+        }
+    	
+        File executableDirectory;
+    	if (EXEC_DIRECTORY == null) {
+            File applicationRoot = Utils.getApplicationRoot();
+            if (OSTool.isSystemWindows()) {
+            	executableDirectory = applicationRoot;
+            } else {
+            	executableDirectory = new File(applicationRoot, DEFAULT_BIN_SUBDIRECTORY_NAME);
+            }
+    	} else {
+    		executableDirectory = new File(EXEC_DIRECTORY);
+    	}
+
+    	return new File(executableDirectory, executableName);
     }
 
     public static String getTranslationsAsString() {

@@ -3,7 +3,7 @@
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4370643633314966344
+ * <BR>Areca Build ID : 5570316944386086207
  */
 
  /*
@@ -133,7 +133,7 @@ public abstract class Util {
      * Return a base 64 String representation of the byte[] passed as argument
      */
     public static String base64Encode(byte[] data) {
-		return Base64.encode(data);
+		return Base64.encode(data).trim();
     }
     
     /**
@@ -164,7 +164,7 @@ public abstract class Util {
      */
     public static byte[] base16Decode(String input) {
         if (input.length()%2 == 1) {
-            throw new IllegalArgumentException("The string's length must be even. Current length = " + input.length() + " characters.");
+            throw new IllegalArgumentException("The string's length must be even. Current length = " + input.length() + " characters. (" + input + ")");
         }
         
         byte[] b = new byte[(int)(input.length() / 2)];

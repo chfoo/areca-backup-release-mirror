@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.application.areca.ArecaFileConstants;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.LogHelper;
 import com.application.areca.ResourceManager;
@@ -25,7 +26,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4370643633314966344
+ * <BR>Areca Build ID : 5570316944386086207
  */
 
  /*
@@ -139,7 +140,7 @@ public class Workspace {
                 Logger.defaultLogger().remove(ConsoleLogProcessor.class);
                 FileLogProcessor proc;
                 if (ArecaTechnicalConfiguration.get().getLogLocationOverride() == null) {
-                	proc = new FileLogProcessor(new File(FileSystemManager.getAbsolutePath(f) + "/log/", VersionInfos.APP_SHORT_NAME.toLowerCase()));
+                	proc = new FileLogProcessor(new File(FileSystemManager.getAbsolutePath(f) + "/" + ArecaFileConstants.LOG_SUBDIRECTORY_NAME + "/", VersionInfos.APP_SHORT_NAME.toLowerCase()));
                 } else {
                 	proc = new FileLogProcessor(new File(ArecaTechnicalConfiguration.get().getLogLocationOverride(), VersionInfos.APP_SHORT_NAME.toLowerCase()));
                 }

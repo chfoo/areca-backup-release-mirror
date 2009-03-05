@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import com.application.areca.ArecaFileConstants;
 import com.application.areca.LogHelper;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -18,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 4370643633314966344
+ * <BR>Areca Build ID : 5570316944386086207
  */
 
  /*
@@ -41,11 +42,9 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-public class LocalPreferences {
+public class LocalPreferences implements ArecaFileConstants {
 
     private static final String HEADER = "Areca user preferences";
-    private static final String PATH = ".areca/preferences.properties";
-    private static final String PATH_DEPRECATED = ".areca";
     private static LocalPreferences instance = new LocalPreferences();
 
     private final Properties preferences = new Properties();
@@ -128,9 +127,9 @@ public class LocalPreferences {
 
     private File getFile(boolean deprecated) {
     	if (deprecated) {
-    		return new File(System.getProperty("user.home"), PATH_DEPRECATED);
+    		return new File(System.getProperty("user.home"), USER_PREFERENCES_PATH_DEPRECATED);
     	} else {
-    		return new File(System.getProperty("user.home"), PATH);
+    		return new File(System.getProperty("user.home"), USER_PREFERENCES_PATH);
     	}
     }
 

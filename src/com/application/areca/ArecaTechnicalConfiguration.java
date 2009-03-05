@@ -6,7 +6,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4370643633314966344
+ * <BR>Areca Build ID : 5570316944386086207
  */
 
  /*
@@ -117,6 +117,21 @@ extends FrameworkConfiguration {
      */
     public static String KEY_FORCED_LOG_LOCATION = "log.location.override";
     
+    /**
+     * Launch scripts path (set this property if you want to force this location)
+     */
+    public static String KEY_FORCED_BIN_LOCATION = "bin.location.override";
+    
+    /**
+     * Plugin path (set this property if you want to force this location)
+     */
+    public static String KEY_FORCED_PLUGIN_LOCATION = "plugins.location.override";
+    
+    /**
+     * Language files path (set this property if you want to force this location)
+     */
+    public static String KEY_FORCED_LN_LOCATION = "languages.location.override";
+    
     public static boolean DEF_SMTP_DEBUG = false;
     public static long DEF_MEMORY_BASE_KB = 5 * 1024;
     public static double DEF_MEMORY_BY_ENTRY_KB = 1.3;
@@ -134,6 +149,9 @@ extends FrameworkConfiguration {
     public static int DEF_DELTA_MAX_BUCKETSIZE = 1 * 1024 * 1024;
     public static int DEF_DELTA_TARGET_BUCKER_NUMBER = 100;
     public static String DEF_FORCED_LOG_LOCATION = null;
+    public static String DEF_FORCED_BIN_LOCATION = null;
+    public static String DEF_FORCED_PLUGIN_LOCATION = null;
+    public static String DEF_FORCED_LN_LOCATION = null;
     
     public ArecaTechnicalConfiguration() {
         super();
@@ -158,6 +176,18 @@ extends FrameworkConfiguration {
     
     public String getLogLocationOverride() {
         return getProperty(KEY_FORCED_LOG_LOCATION, DEF_FORCED_LOG_LOCATION);
+    }
+    
+    public String getBinLocationOverride() {
+        return getProperty(KEY_FORCED_BIN_LOCATION, DEF_FORCED_BIN_LOCATION);
+    }
+    
+    public String getPluginsLocationOverride() {
+        return getProperty(KEY_FORCED_PLUGIN_LOCATION, DEF_FORCED_PLUGIN_LOCATION);
+    }
+    
+    public String getLanguageLocationOverride() {
+        return getProperty(KEY_FORCED_LN_LOCATION, DEF_FORCED_LN_LOCATION);
     }
     
     public boolean isCheckRepositoryConsistency() {

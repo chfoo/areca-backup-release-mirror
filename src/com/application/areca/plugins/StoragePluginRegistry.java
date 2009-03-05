@@ -13,6 +13,8 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 
 import com.application.areca.ApplicationException;
+import com.application.areca.ArecaFileConstants;
+import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.Utils;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.Logger;
@@ -21,7 +23,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4370643633314966344
+ * <BR>Areca Build ID : 5570316944386086207
  */
 
  /*
@@ -43,10 +45,11 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class StoragePluginRegistry {
+public class StoragePluginRegistry implements ArecaFileConstants {
     public static final String KEY_JAR_PATH = "plugin.jar.file";
     public static final String KEY_CLASS = "plugin.class";
-    public static final String SEPARATOR = ";";    
+    public static final String SEPARATOR = ";";  
+    private static final String PLUGIN_DIRECTORY = ArecaTechnicalConfiguration.get().getPluginsLocationOverride();
 
     private static StoragePluginRegistry instance = new StoragePluginRegistry();
 
@@ -58,7 +61,13 @@ public class StoragePluginRegistry {
     }
 
     private StoragePluginRegistry() {
-        load(new File(Utils.getApplicationRoot(), "plugins"));
+    	File pluginDirectory;
+    	if (PLUGIN_DIRECTORY == null) {
+    		pluginDirectory = new File(Utils.getApplicationRoot(), DEFAULT_PLUGIN_SUBDIRECTORY_NAME);
+    	} else {
+    		pluginDirectory = new File(PLUGIN_DIRECTORY);
+    	}
+    	load(pluginDirectory);
 
         // Add default plugins : HD & FTP
         register(new DefaultStoragePlugin());

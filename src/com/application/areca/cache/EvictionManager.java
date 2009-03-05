@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.application.areca.LogHelper;
 import com.application.areca.MemoryHelper;
 import com.application.areca.impl.AbstractFileSystemMedium;
 import com.myJava.system.OSTool;
@@ -13,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4370643633314966344
+ * <BR>Areca Build ID : 5570316944386086207
  */
 
  /*
@@ -53,7 +54,7 @@ public class EvictionManager {
         this.caches.add(cache);
     }
     
-    public synchronized boolean gcIfNeeded() {
+    public synchronized boolean gcIfNeeded() {    	
         if (! canGrow(1 - MemoryHelper.getMemorySafetyMargin())) {
             this.gc();
             return false;
@@ -61,6 +62,8 @@ public class EvictionManager {
             return true;
         }
     }
+    
+    private static final boolean TH_DUMP = true;
     
     /**
      * Clears data caches until the memory usage is below the target memory ratio.
@@ -74,6 +77,11 @@ public class EvictionManager {
             
             if (! canGrow(TARGET_CACHE_MEMORY_USAGE_RATIO)) {
                 Logger.defaultLogger().info("Performing a cache eviction.", this.getClass().getName());
+                
+                if (TH_DUMP) {
+                	LogHelper.logThreadInformations();
+                }
+                
                 if (! freeSomeMemory()) {
                     break;
                 }

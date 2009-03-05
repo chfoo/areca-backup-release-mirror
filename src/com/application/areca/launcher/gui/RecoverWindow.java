@@ -24,7 +24,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4370643633314966344
+ * <BR>Areca Build ID : 5570316944386086207
  */
 
  /*
@@ -166,7 +166,7 @@ extends AbstractWindow {
 
     protected void saveChanges() {    
         this.location = this.txtLocation.getText();
-        this.recoverDeletedEntries = this.chkRecoverDeletedEntries.getSelection();
+        this.recoverDeletedEntries = this.chkRecoverDeletedEntries == null ? false : this.chkRecoverDeletedEntries.getSelection();
         this.checkRecoveredFiles = this.chkCheckRecoveredFiles.getSelection();
         this.hasBeenUpdated = false;
         this.close();

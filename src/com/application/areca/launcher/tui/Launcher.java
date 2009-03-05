@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.ArecaFileConstants;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.TargetGroup;
 import com.application.areca.UserInformationChannel;
@@ -26,7 +27,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4370643633314966344
+ * <BR>Areca Build ID : 5570316944386086207
  */
 
  /*
@@ -89,7 +90,7 @@ implements CommandConstants {
                     
                     FileLogProcessor proc;
                     if (ArecaTechnicalConfiguration.get().getLogLocationOverride() == null) {
-                        File logDir = new File(FileSystemManager.getParentFile(configFile), "log");
+                        File logDir = new File(FileSystemManager.getParentFile(configFile), ArecaFileConstants.LOG_SUBDIRECTORY_NAME);
                     	proc = new FileLogProcessor(new File(logDir, configName));
                     } else {
                     	proc = new FileLogProcessor(new File(ArecaTechnicalConfiguration.get().getLogLocationOverride(), configName));
@@ -415,6 +416,7 @@ implements CommandConstants {
         
         if (context.getInvalidRecoveredFiles().size() != 0) {
         	context.getInfoChannel().warn("Some errors were found (see above).");
+        	setErrorCode(ERR_INVALID_ARCHIVE); // Syntax error
         } else {
         	String suffix = "";
         	if (checkAll) {

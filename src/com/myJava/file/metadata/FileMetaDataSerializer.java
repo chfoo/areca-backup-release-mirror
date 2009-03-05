@@ -6,7 +6,7 @@ package com.myJava.file.metadata;
  * <BR> - it is advised that binary data are base64-encoded
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4370643633314966344
+ * <BR>Areca Build ID : 5570316944386086207
  */
 
  /*

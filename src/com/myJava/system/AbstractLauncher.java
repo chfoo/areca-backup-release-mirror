@@ -9,7 +9,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4370643633314966344
+ * <BR>Areca Build ID : 5570316944386086207
  */
 
  /*
@@ -34,6 +34,7 @@ This file is part of Areca.
 public abstract class AbstractLauncher {
 	public static final int ERR_UNEXPECTED = 1;
 	public static final int ERR_SYNTAX = 2;
+	public static final int ERR_INVALID_ARCHIVE = 3;
 	
     private int errorCode = 0;
     private ArrayList closeCallBacks = new ArrayList();

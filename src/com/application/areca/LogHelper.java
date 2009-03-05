@@ -15,7 +15,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 4370643633314966344
+ * <BR>Areca Build ID : 5570316944386086207
  */
 
  /*
@@ -56,6 +56,25 @@ public class LogHelper {
         log("Available translations : " + Utils.getTranslationsAsString());
         log("File metadata accessor : " + mtdtAccessor);
         Logger.defaultLogger().info(SEPARATOR);
+    }
+    
+    public static void logThreadInformations() {
+    	try {
+    		StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+    		String thd = "Thread dump :";
+    		if (elements != null) {
+    			for (int i=0; i<elements.length; i++) {
+    				thd += "\n";
+    				if (i != 0) {
+    					thd += "at ";
+    				}
+    				thd += elements[i].getClassName() + "." + elements[i].getMethodName() + " (Line " + elements[i].getLineNumber() + ")";
+    			}
+    		}
+    		Logger.defaultLogger().fine(thd);
+    	} catch (Throwable e) {
+    		Logger.defaultLogger().warn(e.getMessage());
+    	}
     }
     
     public static void logFileInformations(String description, File f) {
