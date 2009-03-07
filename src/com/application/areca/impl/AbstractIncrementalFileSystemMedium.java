@@ -78,7 +78,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5570316944386086207
+ * <BR>Areca Build ID : 231019873304483154
  */
 
  /*
@@ -241,13 +241,24 @@ implements TargetActions {
 			this.target.secureUpdateCurrentTask("Checking archive (working directory : " + FileSystemManager.getAbsolutePath(destinationFile) + ") ...", context);
 
 			// Get the trace file
-			File traceFile = ArchiveTraceManager.resolveTraceFileForArchive(this, getLastArchive(null, date));
+			File lastArchive = getLastArchive(null, date);
+			File traceFile = ArchiveTraceManager.resolveTraceFileForArchive(this, lastArchive);
 
 			// Recover at a temporary location - activate the archive check option
 			GregorianCalendar fromDate = null;
 			if (checkOnlyArchiveContent && handler.autonomousArchives()) {
-				fromDate = (GregorianCalendar)date.clone();
-				fromDate.add(GregorianCalendar.MILLISECOND, -1);
+				if (date == null) {
+					// No date passed as argument -> use last archive
+					Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, lastArchive);
+					if (mf != null) {
+						date = mf.getDate();
+					}
+				}
+				
+				if (date != null) {
+					fromDate = (GregorianCalendar)date.clone();
+					fromDate.add(GregorianCalendar.MILLISECOND, -1);
+				}
 			}
 			recover(
 					destinationFile, 
@@ -264,16 +275,22 @@ implements TargetActions {
 		} catch (IOException e) {
 			Logger.defaultLogger().error("Error during archive verification.", e);
 			throw new ApplicationException(e);
+		} catch (RuntimeException e) {
+			Logger.defaultLogger().error("Error during archive verification.", e);
+			throw new ApplicationException(e);
 		} finally {
 			try {
 				// Destroy the recovered data
-				this.target.secureUpdateCurrentTask("Deleting recovered files (" + FileSystemManager.getAbsolutePath(context.getRecoveryDestination()) + ") ...", context);
-				if (
-						context.getRecoveryDestination() != null
-						&& FileSystemManager.exists(context.getRecoveryDestination())) {
-					FileTool.getInstance().delete(context.getRecoveryDestination(), true);
+				if (context.getRecoveryDestination() == null) {
+					this.target.secureUpdateCurrentTask("No archive to check.", context);
+				} else {
+					this.target.secureUpdateCurrentTask("Deleting recovered files (" + FileSystemManager.getAbsolutePath(context.getRecoveryDestination()) + ") ...", context);
+					if (
+							FileSystemManager.exists(context.getRecoveryDestination())) {
+						FileTool.getInstance().delete(context.getRecoveryDestination(), true);
+					}
+					this.target.secureUpdateCurrentTask("Recovered files deleted.", context);
 				}
-				this.target.secureUpdateCurrentTask("Recovered files deleted.", context);
 			} catch (IOException e) {
 				Logger.defaultLogger().error("Error during archive verification.", e);
 				throw new ApplicationException(e);

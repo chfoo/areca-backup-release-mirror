@@ -15,7 +15,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5570316944386086207
+ * <BR>Areca Build ID : 231019873304483154
  */
 
  /*
@@ -57,9 +57,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 5570316944386086207L;
+		BUILD_ID = 231019873304483154L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.0.6", new GregorianCalendar(2009, 2, 7), "Delta backup bug fix."));
 		VERSIONS.add(new VersionData("7.0.5", new GregorianCalendar(2009, 2, 5), "ACL serialization bug fix in Java 1.5; Minor recovery bug fix."));
 		VERSIONS.add(new VersionData("7.0", new GregorianCalendar(2009, 1, 15), "ACL and extended attributes support for Linux; New 'archive check' feature; Heavy memory management refactoring. CAUTION : this version is NOT backward compatible with previous versions of Areca."));
 		VERSIONS.add(new VersionData("6.1", new GregorianCalendar(2008, 11, 2), "Backup pause implementation; Plugin API enhancement; Configurable compression level; Encryption refactoring (CAUTION : This refactoring is NOT backward-compatible. This means that this new version will NOT be able to read archives encrypted with previous versions of Areca.)"));

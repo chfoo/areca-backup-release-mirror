@@ -54,7 +54,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5570316944386086207
+ * <BR>Areca Build ID : 231019873304483154
  */
 
  /*
@@ -179,6 +179,7 @@ extends AbstractArchiveHandler {
 			File[] previousArchives = medium.listArchives(null, toDate);
 			
 			// Locate a new archive to load
+			lastArchive = null;
 			for (int i=previousArchives.length - 1; i>=0; i--) {
 				boolean validated = true;
 				if (context.getBackupScheme().equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)) {

@@ -27,7 +27,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 5570316944386086207
+ * <BR>Areca Build ID : 231019873304483154
  */
 
  /*
@@ -417,7 +417,7 @@ implements CommandConstants {
         if (context.getInvalidRecoveredFiles().size() != 0) {
         	context.getInfoChannel().warn("Some errors were found (see above).");
         	setErrorCode(ERR_INVALID_ARCHIVE); // Syntax error
-        } else {
+        } else if (context.getRecoveryDestination() != null) {
         	String suffix = "";
         	if (checkAll) {
         		suffix = "s";
