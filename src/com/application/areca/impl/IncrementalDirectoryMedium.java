@@ -26,7 +26,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*
@@ -128,7 +128,6 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 			}
 
 			out = FileSystemManager.getFileOutputStream(targetFile, false, context.getOutputStreamListener());
-
 			this.handler.store(entry, in, out, context);
 		} catch (InvalidPathException e) {
 			throw new ApplicationException("Error storing file " + FileSystemManager.getAbsolutePath(entry.getFile()) + " : " + e.getMessage(), e);

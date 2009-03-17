@@ -8,7 +8,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*
@@ -45,7 +45,7 @@ public class OpenFileMonitorDriverListener implements FileSystemDriverListener {
             
             if (event.getMethod().equals("getFileOutputStream") || event.getMethod().equals("getFileInputStream")) {
                 openFiles.add(path);
-            } else if (event.getMethod().equals("o.close") || event.getMethod().equals("i.close")) {
+            } else if (event.getMethod().equals("o.close") || event.getMethod().equals("i.close")) {           	
                 openFiles.remove(path);
             } else if (monitored.contains(event.getMethod()) && openFiles.contains(path)) {
                 log("Caution : Trying to work on " + path + " while it is still open !", "FilesystemManager." + event.getMethod() + "()");

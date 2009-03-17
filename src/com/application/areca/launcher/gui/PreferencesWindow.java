@@ -25,7 +25,7 @@ import com.application.areca.launcher.gui.common.SavePanel;
  * <BR>
  * @author Stephane BRUNEL
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*

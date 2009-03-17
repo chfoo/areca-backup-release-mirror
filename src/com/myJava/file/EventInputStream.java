@@ -7,7 +7,7 @@ import java.io.InputStream;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*
@@ -40,7 +40,7 @@ public class EventInputStream extends InputStream {
 	}
 
 	public void close() throws IOException {
-		super.close();
+		in.close();
 		listener.close();
 	}
 

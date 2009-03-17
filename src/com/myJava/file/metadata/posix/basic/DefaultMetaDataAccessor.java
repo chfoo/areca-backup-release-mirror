@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*
@@ -53,12 +53,13 @@ public class DefaultMetaDataAccessor implements FileMetaDataAccessor {
         BufferedReader reader = null;
         BufferedReader errorReader = null;
         Process process = null;
+        String str = null;
         
         try {
             process = Runtime.getRuntime().exec(new String[] {"ls", "-ald1", FileSystemManager.getAbsolutePath(f)});
             process.waitFor();
             reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String str = reader.readLine();
+            str = reader.readLine();
 
             if (str == null) {
                 errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
@@ -99,25 +100,26 @@ public class DefaultMetaDataAccessor implements FileMetaDataAccessor {
             Logger.defaultLogger().error(e);
             throw new IOException("Unable to read attributes for file : " + FileSystemManager.getAbsolutePath(f));
         } finally {
-            // Explicitly close all streams
+            str = null;
             
-            // IN
+            // Explicitly close all streams
             if (reader != null) {
                 reader.close();
-            } else if (process != null) {
-                process.getInputStream().close();
-            }
-            
-            // ERROR
+                reader = null;
+            } 
             if (errorReader != null) {
                 errorReader.close();
-            } else if (process != null) {
-                process.getErrorStream().close();
+                errorReader = null;
             }
             
-            // OUT
             if (process != null) {
+                process.getInputStream().close();
+                process.getErrorStream().close();
                 process.getOutputStream().close();
+                
+                // Make sure that the process is destroyed ... closing the streams doesn't seem to be enough on some VM implementations (?!)
+                process.destroy();
+                process = null;
             }
         }
 

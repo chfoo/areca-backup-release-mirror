@@ -51,7 +51,7 @@ import com.myJava.file.CompressionArguments;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*
@@ -548,6 +548,7 @@ public class TargetXMLReader implements XMLTags {
                 if (encrData != null) {
 	                encryptionAlgo = (String)encrData[0];
 	                encryptionKey = (String)encrData[1];
+	                encryptNames = ((Boolean)encrData[2]).booleanValue();
                 }
             }
         }

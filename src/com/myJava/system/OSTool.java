@@ -24,7 +24,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*
@@ -160,18 +160,25 @@ public class OSTool {
     throws OSToolException, NoBrowserFoundException {
         launchBrowser(url.toExternalForm());
     }
+    
+	public static int execute(String[] cmd) throws IOException {
+		return execute(cmd, false);
+	}
 
-	public static void execute(String[] cmd) throws IOException {
+	public static int execute(String[] cmd, boolean async) throws IOException {
         Process p = null;
         int ret = 0;
         try {
             p = Runtime.getRuntime().exec(cmd);
-            ret = p.waitFor();
             
-            if (ret != 0) {
-            	BufferedReader errorReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                String err = errorReader.readLine();
-            	Logger.defaultLogger().warn("Error executing " + ToStringHelper.serialize(cmd) + " : " + err);
+            if (! async) {
+	            ret = p.waitFor();
+	            
+	            if (ret != 0) {
+	            	BufferedReader errorReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+	                String err = errorReader.readLine();
+	            	Logger.defaultLogger().warn("Error executing " + ToStringHelper.serialize(cmd) + " : " + err);
+	            }
             }
         } catch (InterruptedException e) {
             Logger.defaultLogger().error("Error executing " + ToStringHelper.serialize(cmd), e);
@@ -203,8 +210,14 @@ public class OSTool {
                 }
             } catch (Throwable e) {
                 Logger.defaultLogger().error("Error closing streams", e);
+            } finally {
+            	if (p != null && (!async)) {
+            		p.destroy();
+            	}
             }
         }
+        
+        return ret;
     }
     
     /**
@@ -230,14 +243,14 @@ public class OSTool {
             } else {
                 String browser = null;
                 for (int count = 0; count < BROWSERS.length && browser == null; count++) {
-                    if (Runtime.getRuntime().exec(new String[] {"which", BROWSERS[count]}).waitFor() == 0) {
+                    if (OSTool.execute(new String[] {"which", BROWSERS[count]}) == 0) {
                         browser = BROWSERS[count];
                     }
                 }
                 
                 if (browser != null) {
                     // Browser found --> Go !
-                    Runtime.getRuntime().exec(new String[] {browser, url});
+                	OSTool.execute(new String[] {browser, url});
                 } else {
                     throw new NoBrowserFoundException("No browser cound be found.");
                 }

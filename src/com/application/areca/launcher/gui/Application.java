@@ -75,7 +75,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*
@@ -595,10 +595,7 @@ implements ActionConstants, Window.IExceptionHandler {
             String editCommand = ArecaPreferences.getEditionCommand();
             Logger.defaultLogger().info("Launching '" + editCommand + "' on file '"  + path + "'");
             String[] cmd = new String[] {editCommand, path};
-            Process p = Runtime.getRuntime().exec(cmd);            	
-            if (! async) {
-            	int ret = p.waitFor();
-            }
+            OSTool.execute(cmd, async);
         } catch (Exception e) {
             Application.getInstance().handleException("Error attempting to edit " + path + " - Text editor = " + ArecaPreferences.getEditionCommand(), e);
         }
@@ -609,13 +606,6 @@ implements ActionConstants, Window.IExceptionHandler {
             Runnable rn = new Runnable() {
             	public void run() {
                 	launchFileEditor(process.getSourceFile().getAbsolutePath(), false);
-                	/*
-                    SecuredRunner.execute(new Runnable() {
-                    	public void run() {
-                        	openWorkspace(workspace.getPath());
-                    	}
-                    });
-                    */
             	}
             };
 
@@ -862,13 +852,7 @@ implements ActionConstants, Window.IExceptionHandler {
             Logger.defaultLogger().info("Creating shell script : " + strTgFile);
             if (! OSTool.isSystemWindows()) {
                 String[] chmod = new String[] {"chmod", "750", strTgFile};
-                Process p = Runtime.getRuntime().exec(chmod);
-                int retValue = p.waitFor();
-                Logger.defaultLogger().info("Executed chmod command - got the following return code : " + retValue);
-                if (retValue != 0) {
-                    String errorMsg = fileTool.getInputStreamContent(p.getErrorStream(), false);
-                    Logger.defaultLogger().warn("Got the following error message : " + errorMsg);
-                }
+                OSTool.execute(chmod);
             }
         } catch (Throwable e) {
             handleException("Error during command file creation", e);
@@ -1208,7 +1192,7 @@ implements ActionConstants, Window.IExceptionHandler {
     public Object retrieveMissingEncryptionData(AbstractRecoveryTarget tg) {
         MissingEncryptionDataWindow frm = new MissingEncryptionDataWindow(tg);
         showDialog(frm);
-        return new Object[] {frm.getAlgo(), frm.getPassword()};
+        return new Object[] {frm.getAlgo(), frm.getPassword(), new Boolean(frm.isEncryptFileNames())};
     }
     
     public Object retrieveMissingFTPData(AbstractRecoveryTarget tg) {

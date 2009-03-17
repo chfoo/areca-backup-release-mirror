@@ -12,11 +12,11 @@ import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 
 /**
- * V�rifie si le fichier contient bien l'une au moins des extensions propos�es.
+ * Check the file's extension
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*

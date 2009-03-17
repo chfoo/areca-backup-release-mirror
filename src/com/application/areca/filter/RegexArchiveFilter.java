@@ -13,7 +13,7 @@ import com.myJava.object.HashHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*
@@ -62,7 +62,7 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
         if (entry == null) {
             return false;
         } else {
-            if (pattern.matcher(entry.getName()).find()) {
+            if (pattern.matcher(entry.getAbsolutePath()).find()) {
             	return !exclude;
             } else {
             	return exclude;

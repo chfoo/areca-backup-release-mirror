@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*
@@ -247,7 +247,7 @@ public class FrameworkConfiguration {
     public static int DEF_ZIP_MV_DIGITS = 2; 
     public static int DEF_LOG_LEVEL = 8;
     public static boolean DEF_FS_USE_BUFFER = true;   
-    public static int DEF_FS_BUFFER_SIZE = 100000;   
+    public static int DEF_FS_BUFFER_SIZE = 200000;   
     public static boolean DEF_FS_CACHE_DEBUG = false; 
     public static boolean DEF_ZIP_ENTRY_CHECK_ENABLE = true;  
     public static long DEF_MAX_FILEPATH_LENGTH = 256;   

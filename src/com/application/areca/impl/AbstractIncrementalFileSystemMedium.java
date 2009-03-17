@@ -78,7 +78,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*
@@ -238,7 +238,7 @@ implements TargetActions {
 				destinationName = CHECK_DESTINATION + suffix++;
 			}
 			File destinationFile = new File(destinationRoot, destinationName);
-			this.target.secureUpdateCurrentTask("Checking archive (working directory : " + FileSystemManager.getAbsolutePath(destinationFile) + ") ...", context);
+			context.getInfoChannel().print("Checking archive (working directory : " + FileSystemManager.getAbsolutePath(destinationFile) + ") ...");
 
 			// Get the trace file
 			File lastArchive = getLastArchive(null, date);
@@ -282,14 +282,14 @@ implements TargetActions {
 			try {
 				// Destroy the recovered data
 				if (context.getRecoveryDestination() == null) {
-					this.target.secureUpdateCurrentTask("No archive to check.", context);
+					context.getInfoChannel().print("No archive to check.");
 				} else {
-					this.target.secureUpdateCurrentTask("Deleting recovered files (" + FileSystemManager.getAbsolutePath(context.getRecoveryDestination()) + ") ...", context);
+					context.getInfoChannel().print("Deleting recovered files (" + FileSystemManager.getAbsolutePath(context.getRecoveryDestination()) + ") ...");
 					if (
 							FileSystemManager.exists(context.getRecoveryDestination())) {
 						FileTool.getInstance().delete(context.getRecoveryDestination(), true);
 					}
-					this.target.secureUpdateCurrentTask("Recovered files deleted.", context);
+					context.getInfoChannel().print("Recovered files deleted.");
 				}
 			} catch (IOException e) {
 				Logger.defaultLogger().error("Error during archive verification.", e);
@@ -326,7 +326,6 @@ implements TargetActions {
 	 */
 	public void commitBackup(ProcessContext context) throws ApplicationException {
 		this.target.secureUpdateCurrentTask("Committing backup ...", context);
-		long entries = context.getTraceAdapter().getWritten();
 		try {  
 			// Close the trace file
 			context.getTraceAdapter().close();

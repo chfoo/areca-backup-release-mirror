@@ -23,7 +23,7 @@ import com.application.areca.launcher.gui.common.SavePanel;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*
@@ -51,10 +51,12 @@ extends AbstractWindow {
     
     private String algo;
     private String password;
+    private boolean encryptFileNames;
     private AbstractRecoveryTarget target;
     private List encryptionAlgorithms = new ArrayList();    
     
     private Text txtPassword;
+    private Button chkEncrypNames;
     protected Combo cboEncryptionAlgorithm;
     private Button saveButton;
 
@@ -109,6 +111,14 @@ extends AbstractWindow {
         txtPassword.setLayoutData(mainData2);
         monitorControl(txtPassword);
 
+        new Label(composite, SWT.NONE);
+        
+        chkEncrypNames = new Button(composite, SWT.CHECK);
+        chkEncrypNames.setText(RM.getLabel("targetedition.encryptnames.label"));
+        chkEncrypNames.setToolTipText(RM.getLabel("targetedition.encryptnames.tooltip"));
+        chkEncrypNames.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false)); 
+        chkEncrypNames.setSelection(true);
+        
         SavePanel pnlSave = new SavePanel(this);
         GridData saveData = new GridData();
         saveData.grabExcessHorizontalSpace = true;
@@ -148,6 +158,7 @@ extends AbstractWindow {
     protected void saveChanges() {
         this.algo = ((EncryptionConfiguration)encryptionAlgorithms.get(this.cboEncryptionAlgorithm.getSelectionIndex())).getId();
         this.password = this.txtPassword.getText();
+        this.encryptFileNames = this.chkEncrypNames.getSelection();
         
         this.hasBeenUpdated = false;
         this.close();
@@ -164,4 +175,8 @@ extends AbstractWindow {
     public String getPassword() {
         return password;
     }
+
+	public boolean isEncryptFileNames() {
+		return encryptFileNames;
+	}
 }

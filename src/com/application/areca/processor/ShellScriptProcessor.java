@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 231019873304483154
+ * <BR>Areca Build ID : 1391842375571115750
  */
 
  /*
@@ -126,6 +126,10 @@ public class ShellScriptProcessor extends AbstractProcessor {
                 if (process != null) {
                     process.getInputStream().close();
                     process.getOutputStream().close();
+                    
+                    // Make sure that the process is destroyed ... closing the streams doesn't seem to be enough on some VM implementations (?!)
+                    process.destroy();
+                    process = null;
                 }
             } catch (IOException e) {
                 Logger.defaultLogger().error("Error closing stream.", e);
