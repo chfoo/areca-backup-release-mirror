@@ -43,7 +43,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * 
  * @author Olivier PETRUCCI <BR>
- * <BR>Areca Build ID : 1391842375571115750
+ * <BR>Areca Build ID : 7019623011660215288
  */
 
  /*
@@ -101,27 +101,41 @@ public class ArchiveExplorer extends Composite implements MouseListener,
 		viewer.addDoubleClickListener(new IDoubleClickListener() {
 			public void doubleClick(DoubleClickEvent event) {
 				TreeItem item = tree.getSelection()[0];
-				item.setExpanded(!item.getExpanded());
+				if (item.getExpanded()) {
+					item.setExpanded(false);
+					handleExpansion(item, false);
+				} else {
+					handleExpansion(item, true);
+					item.setExpanded(true);
+				}
 			}
 		});
 
 		TreeListener listener = new TreeListener() {
 			public void treeCollapsed(TreeEvent arg0) {
 				TreeItem item = (TreeItem) arg0.item;
-				item.removeAll();
-				new TreeItem(item, ITEM_STYLE);
+				handleExpansion(item, false);
 			}
 
 			public void treeExpanded(TreeEvent event) {
-				try {
-					TreeItem item = (TreeItem) event.item;
-					refreshNode(item, (TraceEntry) item.getData(), null);
-				} catch (ApplicationException e) {
-					Logger.defaultLogger().error(e);
-				}
+				TreeItem item = (TreeItem) event.item;
+				handleExpansion(item, true);
 			}
 		};
 		tree.addTreeListener(listener);
+	}
+	
+	private void handleExpansion(TreeItem item, boolean expanded) {
+		if (expanded) {
+			try {
+				refreshNode(item, (TraceEntry) item.getData(), null);
+			} catch (ApplicationException e) {
+				Logger.defaultLogger().error(e);
+			}
+		} else {
+			item.removeAll();
+			new TreeItem(item, ITEM_STYLE);
+		}
 	}
 
 	public GregorianCalendar getFromDate() {

@@ -24,7 +24,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * File handling utility <BR>
  * 
  * @author Olivier PETRUCCI <BR>
- * <BR>Areca Build ID : 1391842375571115750
+ * <BR>Areca Build ID : 7019623011660215288
  */
 
  /*
@@ -517,10 +517,6 @@ public class FileTool {
 			}
 		}
 	}
-
-	public File generateNewWorkingFile(String subdir, String prefix) throws IOException {
-		return generateNewWorkingFile(subdir, prefix, true);
-	}
 	
 	/**
 	 * Return a new - non existing - temporary file or directory in the user's
@@ -529,7 +525,7 @@ public class FileTool {
 	 * This method also registers a security shutdown hook that destroys the
 	 * temporary file. <BR>
 	 * However, it is strongly advised to handle the created file's destruction
-	 * explicitly as soon as it is not needed anymore.
+	 * explicitly as soon as it is not needed anymore and avoid using hooks
 	 */
 	public File generateNewWorkingFile(String subdir, String prefix, boolean registerDeleteHook) throws IOException {
 		File tmp = null;

@@ -8,7 +8,7 @@ import java.io.OutputStream;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1391842375571115750
+ * <BR>Areca Build ID : 7019623011660215288
  */
 
  /*
@@ -83,6 +83,28 @@ public class IOHelper {
     	return t;
     }
     
+
+    public static long skipFully(InputStream in, long length) throws IOException {
+    	if (length == 0) {
+    		return 0;
+    	}
+
+    	int nb = 0;
+    	while(nb < length && in.read() != -1) {
+    		nb++;
+    	}
+    	if (nb == 0) { // no more data to read
+    		return -1;
+    	} else {
+    		return nb;
+    	}
+    }
+  
+    /*  
+     * in.skip seems to be buggy on some InputStream implementations (for instance CypherInputStream) that 
+     * always return "0" in specific conditions
+     */
+    /*
     public static long skipFully(InputStream in, long length) throws IOException {
     	long s = in.skip(length);
     	long t = s;
@@ -94,4 +116,5 @@ public class IOHelper {
     	}
     	return t;
     }
+*/
 }

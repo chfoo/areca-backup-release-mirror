@@ -78,7 +78,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1391842375571115750
+ * <BR>Areca Build ID : 7019623011660215288
  */
 
  /*
@@ -810,7 +810,15 @@ implements TargetActions {
 
 				if (lastArchive != null && FileSystemManager.exists(lastArchive)) {
 					Logger.defaultLogger().info("Using the following archive as reference : " + FileSystemManager.getAbsolutePath(lastArchive) + ".");
-					ArchiveTraceAdapter adapter = new ArchiveTraceAdapter(ArchiveTraceManager.resolveTraceFileForArchive(this, lastArchive));
+					File trcFile = ArchiveTraceManager.resolveTraceFileForArchive(this, lastArchive);
+					ArchiveTraceAdapter adapter;
+					if (imageBackups) {
+						// In case of image backups, we need to duplicate the trace file in order to read it during the backup process.
+						adapter = new ArchiveTraceAdapter(duplicateMetadataFile(trcFile, context));
+					} else {
+						adapter = new ArchiveTraceAdapter(trcFile);						
+					}
+
 					context.setReferenceTrace(adapter.buildIterator());
 				} else {
 					// Build an empty trace
@@ -1925,6 +1933,28 @@ implements TargetActions {
 			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
 		}
+	}
+	
+	/**
+	 * It is sometime necessary to work on a copy of metadata files.
+	 * <BR>This method creates a temporary copy of a source file.
+	 */
+	protected File duplicateMetadataFile(File source, ProcessContext context) {
+		File target = null;
+		if (FileSystemManager.exists(source)) {
+			try {
+				// Copy file in a temporary place
+				target = FileTool.getInstance().generateNewWorkingFile("areca", "mdt", true);
+				FileTool.getInstance().copyFile(source, FileSystemManager.getParentFile(target), FileSystemManager.getName(target), null, null);
+			} catch (IOException e) {
+				Logger.defaultLogger().error(e);
+				throw new IllegalStateException(e);
+			} catch (TaskCancelledException e) {
+				// ignored : never happens
+				Logger.defaultLogger().error(e);
+			}
+		}
+		return target;
 	}
 
 	/**

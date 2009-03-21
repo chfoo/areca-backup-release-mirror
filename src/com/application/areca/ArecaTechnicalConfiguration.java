@@ -6,7 +6,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1391842375571115750
+ * <BR>Areca Build ID : 7019623011660215288
  */
 
  /*
@@ -133,7 +133,7 @@ extends FrameworkConfiguration {
     public static String KEY_FORCED_LN_LOCATION = "languages.location.override";
     
     public static boolean DEF_SMTP_DEBUG = false;
-    public static long DEF_MEMORY_BASE_KB = 5 * 1024;
+    public static long DEF_MEMORY_BASE_KB = 4 * 1024;
     public static double DEF_MEMORY_BY_ENTRY_KB = 1.3;
     public static double DEF_MEMORY_SAFETY_MARGIN = 0.0;
     public static boolean DEF_XML_BACKUP = true;

@@ -16,7 +16,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1391842375571115750
+ * <BR>Areca Build ID : 7019623011660215288
  */
 
  /*
@@ -62,7 +62,7 @@ public class TraceMerger {
 	throws IOException, TaskCancelledException {
 		Logger.defaultLogger().info("Building aggregated archive trace ...");
 
-		File tmpFile = FileTool.getInstance().generateNewWorkingFile("areca", "mtrc");
+		File tmpFile = FileTool.getInstance().generateNewWorkingFile("areca", "mtrc", true);
 		ArchiveTraceAdapter writer = new ArchiveTraceAdapter(tmpFile);
 		TraceMerger merger = new TraceMerger(medium, writer, archives, referenceIterator);
 		merger.merge();

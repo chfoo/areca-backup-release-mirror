@@ -26,7 +26,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1391842375571115750
+ * <BR>Areca Build ID : 7019623011660215288
  */
 
  /*
@@ -80,7 +80,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 	protected void prepareContext(ProcessContext context) throws IOException {
 		if (imageBackups && context.getReferenceTrace() != null) {
 			// see "registerUnstoredFile" method
-			ArchiveContentAdapter adapter = new ArchiveContentAdapter(duplicateContentFile(context.getHashAdapter().getFile(), context));
+			ArchiveContentAdapter adapter = new ArchiveContentAdapter(duplicateMetadataFile(context.getHashAdapter().getFile(), context));
 			context.setPreviousHashIterator(adapter.buildIterator(true));
 		}
 	}
@@ -97,24 +97,6 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 				throw new IllegalArgumentException(entry.getKey() + " not found in hash file. Current entry = " + context.getPreviousHashIterator().current().getKey());
 			}
 		}
-	}
-
-	public File duplicateContentFile(File source, ProcessContext context) {
-		File target = null;
-		if (FileSystemManager.exists(source)) {
-			try {
-				// Copy file in a temporary place
-				target = FileTool.getInstance().generateNewWorkingFile("areca", "ctn");
-				FileTool.getInstance().copyFile(source, FileSystemManager.getParentFile(target), FileSystemManager.getName(target), null, null);
-			} catch (IOException e) {
-				Logger.defaultLogger().error(e);
-				throw new IllegalStateException(e);
-			} catch (TaskCancelledException e) {
-				// ignored : never happens
-				Logger.defaultLogger().error(e);
-			}
-		}
-		return target;
 	}
 
 	protected void storeFileInArchive(FileSystemRecoveryEntry entry, InputStream in, ProcessContext context) throws ApplicationException, TaskCancelledException {

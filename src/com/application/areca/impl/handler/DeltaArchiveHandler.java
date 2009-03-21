@@ -54,7 +54,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 1391842375571115750
+ * <BR>Areca Build ID : 7019623011660215288
  */
 
  /*
@@ -453,9 +453,9 @@ extends AbstractArchiveHandler {
 					}
 				}
 				
-				if (indexes.isEmpty()) {
-					throw new IllegalStateException(entriesToRecover[e] + " was not found in ANY archive.");
-				} else {
+				// if indexes is empty, the file will not be recovered.
+				// this can happen during archive merges (partial recoveries)
+				if (! indexes.isEmpty()) {
 					Iterator iter = indexes.iterator();
 					while (iter.hasNext()) {
 						int index = ((Integer)iter.next()).intValue();
