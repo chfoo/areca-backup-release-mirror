@@ -9,7 +9,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -38,6 +38,10 @@ public class HashInputStreamListener implements InputStreamListener {
 	private MessageDigest dg;
 	
 	public HashInputStreamListener() throws NoSuchAlgorithmException {
+		reset();
+	}
+	
+	public void reset() throws NoSuchAlgorithmException {
         dg = MessageDigest.getInstance(HASH_ALGORITHM);
 	}
 	

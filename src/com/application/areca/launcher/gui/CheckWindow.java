@@ -32,7 +32,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -67,6 +67,7 @@ extends AbstractWindow {
     private Label result;
     private Table table;
     private TableViewer viewer;
+    private Application.ProcessRunner runner;
     
     private String location;
     private boolean useDefaultDirectory;
@@ -268,11 +269,22 @@ extends AbstractWindow {
         	path = this.getLocation();
         }
 
-        application.launchArchiveCheck(path, this.isCheckSelectedEntries(), this);
-        application.enableWaitCursor(this);
+        this.runner = application.launchArchiveCheck(path, this.isCheckSelectedEntries(), this);
+        if (runner != null) {
+        	application.enableWaitCursor(this);
+        }
     }
 
     protected void updateState(boolean rulesSatisfied) {
         this.btnSave.setEnabled(rulesSatisfied);
     }
+
+	public boolean close() {
+		boolean closed = super.close();
+		if (closed && runner != null && runner.getChannel() != null && runner.getChannel().isRunning() && runner.getChannel().getTaskMonitor() != null) {
+			// Cancel the current task
+			runner.getChannel().getTaskMonitor().setCancelRequested();
+		}
+		return closed;
+	}
 }

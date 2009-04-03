@@ -13,7 +13,7 @@ import com.myJava.util.version.VersionDataAdapterException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*

@@ -11,7 +11,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -96,7 +96,16 @@ public class RemoteFileOutputStream extends OutputStream {
     }
     
     public void write(byte[] b, int off, int len) throws IOException {
-        out.write(b, off, len);
+/*
+    	double prob = 0.03;
+    	double rnd = 0.5*(Util.getRnd() + 1);
+    	if (rnd < prob) {
+    		String msg = "RANDOM ERROR on " + fileName + "(" + rnd + ")";
+    		throw new IOException(msg);
+    	}
+*/
+    	
+    	out.write(b, off, len);
     }
     
     public void write(byte[] b) throws IOException {

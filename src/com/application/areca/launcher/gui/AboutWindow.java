@@ -30,6 +30,7 @@ import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileTool;
+import com.myJava.file.driver.AbstractFileSystemDriver;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 import com.myJava.util.version.VersionData;
@@ -38,7 +39,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -189,6 +190,7 @@ extends AbstractWindow {
         prps.put("areca-backup.max.optimized.entries", "" + MemoryHelper.getMaxManageableEntries());
         prps.put("areca-backup.version", VersionInfos.getLastVersion().getVersionId());
         prps.put("areca-backup.build.id", "" + VersionInfos.getBuildId());
+        prps.put("areca-backup.path.length.limited", Boolean.toString(AbstractFileSystemDriver.CHECK_PATH));
         
         prps.putAll(ArecaTechnicalConfiguration.get().getAll());
         
@@ -249,6 +251,19 @@ extends AbstractWindow {
         Text content = new Text(composite, SWT.MULTI | SWT.V_SCROLL | SWT.BORDER | style);
         content.setEditable(false);
         content.setLayoutData(dt);
+        
+        Link lnk = new Link(composite, SWT.NONE);
+        lnk.addListener (SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+                try {
+                    OSTool.launchBrowser(event.text);
+                } catch (Exception e) {
+                    Logger.defaultLogger().error(e);
+                }
+            }
+        });
+        lnk.setText("<A HREF=\"http://sourceforge.net/project/project_donations.php?group_id=171505\">" + RM.getLabel("about.support") + "</A>");
+        lnk.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
         
         return content;
     }

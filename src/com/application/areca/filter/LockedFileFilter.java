@@ -3,16 +3,18 @@ package com.application.areca.filter;
 import java.io.File;
 
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.ReadableCheckResult;
 import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
+import com.myJava.util.log.Logger;
 
 /**
  * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -53,17 +55,28 @@ public class LockedFileFilter extends AbstractArchiveFilter {
         } else if (FileSystemManager.isDirectory(entry)) {
             return true;
         } else {
-            if (
-            		(! FileSystemManager.exists(entry)) 			// Cas specifique des liens symboliques qui ne pointent sur rien : on les accepte qd même
-            		|| (FileSystemManager.isReadable(entry))
-            ) {
-                return exclude;
-            } else {
-                return ! exclude;
-            }
+        	if (
+        			(! FileSystemManager.exists(entry)) // dangling links are accepted
+        	) {
+    		    Logger.defaultLogger().warn("The following file is a dangling link : " + FileSystemManager.getAbsolutePath(entry));
+        		return exclude;
+        	} else {
+        		ReadableCheckResult res = FileSystemManager.isReadable(entry);
+
+        		if (res.isReadable()) {       		    
+        			return exclude;                
+        		} else {
+        		    Logger.defaultLogger().warn("The following file is locked by the system : " + FileSystemManager.getAbsolutePath(entry));
+        		    if (res.getCause() != null) {
+        		        Logger.defaultLogger().info("Cause : " + res.getCause());
+        		    }
+        			
+        			return ! exclude;
+        		}
+        	}
         }
     }
-    
+
     public Duplicable duplicate() {
         LockedFileFilter filter = new LockedFileFilter();
         filter.exclude = this.exclude;

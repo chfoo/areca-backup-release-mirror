@@ -33,7 +33,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -429,9 +429,10 @@ public class FileSystemManager {
         getInstance().getDriver(f).deleteOnExit(f);        
     }
     
-    public static boolean isReadable(File file) {
+    public static ReadableCheckResult isReadable(File file) {
+    	ReadableCheckResult ret = new ReadableCheckResult();
         if (file == null || isDirectory(file)) {
-            return false;
+            ret.setReadable(false);
         } else {
             String message = null;
             FileLock lock = null;
@@ -467,14 +468,13 @@ public class FileSystemManager {
             }
             
             if (lock == null) {
-                Logger.defaultLogger().warn("The following file is locked by the system : " + FileSystemManager.getAbsolutePath(file));
-                if (message != null) {
-                    Logger.defaultLogger().info("Cause : " + message);
-                }
-                return false;
+                ret.setReadable(false);
+                ret.setCause(message);
             } else {
-                return true;
+                ret.setReadable(true);
             }
         }
+        
+        return ret;
     }
 }

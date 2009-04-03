@@ -16,7 +16,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -42,12 +42,17 @@ public abstract class AbstractFileSystemDriver
 implements FileSystemDriver {
     private static long MAX_FILEPATH = FrameworkConfiguration.getInstance().getMaxFilePath();
     private static int FORCE_MAX_FILEPATH_CHECK = FrameworkConfiguration.getInstance().getForceMaxFilePathCheck();    
-    private static boolean CHECK_PATH = 
-        MAX_FILEPATH != 0 
-        && (
-                FORCE_MAX_FILEPATH_CHECK == 1 || 
-                (FORCE_MAX_FILEPATH_CHECK == -1 && OSTool.isSystemWindows())
-        );
+    public static boolean CHECK_PATH = shallCheckPath();
+
+    private static boolean shallCheckPath() {
+    	if (MAX_FILEPATH <= 0 || FORCE_MAX_FILEPATH_CHECK == 0) {
+    		return false;
+    	} else if (FORCE_MAX_FILEPATH_CHECK == 1) {
+    		return true;
+    	} else {
+    		return OSTool.isSystemWindows() && ! (OSTool.isJavaVersionGreaterThanOrEquals(new int[] {1, 6}));
+    	}
+    }
     
     public boolean createNewFile(File file) throws IOException {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
@@ -177,7 +182,7 @@ implements FileSystemDriver {
         if (CHECK_PATH) {
             String p = getAbsolutePath(f);
             if (p != null && p.length() > MAX_FILEPATH) {
-                throw new InvalidPathException("File path (" + p + ") exceeds maximum length (" + MAX_FILEPATH + ")");
+                throw new InvalidPathException("File path (" + p + ") exceeds maximum length (" + MAX_FILEPATH + "). You should upgrade to Java 1.6 or higher.");
             }
         }
     }

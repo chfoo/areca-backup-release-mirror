@@ -9,13 +9,14 @@ import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.metadata.FileMetaDataAccessorHelper;
 import com.myJava.system.OSTool;
+import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -59,22 +60,7 @@ public class LogHelper {
     }
     
     public static void logThreadInformations() {
-    	try {
-    		StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-    		String thd = "Thread dump :";
-    		if (elements != null) {
-    			for (int i=0; i<elements.length; i++) {
-    				thd += "\n";
-    				if (i != 0) {
-    					thd += "at ";
-    				}
-    				thd += elements[i].getClassName() + "." + elements[i].getMethodName() + " (Line " + elements[i].getLineNumber() + ")";
-    			}
-    		}
-    		Logger.defaultLogger().fine(thd);
-    	} catch (Throwable e) {
-    		Logger.defaultLogger().warn(e.getMessage());
-    	}
+    	Util.logThreadInformations();
     }
     
     public static void logFileInformations(String description, File f) {

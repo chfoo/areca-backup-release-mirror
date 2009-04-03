@@ -78,7 +78,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -770,7 +770,7 @@ implements TargetActions {
 		} catch (ApplicationException e) {
 			Logger.defaultLogger().error(e);
 			throw e;
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
 		} finally {
@@ -1112,12 +1112,12 @@ implements TargetActions {
 	/**
 	 * Stores an entry
 	 */
-	public void store(RecoveryEntry entry, ProcessContext context) 
+	public void store(RecoveryEntry entry, final ProcessContext context) 
 	throws StoreException, ApplicationException, TaskCancelledException {
 		if (entry == null) {
 			return;
 		} else {
-			FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;
+			final FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;
 			try {
 				if (
 						FileSystemManager.isFile(fEntry.getFile()) && (
@@ -1132,12 +1132,21 @@ implements TargetActions {
 						}
 
 						// Add a listener to the inputStream
-						InputStream in = FileSystemManager.getFileInputStream(fEntry.getFile());
-						HashInputStreamListener listener = new HashInputStreamListener();
-						in = new EventInputStream(in, listener);
+						final HashInputStreamListener listener = new HashInputStreamListener();
 
-						// Store and register the file
-						this.storeFileInArchive(fEntry, in, context);
+						this.doAndRetry(new IOTask() {
+							public void run() throws IOException, TaskCancelledException, ApplicationException {
+								InputStream in = FileSystemManager.getFileInputStream(fEntry.getFile());
+								in = new EventInputStream(in, listener);
+								try {
+									listener.reset();
+								} catch (NoSuchAlgorithmException e) {
+									throw new ApplicationException(e);
+								}
+								storeFileInArchive(fEntry, in, context);
+							}
+						}, "An error occured while storing " + fEntry.getKey());
+
 						context.addInputBytes(FileSystemManager.length(fEntry.getFile()));
 						context.getContentAdapter().writeContentEntry(fEntry);
 						context.getHashAdapter().writeHashEntry(fEntry, listener.getHash());
@@ -1167,6 +1176,36 @@ implements TargetActions {
 			}
 		}
 	}
+	
+	public void doAndRetry(IOTask rn, String message) throws IOException, TaskCancelledException, ApplicationException {
+		try {
+			rn.run();
+		} catch (IOException e) {		
+			// New attempts if retry is supported
+			if (this.retrySupported()) {
+				IOException exception = e;
+				for (int retry = 1; retry<=this.getMaxRetries(); retry++) {
+					Logger.defaultLogger().warn(message + " (" + exception.getMessage() + "). Retrying (attempt " + retry + " of " + this.getMaxRetries() + ") ...");
+					try {
+						rn.run();
+						exception = null;
+						break;
+					} catch (IOException ex) {
+						exception = ex;
+					}
+				}
+
+				if (exception != null) {
+					throw exception;
+				}
+			} else {
+				throw e;
+			}
+		}
+	}
+	
+	public abstract boolean retrySupported();
+	public abstract int getMaxRetries();
 
 	public void storeManifest(ProcessContext context) throws ApplicationException {
 		if (context.getManifest() != null) {
@@ -1489,6 +1528,7 @@ implements TargetActions {
 				FileTool.getInstance().delete(targetFile, true);
 				context.setRecoveryDestination(targetFile);
 				FileTool.getInstance().createDir(targetFile);
+				Logger.defaultLogger().info("Files will be recovered in " + targetFile.getAbsolutePath());
 
 				if (mode == ArchiveHandler.MODE_MERGE) {
 					computeMergeDirectories(context);
@@ -1627,7 +1667,7 @@ implements TargetActions {
 	 * Check that the file passed as argument matches the hashcode contained in the "entry" argument.
 	 */
 	private void checkHash(File file, ContentEntry entry, boolean verbose, ProcessContext context) 
-	throws IOException, TaskCancelledException, NoSuchAlgorithmException {
+	throws IOException, TaskCancelledException, ApplicationException {
 		// Check the file
 		byte[] storedHash = ArchiveContentParser.interpretAsHash(entry.getKey(), entry.getData());
 		if (storedHash == null) {
@@ -1636,7 +1676,32 @@ implements TargetActions {
 			}
 			context.getUncheckedRecoveredFiles().add(entry.getKey());
 		} else {
-			byte[] computedHash = FileTool.getInstance().hashFileContent(file, context.getTaskMonitor());
+			this.doAndRetry(new CheckHash(context, verbose, storedHash, entry, file), "Error while checking " + file.getAbsolutePath());
+		}
+	}
+	
+	public class CheckHash implements IOTask {
+		private ProcessContext context;
+		private boolean verbose;
+		private byte[] storedHash;
+		private ContentEntry entry;
+		private File file;
+
+		public CheckHash(ProcessContext context, boolean verbose, byte[] storedHash, ContentEntry entry, File file) {
+			this.context = context;
+			this.verbose = verbose;
+			this.storedHash = storedHash;
+			this.entry = entry;
+			this.file = file;
+		}
+
+		public void run() throws IOException, TaskCancelledException, ApplicationException {
+			byte[] computedHash;
+			try {
+				computedHash = FileTool.getInstance().hashFileContent(file, context.getTaskMonitor());
+			} catch (NoSuchAlgorithmException e) {
+				throw new ApplicationException(e);
+			}
 
 			if (computedHash.length != storedHash.length) {
 				throw new IllegalStateException("Incoherent hash lengths (" + computedHash.length + " versus " + storedHash.length + ").");
@@ -1658,7 +1723,7 @@ implements TargetActions {
 	 * Check that the file content is coherent with the original file hash
 	 */
 	private void checkHash(File destination, File[] archives, ProcessContext context) 
-	throws IOException, TaskCancelledException, NoSuchAlgorithmException {
+	throws IOException, TaskCancelledException, ApplicationException {
 		context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2, "check");
 		context.getInfoChannel().print("Recovery completed - Checking recovered files (this may take some time) ...");  
 

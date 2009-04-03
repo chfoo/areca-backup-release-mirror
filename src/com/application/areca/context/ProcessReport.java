@@ -11,7 +11,7 @@ import com.application.areca.AbstractRecoveryTarget;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -61,7 +61,6 @@ public class ProcessReport {
      */
     protected int unfilteredDirectories;
 
-    
     /**
      * Start date used to compute the data flow
      */
@@ -90,9 +89,14 @@ public class ProcessReport {
     protected AbstractRecoveryTarget target;
 
     /**
-     * Tells wether the process is being validated
+     * Tells whether the process has errors (true by default - set to "false" during commit)
      */
-    protected boolean commited = false;
+    protected boolean hasErrors = true;
+    
+    /**
+     * Tells whether the process has warnings 
+     */
+    protected boolean hasWarnings = false;
     
     public ProcessReport(AbstractRecoveryTarget target) {
         this.target = target;
@@ -192,10 +196,6 @@ public class ProcessReport {
 		this.unfilteredFiles = unfilteredFiles;
 	}
 
-	public boolean isCommited() {
-        return commited;
-    }
-
     public long getDataFlowStart() {
 		return this.dataFlowStart;
 	}
@@ -203,16 +203,24 @@ public class ProcessReport {
 	public long getDataFlowStop() {
 		return this.dataFlowStop;
 	}
-	
-	public void unsetCommited() {
-        this.commited = false;
-    }
 
-	public void setCommited() {
-        this.commited = true;
-    }
-    
-    public int getDeletedFiles() {
+    public boolean hasErrors() {
+		return hasErrors;
+	}
+
+	public void setHasErrors(boolean hasErrors) {
+		this.hasErrors = hasErrors;
+	}
+
+	public boolean hasWarnings() {
+		return hasWarnings;
+	}
+
+	public void setHasWarnings(boolean hasWarnings) {
+		this.hasWarnings = hasWarnings;
+	}
+
+	public int getDeletedFiles() {
         return deletedFiles;
     }
 

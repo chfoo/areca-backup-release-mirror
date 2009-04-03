@@ -75,7 +75,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -336,6 +336,12 @@ implements ActionConstants, Window.IExceptionHandler {
         } else if (command.equals(CMD_EDIT_PROCESS_XML)) {
             // EDIT XML CONFIGURATION
             showEditGroupXML(this.getCurrentTargetGroup());  
+        } else if (command.equals(CMD_SUPPORT)) {
+        	try {
+				OSTool.launchBrowser("http://sourceforge.net/project/project_donations.php?group_id=171505");
+			} catch (Exception e) {
+				handleException(e);
+			}
         } else if (command.equals(CMD_EDIT_PROCESS)) {
             // EDIT PROCESS
             showEditGroup(this.getCurrentTargetGroup());            
@@ -525,7 +531,7 @@ implements ActionConstants, Window.IExceptionHandler {
         } 
     }
     
-    public void launchArchiveCheck(final String path, final boolean checkSelectedEntries, final CheckWindow window) {
+    public ProcessRunner launchArchiveCheck(final String path, final boolean checkSelectedEntries, final CheckWindow window) {
 	    if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
 	        FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
 	        TargetGroup process = target.getGroup();
@@ -551,8 +557,11 @@ implements ActionConstants, Window.IExceptionHandler {
 	        rn.refreshAfterProcess = false;
 	        rn.rName = RM.getLabel("app.checkfilesaction.process.message");
 	        rn.rFromDate = getCurrentDate();
-	        rn.launch();                    
-	    }  
+	        rn.launch(); 
+	        return rn;
+	    } else {
+	    	return null;
+	    }
     }
     
     /**
@@ -1362,7 +1371,7 @@ implements ActionConstants, Window.IExceptionHandler {
     }
 
     public void disableWaitCursor(AbstractWindow window) {
-        if (window != null) {
+        if (window != null && window.getShell() != null) {
         	window.getShell().setCursor(null);
         }
     }
@@ -1531,18 +1540,18 @@ implements ActionConstants, Window.IExceptionHandler {
         AppActionReferenceHolder.refresh();
     }
 
-    private abstract class ProcessRunner implements Runnable {
-        public TargetGroup rProcess;
-        public String rName;
-        public AbstractRecoveryTarget rTarget;
-        public String rPath;
-        public GregorianCalendar rFromDate;
-        public GregorianCalendar rToDate;
-        public Manifest rManifest;
-        public TraceEntry rEntry;
-        public boolean refreshAfterProcess = true;
+    public abstract class ProcessRunner implements Runnable {
+    	protected TargetGroup rProcess;
+        protected String rName;
+        protected AbstractRecoveryTarget rTarget;
+        protected String rPath;
+        protected GregorianCalendar rFromDate;
+        protected GregorianCalendar rToDate;
+        protected Manifest rManifest;
+        protected TraceEntry rEntry;
+        protected boolean refreshAfterProcess = true;
         protected ProcessContext context;
-        public Object argument;
+        protected Object argument;
         protected InfoChannel channel;
 
         public abstract void runCommand() throws ApplicationException;
@@ -1558,8 +1567,12 @@ implements ActionConstants, Window.IExceptionHandler {
             mainWindow.getProgressContainer().layout();
             mainWindow.focusOnProgress();
         }
+        
+        public InfoChannel getChannel() {
+			return channel;
+		}
 
-        // Called in the AWT event thread, to update GUI after the command execution
+		// Called in the AWT event thread, to update GUI after the command execution
         protected void finishCommand() {
         }
         

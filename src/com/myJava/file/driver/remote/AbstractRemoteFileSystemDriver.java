@@ -28,7 +28,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -79,7 +79,6 @@ extends AbstractFileSystemDriver {
     }
     
 	public boolean createNewFile(File file) throws IOException {
-        checkFilePath(file);
         String owner = this.buildNewOwnerId("createNewFile");
         AbstractProxy proxy = this.getAvailableProxy(owner);
         boolean res = false;
@@ -140,6 +139,12 @@ extends AbstractFileSystemDriver {
 
             if (this.alternateProxies.size() == maxProxies) {
                 Logger.defaultLogger().error("Maximum number of proxies (" + maxProxies + ") reached - Unable to create another proxy", "getAvailableProxy");
+                Logger.defaultLogger().info("Main Proxy : " + this.proxy.getOwnerId());
+                Iterator piter = this.alternateProxies.iterator();
+                while (piter.hasNext()) {
+                	AbstractProxy px = (AbstractProxy)piter.next();
+                    Logger.defaultLogger().info("Alternate Proxy : " + px.getOwnerId());
+                }
                 return null;
             } else {
                 Logger.defaultLogger().info("Creating an alternate proxy on " + this.proxy.toString() + " : " + + (this.alternateProxies.size()+1) + " th.");
@@ -158,7 +163,6 @@ extends AbstractFileSystemDriver {
     }
     
     public synchronized OutputStream getCachedFileOutputStream(File file) throws IOException {
-        checkFilePath(file);
         removeLocalInputFile(file);
         OutputStream raw = new LocalOutputStream(file, this);
         
@@ -345,7 +349,6 @@ extends AbstractFileSystemDriver {
 	}
 
     public OutputStream getFileOutputStream(File file) throws IOException {
-        checkFilePath(file);
         return getFileOutputStream(file, false);
     }
     
@@ -394,14 +397,7 @@ extends AbstractFileSystemDriver {
     }
     
 
-    public boolean mkdir(File file) {
-        try {
-            checkFilePath(file);
-        } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            throw new IllegalArgumentException(e.getMessage());
-        }
-        
+    public boolean mkdir(File file) {       
         String owner = this.buildNewOwnerId("mkdir");
         AbstractProxy proxy = this.getAvailableProxy(owner);
         boolean res = false;
@@ -420,13 +416,7 @@ extends AbstractFileSystemDriver {
     public boolean renameTo(File source, File dest) {
     	removeLocalInputFile(source);
     	removeLocalInputFile(dest);
-        try {
-            checkFilePath(dest);
-        } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            throw new IllegalArgumentException(e.getMessage());
-        }
-        
+    	
         String owner = this.buildNewOwnerId("renameTo");
         AbstractProxy proxy = (AbstractProxy)this.getAvailableProxy(owner);
         boolean res = false;
@@ -471,7 +461,6 @@ extends AbstractFileSystemDriver {
     }
     
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
-        checkFilePath(file);
     	removeLocalInputFile(file);
         
         String owner = this.buildNewOwnerId("getFileOutputStream");

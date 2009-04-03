@@ -26,7 +26,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -54,6 +54,7 @@ implements FileSystemPolicy {
     public static final String STORAGE_DIRECTORY_PREFIX = "storage_";
     
     private static final boolean CACHE = ArecaTechnicalConfiguration.get().isRepositoryFTPCache();
+    private static final int MAX_RETRIES = ArecaTechnicalConfiguration.get().getMaxFTPRetries();
     private static final int CACHE_DEPTH = ArecaTechnicalConfiguration.get().getRepositoryFTPCacheDepth();
     
     private static final String LOCAL_DIR_PREFIX;
@@ -104,7 +105,15 @@ implements FileSystemPolicy {
         }
     }
 
-    public ArchiveMedium getMedium() {
+    public int getMaxRetries() {
+    	return MAX_RETRIES;
+	}
+
+	public boolean retrySupported() {
+		return true;
+	}
+
+	public ArchiveMedium getMedium() {
         return medium;
     }
     

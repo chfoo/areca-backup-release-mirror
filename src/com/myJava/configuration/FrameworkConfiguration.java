@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -233,8 +233,8 @@ public class FrameworkConfiguration {
     public static String DEF_ENCRYPTION_KG_ALG = "PBKDF2WithHmacSHA1";
     public static boolean DEF_DELTA_DEBUG = false;
     public static int DEF_FTP_MAX_PROXIES = 3;
-    public static long DEF_FTP_NOOP_DELAY = 30000;    
-    public static boolean DEF_FTP_DEBUG = false;
+    public static long DEF_FTP_NOOP_DELAY = 20000;    
+    public static boolean DEF_FTP_DEBUG =  false;
     public static int DEF_FT_DELAY = 100;
     public static int DEF_FT_BUFFER_SIZE = 100000;
     public static int DEF_FTP_CACHE_SIZE = 300;    
@@ -545,7 +545,23 @@ public class FrameworkConfiguration {
         			Field def = cls.getField(defName);
 					String key = (String)f.get(cls);
 					Object value = def.get(cls);
-					p.setProperty(key, value == null ? "":value.toString());
+					
+					String str = "";
+					if (value != null) {
+						if (value instanceof String[]) {
+							String[] data = (String[])value;
+							for (int j=0; j<data.length; j++) {
+								if (j != 0) {
+									str += ", ";
+								}
+								str += data[j];
+							}
+						} else {
+							str = value.toString();
+						}
+					}
+					
+					p.setProperty(key, str);
 				} catch (Exception e) {
 					Logger.defaultLogger().error(e);
 				}

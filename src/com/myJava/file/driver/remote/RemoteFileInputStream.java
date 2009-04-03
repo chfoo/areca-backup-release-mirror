@@ -12,7 +12,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -108,6 +108,15 @@ public class RemoteFileInputStream extends InputStream {
     }
     
     public int read(byte[] b, int off, int len) throws IOException {
+/*
+    	double prob = 0.03;
+    	double rnd = 0.5*(Util.getRnd() + 1);
+    	if (rnd < prob) {
+    		String msg = "RANDOM ERROR (" + rnd + ")";
+    		throw new IOException(msg);
+    	}
+*/
+    	
         if (in != null) {
             return in.read(b, off, len);
         } else {

@@ -26,7 +26,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -99,7 +99,16 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 		}
 	}
 
-	protected void storeFileInArchive(FileSystemRecoveryEntry entry, InputStream in, ProcessContext context) throws ApplicationException, TaskCancelledException {
+	public int getMaxRetries() {
+		return this.fileSystemPolicy.getMaxRetries();
+	}
+
+	public boolean retrySupported() {
+		return this.fileSystemPolicy.retrySupported();
+	}
+
+	protected void storeFileInArchive(FileSystemRecoveryEntry entry, InputStream in, ProcessContext context) 
+	throws IOException, ApplicationException, TaskCancelledException {
 		// Store the file
 		File targetFile = new File(context.getCurrentArchiveFile(), entry.getKey());
 		File targetDirectory = FileSystemManager.getParentFile(targetFile);
@@ -113,7 +122,10 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 			this.handler.store(entry, in, out, context);
 		} catch (InvalidPathException e) {
 			throw new ApplicationException("Error storing file " + FileSystemManager.getAbsolutePath(entry.getFile()) + " : " + e.getMessage(), e);
-		} catch (Throwable e) {
+		} catch (IOException e) {
+            Logger.defaultLogger().error(e);
+            throw e;
+        } catch (Throwable e) {
 			if (e instanceof TaskCancelledException) {
 				throw (TaskCancelledException)e;
 			} else {
@@ -121,11 +133,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 			}
 		} finally {
 			if (out != null) {
-				try {
-					out.close();
-				} catch (IOException e) {
-					Logger.defaultLogger().error(e);
-				}
+				out.close();
 			}
 		}
 	}
@@ -151,18 +159,18 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 					if (filtersByArchive != null) {
 						filters = (FileFilterList)filtersByArchive.get(archivesToProcess[i]);
 					}
-
 					logRecoveryStep(filtersByArchive, filters, archivesToProcess[i], context);
 
 					// Copie de l'element en cours.
 					if (filtersByArchive == null) {
-						copyFile(archivesToProcess[i], destination, FileSystemManager.getAbsolutePath(archivesToProcess[i]), i, context);
+						doAndRetry(new EnsureLocalCopy(archivesToProcess, i, destination, context), "An error was detected during recovery of " + archivesToProcess[i].getAbsolutePath());
+						
 					} else if (filters != null) {
 						for (int j=0; j<filters.size(); j++) {
 							File sourceFileOrDirectory = new File(archivesToProcess[i], (String)filters.get(j));
 							if (FileSystemManager.exists(sourceFileOrDirectory)) {
 								File targetDirectory = FileSystemManager.getParentFile(new File(destination, (String)filters.get(j)));
-								tool.copy(sourceFileOrDirectory, targetDirectory, context.getTaskMonitor(), context.getOutputStreamListener());
+								doAndRetry(new EnsureLocalCopyByFilter(targetDirectory, sourceFileOrDirectory, context), "An error was detected during recovery of " + archivesToProcess[i].getAbsolutePath());
 							}
 						}
 					}
@@ -172,14 +180,51 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 
 				return new File[] {destination};
 			} catch (IOException e) {
+				Logger.defaultLogger().error(e);
 				throw e;
 			} catch (TaskCancelledException e) {
 				throw e;
-			} catch (Exception e) {
+			} catch (Throwable e) {
+				Logger.defaultLogger().error(e);
 				throw new ApplicationException(e);
 			}
 		} else {
+			Logger.defaultLogger().info("No archive pre-processing needed.");
 			return archivesToProcess;
+		}
+	}
+	
+	private class EnsureLocalCopyByFilter implements IOTask {
+		private File targetDirectory;
+		private File sourceFileOrDirectory;
+		private ProcessContext context;
+
+		public EnsureLocalCopyByFilter(File targetDirectory, File sourceFileOrDirectory, ProcessContext context) {
+			this.targetDirectory = targetDirectory;
+			this.sourceFileOrDirectory = sourceFileOrDirectory;
+			this.context = context;
+		}
+
+		public void run() throws IOException, TaskCancelledException, ApplicationException {
+			tool.copy(sourceFileOrDirectory, targetDirectory, context.getTaskMonitor(), context.getOutputStreamListener());
+		}
+	}
+	
+	private class EnsureLocalCopy implements IOTask {
+		private File[] archivesToProcess;
+		private int i;
+		private File destination;
+		private ProcessContext context;
+
+		public EnsureLocalCopy(File[] archivesToProcess, int i, File destination, ProcessContext context) {
+			this.archivesToProcess = archivesToProcess;
+			this.i = i;
+			this.destination = destination;
+			this.context = context;
+		}
+
+		public void run() throws IOException, TaskCancelledException, ApplicationException {
+			copyFile(archivesToProcess[i], destination, FileSystemManager.getAbsolutePath(archivesToProcess[i]), i, context);
 		}
 	}
 

@@ -3,7 +3,7 @@
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -113,6 +113,35 @@ public abstract class Util {
         }
         
         return cpt;
+    }
+    
+    public static void logThreadInformations() {
+    	logThreadInformations(null);	
+    }
+    
+    public static void logThreadInformations(String header) {
+    	try {
+    		StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+    		String thd;
+    		if (header != null) {
+    			thd = header + "\n";
+    		} else {
+    			thd = "";
+    		}
+    		thd += "Thread dump :";
+    		if (elements != null) {
+    			for (int i=0; i<elements.length; i++) {
+    				thd += "\n";
+    				if (i != 0) {
+    					thd += "at ";
+    				}
+    				thd += elements[i].getClassName() + "." + elements[i].getMethodName() + " (Line " + elements[i].getLineNumber() + ")";
+    			}
+    		}
+    		Logger.defaultLogger().fine(thd);
+    	} catch (Throwable e) {
+    		Logger.defaultLogger().warn(e.getMessage());
+    	}
     }
 
     /**

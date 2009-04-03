@@ -15,7 +15,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -57,9 +57,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 7019623011660215288L;
+		BUILD_ID = 7299034069467778562L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.0.9", new GregorianCalendar(2009, 3, 3), "Synchronous backup mode available from command-line interface; The 256 characters limit on file path is disabled if the Java version is over 1.6; Enhanced FTP connexions management."));
 		VERSIONS.add(new VersionData("7.0.8", new GregorianCalendar(2009, 2, 21), "Logical view bug fix; Image backups bug fix."));
 		VERSIONS.add(new VersionData("7.0.7", new GregorianCalendar(2009, 2, 17), "Regex file filter bug fix; Added 'encrypt file names' to the 'missing encryption data' window; File handle cleanup."));
 		VERSIONS.add(new VersionData("7.0.6", new GregorianCalendar(2009, 2, 7), "Delta backup bug fix."));

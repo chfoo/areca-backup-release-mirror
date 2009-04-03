@@ -6,7 +6,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -132,6 +132,11 @@ extends FrameworkConfiguration {
      */
     public static String KEY_FORCED_LN_LOCATION = "languages.location.override";
     
+    /**
+     * Number of retries in case of FTP transfer error
+     */
+    public static String KEY_MAX_FTP_RETRIES = "ftp.max.retries";
+    
     public static boolean DEF_SMTP_DEBUG = false;
     public static long DEF_MEMORY_BASE_KB = 4 * 1024;
     public static double DEF_MEMORY_BY_ENTRY_KB = 1.3;
@@ -152,6 +157,7 @@ extends FrameworkConfiguration {
     public static String DEF_FORCED_BIN_LOCATION = null;
     public static String DEF_FORCED_PLUGIN_LOCATION = null;
     public static String DEF_FORCED_LN_LOCATION = null;
+    public static int DEF_MAX_FTP_RETRIES = 5;
     
     public ArecaTechnicalConfiguration() {
         super();
@@ -209,6 +215,10 @@ extends FrameworkConfiguration {
     
     public boolean isRepositoryFTPCache() {
         return getProperty(KEY_REPOSITORYACCESS_FTP_CACHE, DEF_REPOSITORYACCESS_FTP_CACHE);
+    }
+    
+    public int getMaxFTPRetries() {
+        return getProperty(KEY_MAX_FTP_RETRIES, DEF_MAX_FTP_RETRIES);
     }
     
     public int getDeltaMinBucketSize() {

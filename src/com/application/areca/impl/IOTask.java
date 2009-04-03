@@ -1,7 +1,9 @@
-package com.application.areca.plugins;
+package com.application.areca.impl;
 
-import com.application.areca.impl.policy.FileSystemPolicy;
-import com.application.areca.launcher.gui.common.AbstractWindow;
+import java.io.IOException;
+
+import com.application.areca.ApplicationException;
+import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
  * <BR>
@@ -29,16 +31,6 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public abstract class PluginConfigurationWindow
-extends AbstractWindow {
-
-    protected FileSystemPolicy fileSystemPolicy;
-    
-    public void setFileSystemPolicy(FileSystemPolicy fileSystemPolicy) {
-        this.fileSystemPolicy = fileSystemPolicy;
-    }
-    
-    public FileSystemPolicy getFileSystemPolicy() {
-        return this.fileSystemPolicy;
-    }
+public interface IOTask {
+	public void run() throws IOException, TaskCancelledException, ApplicationException;
 }

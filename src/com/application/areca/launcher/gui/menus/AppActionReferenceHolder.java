@@ -14,7 +14,7 @@ import com.application.areca.launcher.gui.common.SecuredRunner;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -66,7 +66,8 @@ public class AppActionReferenceHolder implements ActionConstants{
     public static AppAction AC_CHECK_ARCHIVES = new AppAction("app.checkfilesaction", null, null, CMD_CHECK_ARCHIVES);    
 
     public static AppAction AC_HELP = new AppAction("app.helpaction", ArecaImages.ICO_HELP, ArecaImages.ICO_HELP_B, CMD_HELP);
-    public static AppAction AC_ABOUT = new AppAction("app.aboutaction", CMD_ABOUT);
+    public static AppAction AC_ABOUT = new AppAction("app.aboutaction", ArecaImages.ICO_SMALL, null, CMD_ABOUT);
+    public static AppAction AC_SUPPORT = new AppAction("app.supportaction", CMD_SUPPORT);
     public static AppAction AC_CHECK_VERSION = new AppAction("app.checkversionaction", CMD_CHECK_VERSION);
 
     public static AppAction AC_VIEW_MANIFEST = new AppAction("app.archivedetailaction", ArecaImages.ICO_ARCHIVE_DETAIL, CMD_VIEW_MANIFEST);

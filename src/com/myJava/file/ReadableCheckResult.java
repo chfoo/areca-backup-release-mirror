@@ -1,7 +1,4 @@
-package com.application.areca.plugins;
-
-import com.application.areca.impl.policy.FileSystemPolicy;
-import com.application.areca.launcher.gui.common.AbstractWindow;
+package com.myJava.file;
 
 /**
  * <BR>
@@ -29,16 +26,24 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public abstract class PluginConfigurationWindow
-extends AbstractWindow {
+public class ReadableCheckResult {
+	private boolean isReadable;
+	private String cause;
+	
+	public boolean isReadable() {
+		return isReadable;
+	}
+	
+	public void setReadable(boolean isReadable) {
+		this.isReadable = isReadable;
+	}
 
-    protected FileSystemPolicy fileSystemPolicy;
-    
-    public void setFileSystemPolicy(FileSystemPolicy fileSystemPolicy) {
-        this.fileSystemPolicy = fileSystemPolicy;
-    }
-    
-    public FileSystemPolicy getFileSystemPolicy() {
-        return this.fileSystemPolicy;
-    }
+	public String getCause() {
+		return cause;
+	}
+
+	public void setCause(String cause) {
+		this.cause = cause;
+	}
+
 }

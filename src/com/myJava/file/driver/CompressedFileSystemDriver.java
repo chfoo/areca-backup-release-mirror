@@ -24,7 +24,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -281,7 +281,15 @@ extends AbstractLinkableFileSystemDriver {
         if (compression.getCharset() != null) {
             zin.setCharset(compression.getCharset());
         }
-        zin.getNextEntry();
+        try {
+			zin.getNextEntry();
+		} catch (IOException e) {
+			try {
+				zin.close();
+			} catch (IOException ignored) {
+			}
+			throw e;
+		}
         return zin;
     }
     
@@ -324,7 +332,15 @@ extends AbstractLinkableFileSystemDriver {
         if (compression.getComment() != null) {
             zout.setComment(compression.getComment());
         }
-        zout.putNextEntry(new ZipEntry(file.getName()));
+        try {
+        	zout.putNextEntry(new ZipEntry(file.getName()));
+        } catch (IOException e) {
+        	try {
+				zout.close();
+			} catch (IOException ignored) {
+			}
+        	throw e;
+        }
         return zout;
     }    
     

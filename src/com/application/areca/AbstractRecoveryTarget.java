@@ -37,7 +37,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -342,7 +342,7 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 					  Logger.defaultLogger().info("Average data input : " + Utils.formatLong(context.getInputBytesInKBPerSecond()) + " kb/second.");
 					  Logger.defaultLogger().info(Utils.formatLong(context.getOutputBytesInKB()) + " kb written in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
 					  Logger.defaultLogger().info("Average data output : " + Utils.formatLong(context.getOutputBytesInKBPerSecond()) + " kb/second.");
-				  } catch (Exception e) {
+				  } catch (Throwable e) {
 					  if (! TaskCancelledException.isTaskCancellation(e)) {
 						  Logger.defaultLogger().error(e);
 					  }
@@ -351,7 +351,7 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 				  }
 			  }
 		  } finally {
-			  if (context.getReport().isCommited() && (! disableArchiveCheck)) {
+			  if ((! context.getReport().hasErrors()) && (! disableArchiveCheck)) {
 				  context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.4, "archive check");
 				  TaskMonitor checkMon = context.getTaskMonitor().getCurrentActiveSubTask();
 				  
@@ -364,7 +364,7 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 					  context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.6, "effective check");
 					  this.processArchiveCheck(null, true, cal, context);
 					  if (context.getInvalidRecoveredFiles() != null && context.getInvalidRecoveredFiles().size() != 0) {
-						  context.getReport().unsetCommited();
+						  context.getReport().setHasErrors(true);
 						  context.getInfoChannel().error("The created archive was not successfully checked. It will be deleted.");
 						  context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.4, "deletion");  
 						  this.processDeleteArchives(cal, context);
@@ -446,7 +446,7 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 			  medium.closeSimulation(context); 
 
 			  return entries;
-		  } catch (Exception e) {
+		  } catch (Throwable e) {
 			  throw wrapException(e);
 		  }
 	  }    
@@ -472,15 +472,15 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 			  addBasicInformationsToManifest(context.getManifest());
 
 			  medium.commitBackup(context);
-			  context.getReport().setCommited();
-		  } catch (Exception e) {
+			  context.getReport().setHasErrors(false);
+		  } catch (Throwable e) {
 			  Logger.defaultLogger().error("Exception caught during backup commit.", e);
 			  this.rollbackBackup(context);
 			  throw wrapException(e);
 		  }
 	  }
 	  
-	  private ApplicationException wrapException(Exception e) {
+	  private ApplicationException wrapException(Throwable e) {
 		  if (e instanceof ApplicationException) {
 			  return (ApplicationException)e;
 		  } else {
@@ -503,7 +503,11 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 		  } catch (IOException e1) {
 			  throw new ApplicationException(e1);
 		  } finally {
-			  medium.rollbackBackup(context);
+			  try {
+				  medium.rollbackBackup(context);
+			  } finally {
+				  context.getReport().setHasErrors(true);
+			  }
 		  }
 	  }
 
@@ -562,7 +566,7 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 			  }        
 			  this.medium.merge(fromDate, toDate, manifest, keepDeletedEntries, context);
 			  this.commitMerge(context);
-		  } catch (Exception e) {
+		  } catch (Throwable e) {
 			  Logger.defaultLogger().error(e);
 			  this.rollbackMerge(context);
 			  throw wrapException(e);
@@ -593,7 +597,7 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 				  throw new ApplicationException(e);
 			  }        
 			  this.medium.deleteArchives(fromDate, context);
-		  } catch (Exception e) {
+		  } catch (Throwable e) {
 			  throw wrapException(e);
 		  } finally {
 			  context.getTaskMonitor().resetCancellationState();
@@ -616,7 +620,7 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 			  context.getTaskMonitor().checkTaskState();
 			  context.getTaskMonitor().setCancellable(false);
 			  this.medium.commitMerge(context);
-			  context.getReport().setCommited();
+			  context.getReport().setHasErrors(false);
 			  context.getTaskMonitor().resetCancellationState();
 		  } catch (TaskCancelledException e) {
 			  throw new ApplicationException(e);
@@ -624,19 +628,22 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 	  }
 
 	  protected void rollbackMerge(ProcessContext context) throws ApplicationException {
+		  context.getInfoChannel().getTaskMonitor().setCancellable(false);
 		  try {
-			  context.getInfoChannel().getTaskMonitor().setCancellable(false);
-
 			  HistoryEntry entry = new HistoryEntry(HISTO_MERGE_CANCEL, "Merge cancellation.");
 			  History h = this.getHistory();
 			  if (h != null) {
 				  h.addEntry(entry);
 			  }
-		  } catch (IOException e1) {
-			  throw new ApplicationException(e1);
+		  } catch (Throwable e) {
+			  Logger.defaultLogger().error(e);
 		  } 
 
-		  this.medium.rollbackMerge(context);
+		  try {
+			  this.medium.rollbackMerge(context);
+		  } finally {
+			  context.getReport().setHasErrors(true);
+		  }
 		  context.getTaskMonitor().resetCancellationState();
 	  }
 

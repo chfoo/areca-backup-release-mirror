@@ -27,7 +27,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -151,10 +151,11 @@ implements CommandConstants {
         
         channel.print("");
         channel.print("Launch a backup :");
-        channel.print("      backup -config (your xml config file) [-f] [-d] [-c] [-target (specific target)] [-title (archive title)]");
+        channel.print("      backup -config (your xml config file) [-f] [-d] [-c] [-s] [-target (specific target)] [-title (archive title)]");
         channel.print("         -f to force full backup (instead of incremental backup)");
         channel.print("         -d to force differential backup (instead of incremental backup)");
         channel.print("         -c to check the archive consistency after backup");
+        channel.print("         -s to disable asynchronous processing when handling a target group");        
         channel.print("         -title to set a title to the archive");         
 
         channel.print("");
@@ -223,6 +224,11 @@ implements CommandConstants {
                 && command.getOption(OPTION_CHECK_FILES).trim().length() != 0
         );
         
+        final boolean forceSync = (
+                command.getOption(OPTION_SYNC) != null
+                && command.getOption(OPTION_SYNC).trim().length() != 0
+        );
+        
         final Manifest manifest;
         if (command.hasOption(OPTION_TITLE)) {
         	manifest = new Manifest(Manifest.TYPE_BACKUP);
@@ -247,8 +253,8 @@ implements CommandConstants {
             Iterator iter = process.getTargetIterator();
             while (iter.hasNext()) {
                 final AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
-                final ProcessContext cloneCtx = new ProcessContext(tg, new LoggerUserInformationChannel(true), new TaskMonitor("tui-clone"));
-                Thread th = new Thread(new Runnable() {
+                final ProcessContext cloneCtx = new ProcessContext(tg, new LoggerUserInformationChannel(!forceSync), new TaskMonitor("tui-clone"));
+                Runnable rn = new Runnable() {
                     public void run() {
                         try {
                             process.processBackupOnTarget(
@@ -263,11 +269,19 @@ implements CommandConstants {
                             handleError(e);
                         }
                     }
-                });
-                th.setName("Backup on " + tg.getTargetName());
-                th.setDaemon(false);
-                thList.add(th);
-                th.start();
+                };
+                
+                if (forceSync) {
+                	// Sync mode
+                	rn.run();
+                } else {
+                	// Async mode
+	                Thread th = new Thread(rn);
+	                th.setName("Backup on " + tg.getTargetName());
+	                th.setDaemon(false);
+	                thList.add(th);
+	                th.start();
+                }
             }
             
             // Wait for all threads to die

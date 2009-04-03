@@ -54,7 +54,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -637,7 +637,7 @@ implements TargetActions, IndicatorTypes {
 	 * (independemment des filtres, ou politique de stockage; il s'agit la d'une
 	 * methode purement utilitaire; en pratique : zip ou repertoire) 
 	 */
-	protected abstract void storeFileInArchive(FileSystemRecoveryEntry entry, InputStream in, ProcessContext context) throws ApplicationException, TaskCancelledException;
+	protected abstract void storeFileInArchive(FileSystemRecoveryEntry entry, InputStream in, ProcessContext context) throws IOException, ApplicationException, TaskCancelledException;
 
 	/**
 	 * Creates a copy of the target's XML configuration and stores it in the main backup directory.

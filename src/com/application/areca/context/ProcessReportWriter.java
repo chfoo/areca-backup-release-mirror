@@ -12,7 +12,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -48,7 +48,7 @@ public class ProcessReportWriter {
         long dur = System.currentTimeMillis() - report.getStartMillis();
         write("Duration : " + Utils.formatDuration(dur));
         
-        if (report.isCommited()) {
+        if (! report.hasErrors()) {
             writeCommitedReport(report);
         } else {
             writeRollbackedReport(report);

@@ -24,7 +24,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -243,7 +243,11 @@ implements UserInformationChannel, Colors, Listener {
         }
     }
 
-    public void setTaskMonitor(TaskMonitor taskMonitor) {
+    public boolean isRunning() {
+		return running;
+	}
+
+	public void setTaskMonitor(TaskMonitor taskMonitor) {
         this.taskMonitor = taskMonitor;
         taskMonitor.addListener(this);
     }

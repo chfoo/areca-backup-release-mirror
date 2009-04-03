@@ -12,7 +12,7 @@ import java.util.Map;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -44,6 +44,7 @@ public class UserCommandLine implements CommandConstants {
         Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_FULL_BACKUP);
         Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_DIFFERENTIAL_BACKUP);
         Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_CHECK_FILES);
+        Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_SYNC);
         Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_TITLE);
    
         Launcher.COMMAND_MERGE.addMandatoryArgument(Launcher.OPTION_CONFIG);

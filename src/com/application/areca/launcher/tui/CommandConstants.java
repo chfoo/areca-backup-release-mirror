@@ -5,7 +5,7 @@ package com.application.areca.launcher.tui;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -42,8 +42,8 @@ public interface CommandConstants {
     public static UserOption OPTION_FROM = new UserOption("-from", 2);
     public static UserOption OPTION_TO = new UserOption("-to", 2);
     public static UserOption OPTION_DATE = new UserOption("-date", 2);    
-    public static UserOption OPTION_SEQUENCIAL = new UserOption("-s", 1);  
     public static UserOption OPTION_CHECK_FILES = new UserOption("-c", 1);  
+    public static UserOption OPTION_SYNC = new UserOption("-s", 1);  
     public static UserOption OPTION_CHECK_ALL = new UserOption("-a", 1); 
     public static UserOption OPTION_FULL_BACKUP = new UserOption("-f", 1);
     public static UserOption OPTION_KEEP_DELETED_ENTRIES = new UserOption("-k", 1);

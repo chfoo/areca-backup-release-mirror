@@ -11,7 +11,7 @@ import com.myJava.object.Duplicable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7019623011660215288
+ * <BR>Areca Build ID : 7299034069467778562
  */
 
  /*
@@ -44,4 +44,6 @@ public interface FileSystemPolicy extends Duplicable {
     public void validate(boolean extendedTests) throws ApplicationException;
     public void setMedium(ArchiveMedium medium);
     public void synchronizeConfiguration();
+    public boolean retrySupported();
+    public int getMaxRetries();
 }
