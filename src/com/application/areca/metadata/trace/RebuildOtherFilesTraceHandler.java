@@ -17,7 +17,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -84,6 +84,10 @@ public class RebuildOtherFilesTraceHandler implements TraceHandler {
 					FileTool.getInstance().createDir(parent);
 				}
 				FileSystemManager.createSymbolicLink(symLink, ArchiveTraceParser.extractSymLinkPathFromTrace(trace));
+			}
+		} else if (type == MetadataConstants.T_PIPE) {
+			if (filters == null || Util.passFilter(key, filters)) {
+				FileSystemManager.createNamedPipe(new File(directory, key));
 			}
 		}
 	}

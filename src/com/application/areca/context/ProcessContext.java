@@ -23,7 +23,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -128,7 +128,9 @@ public class ProcessContext {
     
     private List invalidRecoveredFiles = new ArrayList();
     private List uncheckedRecoveredFiles = new ArrayList();
-
+    private List unrecoveredFiles = new ArrayList();
+    private long nbChecked = 0;
+    
     public void reset(boolean operationalOnly) {
         this.rootCount = 0;
         this.manifest = null;
@@ -144,7 +146,9 @@ public class ProcessContext {
         this.simulationResult = null;
         this.invalidRecoveredFiles.clear();
         this.uncheckedRecoveredFiles.clear();
+        this.unrecoveredFiles.clear();
         this.previousHashIterator = null;
+        this.nbChecked = 0;
         this.inputBytes = 0;
         this.outputStreamListener = new MeteredOutputStreamListener();
         if (! operationalOnly) {
@@ -156,7 +160,15 @@ public class ProcessContext {
         this(target, channel, null);
     }
     
-    public ProcessContext(AbstractRecoveryTarget target, UserInformationChannel channel, TaskMonitor taskMonitor) {
+    public void addChecked() {
+    	this.nbChecked++;
+    }
+
+    public long getNbChecked() {
+		return nbChecked;
+	}
+
+	public ProcessContext(AbstractRecoveryTarget target, UserInformationChannel channel, TaskMonitor taskMonitor) {
         this.currentReport = new ProcessReport(target);
         this.infoChannel = channel;
         if (taskMonitor != null) {
@@ -226,6 +238,10 @@ public class ProcessContext {
 	
 	public List getUncheckedRecoveredFiles() {
 		return uncheckedRecoveredFiles;
+	}
+
+	public List getUnrecoveredFiles() {
+		return unrecoveredFiles;
 	}
 
 	public Properties getOverridenDynamicProperties() {

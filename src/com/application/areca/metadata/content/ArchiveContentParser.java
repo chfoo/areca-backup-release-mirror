@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -67,14 +67,17 @@ public class ArchiveContentParser implements MetadataConstants {
     }
     
     public static byte[] interpretAsHash(String name, String data) {
+    	if (data == null) {
+			Logger.defaultLogger().warn("Error reading data for file : " + name + " (" + data + ").");
+    		return null;
+    	}
+		data = data.trim();
+    	if (data.length() == 0) {
+			Logger.defaultLogger().warn("Error reading data for file : " + name + " (" + data + ").");
+			return null;
+		}
     	try {
-			data = data.trim();
-			if (data == null || data.length() == 0) {
-				Logger.defaultLogger().warn("Error reading data for file : " + name + " (" + data + ").");
-				return null;
-			} else {
-				return Util.base64Decode(data);
-			}
+			return Util.base64Decode(data);
 		} catch (RuntimeException e) {
 			Logger.defaultLogger().error("Error reading hash from data for file : " + name + " (" + data + ").");
 			throw e;

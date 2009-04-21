@@ -1,11 +1,13 @@
 package com.application.areca.metadata;
 
+import com.myJava.object.ToStringHelper;
+
 /**
  * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -34,13 +36,25 @@ public abstract class AbstractMetaDataEntry {
 	public String getData() {
 		return data;
 	}
+	
 	public void setData(String data) {
 		this.data = data;
 	}
+	
 	public String getKey() {
 		return key;
 	}
+	
 	public void setKey(String key) {
 		this.key = key;
 	}
+	
+	public String toString() {
+		StringBuffer sb = ToStringHelper.init(this);
+		ToStringHelper.append("Key", key, sb);
+		ToStringHelper.append("Data", data, sb);
+		return ToStringHelper.close(sb);
+	}
+	
+	public abstract char getType();
 }

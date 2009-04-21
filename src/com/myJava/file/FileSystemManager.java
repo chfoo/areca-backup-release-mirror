@@ -33,7 +33,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -295,6 +295,18 @@ public class FileSystemManager {
 
     public static boolean createSymbolicLink(File symlink, String realPath) throws IOException {
         return getInstance().getDriver(symlink).createSymbolicLink(symlink, realPath);
+    }
+    
+    public static boolean createNamedPipe(File pipe) throws IOException {
+        return getInstance().getDriver(pipe).createNamedPipe(pipe);
+    }
+    
+    /**
+     * Return the type of the file
+     * <BR>See types listed in FileMetaDataAccessor 
+     */
+    public static short getType(File file) throws IOException {
+        return getInstance().getDriver(file).getType(file);
     }
     
     public static boolean mkdirs(File file) throws IOException {

@@ -89,7 +89,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -1148,7 +1148,7 @@ extends AbstractWindow {
             rdFile.setSelection(true);
             rdMultiple.setSelection(true);
             chkFollowSubDirectories.setSelection(true);
-            rdArchive.setSelection(true);
+            rdSingle.setSelection(true);
             selectEncoding(ZipConstants.DEFAULT_CHARSET);
             cboZipLevel.select(9);
             if (OSTool.isSystemWindows()) {

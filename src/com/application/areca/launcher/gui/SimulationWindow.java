@@ -35,7 +35,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -218,7 +218,7 @@ implements Listener {
 	private Font deriveItalicFont(TableItem item) {
 		if (this.italic == null) {
 			FontData dt = item.getFont().getFontData()[0];
-			FontData dtItalic = new FontData(dt.getName(), dt.height, SWT.ITALIC);
+			FontData dtItalic = new FontData(dt.getName(), dt.getHeight(), SWT.ITALIC);
 			return new Font(item.getDisplay(), new FontData[] {dtItalic});
 		} 
 		return italic;

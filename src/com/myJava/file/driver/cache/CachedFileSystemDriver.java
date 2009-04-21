@@ -20,6 +20,7 @@ import com.myJava.file.driver.event.EventFileSystemDriver;
 import com.myJava.file.driver.event.FileSystemDriverListener;
 import com.myJava.file.driver.event.LoggerFileSystemDriverListener;
 import com.myJava.file.metadata.FileMetaData;
+import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
@@ -28,7 +29,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -94,7 +95,24 @@ implements LinkableFileSystemDriver {
         }
     }
 
-    public boolean canWrite(File file) {
+    public short getType(File file) throws IOException {
+        try {
+            DataEntry entry = getOrCreateDataEntry(file, true, false);
+            if (entry == null) {
+                return FileMetaDataAccessor.TYPE_FILE;
+            }
+
+            if (! entry.isTypeSet()) {
+                entry.setType(predecessor.getType(file));
+            }
+
+            return entry.getType();
+        } catch (MaxDepthReachedException e) {
+            return predecessor.getType(file);
+        }
+	}
+
+	public boolean canWrite(File file) {
         try {
             DataEntry entry = getOrCreateDataEntry(file, true, false);
             if (entry == null) {
@@ -130,6 +148,20 @@ implements LinkableFileSystemDriver {
         if (predecessor.createSymbolicLink(symlink, realPath)) {
             try {
                 DataEntry entry = getOrCreateDataEntry(symlink, false, true);
+                entry.reset();
+                entry.setExists(true);
+            } catch (MaxDepthReachedException ignored) {
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public boolean createNamedPipe(File pipe) throws IOException {
+        if (predecessor.createNamedPipe(pipe)) {
+            try {
+                DataEntry entry = getOrCreateDataEntry(pipe, false, true);
                 entry.reset();
                 entry.setExists(true);
             } catch (MaxDepthReachedException ignored) {

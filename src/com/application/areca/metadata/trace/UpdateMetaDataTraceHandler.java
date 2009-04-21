@@ -15,7 +15,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -65,9 +65,14 @@ public class UpdateMetaDataTraceHandler implements TraceHandler {
 			} else if (type == MetadataConstants.T_FILE) {
 				// File
 				atts = ArchiveTraceParser.extractFileAttributesFromTrace(hash, version);
-			} else {
+			} else if (type == MetadataConstants.T_SYMLINK) {
 				// Symlink
 				atts = ArchiveTraceParser.extractSymLinkAttributesFromTrace(hash, version);
+			} else if (type == MetadataConstants.T_PIPE) {
+				// Pipe
+				atts = ArchiveTraceParser.extractPipeAttributesFromTrace(hash, version);
+			} else {
+				throw new FileMetaDataSerializationException("Unsupported type for " + key + " : " + type + " / " + hash);
 			}
 			
 			if (atts != null) {

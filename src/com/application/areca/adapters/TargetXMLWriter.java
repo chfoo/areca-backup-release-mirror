@@ -10,9 +10,9 @@ import com.application.areca.filter.FileExtensionArchiveFilter;
 import com.application.areca.filter.FileOwnerArchiveFilter;
 import com.application.areca.filter.FileSizeArchiveFilter;
 import com.application.areca.filter.FilterGroup;
-import com.application.areca.filter.LinkFilter;
 import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.filter.RegexArchiveFilter;
+import com.application.areca.filter.SpecialFileFilter;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.impl.IncrementalDirectoryMedium;
@@ -36,7 +36,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -302,8 +302,8 @@ public class TargetXMLWriter extends AbstractXMLWriter {
                 serializeFilter((RegexArchiveFilter)filter); 
             } else if (FileSizeArchiveFilter.class.isAssignableFrom(filter.getClass())) {
                 serializeFilter((FileSizeArchiveFilter)filter); 
-            } else if (LinkFilter.class.isAssignableFrom(filter.getClass())) {
-                serializeFilter((LinkFilter)filter); 
+            } else if (SpecialFileFilter.class.isAssignableFrom(filter.getClass())) {
+                serializeFilter((SpecialFileFilter)filter); 
             } else if (LockedFileFilter.class.isAssignableFrom(filter.getClass())) {
                 serializeFilter((LockedFileFilter)filter); 
             } else if (FileDateArchiveFilter.class.isAssignableFrom(filter.getClass())) {
@@ -384,8 +384,34 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         serializeFilterGenericData(filter, XML_FILTER_FILEDATE, true);
     }
     
-    protected void serializeFilter(LinkFilter filter) {
-        serializeFilterGenericData(filter, XML_FILTER_LINK, false);
+    protected void serializeFilter(SpecialFileFilter filter) {
+        sb.append("\n<");
+        sb.append(XML_FILTER_TP);
+        sb.append(" ");
+        sb.append(XML_FILTER_EXCLUDE);
+        sb.append("=");
+        sb.append(encode(filter.isExclude()));
+        sb.append(" ");
+        sb.append(XML_FILTER_TP_BLOCKSPECFILE);
+        sb.append("=");
+        sb.append(encode(filter.isBlockSpecFile()));
+        sb.append(" ");
+        sb.append(XML_FILTER_TP_CHARSPECFILE);
+        sb.append("=");
+        sb.append(encode(filter.isCharSpecFile()));
+        sb.append(" ");
+        sb.append(XML_FILTER_TP_PIPE);
+        sb.append("=");
+        sb.append(encode(filter.isPipe()));
+        sb.append(" ");
+        sb.append(XML_FILTER_TP_SOCKET);
+        sb.append("=");
+        sb.append(encode(filter.isSocket()));
+        sb.append(" ");
+        sb.append(XML_FILTER_TP_LINK);
+        sb.append("=");
+        sb.append(encode(filter.isLink()));
+        sb.append("/>");  
     }
 
     protected void serializeFilter(LockedFileFilter filter) {

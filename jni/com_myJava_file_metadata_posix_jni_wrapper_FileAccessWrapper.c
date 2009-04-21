@@ -19,7 +19,7 @@
  * <BR>Library generation : gcc -shared -lacl -Wl,-soname,libarecafs.so -o libarecafs.so  com_myJava_file_metadata_posix_jni_wrapper_FileAccessWrapper.o
  *
  * 
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -190,8 +190,6 @@ JNIEXPORT jobject JNICALL Java_com_myJava_file_metadata_posix_jni_wrapper_FileAc
       jfieldID fst_rdev = (*env)->GetFieldID (env, clazz, "st_rdev", "J");
       jfieldID fst_blksize = (*env)->GetFieldID (env, clazz, "st_blksize", "J");
       jfieldID fst_blocks = (*env)->GetFieldID (env, clazz, "st_blocks", "J");
-      jfieldID f__unused4 = (*env)->GetFieldID (env, clazz, "__unused4", "J");
-      jfieldID f__unused5 = (*env)->GetFieldID (env, clazz, "__unused5", "J");
 
       // Init return object
       (*env)->SetIntField (env, obj, fst_ctime, myfstat.st_ctime);
@@ -207,8 +205,6 @@ JNIEXPORT jobject JNICALL Java_com_myJava_file_metadata_posix_jni_wrapper_FileAc
       (*env)->SetIntField (env, obj, fst_rdev, myfstat.st_rdev);
       (*env)->SetIntField (env, obj, fst_blksize, myfstat.st_blksize);
       (*env)->SetIntField (env, obj, fst_blocks, myfstat.st_blocks);
-      (*env)->SetIntField (env, obj, f__unused4, myfstat.__unused4);
-      (*env)->SetIntField (env, obj, f__unused5, myfstat.__unused5);
    }
 
    // Return object

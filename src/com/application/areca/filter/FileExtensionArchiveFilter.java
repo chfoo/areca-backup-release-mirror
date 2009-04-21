@@ -16,7 +16,7 @@ import com.myJava.object.HashHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -53,7 +53,6 @@ public class FileExtensionArchiveFilter extends AbstractArchiveFilter {
             if (i != 0) {
                 sb.append(SEPARATOR);
             }
-            sb.append("*");
             sb.append((String)extensions.get(i));
         }
         
@@ -64,29 +63,13 @@ public class FileExtensionArchiveFilter extends AbstractArchiveFilter {
         StringTokenizer stt = new StringTokenizer(parameters, ",");
         while (stt.hasMoreTokens()) {
             String ext = stt.nextToken().trim();
-            if (ext.length() < 3) {
-                return false;
-            }                
-            
-            if (! ext.startsWith("*")) {
-                return false;
+            if (ext.startsWith("*")) {
+            	ext = ext.substring(1);
             }
             
-            if (ext.charAt(1) != '.') {
+            if (ext.length() == 0) {
                 return false;
-            }
-            
-            if (ext.indexOf(' ') != -1) {
-                return false;
-            }
-            
-            if (ext.indexOf(';') != -1) {
-                return false;
-            }
-            
-            if (ext.indexOf(':') != -1) {
-                return false;
-            }                                
+            }                                               
         }   
         return true;
     }
@@ -99,7 +82,11 @@ public class FileExtensionArchiveFilter extends AbstractArchiveFilter {
         StringTokenizer stt = new StringTokenizer(parameters, SEPARATOR);
         this.extensions.clear();
         while (stt.hasMoreTokens()) {
-            this.addExtension(stt.nextToken().trim().substring(1));
+        	String ext = stt.nextToken().trim();
+            if (ext.startsWith("*")) {
+            	ext = ext.substring(1);
+            }
+            this.addExtension(ext);
         }
     }
 

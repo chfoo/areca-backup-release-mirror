@@ -33,7 +33,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -226,11 +226,14 @@ implements LogProcessor, Refreshable, Listener {
 
 			SecuredRunner.execute(Application.getInstance().getMainWindow().getShell(), new Runnable() {
 				public void run() {
-					MessageBox msg = new MessageBox(Application.getInstance().getMainWindow().getShell(), SWT.OK | SWT.ICON_INFORMATION);
+					MessageBox msg = new MessageBox(Application.getInstance().getMainWindow().getShell(), SWT.OK | SWT.CANCEL | SWT.ICON_INFORMATION);
 					msg.setText(title);
 					msg.setMessage(message);
 
-					msg.open();
+					int ret = msg.open();
+					if (ret != SWT.OK) {
+						throw new IllegalStateException("Task canceled by user.");
+					}
 				}
 			});
 		}

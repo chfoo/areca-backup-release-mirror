@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.myJava.object.ToStringHelper;
+
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -66,5 +68,13 @@ public class FileFilterList {
 	
 	public String[] toArray() {
 		return (String[])content.toArray(new String[content.size()]);
+	}
+
+	public String toString() {
+		StringBuffer sb = ToStringHelper.init(this);
+		ToStringHelper.append("ContainsDirs", containsDirectories, sb);
+		ToStringHelper.append("ContainsFiles", containsFiles, sb);
+		ToStringHelper.append("Filters", content.toString(), sb);
+		return ToStringHelper.close(sb);
 	}
 }

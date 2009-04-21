@@ -3,7 +3,7 @@
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -36,6 +36,7 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.Vector;
 
+import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.Logger;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
@@ -444,6 +445,11 @@ public abstract class Util {
      */
     public static boolean passFilter(String s, String[] filter) {
         for (int i=0; i<filter.length; i++) {
+        	// Check that the filter is normalized
+			if (FileNameUtil.endsWithSeparator(filter[i])) {
+				filter[i] = filter[i].substring(0, filter[i].length() - 1);
+			}
+        	
             if (filter[i].length() == 0 || s.equals(filter[i]) || s.startsWith(filter[i] + "/")) {
                 return true;
             }

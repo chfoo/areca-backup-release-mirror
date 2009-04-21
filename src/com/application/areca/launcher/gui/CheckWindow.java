@@ -1,5 +1,6 @@
 package com.application.areca.launcher.gui;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.jface.viewers.TableViewer;
@@ -32,7 +33,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -180,17 +181,26 @@ extends AbstractWindow {
     	});
     }
     
-    public void setResult(final List errorFiles, final List uncheckedFiles) {
+    public void setResult(final List errorFiles, final List uncheckedFiles, final List unrecoveredFiles, final long nbChecked) {
     	final String invalidMsg = RM.getLabel("check.invalid.label");
     	final String uncheckedMsg = RM.getLabel("check.unchecked.label");
-	
+    	final String unrecoveredMsg = RM.getLabel("check.unrecovered.label");
+    	
     	SecuredRunner.execute(new Runnable() {
 			public void run() {
 		    	try {	
 		            application.disableWaitCursor(CheckWindow.this);
 		            
+					// Unrecovered files
+					Iterator iter = unrecoveredFiles.iterator();
+					while (iter.hasNext()) {
+					    TableItem item = new TableItem(table, SWT.NONE);
+					    item.setText(0, (String)iter.next());
+					    item.setText(1, unrecoveredMsg);
+					}
+		            
 		            // Files in error
-					java.util.Iterator iter = errorFiles.iterator();
+					iter = errorFiles.iterator();
 					while (iter.hasNext()) {
 					    TableItem item = new TableItem(table, SWT.NONE);
 					    item.setText(0, (String)iter.next());
@@ -210,7 +220,7 @@ extends AbstractWindow {
 					} else if (! uncheckedFiles.isEmpty()) {
 						result.setText(RM.getLabel("check.unchecked.message"));
 					} else {
-						result.setText(RM.getLabel("check.ok.message"));
+						result.setText(RM.getLabel("check.ok.message") + " (" + nbChecked + ")");
 					}
 				} catch (SWTException e) {
 					// Widget disposed

@@ -8,7 +8,7 @@ import java.io.IOException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -31,6 +31,40 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface FileMetaDataAccessor {
+	/**
+	 * file
+	 */
+	public static short TYPE_FILE = 1;
+	
+	/**
+	 * directory
+	 */
+	public static short TYPE_DIRECTORY = 2;
+	
+	/**
+	 * pipe
+	 */
+	public static short TYPE_PIPE = 3;
+	
+	/**
+	 * socket
+	 */
+	public static short TYPE_SOCKET = 4;
+	
+	/**
+	 * character special file
+	 */
+	public static short TYPE_CHAR_SPEC_FILE = 5;
+	
+	/**
+	 * block special file
+	 */
+	public static short TYPE_BLOCK_SPEC_FILE = 6;
+	
+	/**
+	 * symbolic link
+	 */
+	public static short TYPE_LINK = 7;
 	
 	/**
 	 * Return a description of the accessor
@@ -75,23 +109,12 @@ public interface FileMetaDataAccessor {
 	public boolean extendedAttributesSupported();
 	
 	/**
-	 * Is the accessor able to distinguish between standard files / directories and symbolic links ? 
+	 * Return the file's type (see enum)
 	 */
-	public boolean symLinksSupported();
+	public short getType(File f) throws IOException;
 	
 	/**
-	 * Is the file a symbolic link ?
+	 * Is the accessor able to detect the file type passed as argument ? 
 	 */
-	public boolean isSymLink(File file) throws IOException;
-	
-	/**
-	 * Is the accessor able to distinguish between standard files / directories and non standard
-	 * files (pipes, socket, block special files, ...) ? 
-	 */
-	public boolean nonStandardFilesSupported();
-	
-	/**
-	 * Is the file a non standard file (pipes, socket, block special files, ...) ?
-	 */
-	public boolean isNonStandardFile(File file) throws IOException;
+	public boolean typeSupported(short type);
 }

@@ -8,6 +8,7 @@ import com.application.areca.metadata.MetadataConstants;
 import com.application.areca.metadata.MetadataEncoder;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.metadata.FileMetaData;
+import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.file.metadata.FileMetaDataAccessorHelper;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.file.metadata.FileMetaDataSerializer;
@@ -18,12 +19,13 @@ import com.myJava.util.log.Logger;
  * <BR>File : 		f[NAME];[SIZE];[DATE];[PERMS]			-> Hash = "[SIZE];[DATE]"
  * <BR>Directory : 	d[NAME];[DATE];[PERMS]					-> Hash = ""
  * <BR>SymLink : 	s[NAME];[d/f][PATH];[DATE];[PERMS]		-> Hash = "[d/f][PATH]"
+ * <BR>Pipe : 		p[NAME];[DATE];[PERMS]					-> Hash = ""
  * <BR>'@' are reencoded as '@@'
  * <BR>';' are reencoded as '@P'
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -189,6 +191,11 @@ public class ArchiveTraceParser {
 			throw e;
 		}
 	}
+	
+	// <type>path[;date;attributes]
+	public static FileMetaData extractPipeAttributesFromTrace(String trace, long version) throws FileMetaDataSerializationException {
+		return extractDirectoryAttributesFromTrace(trace, version);
+	}
 
 	/**
 	 * Builds the key + hash
@@ -198,15 +205,24 @@ public class ArchiveTraceParser {
 			boolean trackMetaData, 
 			boolean trackSymlinks
 	) throws IOException, FileMetaDataSerializationException {
-		StringBuffer sb = new StringBuffer();
 		if (entry == null) {
 			return null;
-		} else if (trackSymlinks && FileMetaDataAccessorHelper.getFileSystemAccessor().isSymLink(entry.getFile())) {      
+		}
+		
+		StringBuffer sb = new StringBuffer();
+		short type = FileSystemManager.getType(entry.getFile());
+		if (trackSymlinks && FileMetaDataAccessor.TYPE_LINK == type) {      
 			sb
 			.append(MetadataConstants.T_SYMLINK)                
 			.append(MetadataEncoder.encode(entry.getKey()))
 			.append(MetadataConstants.SEPARATOR)
 			.append(hash(entry, true))
+			.append(MetadataConstants.SEPARATOR)
+			.append(FileSystemManager.lastModified(entry.getFile())); 
+		} else if (trackSymlinks && FileMetaDataAccessor.TYPE_PIPE == type) {      
+			sb
+			.append(MetadataConstants.T_PIPE)                
+			.append(MetadataEncoder.encode(entry.getKey()))
 			.append(MetadataConstants.SEPARATOR)
 			.append(FileSystemManager.lastModified(entry.getFile())); 
 		} else if (FileSystemManager.isFile(entry.getFile())) {

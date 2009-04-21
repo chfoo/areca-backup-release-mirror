@@ -16,7 +16,7 @@ import com.myJava.system.OSTool;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -79,6 +79,10 @@ implements FileSystemDriver {
     }
 
     public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
+        throw new UnsupportedOperationException("This method is not supported by this implementation");
+    }
+    
+    public boolean createNamedPipe(File pipe) throws IOException {
         throw new UnsupportedOperationException("This method is not supported by this implementation");
     }
 

@@ -10,7 +10,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -217,6 +217,10 @@ public final class Logger {
 
 	public void error(String message) {
 		log(1, message, "");
+	}
+	
+	public void warn(String message, Throwable e) {
+		warn(message, e, "");
 	}
 
 	public void warn(String message, String source) {

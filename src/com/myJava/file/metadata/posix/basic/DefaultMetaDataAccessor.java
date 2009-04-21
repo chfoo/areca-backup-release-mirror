@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -175,20 +175,22 @@ public class DefaultMetaDataAccessor implements FileMetaDataAccessor {
 	public boolean extendedAttributesSupported() {
 		return false;
 	}
-	
-	public boolean nonStandardFilesSupported() {
-		return false;
+
+	public short getType(File f) throws IOException {
+		if (isSymLink(f)) {
+			return TYPE_LINK;
+		} else if (f.isDirectory()) {
+			return TYPE_DIRECTORY;
+		} else {
+			return TYPE_FILE;
+		}
 	}
 
-	public boolean symLinksSupported() {
-		return true;
-	}
-	
-	public boolean isNonStandardFile(File file) {
-		return false;
+	public boolean typeSupported(short type) {
+		return (type == TYPE_DIRECTORY || type == TYPE_FILE || type == TYPE_LINK);
 	}
 
-	public boolean isSymLink(File f) throws IOException {
+	private boolean isSymLink(File f) throws IOException {
         if (! f.exists()) {
             return true;  // Specific case of dangling symbolic links
         } else {

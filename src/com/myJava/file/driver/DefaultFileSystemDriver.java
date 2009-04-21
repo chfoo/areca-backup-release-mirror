@@ -26,7 +26,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -97,309 +97,325 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	 * "/home/toto/titi/../tutu" will return "/home/toto/titi/../tutu" 
 	 * @see File#getAbsolutePath()
 	 */
-	 public String getAbsolutePath(File file) {
-		 return normalizeIfNeeded(file.getAbsolutePath());
-	 }
+	public String getAbsolutePath(File file) {
+		return normalizeIfNeeded(file.getAbsolutePath());
+	}
 
-	 public File getCanonicalFile(File file) throws IOException {
-		 return file.getCanonicalFile();
-	 }
+	public File getCanonicalFile(File file) throws IOException {
+		return file.getCanonicalFile();
+	}
 
-	 public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
-		 checkWriteAccess(symlink);
-		 checkFilePath(symlink);
-		 
-		 if (OSTool.isSystemWindows()) {
-			 return false;
-		 } else {
-	    	OSTool.execute(new String[] {"ln", "-s", realPath, FileSystemManager.getAbsolutePath(symlink)});
-	        return true;
-		 }
-	 }
+	public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
+		checkWriteAccess(symlink);
+		checkFilePath(symlink);
 
-	 public void mount() throws IOException {
-	 }
+		if (OSTool.isSystemWindows()) {
+			return false;
+		} else {
+			OSTool.execute(new String[] {"ln", "-s", realPath, FileSystemManager.getAbsolutePath(symlink)});
+			return true;
+		}
+	}
 
-	 public void unmount() throws IOException {
-		 this.flush();
-	 }
+	public boolean createNamedPipe(File pipe) throws IOException {
+		checkWriteAccess(pipe);
+		checkFilePath(pipe);
 
-	 /**
-	  * "/home/toto/titi/../tutu" will return "/home/toto/tutu" 
-	  * @see File#getCanonicalPath()
-	  */
-	 public String getCanonicalPath(File file) throws IOException {
-		 return normalizeIfNeeded(file.getCanonicalPath());
-	 }
+		if (OSTool.isSystemWindows()) {
+			return false;
+		} else {
+			OSTool.execute(new String[] {"mkfifo", FileSystemManager.getAbsolutePath(pipe)});
+			return true;
+		}
+	}
 
-	 public String getName(File file) {
-		 return file.getName();
-	 }
+	public void mount() throws IOException {
+	}
 
-	 public String getParent(File file) {
-		 return normalizeIfNeeded(file.getParent());
-	 }
+	public void unmount() throws IOException {
+		this.flush();
+	}
 
-	 public File getParentFile(File file) {
-		 return file.getParentFile();
-	 }
+	/**
+	 * "/home/toto/titi/../tutu" will return "/home/toto/tutu" 
+	 * @see File#getCanonicalPath()
+	 */
+	public String getCanonicalPath(File file) throws IOException {
+		return normalizeIfNeeded(file.getCanonicalPath());
+	}
 
-	 public String getPath(File file) {
-		 return normalizeIfNeeded(file.getPath());
-	 }
+	public short getType(File file) throws IOException {
+		return FileMetaDataAccessorHelper.getFileSystemAccessor().getType(file);
+	}
 
-	 public boolean isAbsolute(File file) {
-		 return file.isAbsolute();
-	 }
+	public String getName(File file) {
+		return file.getName();
+	}
 
-	 public boolean isDirectory(File file) {
-		 return file.isDirectory();
-	 }
+	public String getParent(File file) {
+		return normalizeIfNeeded(file.getParent());
+	}
 
-	 public boolean isFile(File file) {
-		 return file.isFile();
-	 }
+	public File getParentFile(File file) {
+		return file.getParentFile();
+	}
 
-	 public boolean isHidden(File file) {
-		 return file.isHidden();
-	 }
+	public String getPath(File file) {
+		return normalizeIfNeeded(file.getPath());
+	}
 
-	 public long lastModified(File file) {
-		 return file.lastModified();
-	 }
+	public boolean isAbsolute(File file) {
+		return file.isAbsolute();
+	}
 
-	 public long length(File file) {
-		 return file.length();
-	 }
+	public boolean isDirectory(File file) {
+		return file.isDirectory();
+	}
 
-	 public String[] list(File file, FilenameFilter filter) {
-		 try {
-			 String[] files = file.list(filter);
-			 if (files != null) {
-				 for (int i=0; i<files.length; i++) {
-					 files[i] = normalizeIfNeeded(files[i]);
-				 }
-			 }
-			 return files;
-		 } catch (RuntimeException e) {
-			 if (file != null) {
-				 Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
-			 }
-			 throw e;
-		 }
-	 }
+	public boolean isFile(File file) {
+		return file.isFile();
+	}
 
-	 public String[] list(File file) {
-		 try {
-			 String[] files = file.list();
-			 if (files != null) {
-				 for (int i=0; i<files.length; i++) {
-					 files[i] = normalizeIfNeeded(files[i]);
-				 }
-			 }
-			 return files;
-		 } catch (RuntimeException e) {
-			 if (file != null) {
-				 Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
-			 }
-			 throw e;
-		 }
-	 }
+	public boolean isHidden(File file) {
+		return file.isHidden();
+	}
 
-	 public File[] listFiles(File file, FileFilter filter) {
-		 try {
-			 return file.listFiles(filter);
-		 } catch (RuntimeException e) {
-			 if (file != null) {
-				 Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
-			 }
-			 throw e;
-		 }
-	 }
+	public long lastModified(File file) {
+		return file.lastModified();
+	}
 
-	 public File[] listFiles(File file, FilenameFilter filter) {
-		 try {
-			 return file.listFiles(filter);
-		 } catch (Exception e) {
-			 if (file != null) {
-				 Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
-			 }
-			 return null;
-		 }
-	 }
+	public long length(File file) {
+		return file.length();
+	}
 
-	 public File[] listFiles(File file) {
-		 try {
-			 if (file.isFile()) {
-				 return new File[0];
-			 } else {
-				 return file.listFiles();
-			 }
-		 } catch (NullPointerException e) {
-			 // Seems to be a bug in open source VMs (GNU libgcj) with some characters (german "Umlaut"s for instance)
-			 if (file != null) {
-				 Logger.defaultLogger().error("Error during file list (for : " + file.getAbsolutePath() + "). It is probably due to the fact that you use an incompatible Java Runtime Environment. Note that Sun Microsystem's Runtime Environment is highly recommended.", e);
-			 }
-			 throw e;
-		 } catch (RuntimeException e) {
-			 Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
-			 throw e;
-		 }
-	 }
+	public String[] list(File file, FilenameFilter filter) {
+		try {
+			String[] files = file.list(filter);
+			if (files != null) {
+				for (int i=0; i<files.length; i++) {
+					files[i] = normalizeIfNeeded(files[i]);
+				}
+			}
+			return files;
+		} catch (RuntimeException e) {
+			if (file != null) {
+				Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
+			}
+			throw e;
+		}
+	}
 
-	 public boolean mkdir(File file) {
-		 try {
-			 checkWriteAccess(file);
-			 checkFilePath(file);
-			 return file.mkdir();
-		 } catch (IOException e) {
-			 Logger.defaultLogger().error(e);
-			 throw new IllegalArgumentException(e.getMessage());
-		 }
-	 }
+	public String[] list(File file) {
+		try {
+			String[] files = file.list();
+			if (files != null) {
+				for (int i=0; i<files.length; i++) {
+					files[i] = normalizeIfNeeded(files[i]);
+				}
+			}
+			return files;
+		} catch (RuntimeException e) {
+			if (file != null) {
+				Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
+			}
+			throw e;
+		}
+	}
 
-	 public boolean mkdirs(File file) {
-		 try {
-			 checkWriteAccess(file);
-			 checkFilePath(file);
-			 return file.mkdirs();
-		 } catch (IOException e) {
-			 Logger.defaultLogger().error(e);
-			 throw new IllegalArgumentException(e.getMessage());
-		 }
-	 }
+	public File[] listFiles(File file, FileFilter filter) {
+		try {
+			return file.listFiles(filter);
+		} catch (RuntimeException e) {
+			if (file != null) {
+				Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
+			}
+			throw e;
+		}
+	}
 
-	 public boolean renameTo(File source, File dest) {
-		 try {
-			 checkWriteAccess(dest);
-			 checkWriteAccess(source);
-			 checkFilePath(dest);
-			 return source.renameTo(dest);
-		 } catch (IOException e) {
-			 Logger.defaultLogger().error(e);
-			 throw new IllegalArgumentException(e.getMessage());
-		 }
-	 }
+	public File[] listFiles(File file, FilenameFilter filter) {
+		try {
+			return file.listFiles(filter);
+		} catch (Exception e) {
+			if (file != null) {
+				Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
+			}
+			return null;
+		}
+	}
 
-	 public boolean setLastModified(File file, long time) {
-		 checkWriteAccess(file);
-		 if (time < 0) {
-			 //throw new IllegalArgumentException("Negative time for file [" + file.getAbsolutePath() + "] : " + time);
-			 time = 0;
-		 }
-		 return file.setLastModified(time);
-	 }
+	public File[] listFiles(File file) {
+		try {
+			if (file.isFile()) {
+				return new File[0];
+			} else {
+				return file.listFiles();
+			}
+		} catch (NullPointerException e) {
+			// Seems to be a bug in open source VMs (GNU libgcj) with some characters (german "Umlaut"s for instance)
+			if (file != null) {
+				Logger.defaultLogger().error("Error during file list (for : " + file.getAbsolutePath() + "). It is probably due to the fact that you use an incompatible Java Runtime Environment. Note that Sun Microsystem's Runtime Environment is highly recommended.", e);
+			}
+			throw e;
+		} catch (RuntimeException e) {
+			Logger.defaultLogger().error("Error during call : " + file.getAbsolutePath(), e);
+			throw e;
+		}
+	}
 
-	 public boolean setReadOnly(File file) {
-		 checkWriteAccess(file);
-		 return file.setReadOnly();
-	 }
-	 
-	 public InputStream getCachedFileInputStream(File file) throws IOException {
-		 return getFileInputStream(file);
-	 }
+	public boolean mkdir(File file) {
+		try {
+			checkWriteAccess(file);
+			checkFilePath(file);
+			return file.mkdir();
+		} catch (IOException e) {
+			Logger.defaultLogger().error(e);
+			throw new IllegalArgumentException(e.getMessage());
+		}
+	}
 
-	 public InputStream getFileInputStream(File file) throws IOException {
-		 if (USE_BUFFER) {
-			 return new BufferedInputStream(new FileInputStream(file), BUFFER_SIZE);
-		 } else {
-			 return new FileInputStream(file);
-		 }
-	 }
+	public boolean mkdirs(File file) {
+		try {
+			checkWriteAccess(file);
+			checkFilePath(file);
+			return file.mkdirs();
+		} catch (IOException e) {
+			Logger.defaultLogger().error(e);
+			throw new IllegalArgumentException(e.getMessage());
+		}
+	}
 
-	 public OutputStream getCachedFileOutputStream(File file) throws IOException {
-		 checkWriteAccess(file);
-		 checkFilePath(file);
-		 return getFileOutputStream(file);
-	 }
+	public boolean renameTo(File source, File dest) {
+		try {
+			checkWriteAccess(dest);
+			checkWriteAccess(source);
+			checkFilePath(dest);
+			return source.renameTo(dest);
+		} catch (IOException e) {
+			Logger.defaultLogger().error(e);
+			throw new IllegalArgumentException(e.getMessage());
+		}
+	}
 
-	 public OutputStream getFileOutputStream(File file) throws IOException {
-		 checkWriteAccess(file);
-		 checkFilePath(file);
-		 if (USE_BUFFER) {
-			 return new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
-		 } else {
-			 return new FileOutputStream(file);
-		 }
-	 }
+	public boolean setLastModified(File file, long time) {
+		checkWriteAccess(file);
+		if (time < 0) {
+			//throw new IllegalArgumentException("Negative time for file [" + file.getAbsolutePath() + "] : " + time);
+			time = 0;
+		}
+		return file.setLastModified(time);
+	}
 
-	 public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException {
-		 OutputStream out = getFileOutputStream(file, append);
-		 return listener == null ? out : new EventOutputStream(out, listener);
-	 }
+	public boolean setReadOnly(File file) {
+		checkWriteAccess(file);
+		return file.setReadOnly();
+	}
 
-	 public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
-		 checkWriteAccess(file);
-		 checkFilePath(file);
-		 if (USE_BUFFER) {
-			 return new BufferedOutputStream(new FileOutputStream(file, append), BUFFER_SIZE);
-		 } else {
-			 return new FileOutputStream(file, append);
-		 }
-	 }
+	public InputStream getCachedFileInputStream(File file) throws IOException {
+		return getFileInputStream(file);
+	}
 
-	 public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
-		 return FileMetaDataAccessorHelper.getFileSystemAccessor().getMetaData(f, onlyBasicAttributes);
-	 }
+	public InputStream getFileInputStream(File file) throws IOException {
+		if (USE_BUFFER) {
+			return new BufferedInputStream(new FileInputStream(file), BUFFER_SIZE);
+		} else {
+			return new FileInputStream(file);
+		}
+	}
 
-	 public void applyMetaData(FileMetaData p, File f) throws IOException {
-		 checkWriteAccess(f);
-		 FileMetaDataAccessorHelper.getFileSystemAccessor().setMetaData(f, p);
-	 }
+	public OutputStream getCachedFileOutputStream(File file) throws IOException {
+		checkWriteAccess(file);
+		checkFilePath(file);
+		return getFileOutputStream(file);
+	}
 
-	 public int hashCode() {
-		 return HashHelper.initHash(this);
-	 }
+	public OutputStream getFileOutputStream(File file) throws IOException {
+		checkWriteAccess(file);
+		checkFilePath(file);
+		if (USE_BUFFER) {
+			return new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
+		} else {
+			return new FileOutputStream(file);
+		}
+	}
 
-	 public boolean equals(Object o) {
-		 if (o == null) {
-			 return false;
-		 } else {
-			 return (o instanceof DefaultFileSystemDriver);
-		 }
-	 }
+	public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException {
+		OutputStream out = getFileOutputStream(file, append);
+		return listener == null ? out : new EventOutputStream(out, listener);
+	}
 
-	 public boolean directFileAccessSupported() {
-		 return true;
-	 }
+	public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
+		checkWriteAccess(file);
+		checkFilePath(file);
+		if (USE_BUFFER) {
+			return new BufferedOutputStream(new FileOutputStream(file, append), BUFFER_SIZE);
+		} else {
+			return new FileOutputStream(file, append);
+		}
+	}
 
-	 public void deleteOnExit(File f) {
-		 checkWriteAccess(f);
-		 f.deleteOnExit();
-	 }
+	public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
+		return FileMetaDataAccessorHelper.getFileSystemAccessor().getMetaData(f, onlyBasicAttributes);
+	}
 
-	 public String toString() {
-		 StringBuffer sb = ToStringHelper.init(this);
-		 return ToStringHelper.close(sb);
-	 }
+	public void applyMetaData(FileMetaData p, File f) throws IOException {
+		checkWriteAccess(f);
+		FileMetaDataAccessorHelper.getFileSystemAccessor().setMetaData(f, p);
+	}
 
-	 public short getAccessEfficiency() {
-		 return ACCESS_EFFICIENCY_GOOD;
-	 }
+	public int hashCode() {
+		return HashHelper.initHash(this);
+	}
 
-	 public boolean isContentSensitive() {
-		 return false;
-	 }
+	public boolean equals(Object o) {
+		if (o == null) {
+			return false;
+		} else {
+			return (o instanceof DefaultFileSystemDriver);
+		}
+	}
 
-	 public FileCacheableInformations getInformations(File file) {
-		 return new FileCacheableInformations(this, file);
-	 }
+	public boolean directFileAccessSupported() {
+		return true;
+	}
 
-	 private static void checkWriteAccess(File file) {
-		 if (WRITABLE_DIRECTORIES.length == 0 || WRITABLE_DIRECTORIES == null) {
-			 // does nothing
-		 } else {
-			 String path = file.getAbsolutePath().replace('\\', '/');
-			 if (! path.endsWith("/")) {
-				 path += "/";
-			 }
-			 for (int i=0; i<WRITABLE_DIRECTORIES.length; i++) {
-				 if (path.startsWith(WRITABLE_DIRECTORIES[i])) {
-					 return;
-				 }
-			 }
-			 throw new IllegalArgumentException("File " + path + " is not writable !");
-		 }
-	 }
+	public void deleteOnExit(File f) {
+		checkWriteAccess(f);
+		f.deleteOnExit();
+	}
+
+	public String toString() {
+		StringBuffer sb = ToStringHelper.init(this);
+		return ToStringHelper.close(sb);
+	}
+
+	public short getAccessEfficiency() {
+		return ACCESS_EFFICIENCY_GOOD;
+	}
+
+	public boolean isContentSensitive() {
+		return false;
+	}
+
+	public FileCacheableInformations getInformations(File file) {
+		return new FileCacheableInformations(this, file);
+	}
+
+	private static void checkWriteAccess(File file) {
+		if (WRITABLE_DIRECTORIES.length == 0 || WRITABLE_DIRECTORIES == null) {
+			// does nothing
+		} else {
+			String path = file.getAbsolutePath().replace('\\', '/');
+			if (! path.endsWith("/")) {
+				path += "/";
+			}
+			for (int i=0; i<WRITABLE_DIRECTORIES.length; i++) {
+				if (path.startsWith(WRITABLE_DIRECTORIES[i])) {
+					return;
+				}
+			}
+			throw new IllegalArgumentException("File " + path + " is not writable !");
+		}
+	}
 }
 

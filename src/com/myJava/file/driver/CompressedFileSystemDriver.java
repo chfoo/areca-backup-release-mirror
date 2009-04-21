@@ -24,7 +24,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -69,8 +69,12 @@ extends AbstractLinkableFileSystemDriver {
     public boolean canRead(File file) {
         return this.predecessor.canRead(encode(file));
     }
-    
-    public boolean canWrite(File file) {
+
+    public short getType(File file) throws IOException {
+        return this.predecessor.getType(encode(file));
+	}
+
+	public boolean canWrite(File file) {
         return this.predecessor.canWrite(encode(file));
     }
     
@@ -456,7 +460,11 @@ extends AbstractLinkableFileSystemDriver {
     }
     
     private String encode(String name) {
-        return compression.isAddExtension() ? name + CompressionArguments.ZIP_SUFFIX : name;
+    	if (name.length() == 0) {
+    		return "";
+    	} else {
+    		return compression.isAddExtension() ? name + CompressionArguments.ZIP_SUFFIX : name;
+    	}
     }
     
     private String decode(String name) {

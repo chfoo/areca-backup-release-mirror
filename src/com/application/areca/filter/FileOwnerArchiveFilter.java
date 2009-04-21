@@ -15,7 +15,7 @@ import com.myJava.util.log.Logger;
 /**
  * @author Olivier PETRUCCI <BR>
  * 
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -49,8 +49,8 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 			throw new IllegalArgumentException("Invalid parameters : " + parameters);
 		}
 
-		owner = null;
-		group = null;
+		this.owner = null;
+		this.group = null;
 
 		String params = parameters.trim();
 		int index = params.indexOf(SEPARATOR);
@@ -66,6 +66,22 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 
 	public boolean acceptIteration(File entry) {
 		return acceptStorage(entry);
+	}
+
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
+
+	public void setGroup(String group) {
+		this.group = group;
+	}
+
+	public String getOwner() {
+		return owner;
+	}
+
+	public String getGroup() {
+		return group;
 	}
 
 	public boolean acceptStorage(File entry) {

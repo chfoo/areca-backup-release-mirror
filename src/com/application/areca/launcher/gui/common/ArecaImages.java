@@ -11,7 +11,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -34,7 +34,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ArecaImages {
-    private static final boolean showSmallIcons = false;//OSTool.isSystemWindows(); 
+    private static final boolean showSmallIcons = false;
     private static final String ICON_DIR = "icons";
     private static final String B_PREFIX = showSmallIcons ? "" : "big/";
 
@@ -81,6 +81,7 @@ public class ArecaImages {
     
     // FILESYSTEM
     public static Image ICO_FS_FILE = loadImage("binary.png");
+    public static Image ICO_FS_PIPE = loadImage("pipe.png");
     public static Image ICO_FS_FOLDER = ICO_REF_PROCESS;
     public static Image ICO_FS_FOLDER_FULL = loadImage("folder_red.png");
     public static Image ICO_FS_FOLDER_DIFFERENTIAL = loadImage("folder_green.png");   

@@ -7,7 +7,7 @@ import com.myJava.system.OSTool;
  * This class wraps native POSIX methods for file permissions management.
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*

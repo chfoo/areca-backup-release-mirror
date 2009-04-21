@@ -7,7 +7,7 @@ import com.myJava.object.ToStringHelper;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -67,8 +67,6 @@ public class GetDataResult extends AbstractMethodResult {
 	 * Actual nr of allocated blocks
 	 */
 	public long st_blocks;
-	public long __unused4;
-	public long __unused5;
 
 	public String toString() {
 		StringBuffer sb = ToStringHelper.init(this);
@@ -86,8 +84,6 @@ public class GetDataResult extends AbstractMethodResult {
 		ToStringHelper.append("st_rdev", st_rdev, sb);
 		ToStringHelper.append("st_blksize", st_blksize, sb);
 		ToStringHelper.append("st_blocks", st_blocks, sb);
-		ToStringHelper.append("__unused4", __unused4, sb);
-		ToStringHelper.append("__unused5", __unused5, sb);
 		ToStringHelper.append("returnCode", returnCode, sb);
 		ToStringHelper.append("errorNumber", errorNumber, sb);
 		ToStringHelper.append("transcodedErrorNumber", transcodedErrorNumber, sb);

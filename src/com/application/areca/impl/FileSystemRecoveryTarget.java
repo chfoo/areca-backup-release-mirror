@@ -23,7 +23,7 @@ import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.iterator.FileSystemIterator;
-import com.myJava.file.metadata.FileMetaDataAccessorHelper;
+import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.object.Duplicable;
 import com.myJava.object.DuplicateHelper;
 import com.myJava.util.errors.ActionError;
@@ -36,7 +36,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -242,7 +242,7 @@ implements TargetActions {
     			FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(this.getSourceDirectory(), f);
                 entry.setSize(FileSystemManager.length(f));
                 try {
-					entry.setLink(this.isTrackSymlinks() && FileMetaDataAccessorHelper.getFileSystemAccessor().isSymLink(f));
+					entry.setLink(this.isTrackSymlinks() && FileMetaDataAccessor.TYPE_LINK == FileSystemManager.getType(f));
 				} catch (IOException e) {
 					Logger.defaultLogger().error(e);
 					throw new ApplicationException(e);

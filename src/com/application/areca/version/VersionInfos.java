@@ -15,7 +15,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -57,9 +57,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 7299034069467778562L;
+		BUILD_ID = 2105312326281569706L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.1", new GregorianCalendar(2009, 3, 21), "Minor error messages enhancements; Named pipes are now properly handled by Areca; Better \"Check Archive\" feature."));
 		VERSIONS.add(new VersionData("7.0.9", new GregorianCalendar(2009, 3, 3), "Synchronous backup mode available from command-line interface; The 256 characters limit on file path is disabled if the Java version is over 1.6; Enhanced FTP connexions management."));
 		VERSIONS.add(new VersionData("7.0.8", new GregorianCalendar(2009, 2, 21), "Logical view bug fix; Image backups bug fix."));
 		VERSIONS.add(new VersionData("7.0.7", new GregorianCalendar(2009, 2, 17), "Regex file filter bug fix; Added 'encrypt file names' to the 'missing encryption data' window; File handle cleanup."));
@@ -127,7 +128,7 @@ public class VersionInfos {
 		VERSIONS.add(new VersionData("3.1.3", new GregorianCalendar(2006, 6, 6), "Added references to the project's home page."));
 		VERSIONS.add(new VersionData("3.1.2", new GregorianCalendar(2006, 6, 2), "Minor GUI correction (the 'Help' window didn't open correctly under Windows 2000.)"));    	
 		VERSIONS.add(new VersionData("3.1.1", new GregorianCalendar(2006, 5, 12), "Incremental storage mediums now check that the data have really changed before backup."));    	
-		VERSIONS.add(new VersionData("3.1", new GregorianCalendar(2005, 4, 21), "Archive encryption implementation."));    	
+		VERSIONS.add(new VersionData("3.1", new GregorianCalendar(2006, 4, 21), "Archive encryption implementation."));    	
 		VERSIONS.add(new VersionData("3.0", new GregorianCalendar(2006, 4, 7), "Backup simulation and single file recovery implementation."));    	
 		VERSIONS.add(new VersionData("2.7", new GregorianCalendar(2006, 3, 15), "Archive merge enhancement; Archive deletion implementation."));    	
 		VERSIONS.add(new VersionData("2.6", new GregorianCalendar(2006, 2, 22), "Archive detail window."));    	

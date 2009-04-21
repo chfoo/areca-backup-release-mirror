@@ -10,7 +10,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -50,24 +50,30 @@ implements UserInformationChannel {
     public void print(String info) {
         if (displayThreadName) {
             this.userLogger.info(info, Thread.currentThread().getName());
+            Logger.defaultLogger().info(info, Thread.currentThread().getName());
         } else {
             this.userLogger.info(info);
+            Logger.defaultLogger().info(info);
         }
     }
 
     public void warn(String info) {
         if (displayThreadName) {
             this.userLogger.warn(info, Thread.currentThread().getName());
+            Logger.defaultLogger().warn(info, Thread.currentThread().getName());
         } else {
             this.userLogger.warn(info);
+            Logger.defaultLogger().warn(info);
         }
 	}
     
     public void error(String info) {
         if (displayThreadName) {
             this.userLogger.error(info, Thread.currentThread().getName());
+            Logger.defaultLogger().error(info, Thread.currentThread().getName());
         } else {
             this.userLogger.error(info);
+            Logger.defaultLogger().error(info);
         }
 	}
 
@@ -78,8 +84,10 @@ implements UserInformationChannel {
             String info = "" + (10*pc) + "%";
             if (displayThreadName) {
                 this.userLogger.info(info, Thread.currentThread().getName());
+                Logger.defaultLogger().info(info, Thread.currentThread().getName());
             } else {
                 userLogger.info(info);
+                Logger.defaultLogger().info(info);
             }
         }
     }
@@ -100,8 +108,10 @@ implements UserInformationChannel {
         if (taskCount != 0) {
             if (displayThreadName) {
                 this.userLogger.info(taskDescription, Thread.currentThread().getName());
+                Logger.defaultLogger().info(taskDescription, Thread.currentThread().getName());
             } else {
                 this.userLogger.info(taskDescription);
+                Logger.defaultLogger().info(taskDescription);
             }
         }
     }

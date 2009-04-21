@@ -40,7 +40,7 @@ import com.myJava.util.log.Logger;
  * <BR>This file has been integrated into Areca.
  * <BR>It is has also possibly been adapted to meet Areca's needs. If such modifications has been made, they are described above.
  * <BR>Thanks to the authors for their work.
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 public class ZipOutputStream 
 extends DeflaterOutputStream 
@@ -57,7 +57,7 @@ implements ZipConstants {
     private static long ZIP32_OVERALL_SIZE_LIMIT = 4294967295L;
     private static long ZIP32_MAX_ENTRIES = 65535L;
     
-    private static String ZIP32_OVERALL_SIZE_MESSAGE = "Archive too voluminous : Zip32 archives can't grow over " + (long)(ZIP32_OVERALL_SIZE_LIMIT/1024) + " kbytes.";
+    private static String ZIP32_OVERALL_SIZE_MESSAGE = "Archive too voluminous : Zip32 archives can't grow over " + (long)(ZIP32_OVERALL_SIZE_LIMIT/1024) + " kbytes. Use Zip64 instead.";
     
     private ZipEntry entry;
     private SerializedCollection entries;

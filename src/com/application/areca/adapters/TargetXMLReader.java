@@ -20,9 +20,9 @@ import com.application.areca.filter.FileExtensionArchiveFilter;
 import com.application.areca.filter.FileOwnerArchiveFilter;
 import com.application.areca.filter.FileSizeArchiveFilter;
 import com.application.areca.filter.FilterGroup;
-import com.application.areca.filter.LinkFilter;
 import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.filter.RegexArchiveFilter;
+import com.application.areca.filter.SpecialFileFilter;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.EncryptionConfiguration;
 import com.application.areca.impl.FileSystemRecoveryTarget;
@@ -51,7 +51,7 @@ import com.myJava.file.CompressionArguments;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -178,6 +178,8 @@ public class TargetXMLReader implements XMLTags {
                 target.addFilter(this.readFileOwnerArchiveFilter( children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_LINK)) {
                 target.addFilter(this.readLinkFilter( children.item(i)));  
+            } else if (child.equalsIgnoreCase(XML_FILTER_TP)) {
+            	target.addFilter(this.readSpecFileFilter(children.item(i))); 
             } else if (child.equalsIgnoreCase(XML_FILTER_LOCKED)) {
                 target.addFilter(this.readLockedFileFilter( children.item(i)));         
             } else if (child.equalsIgnoreCase(XML_FILTER_OWNER)) {
@@ -593,21 +595,23 @@ public class TargetXMLReader implements XMLTags {
             
             // BACKWARD COMPATIBILITY
             if (child.equalsIgnoreCase(XML_FILTER_DIRECTORY)) {
-                grp.addFilter(this.readDirectoryArchiveFilter( children.item(i)));
+                grp.addFilter(this.readDirectoryArchiveFilter(children.item(i)));
             } else if (child.equalsIgnoreCase(XML_FILTER_FILEEXTENSION)) {
-                grp.addFilter(this.readFileExtensionArchiveFilter( children.item(i)));   
+                grp.addFilter(this.readFileExtensionArchiveFilter(children.item(i)));   
             } else if (child.equalsIgnoreCase(XML_FILTER_REGEX)) {
-                grp.addFilter(this.readRegexArchiveFilter( children.item(i)));  
+                grp.addFilter(this.readRegexArchiveFilter(children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_FILESIZE)) {
-                grp.addFilter(this.readFileSizeArchiveFilter( children.item(i)));  
+                grp.addFilter(this.readFileSizeArchiveFilter(children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_LINK)) {
-                grp.addFilter(this.readLinkFilter( children.item(i)));  
+                grp.addFilter(this.readLinkFilter(children.item(i)));  
+            } else if (child.equalsIgnoreCase(XML_FILTER_TP)) {
+                grp.addFilter(this.readSpecFileFilter(children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_LOCKED)) {
-                grp.addFilter(this.readLockedFileFilter( children.item(i)));                  
+                grp.addFilter(this.readLockedFileFilter(children.item(i)));                  
             } else if (child.equalsIgnoreCase(XML_FILTER_FILEDATE)) {
-                grp.addFilter(this.readFileDateArchiveFilter( children.item(i)));  
+                grp.addFilter(this.readFileDateArchiveFilter(children.item(i)));  
             } else if (child.equalsIgnoreCase(XML_FILTER_OWNER)) {
-                grp.addFilter(this.readFileOwnerArchiveFilter( children.item(i)));                 
+                grp.addFilter(this.readFileOwnerArchiveFilter(children.item(i)));                 
             } else if (child.equalsIgnoreCase(XML_FILTER_GROUP)) {
                 grp.addFilter(this.readFilterGroup(children.item(i)));  
             }
@@ -646,9 +650,37 @@ public class TargetXMLReader implements XMLTags {
         return filter;
     }
     
-    protected LinkFilter readLinkFilter(Node filterNode) throws AdapterException {     
-        LinkFilter filter = new LinkFilter();
+    /**
+     * Backward compatibility
+     */
+    protected SpecialFileFilter readLinkFilter(Node filterNode) throws AdapterException {     
+        SpecialFileFilter filter = new SpecialFileFilter();
         initFilter(filter, filterNode, null);
+        filter.setLink(true);
+        return filter;
+    }
+    
+    protected SpecialFileFilter readSpecFileFilter(Node filterNode) throws AdapterException {     
+        SpecialFileFilter filter = new SpecialFileFilter();
+        initFilter(filter, filterNode, null);
+        
+        Node node;
+        
+        node = filterNode.getAttributes().getNamedItem(XML_FILTER_TP_LINK);
+        filter.setLink(node != null && node.getNodeValue().equalsIgnoreCase("true"));
+        
+        node = filterNode.getAttributes().getNamedItem(XML_FILTER_TP_BLOCKSPECFILE);
+        filter.setBlockSpecFile(node != null && node.getNodeValue().equalsIgnoreCase("true"));
+        
+        node = filterNode.getAttributes().getNamedItem(XML_FILTER_TP_CHARSPECFILE);
+        filter.setCharSpecFile(node != null && node.getNodeValue().equalsIgnoreCase("true"));
+        
+        node = filterNode.getAttributes().getNamedItem(XML_FILTER_TP_PIPE);
+        filter.setPipe(node != null && node.getNodeValue().equalsIgnoreCase("true"));
+        
+        node = filterNode.getAttributes().getNamedItem(XML_FILTER_TP_SOCKET);
+        filter.setSocket(node != null && node.getNodeValue().equalsIgnoreCase("true"));
+
         return filter;
     }
     

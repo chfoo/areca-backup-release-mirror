@@ -15,7 +15,7 @@ import com.myJava.file.metadata.FileMetaData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -114,6 +114,17 @@ public interface FileSystemDriver {
      * Create a Symbolic link
      */
     public boolean createSymbolicLink(File symlink, String realPath) throws IOException;
+    
+    /**
+     * Return the type of the file
+     * <BR>See types listed in FileMetaDataAccessor 
+     */
+    public short getType(File file) throws IOException;
+    
+    /**
+     * Create a named pipe
+     */
+    public boolean createNamedPipe(File pipe) throws IOException;
     
     /**
      * Applies the attributes provided as argument 

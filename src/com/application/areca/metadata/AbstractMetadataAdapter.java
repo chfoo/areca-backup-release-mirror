@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -148,7 +148,7 @@ public abstract class AbstractMetadataAdapter {
         	
 	        if (version < 5) {
 	        	Logger.defaultLogger().warn("Incompatible metadata format : version=" + version);
-	        	throw new IllegalArgumentException("The archive your are trying to read was created with a old version of Areca. Your current version of Areca (" + VersionInfos.getLastVersion().getVersionId() + ") is not compatible with archives created with older versions than 7.0.");
+	        	throw new IllegalArgumentException("The archive your are trying to read was created with an old version of Areca. Your current version of Areca (" + VersionInfos.getLastVersion().getVersionId() + ") is not compatible with archives created with older versions than 7.0.");
 	        }
         }
         

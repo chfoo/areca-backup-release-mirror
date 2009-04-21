@@ -1,11 +1,13 @@
 package com.myJava.file.driver.remote.ftp;
 
 import java.io.File;
+import java.io.IOException;
 
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.driver.remote.AbstractRemoteFileSystemDriver;
 import com.myJava.file.driver.remote.RemoteFileInfoCache;
+import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
@@ -26,7 +28,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -76,7 +78,15 @@ public class FTPFileSystemDriver extends AbstractRemoteFileSystemDriver {
         }
     }
 
-    // Converts the remote file name to a local file name    
+    public short getType(File file) throws IOException {
+    	if (isFile(file)) {
+    		return FileMetaDataAccessor.TYPE_FILE;
+    	} else {
+    		return FileMetaDataAccessor.TYPE_DIRECTORY;
+    	}
+	}
+
+	// Converts the remote file name to a local file name    
     protected String translateToLocal(String remoteFile) {
         int l = getNormalizedRemoteRoot().length();
 

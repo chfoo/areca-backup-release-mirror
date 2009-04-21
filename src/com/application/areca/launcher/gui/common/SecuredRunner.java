@@ -10,7 +10,7 @@ import com.application.areca.launcher.gui.Application;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -37,6 +37,7 @@ implements Runnable {
     
     private Widget parent;
     private Display parent2;
+    private RuntimeException exception;
     private Runnable runnable;
 
     private SecuredRunner(Widget parent, Runnable runnable) {
@@ -49,12 +50,20 @@ implements Runnable {
         this.runnable = runnable;
     }
 
-    public void run() {
+    public RuntimeException getException() {
+		return exception;
+	}
+
+	public void run() {
         if (
                 (parent != null && ! parent.isDisposed())
                 || (parent2 != null && ! parent2.isDisposed())
         ) {
-            runnable.run();
+            try {
+				runnable.run();
+			} catch (RuntimeException e) {
+				exception = e;
+			}
         }
     }
     
@@ -62,9 +71,16 @@ implements Runnable {
         execute(window.getShell(), runnable);
     }
     
+    /**
+     * Return a status flag (ok / nok)
+     */
     public static void execute(Widget parent, Runnable runnable) {
         if (parent != null && ! parent.isDisposed()) {
-            parent.getDisplay().syncExec(new SecuredRunner(parent, runnable));
+        	SecuredRunner rn = new SecuredRunner(parent, runnable);
+            parent.getDisplay().syncExec(rn);
+            if (rn.getException() != null) {
+            	throw rn.getException();
+            }
         }
     }
     
@@ -84,6 +100,9 @@ implements Runnable {
         	} else {
         		parent.syncExec(rn);
         	}
+            if (rn.getException() != null) {
+            	throw rn.getException();
+            }
         }
     }
     

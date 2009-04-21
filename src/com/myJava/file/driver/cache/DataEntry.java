@@ -12,7 +12,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -45,12 +45,14 @@ public class DataEntry {
     private boolean hidden;
     private boolean directory;
     private boolean exists;
+    private short type;
     
     private boolean readableSet;
     private boolean writableSet;
     private boolean hiddenSet;
     private boolean directorySet;
     private boolean existsSet;
+    private boolean typeSet;
     
     private DataEntry parent = null;
     
@@ -186,6 +188,9 @@ public class DataEntry {
         if (isSet(length)) {
             ToStringHelper.append("length", length, sb);
         }
+        if (typeSet) {
+            ToStringHelper.append("type", type, sb);
+        }
         if (readableSet) {
             ToStringHelper.append("readable", readable, sb);
         }
@@ -257,6 +262,7 @@ public class DataEntry {
         this.existsSet = false;
         this.hiddenSet = false;
         this.readableSet = false;
+        this.typeSet = false;
         this.writableSet = false;
         this.clearChildren();
     }
@@ -293,6 +299,18 @@ public class DataEntry {
         this.readable = readable;
         this.readableSet = true;
     }
+    
+    public short getType() {
+        if (! typeSet) {
+            throw new IllegalStateException();
+        }
+        return type;
+    }
+    
+    public void setType(short type) {
+        this.type = type;
+        this.typeSet = true;
+    }
 
     public boolean isWritable() {
         if (! writableSet) {
@@ -320,6 +338,10 @@ public class DataEntry {
     public boolean isReadableSet() {
         return readableSet;
     }
+    
+    public boolean isTypeSet() {
+        return typeSet;
+    }
 
     public boolean isWritableSet() {
         return writableSet;
@@ -338,6 +360,8 @@ public class DataEntry {
         this.hiddenSet = o.hiddenSet;
         this.readable = o.readable;
         this.readableSet = o.readableSet;
+        this.typeSet = o.typeSet;
+        this.type = o.type;
         this.writable = o.writable;
         this.writableSet = o.writableSet;
         this.lastModified = o.lastModified;

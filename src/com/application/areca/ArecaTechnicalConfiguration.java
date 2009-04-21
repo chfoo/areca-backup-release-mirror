@@ -6,7 +6,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -61,6 +61,11 @@ extends FrameworkConfiguration {
      * Enable backup debug log
      */
     public static String KEY_BACKUP_DEBUG_MODE = "backup.debug";
+    
+    /**
+     * Enable check debug log
+     */
+    public static String KEY_CHECK_DEBUG_MODE = "check.debug";
     
     /**
      * Enable storage location accesses debug log
@@ -143,6 +148,7 @@ extends FrameworkConfiguration {
     public static double DEF_MEMORY_SAFETY_MARGIN = 0.0;
     public static boolean DEF_XML_BACKUP = true;
     public static boolean DEF_BACKUP_DEBUG_MODE = false;
+    public static boolean DEF_CHECK_DEBUG_MODE = false;
     public static boolean DEF_REPOSITORYACCESS_DEBUG = false;
     public static boolean DEF_FILESTREAMS_DEBUG = false;
     public static boolean DEF_REPOSITORYACCESS_HD_CACHE = false;
@@ -259,5 +265,9 @@ extends FrameworkConfiguration {
     
     public boolean isBackupDebug() {
         return getProperty(KEY_BACKUP_DEBUG_MODE, DEF_BACKUP_DEBUG_MODE);
+    }
+    
+    public boolean isCheckDebug() {
+        return getProperty(KEY_CHECK_DEBUG_MODE, DEF_CHECK_DEBUG_MODE);
     }
 }

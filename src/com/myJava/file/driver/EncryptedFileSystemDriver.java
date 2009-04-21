@@ -33,7 +33,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -126,6 +126,10 @@ extends AbstractLinkableFileSystemDriver {
 
 	public boolean canRead(File file) {
 		return this.predecessor.canRead(this.encryptFileName(file));
+	}
+
+	public short getType(File file) throws IOException {
+		return this.predecessor.getType(this.encryptFileName(file));
 	}
 
 	public boolean canWrite(File file) {

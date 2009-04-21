@@ -43,7 +43,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * 
  * @author Olivier PETRUCCI <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -65,8 +65,10 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ArchiveExplorer extends Composite implements MouseListener,
-		Listener {
+public class ArchiveExplorer 
+extends Composite 
+implements MouseListener, Listener {
+	
 	private static int ITEM_STYLE = SWT.NONE;
 	private final ResourceManager RM = ResourceManager.instance();
 
@@ -174,8 +176,8 @@ public class ArchiveExplorer extends Composite implements MouseListener,
 		}
 	}
 
-	private void refreshNode(TreeItem item, TraceEntry entry, Tree tree)
-			throws ApplicationException {
+	private void refreshNode(TreeItem item, TraceEntry entry, Tree tree) 
+	throws ApplicationException {
 		// Get data to display
 		List entries;
 		if (logicalView) {
@@ -210,7 +212,7 @@ public class ArchiveExplorer extends Composite implements MouseListener,
 		TraceEntry data = (TraceEntry) item.getData();
 		long length = 0;
 		boolean stored = true;
-		if (data.getType() != MetadataConstants.T_SYMLINK) {
+		if (data.getType() != MetadataConstants.T_SYMLINK && data.getType() != MetadataConstants.T_PIPE) {
 			length = Math.max(0, Long.parseLong(data.getData().substring(1)));
 			stored = data.getData().charAt(0) == '1';
 		}
@@ -221,15 +223,18 @@ public class ArchiveExplorer extends Composite implements MouseListener,
 			item.setForeground(Colors.C_LIGHT_GRAY);
 		}
 
-		if (data.getType() == MetadataConstants.T_SYMLINK) {
+		if (data.getType() == MetadataConstants.T_SYMLINK || data.getType() == MetadataConstants.T_PIPE) {
 			// SymLinks
 			item.setFont(deriveItalicFont(item));
 		}
 
-		if (data.getType() == MetadataConstants.T_DIR
-				|| (data.getType() == MetadataConstants.T_SYMLINK && data
-						.getData().equals("0"))) {
+		if (
+				data.getType() == MetadataConstants.T_DIR 
+				|| (data.getType() == MetadataConstants.T_SYMLINK && data.getData().equals("0"))
+		) {
 			item.setImage(ArecaImages.ICO_FS_FOLDER);
+		} else if (data.getType() == MetadataConstants.T_PIPE) {
+			item.setImage(ArecaImages.ICO_FS_PIPE);
 		} else {
 			item.setImage(ArecaImages.ICO_FS_FILE);
 		}
@@ -254,8 +259,7 @@ public class ArchiveExplorer extends Composite implements MouseListener,
 	private Font deriveItalicFont(TreeItem item) {
 		if (this.italic == null) {
 			FontData dt = item.getFont().getFontData()[0];
-			FontData dtItalic = new FontData(dt.getName(), dt.height,
-					SWT.ITALIC);
+			FontData dtItalic = new FontData(dt.getName(), dt.getHeight(), SWT.ITALIC);
 			return new Font(item.getDisplay(), new FontData[] { dtItalic });
 		}
 		return italic;
@@ -312,7 +316,13 @@ public class ArchiveExplorer extends Composite implements MouseListener,
             TraceEntry data = (TraceEntry)current.getData();
             filter[i] = data.getKey() + (data.getType() == MetadataConstants.T_DIR ? "/" : "");
             
-            if (data.getType() != MetadataConstants.T_SYMLINK && data.getData() != null && data.getData().length() > 0 && data.getData().charAt(0) == '0') {
+            if (
+            		data.getType() != MetadataConstants.T_SYMLINK 
+            		&& data.getType() != MetadataConstants.T_PIPE             		
+            		&& data.getData() != null 
+            		&& data.getData().length() > 0 
+            		&& data.getData().charAt(0) == '0'
+            ) {
                 ret.setContainsDeletedDirectory(true);
             }
         }

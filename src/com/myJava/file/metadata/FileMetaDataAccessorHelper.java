@@ -10,7 +10,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -53,7 +53,7 @@ public class FileMetaDataAccessorHelper {
 					if (INSTANCE.test()) {
 						Logger.defaultLogger().info("[" + configuredAccessor + "] validated.");
 					} else {
-						Logger.defaultLogger().warn("[" + configuredAccessor + "] not validated. The default metadata accessor will be used instead.");
+						Logger.defaultLogger().warn("[" + configuredAccessor + "] not validated. The default metadata accessor will be used instead. See Areca's FAQ for more informations about file metadata management. (ACL & extended attributes)");
 						INSTANCE = null;
 					}
 				} catch (Exception e) {

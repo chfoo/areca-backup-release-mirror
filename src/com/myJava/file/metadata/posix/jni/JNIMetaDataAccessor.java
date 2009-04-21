@@ -30,7 +30,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -53,7 +53,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class JNIMetaDataAccessor implements FileMetaDataAccessor {
-	private static final String DESCRIPTION = "Advanced meta data accessor for Linux systems. It uses lower levels system calls to handle file informations (owner, group, permissions, extended attributes, ACLs and special bits).\nThis accessor is compatible with Linux only. It won't probably work on other Posix systems (FreeBSD, Solaris, ...)";
+	private static final String DESCRIPTION = "Advanced meta data accessor for Linux systems. It uses lower levels system calls to handle file informations (owner, group, permissions, extended attributes, ACLs and special bits).";
 	private static final int BUFFER_SIZE = 1024;
 	private static final int BUFFER_MULTIPLIER = 10;
 	private static final FileMetaDataSerializer SERIALIZER = new PosixMetaDataSerializer();
@@ -231,30 +231,30 @@ public class JNIMetaDataAccessor implements FileMetaDataAccessor {
 		}
 	}
 
-	public boolean isNonStandardFile(File file) throws IOException {
-		GetDataResult dataRes = FileAccessWrapper.getData(file.getAbsolutePath(), false);
-
-		return 
-		(! FileAccessWrapper.isA((int)dataRes.st_mode, FileAccessWrapper.TYPE_DIRECTORY))
-		&& (! FileAccessWrapper.isA((int)dataRes.st_mode, FileAccessWrapper.TYPE_FILE))
-		&& (! FileAccessWrapper.isA((int)dataRes.st_mode, FileAccessWrapper.TYPE_LINK))
-		;
+	public short getType(File f) throws IOException {
+		GetDataResult dataRes = FileAccessWrapper.getData(f.getAbsolutePath(), false);
+		int mode = (int)dataRes.st_mode;
+		
+		if (FileAccessWrapper.isA(mode, FileAccessWrapper.TYPE_LINK)) {
+			return TYPE_LINK;
+		} else if (FileAccessWrapper.isA(mode, FileAccessWrapper.TYPE_BLOCKSPECIALFILE)) {
+			return TYPE_BLOCK_SPEC_FILE;
+		} else if (FileAccessWrapper.isA(mode, FileAccessWrapper.TYPE_CHARSPECFILE)) {
+			return TYPE_CHAR_SPEC_FILE;
+		} else if (FileAccessWrapper.isA(mode, FileAccessWrapper.TYPE_DIRECTORY)) {
+			return TYPE_DIRECTORY;
+		} else if (FileAccessWrapper.isA(mode, FileAccessWrapper.TYPE_FILE)) {
+			return TYPE_FILE;
+		} else if (FileAccessWrapper.isA(mode, FileAccessWrapper.TYPE_PIPE)) {
+			return TYPE_PIPE;
+		} else if (FileAccessWrapper.isA(mode, FileAccessWrapper.TYPE_SOCKET)) {
+			return TYPE_SOCKET;
+		} else {
+			throw new IOException("Type not recognized for file " + f.getAbsolutePath() + " : " + dataRes.toString());
+		}
 	}
 
-	public boolean isSymLink(File file) throws IOException {
-		GetDataResult dataRes = FileAccessWrapper.getData(file.getAbsolutePath(), false);
-		return FileAccessWrapper.isA((int)dataRes.st_mode, FileAccessWrapper.TYPE_LINK);
-	}
-
-	public boolean nonStandardFilesSupported() {
-		return true;
-	}
-
-	public boolean symLinksSupported() {
-		return true;
-	}
-
-	public boolean extendedMetaDataSupported() {
+	public boolean typeSupported(short type) {
 		return true;
 	}
 

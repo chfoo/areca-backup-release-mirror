@@ -55,7 +55,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -335,13 +335,21 @@ extends AbstractArchiveHandler {
 		// 2 : Process the files to recover
 		for (int i=0; i<localFiles.length; i++) {
 			File localArchive = localFiles[i];
+			String msg = "Processing archive " + i;
 			if (localArchive != null) {
-				Logger.defaultLogger().info("Processing " + localArchive.getAbsolutePath() + " ...");
+				msg += " (" + localArchive.getAbsolutePath() + ")";
+			}
+			msg += " ...";
+			Logger.defaultLogger().info(msg);
+			if (localArchive != null) {
 				String[] filters = null;
 				if (filtersByArchive != null) {
 					FileFilterList lstFilters = (FileFilterList)filtersByArchive.get(archivesToRecover[i]);
 					if (lstFilters == null) {
 						lstFilters = new FileFilterList();
+					}
+					if (DEBUG) {
+						Logger.defaultLogger().fine("Filter : " + lstFilters.toString());
 					}
 					filters = lstFilters.toArray();
 				}
@@ -352,6 +360,9 @@ extends AbstractArchiveHandler {
 					context.getTaskMonitor().checkTaskState();
 
 					File f = (File)iter.next();
+					if (DEBUG) {
+						Logger.defaultLogger().fine("Processing entry : " + f.getAbsolutePath());
+					}
 					if (FileSystemManager.isFile(f)) {
 						final String localPath = FileSystemManager.getAbsolutePath(f).substring(FileSystemManager.getAbsolutePath(localArchive).length());
 						final File target = new File(context.getRecoveryDestination(), localPath);
@@ -364,6 +375,14 @@ extends AbstractArchiveHandler {
 									recoverRawFile(file, target, localFiles, index, localPath, mode, context);
 								}
 							}, "Error while recovering " + target.getAbsolutePath());
+						} else {
+							if (DEBUG) {
+								Logger.defaultLogger().fine(f.getAbsolutePath() + " : Nothing to recover or already processed.");
+							}
+						}
+					} else {
+						if (DEBUG) {
+							Logger.defaultLogger().fine(f.getAbsolutePath() + " : Nothing to do (not a file)");
 						}
 					}
 				}
@@ -396,7 +415,9 @@ extends AbstractArchiveHandler {
 		}
 
 		try {
-			//debug(f);
+			if (DEBUG) {
+				Logger.defaultLogger().fine("   Looking for diff files for : " + f.getAbsolutePath());
+			}
 			in.addInputStream(FileSystemManager.getCachedFileInputStream(f), localPath);
 
 			for (int j=i + 1; j<localFiles.length; j++) {
@@ -404,8 +425,10 @@ extends AbstractArchiveHandler {
 				File f2 = new File(posteriorArchive, localPath);
 				if (FileSystemManager.exists(f2)) {
 					localCopies.add(f2);
-					//debug(f2);
 					in.addInputStream(FileSystemManager.getCachedFileInputStream(f2), localPath);
+					if (DEBUG) {
+						Logger.defaultLogger().fine("   Adding diff file : " + f2.getAbsolutePath());
+					}
 				}
 			}
 
@@ -414,9 +437,19 @@ extends AbstractArchiveHandler {
 			OutputStream out = FileSystemManager.getFileOutputStream(target, false, context.getOutputStreamListener());
 
 			if (mode == MODE_RECOVER) {
+				if (DEBUG) {
+					Logger.defaultLogger().fine("Recovering ...");
+				}
 				// recover
 				FileTool.getInstance().copy((DeltaInputStream)in, out, true, true, context.getTaskMonitor());
+				if (DEBUG) {
+					Logger.defaultLogger().fine("Recovery completed.");
+				}
 			} else {
+				if (DEBUG) {
+					Logger.defaultLogger().fine("Merging ...");
+				}
+				
 				// merge
 				try {
 					((DeltaMerger)in).setProc(new LayerWriterDeltaProcessor(out));
@@ -427,6 +460,9 @@ extends AbstractArchiveHandler {
 						throw new ApplicationException("Error during merge.", e);
 					}
 				} finally {
+					if (DEBUG) {
+						Logger.defaultLogger().fine("Merge completed.");
+					}
 					if (out != null) {
 						out.close();	
 					}
@@ -437,7 +473,13 @@ extends AbstractArchiveHandler {
 		}
 
 		// Delete local copies
+		if (DEBUG) {
+			Logger.defaultLogger().fine("   Cleaning local copies (" + localCopies.toString() + ") ...");
+		}
 		medium.cleanLocalCopies(localCopies, context);
+		if (DEBUG) {
+			Logger.defaultLogger().fine("   Local copies cleaned.");
+		}
 	}
 
 	public RecoveryFilterMap dispatchEntries(File[] archives, String[] entriesToRecover) 

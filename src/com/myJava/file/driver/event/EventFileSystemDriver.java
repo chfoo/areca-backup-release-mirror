@@ -24,7 +24,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -125,6 +125,14 @@ implements LinkableFileSystemDriver {
         throwStopEvent(event);
         return res;
     }
+    
+    public short getType(File file) throws IOException {
+        FileSystemDriverEvent event = buildEvent("getType", file);
+        throwStartEvent(event);
+        short res = predecessor.getType(file);
+        throwStopEvent(event);
+        return res;
+    }
 
     public boolean canWrite(File file) {
         FileSystemDriverEvent event = buildEvent("canWrite", file);
@@ -155,6 +163,14 @@ implements LinkableFileSystemDriver {
         event.setArgument(realPath);
         throwStartEvent(event);
         boolean res =  predecessor.createSymbolicLink(symlink, realPath);
+        throwStopEvent(event);
+        return res;
+    }
+    
+    public boolean createNamedPipe(File pipe) throws IOException {
+        FileSystemDriverEvent event = buildEvent("createNamedPipe", pipe);
+        throwStartEvent(event);
+        boolean res =  predecessor.createNamedPipe(pipe);
         throwStopEvent(event);
         return res;
     }

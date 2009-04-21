@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import com.myJava.file.FileSystemManager;
-import com.myJava.file.metadata.FileMetaDataAccessorHelper;
+import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskMonitor;
 
@@ -23,7 +23,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -320,7 +320,20 @@ public class FileSystemIterator implements Iterator {
 							}
 						}
 					} else if (warnDanglingLinks) {
-						Logger.defaultLogger().warn("Dangling symbolic link detected : " + FileSystemManager.getAbsolutePath(f) + ". It will be excluded from the backup.");
+						String absPath = FileSystemManager.getAbsolutePath(f);
+						String canPath = absPath;
+						try {
+							canPath = FileSystemManager.getCanonicalPath(f);
+						} catch (IOException ignored) {
+						}
+						if (! canPath.equals(absPath)) {
+							canPath += " (" + absPath + ")";
+						}
+						
+						String message = "The following file was not found : " + canPath + ".";
+						message += " If you are processing unix file systems, this warning may be caused by dangling symbolic links.";
+						message += " This file will be excluded from the backup.";
+						Logger.defaultLogger().warn(message);
 					}
 				} else {
 					// Fetch the next fileSystemLevel
@@ -343,7 +356,7 @@ public class FileSystemIterator implements Iterator {
 			return currentValue;
 		} else {
 			try {
-				return FileMetaDataAccessorHelper.getFileSystemAccessor().isSymLink(f) ? 1 : 0;
+				return FileMetaDataAccessor.TYPE_LINK == FileSystemManager.getType(f) ? 1 : 0;
 			} catch (IOException e) {
 				Logger.defaultLogger().error("Unreadable file : " + FileSystemManager.getAbsolutePath(f), e);
 				throw new IllegalArgumentException("Unreadable file : " + FileSystemManager.getAbsolutePath(f));

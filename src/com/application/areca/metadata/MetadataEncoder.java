@@ -6,7 +6,7 @@ import com.myJava.util.Util;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -34,6 +34,8 @@ public class MetadataEncoder implements MetadataConstants {
     	String out = in;
     	out = Util.replace(out, SPEC_CHAR, SC_AROBASE);
     	out = Util.replace(out, SEPARATOR, SC_SEMICOLON);
+    	out = Util.replace(out, "\r", SC_R);
+    	out = Util.replace(out, "\n", SC_N);
     	return out;
     }
     
@@ -41,6 +43,8 @@ public class MetadataEncoder implements MetadataConstants {
     	String out = in;
     	out = Util.replace(out, SC_AROBASE, SC_RESERVED);
     	out = Util.replace(out, SC_SEMICOLON, SEPARATOR);
+    	out = Util.replace(out, SC_R, "\r");
+    	out = Util.replace(out, SC_N, "\n");
     	out = Util.replace(out, SC_RESERVED, SPEC_CHAR);
     	return out;
     }

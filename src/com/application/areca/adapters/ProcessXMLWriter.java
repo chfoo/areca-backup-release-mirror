@@ -18,7 +18,7 @@ import com.myJava.file.FileTool;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -41,7 +41,9 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ProcessXMLWriter extends AbstractXMLWriter { 
-	public static final int CURRENT_VERSION = 3;
+	//public static final int CURRENT_VERSION = 2;
+	//public static final int CURRENT_VERSION = 3; // introduced in v6.1
+	public static final int CURRENT_VERSION = 4; // introduced in v7.1 : Special files filters replace symbolic links filters 
 	
     private TargetXMLWriter targetWriter;
     

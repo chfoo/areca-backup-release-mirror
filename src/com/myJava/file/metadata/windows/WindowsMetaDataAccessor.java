@@ -11,7 +11,7 @@ import com.myJava.file.metadata.FileMetaDataSerializer;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -78,20 +78,16 @@ public class WindowsMetaDataAccessor implements FileMetaDataAccessor {
 		return false;
 	}
 
-	public boolean nonStandardFilesSupported() {
-		return false;
+	public short getType(File f) throws IOException {
+		if (f.isDirectory()) {
+			return TYPE_DIRECTORY;
+		} else {
+			return TYPE_FILE;
+		}
 	}
 
-	public boolean symLinksSupported() {
-		return false;
-	}
-
-	public boolean isNonStandardFile(File file) {
-		return false;
-	}
-
-	public boolean isSymLink(File file) {
-		return false;
+	public boolean typeSupported(short type) {
+		return (type == TYPE_FILE || type == TYPE_DIRECTORY);
 	}
 
 	public String getDescription() {

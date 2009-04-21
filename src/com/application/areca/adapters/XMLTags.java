@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -60,6 +60,7 @@ public interface XMLTags {
     public static final String XML_FILTER_FILESIZE = "size_filter";
     public static final String XML_FILTER_FILEDATE = "date_filter";
     public static final String XML_FILTER_LINK = "link_filter";
+    public static final String XML_FILTER_TP = "spec_file_filter";
     public static final String XML_FILTER_LOCKED = "locked_filter";    
     public static final String XML_FILTER_FILEEXTENSION = "extension_filter";   
     public static final String XML_FILTER_EXCLUDE = "exclude";   
@@ -67,6 +68,12 @@ public interface XMLTags {
     public static final String XML_FILTER_RG_PATTERN = "rgpattern";
     public static final String XML_FILTER_PARAM = "param";    
     public static final String XML_FILTER_EXTENSION = "ext";  
+    
+    public static final String XML_FILTER_TP_PIPE = "pipe";
+    public static final String XML_FILTER_TP_SOCKET = "socket";
+    public static final String XML_FILTER_TP_CHARSPECFILE = "charspecfile";
+    public static final String XML_FILTER_TP_BLOCKSPECFILE = "blockspecfile";
+    public static final String XML_FILTER_TP_LINK = "symlink";
     
     public static final String XML_HANDLER = "handler";
     public static final String XML_HANDLER_TYPE = "type";

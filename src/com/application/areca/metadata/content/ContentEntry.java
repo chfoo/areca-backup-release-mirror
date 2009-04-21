@@ -1,13 +1,14 @@
 package com.application.areca.metadata.content;
 
 import com.application.areca.metadata.AbstractMetaDataEntry;
+import com.application.areca.metadata.MetadataConstants;
 
 /**
  * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -30,4 +31,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ContentEntry extends AbstractMetaDataEntry {
+
+	public char getType() {
+		return MetadataConstants.T_FILE;
+	}
 }

@@ -33,6 +33,7 @@ import com.application.areca.impl.handler.ArchiveHandler;
 import com.application.areca.impl.tools.ArchiveComparator;
 import com.application.areca.impl.tools.ArchiveNameFilter;
 import com.application.areca.impl.tools.RecoveryFilterMap;
+import com.application.areca.metadata.AbstractMetaDataEntry;
 import com.application.areca.metadata.AbstractMetaDataFileIterator;
 import com.application.areca.metadata.MetadataConstants;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
@@ -66,7 +67,7 @@ import com.myJava.file.HashInputStreamListener;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.iterator.FilePathComparator;
 import com.myJava.file.iterator.FileSystemIterator;
-import com.myJava.file.metadata.FileMetaDataAccessorHelper;
+import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.Util;
@@ -78,7 +79,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 7299034069467778562
+ * <BR>Areca Build ID : 2105312326281569706
  */
 
  /*
@@ -111,7 +112,8 @@ implements TargetActions {
 	}
 
 	protected static final boolean DEBUG_MODE = ((ArecaTechnicalConfiguration)ArecaTechnicalConfiguration.getInstance()).isBackupDebug();
-
+	protected static final boolean CHECK_DEBUG_MODE = ((ArecaTechnicalConfiguration)ArecaTechnicalConfiguration.getInstance()).isCheckDebug();
+	
 	/**
 	 * Trace filename
 	 */
@@ -254,7 +256,7 @@ implements TargetActions {
 						date = mf.getDate();
 					}
 				}
-				
+
 				if (date != null) {
 					fromDate = (GregorianCalendar)date.clone();
 					fromDate.add(GregorianCalendar.MILLISECOND, -1);
@@ -945,8 +947,10 @@ implements TargetActions {
 					} finally {    
 						try {
 							// Destroy directories
-							AbstractFileSystemMedium.tool.delete(context.getCurrentArchiveFile(), true);
-							AbstractFileSystemMedium.tool.delete(this.getDataDirectory(context.getCurrentArchiveFile()), true);
+							if (context.getCurrentArchiveFile() != null) {
+								AbstractFileSystemMedium.tool.delete(context.getCurrentArchiveFile(), true);
+								AbstractFileSystemMedium.tool.delete(this.getDataDirectory(context.getCurrentArchiveFile()), true);
+							}
 						} finally {
 							try {
 								// Close the trace iterator
@@ -956,7 +960,9 @@ implements TargetActions {
 							} finally {
 								try {
 									// Flush all remaining data
-									FileSystemManager.getInstance().flush(context.getCurrentArchiveFile());
+									if (context.getCurrentArchiveFile() != null) {
+										FileSystemManager.getInstance().flush(context.getCurrentArchiveFile());
+									}
 								} finally {
 									this.target.secureUpdateCurrentTask("Rollback completed.", context);
 								}
@@ -1065,19 +1071,24 @@ implements TargetActions {
 						// Directory
 						fEntry.setStatus(EntryStatus.STATUS_NOT_STORED);   
 					} else {
-						boolean link = false;
-						if (((FileSystemRecoveryTarget)this.target).isTrackSymlinks() && FileMetaDataAccessorHelper.getFileSystemAccessor().isSymLink(fEntry.getFile())) {
-							link = true;
-							fEntry.setSize(0);
-						}
-						String newHash = ArchiveTraceParser.hash(fEntry, link);
-						String oldHash = iter.current() == null ? null : ArchiveTraceParser.extractHashFromTrace(iter.current().getData());
-
-						// return result
-						if (newHash.equals(oldHash)) {
-							fEntry.setStatus(EntryStatus.STATUS_NOT_STORED);
+						short type = FileSystemManager.getType(fEntry.getFile());
+						if (FileMetaDataAccessor.TYPE_PIPE == type) {
+							fEntry.setStatus(EntryStatus.STATUS_NOT_STORED);  
 						} else {
-							fEntry.setStatus(EntryStatus.STATUS_MODIFIED);
+							boolean link = false;
+							if (((FileSystemRecoveryTarget)this.target).isTrackSymlinks() && FileMetaDataAccessor.TYPE_LINK == type) {
+								link = true;
+								fEntry.setSize(0);
+							}
+							String newHash = ArchiveTraceParser.hash(fEntry, link);
+							String oldHash = iter.current() == null ? null : ArchiveTraceParser.extractHashFromTrace(iter.current().getData());
+
+							// return result
+							if (newHash.equals(oldHash)) {
+								fEntry.setStatus(EntryStatus.STATUS_NOT_STORED);
+							} else {
+								fEntry.setStatus(EntryStatus.STATUS_MODIFIED);
+							}
 						}
 					}
 
@@ -1088,7 +1099,7 @@ implements TargetActions {
 					// File found in source files but not found in trace -> new File
 					fEntry.setStatus(EntryStatus.STATUS_CREATED);
 
-					if (((FileSystemRecoveryTarget)this.target).isTrackSymlinks() && FileMetaDataAccessorHelper.getFileSystemAccessor().isSymLink(fEntry.getFile())) {
+					if (((FileSystemRecoveryTarget)this.target).isTrackSymlinks() && FileMetaDataAccessor.TYPE_LINK == FileSystemManager.getType(fEntry.getFile())) {
 						fEntry.setSize(0);
 					}
 
@@ -1119,11 +1130,12 @@ implements TargetActions {
 		} else {
 			final FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;
 			try {
+				short type = FileSystemManager.getType(fEntry.getFile());
 				if (
 						FileSystemManager.isFile(fEntry.getFile()) && (
-								(! FileMetaDataAccessorHelper.getFileSystemAccessor().isSymLink(fEntry.getFile()))
+								(FileMetaDataAccessor.TYPE_LINK != type)
 								|| (! ((FileSystemRecoveryTarget)this.target).isTrackSymlinks())
-						)
+						) && (FileMetaDataAccessor.TYPE_PIPE != type)
 				) {
 					// The entry is stored if it has been modified
 					if (this.checkModified(fEntry, context)) {
@@ -1166,18 +1178,19 @@ implements TargetActions {
 
 			} catch (IOException e) {
 				Logger.defaultLogger().error(e);
-				throw new StoreException("Error during storage.", e);
+				throw new StoreException("Error during storage of " + entry.getKey() + " : " + e.getMessage(), e);
 			} catch (NoSuchAlgorithmException e) {
 				Logger.defaultLogger().error(e);
-				throw new StoreException("Error during storage.", e);
+				throw new StoreException("Error during storage of " + entry.getKey() + " : " + e.getMessage(), e);
 			} catch (FileMetaDataSerializationException e) {
 				Logger.defaultLogger().error(e);
-				throw new StoreException("Error during storage.", e);
+				throw new StoreException("Error during storage of " + entry.getKey() + " : " + e.getMessage(), e);
 			}
 		}
 	}
-	
-	public void doAndRetry(IOTask rn, String message) throws IOException, TaskCancelledException, ApplicationException {
+
+	public void doAndRetry(IOTask rn, String message) 
+	throws IOException, TaskCancelledException, ApplicationException {
 		try {
 			rn.run();
 		} catch (IOException e) {		
@@ -1201,9 +1214,17 @@ implements TargetActions {
 			} else {
 				throw e;
 			}
+		} catch (TaskCancelledException e) {
+			throw e;
+		} catch (ApplicationException e) {
+			Logger.defaultLogger().warn(message, e);
+			throw e;
+		} catch (RuntimeException e) {
+			Logger.defaultLogger().warn(message, e);
+			throw e;
 		}
 	}
-	
+
 	public abstract boolean retrySupported();
 	public abstract int getMaxRetries();
 
@@ -1243,7 +1264,7 @@ implements TargetActions {
 
 		// separate files and directories amongst entries to recover
 		for (int e=0; e<entries.length; e++) {
-			if (FileNameUtil.endsWithSeparator(entries[e])) {
+			if (entries[e].length() == 0 || FileNameUtil.endsWithSeparator(entries[e])) {
 				if (FileNameUtil.startsWithSeparator(entries[e])) {
 					directoriesToDispatch.add(entries[e].substring(1));
 				} else {
@@ -1499,7 +1520,7 @@ implements TargetActions {
 		int maxEntries = (int)MemoryHelper.getMaxManageableEntries();
 
 		// Set final filter
-		String[] filters = (argFilter == null || argFilter.length == 0) ? new String[] {"/"} : argFilter;
+		String[] filters = (argFilter == null || argFilter.length == 0) ? new String[] {""} : argFilter;
 
 		if (toDate != null) {
 			toDate = (GregorianCalendar)toDate.clone();
@@ -1580,7 +1601,19 @@ implements TargetActions {
 
 				// Fourth stage: check hash
 				if (checkRecoveredFiles) {
-					checkHash(targetFile, optimizedArchives, context);
+
+					AbstractMetaDataFileIterator refIter;
+					if (optimizedArchives.length == 1) {
+						// Build reference content iterator
+						Logger.defaultLogger().info("Using content of archive " + optimizedArchives[0].getAbsolutePath() + " as reference.");
+						refIter = ArchiveContentManager.buildIteratorForArchive(this, optimizedArchives[0]);
+					} else {
+						// Build reference trace iterator
+						Logger.defaultLogger().info("Using trace of archive " + optimizedArchives[optimizedArchives.length - 1].getAbsolutePath() + " as reference.");
+						refIter = ArchiveTraceManager.buildIteratorForArchive(this, optimizedArchives[optimizedArchives.length - 1]);
+					}
+
+					checkHash(targetFile, optimizedArchives, filters, refIter, context);
 				} 
 			}
 		} catch (TaskCancelledException e) {
@@ -1666,30 +1699,26 @@ implements TargetActions {
 	/**
 	 * Check that the file passed as argument matches the hashcode contained in the "entry" argument.
 	 */
-	private void checkHash(File file, ContentEntry entry, boolean verbose, ProcessContext context) 
+	private void checkHash(File file, ContentEntry entry, ProcessContext context) 
 	throws IOException, TaskCancelledException, ApplicationException {
 		// Check the file
 		byte[] storedHash = ArchiveContentParser.interpretAsHash(entry.getKey(), entry.getData());
 		if (storedHash == null) {
-			if (verbose) {
-				Logger.defaultLogger().warn(entry.getKey() + " will be ignored : no reference hash found.");
-			}
+			Logger.defaultLogger().warn(entry.getKey() + " : no reference hash could be found.");
 			context.getUncheckedRecoveredFiles().add(entry.getKey());
 		} else {
-			this.doAndRetry(new CheckHash(context, verbose, storedHash, entry, file), "Error while checking " + file.getAbsolutePath());
+			this.doAndRetry(new CheckHash(context, storedHash, entry, file), "Error while checking " + file.getAbsolutePath());
 		}
 	}
-	
+
 	public class CheckHash implements IOTask {
 		private ProcessContext context;
-		private boolean verbose;
 		private byte[] storedHash;
 		private ContentEntry entry;
 		private File file;
 
-		public CheckHash(ProcessContext context, boolean verbose, byte[] storedHash, ContentEntry entry, File file) {
+		public CheckHash(ProcessContext context, byte[] storedHash, ContentEntry entry, File file) {
 			this.context = context;
-			this.verbose = verbose;
 			this.storedHash = storedHash;
 			this.entry = entry;
 			this.file = file;
@@ -1706,56 +1735,105 @@ implements TargetActions {
 			if (computedHash.length != storedHash.length) {
 				throw new IllegalStateException("Incoherent hash lengths (" + computedHash.length + " versus " + storedHash.length + ").");
 			} else {
+				boolean ok = true;
 				for (int i=0; i<computedHash.length; i++) {
 					if (computedHash[i] != storedHash[i]) {
-						if (verbose) {
-							context.getInfoChannel().warn(entry.getKey() + " was not properly recovered : its hash (" + Util.base16Encode(computedHash) + ") is different from the reference hash (" + Util.base16Encode(storedHash) + ").");
-						}
+						context.getInfoChannel().warn(entry.getKey() + " was not properly recovered : its hash (" + Util.base16Encode(computedHash) + ") is different from the reference hash (" + Util.base16Encode(storedHash) + ").");
 						context.getInvalidRecoveredFiles().add(entry.getKey());
+						ok = false;
 						break;
 					}
+				}
+				if (ok && CHECK_DEBUG_MODE) {
+					Logger.defaultLogger().fine("Check ok.");
 				}
 			}
 		}
 	}
 
-	/**
-	 * Check that the file content is coherent with the original file hash
-	 */
-	private void checkHash(File destination, File[] archives, ProcessContext context) 
+	private void checkHash(
+			File destination, 
+			File[] archives, 
+			String[] filters,
+			AbstractMetaDataFileIterator referenceIterator,
+			ProcessContext context) 
 	throws IOException, TaskCancelledException, ApplicationException {
 		context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2, "check");
 		context.getInfoChannel().print("Recovery completed - Checking recovered files (this may take some time) ...");  
 
-		// Build hashIterators
+		if (CHECK_DEBUG_MODE) {
+			if (filters == null) {
+				Logger.defaultLogger().fine("No filter.");
+			} else {
+				for (int i=0; i<filters.length; i++) {
+					Logger.defaultLogger().fine("Filter[" + i + "] : " + filters[i]);
+				}
+			}
+		}
+		
 		ContentFileIterator[] iters = new ContentFileIterator[archives.length];
 		try {
+			// Build hashIterators
 			for (int i=0; i<archives.length; i++) {
 				File hashFile = ArchiveContentManager.resolveHashFileForArchive(this, archives[i]);
 				ArchiveContentAdapter adapter = new ArchiveContentAdapter(hashFile);
 				iters[i] = adapter.buildIterator();
 			}
 
-			// Iterate among recovered files
-			FileSystemIterator fsIterator = new FileSystemIterator(destination, false, true, false, true);
-			while (fsIterator.hasNext()) {
-				File f = fsIterator.nextFile();
-				if (FileSystemManager.isFile(f)) {
-					String key = Utils.extractShortFilePath(f, destination);
+			while (referenceIterator.hasNext()) {
+				AbstractMetaDataEntry entry = referenceIterator.nextEntry();
+				
+				if (CHECK_DEBUG_MODE) {
+					Logger.defaultLogger().fine("Entry : " + entry.getKey());
+				}
 
-					// Iterate among the content files
-					for (int i=archives.length-1; i>=0; i--) {
-						boolean found = iters[i].fetchUntil(key);
-						if (found) {
-							// The entry has been found --> check the hash
-							checkHash(f, iters[i].current(), true, context);
-							break;
+				// The entry will only be checked if it passes the filters
+				if (filters == null || Util.passFilter(entry.getKey(), filters)) {
+					File target = new File(destination, entry.getKey());
+					if (entry.getType() == MetadataConstants.T_FILE) {
+						if (! FileSystemManager.exists(target)) {
+							Logger.defaultLogger().warn(entry.getKey() + " has not been recovered ... it should have !");
+							context.getUnrecoveredFiles().add(entry.getKey());
+						} else {
+							if (CHECK_DEBUG_MODE) {
+								Logger.defaultLogger().fine(entry.getKey() + " is a file ... checking its hash ...");
+							}
+							
+							// Iterate among the hash files
+							boolean found = false;
+							for (int i=archives.length-1; i>=0; i--) {
+								if (CHECK_DEBUG_MODE) {
+									Logger.defaultLogger().fine("Looking for hash in " + archives[i].getAbsolutePath());
+								}
+								found = iters[i].fetchUntil(entry.getKey());
+								if (found) {
+									if (CHECK_DEBUG_MODE) {
+										Logger.defaultLogger().fine("Hash found ! Verifying ...");
+									}
+									// The entry has been found --> check the hash
+									checkHash(target, iters[i].current(), context);
+									context.addChecked();
+									break;
+								}
+							}
+							if (! found) {
+								Logger.defaultLogger().warn("No reference hash could be found for " + entry.getKey());
+								context.getUncheckedRecoveredFiles().add(entry.getKey());
+							}
 						}
+					} else {
+						if (CHECK_DEBUG_MODE) {
+							Logger.defaultLogger().fine(entry.getKey() + " is not a file.");
+						}
+					}
+				} else {
+					if (CHECK_DEBUG_MODE) {
+						Logger.defaultLogger().fine(entry.getKey() + " does not pass the filter.");
 					}
 				}
 			}
 		} finally {
-			context.getInfoChannel().print("Check completed.");
+			context.getInfoChannel().print("Check completed - " + context.getNbChecked() + " files checked.");
 
 			// Close iterators
 			for (int i=0; i<archives.length; i++) {
@@ -1999,7 +2077,7 @@ implements TargetActions {
 			throw new ApplicationException(e);
 		}
 	}
-	
+
 	/**
 	 * It is sometime necessary to work on a copy of metadata files.
 	 * <BR>This method creates a temporary copy of a source file.
