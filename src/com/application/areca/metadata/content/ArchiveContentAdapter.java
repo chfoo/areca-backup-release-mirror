@@ -15,6 +15,7 @@ import com.application.areca.metadata.MetadataConstants;
 import com.application.areca.metadata.MetadataEncoder;
 import com.myJava.file.delta.sequence.HashSequence;
 import com.myJava.file.iterator.FilePathComparator;
+import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
@@ -22,7 +23,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -101,6 +102,9 @@ public class ArchiveContentAdapter extends AbstractMetadataAdapter {
     }
     
     public AbstractMetaDataEntry decodeEntry(String serialized) {
+    	if (DEBUG) {
+    		Logger.defaultLogger().fine("Parsing content : [" + serialized + "]");
+    	}
     	ContentEntry entry = new ContentEntry();
     	
 		int index = serialized.indexOf(MetadataConstants.SEPARATOR);

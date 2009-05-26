@@ -9,7 +9,7 @@ import java.util.Locale;
  * <BR>
  * @author Ludovic QUESNELLE
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*

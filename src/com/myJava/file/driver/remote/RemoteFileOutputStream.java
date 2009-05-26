@@ -11,7 +11,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -41,6 +41,7 @@ public class RemoteFileOutputStream extends OutputStream {
     private long lastConnectionId;
     private String fileName;
     private boolean closed = false;
+    private Runnable onClose;
     
     /**
      * @param proxy
@@ -79,6 +80,9 @@ public class RemoteFileOutputStream extends OutputStream {
             } finally {
                 try {
                     proxy.completePendingCommand(true);
+                    if (onClose != null) {
+                    	onClose.run();
+                    }
                 } catch (FTPConnectionException e) {
                     Logger.defaultLogger().error("Unable to complete the remote data transfert", e, "RemoteFileOutputStream.close()");
                     proxy.debug("Unable to complete the remote data transfert", "RemoteFileOutputStream.close()");
@@ -96,15 +100,6 @@ public class RemoteFileOutputStream extends OutputStream {
     }
     
     public void write(byte[] b, int off, int len) throws IOException {
-/*
-    	double prob = 0.03;
-    	double rnd = 0.5*(Util.getRnd() + 1);
-    	if (rnd < prob) {
-    		String msg = "RANDOM ERROR on " + fileName + "(" + rnd + ")";
-    		throw new IOException(msg);
-    	}
-*/
-    	
     	out.write(b, off, len);
     }
     
@@ -115,4 +110,12 @@ public class RemoteFileOutputStream extends OutputStream {
     public void write(int b) throws IOException {
         out.write(b);
     }
+
+	public Runnable getOnClose() {
+		return onClose;
+	}
+
+	public void setOnClose(Runnable onClose) {
+		this.onClose = onClose;
+	}
 }

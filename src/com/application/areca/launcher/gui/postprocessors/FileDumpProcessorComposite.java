@@ -22,7 +22,7 @@ import com.myJava.file.FileSystemManager;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -48,7 +48,6 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
 
     private Text txtDir;
     private Text txtName;
-    private Button btnOnlyError;
     
     public FileDumpProcessorComposite(Composite composite, Processor proc, final ProcessorEditionWindow window) {
         super(composite, proc, window);
@@ -84,17 +83,10 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
         lblExample.setText(RM.getLabel("procedition.dynparams.label"));
         lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         
-        // Send only if in error
-        btnOnlyError = new Button(this, SWT.CHECK);
-        btnOnlyError.setText(RM.getLabel("procedition.onlyerror.label"));
-        btnOnlyError.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
-        window.monitorControl(btnOnlyError);
-        
         if (proc != null) {
             FileDumpProcessor sProc = (FileDumpProcessor)proc;
             txtDir.setText(FileSystemManager.getAbsolutePath(sProc.getDestinationFolder()));
             txtName.setText(sProc.getReportName());
-            btnOnlyError.setSelection(sProc.isOnlyIfError());
         }
     }
 
@@ -102,7 +94,6 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
         FileDumpProcessor fProc = (FileDumpProcessor)proc;
         fProc.setDestinationFolder(new File(txtDir.getText()));
         fProc.setReportName(txtName.getText());
-        fProc.setOnlyIfError(btnOnlyError.getSelection());
     }
     
     public boolean validateParams() {

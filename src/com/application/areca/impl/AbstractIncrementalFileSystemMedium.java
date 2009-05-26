@@ -73,13 +73,15 @@ import com.myJava.util.CalendarUtils;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.threadmonitor.ThreadMonitor;
+import com.myJava.util.threadmonitor.ThreadMonitorItem;
 
 /**
  * Medium that implements incremental storage
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -111,8 +113,10 @@ implements TargetActions {
 		public TraceEntry entry;
 	}
 
-	protected static final boolean DEBUG_MODE = ((ArecaTechnicalConfiguration)ArecaTechnicalConfiguration.getInstance()).isBackupDebug();
-	protected static final boolean CHECK_DEBUG_MODE = ((ArecaTechnicalConfiguration)ArecaTechnicalConfiguration.getInstance()).isCheckDebug();
+	protected static final boolean DEBUG_MODE = ArecaTechnicalConfiguration.get().isBackupDebug();
+	protected static final boolean CHECK_DEBUG_MODE = ArecaTechnicalConfiguration.get().isCheckDebug();
+	protected static final boolean TH_MON_ENABLED = ArecaTechnicalConfiguration.get().isThreadMonitorEnabled();
+	protected static final long TH_MON_DELAY = ArecaTechnicalConfiguration.get().getThreadMonitorDelay();
 	
 	/**
 	 * Trace filename
@@ -327,6 +331,10 @@ implements TargetActions {
 	 * Close the archive
 	 */
 	public void commitBackup(ProcessContext context) throws ApplicationException {
+		if (TH_MON_ENABLED) {
+			ThreadMonitor.getInstance().remove(this.getTarget().getUid());
+		}
+		
 		this.target.secureUpdateCurrentTask("Committing backup ...", context);
 		try {  
 			// Close the trace file
@@ -854,6 +862,12 @@ implements TargetActions {
 
 			// medium-specific initializations
 			prepareContext(context);
+			
+			// Enable thread monitor if requested
+			if (TH_MON_ENABLED) {
+				ThreadMonitorItem item = new ThreadMonitorItem(this.getTarget().getUid(), TH_MON_DELAY);
+				ThreadMonitor.getInstance().register(item);
+			}
 		} catch (Exception e) {
 			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
@@ -903,6 +917,10 @@ implements TargetActions {
 	}
 
 	public void rollbackBackup(ProcessContext context) throws ApplicationException {
+		if (TH_MON_ENABLED) {
+			ThreadMonitor.getInstance().remove(this.getTarget().getUid());
+		}
+		
 		this.target.secureUpdateCurrentTask("Rollbacking backup ...", context);
 		try {
 			try {
@@ -1125,6 +1143,10 @@ implements TargetActions {
 	 */
 	public void store(RecoveryEntry entry, final ProcessContext context) 
 	throws StoreException, ApplicationException, TaskCancelledException {
+		if (TH_MON_ENABLED) {
+			ThreadMonitor.getInstance().notify(this.getTarget().getUid());
+		}
+		
 		if (entry == null) {
 			return;
 		} else {

@@ -3,7 +3,7 @@
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -116,13 +116,33 @@ public abstract class Util {
         return cpt;
     }
     
+    public static void logAllThreadInformations() {
+    	int nb = Thread.activeCount();
+    	Thread[] th = new Thread[nb+100];
+    	Thread.enumerate(th);
+    	boolean stop = false;
+    	Logger.defaultLogger().info("Thread information : " + nb + " threads.");
+    	for (int i=0; i<th.length && ! stop; i++) {
+    		if (th[i] == null) {
+    			stop = true;
+    		} else {
+    			String header = "Thread " + i + " (" + th[i].getName() + " / " + th[i].getId() + ")";
+    			logThreadInformations(header, th[i]);
+    		}
+    	}
+    }
+    
     public static void logThreadInformations() {
     	logThreadInformations(null);	
     }
     
     public static void logThreadInformations(String header) {
+    	logThreadInformations(header, Thread.currentThread());
+    }
+    
+    public static void logThreadInformations(String header, Thread thread) {
     	try {
-    		StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+    		StackTraceElement[] elements = thread.getStackTrace();
     		String thd;
     		if (header != null) {
     			thd = header + "\n";

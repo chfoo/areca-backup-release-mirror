@@ -23,7 +23,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -69,9 +69,10 @@ public class StoragePluginRegistry implements ArecaFileConstants {
     	}
     	load(pluginDirectory);
 
-        // Add default plugins : HD & FTP
+        // Add default plugins : HD, FTP
         register(new DefaultStoragePlugin());
         register(new FTPStoragePlugin());
+        //register(new SFTPStoragePlugin()); TODO ?
     }
 
     public void load(File pluginsDirectory) {

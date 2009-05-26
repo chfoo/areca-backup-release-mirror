@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -159,6 +159,7 @@ public class ShellScriptProcessor extends AbstractProcessor {
     
     public Duplicable duplicate() {
         ShellScriptProcessor pro = new ShellScriptProcessor();
+        copyAttributes(pro);
         pro.command = this.command;
         return pro;
     }
@@ -182,7 +183,8 @@ public class ShellScriptProcessor extends AbstractProcessor {
         } else {
             ShellScriptProcessor other = (ShellScriptProcessor)obj;
             return 
-                EqualsHelper.equals(this.command, other.command)
+            	super.equals(other)
+            	&& EqualsHelper.equals(this.command, other.command)
                 && EqualsHelper.equals(this.commandParameters, other.commandParameters)
             ;
         }
@@ -190,6 +192,7 @@ public class ShellScriptProcessor extends AbstractProcessor {
     
     public int hashCode() {
         int h = HashHelper.initHash(this);
+        h = HashHelper.hash(h, super.hashCode());
         h = HashHelper.hash(h, this.command);
         h = HashHelper.hash(h, this.commandParameters);
         return h;

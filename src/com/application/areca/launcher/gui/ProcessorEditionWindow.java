@@ -20,13 +20,14 @@ import com.application.areca.impl.FileSystemRecoveryTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.postprocessors.AbstractProcessorComposite;
+import com.application.areca.processor.AbstractProcessor;
 import com.application.areca.processor.Processor;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -58,14 +59,21 @@ extends AbstractWindow {
     protected AbstractProcessorComposite pnlParams;
     protected Group pnlParamsContainer;
     
-    protected Processor proc;  
+    protected boolean preprocess;
+    
+    protected Button radAlways;
+    protected Button radFailure;
+    protected Button radSuccess;
+    
+    protected AbstractProcessor proc;  
     protected FileSystemRecoveryTarget currentTarget;
     protected Button btnSave;
 
     public ProcessorEditionWindow(Processor proc, FileSystemRecoveryTarget currentTarget, boolean preprocess) {
         super();
-        this.proc = proc;
-        this.currentTarget = currentTarget;        
+        this.proc = (AbstractProcessor)proc;
+        this.currentTarget = currentTarget;       
+        this.preprocess = preprocess;
         procKeys = ProcessorRepository.getProcessors(preprocess);
     }
 
@@ -97,6 +105,40 @@ extends AbstractWindow {
         cboProcessorType.select(ProcessorRepository.getIndex(proc, procKeys));  
         if (this.proc != null) {
             this.cboProcessorType.setEnabled(false);
+        }
+        
+        if (! preprocess) {
+            Group pnlRunContainer = new Group(composite, SWT.NONE);
+            pnlRunContainer.setText(RM.getLabel("procedition.run.label"));
+            pnlRunContainer.setLayout(new GridLayout(1, false));
+            pnlRunContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+        	
+            radAlways = new Button(pnlRunContainer, SWT.RADIO);
+            radAlways.setText(RM.getLabel("procedition.run.always.label"));
+            radAlways.setToolTipText(RM.getLabel("procedition.run.always.tt"));
+            this.monitorControl(radAlways);
+            
+            radSuccess = new Button(pnlRunContainer, SWT.RADIO);
+            radSuccess.setText(RM.getLabel("procedition.run.success.label"));
+            radSuccess.setToolTipText(RM.getLabel("procedition.run.success.tt"));
+            this.monitorControl(radSuccess);
+            
+            radFailure = new Button(pnlRunContainer, SWT.RADIO);
+            radFailure.setText(RM.getLabel("procedition.run.failure.label"));
+            radFailure.setToolTipText(RM.getLabel("procedition.run.failure.tt"));
+            this.monitorControl(radFailure);
+            
+            if (proc != null) {
+            	if (proc.getRunScheme() == Processor.RUN_SCHEME_ALWAYS) {
+            		radAlways.setSelection(true);
+            	} else if (proc.getRunScheme() == Processor.RUN_SCHEME_SUCCESS) {
+            		radSuccess.setSelection(true);
+            	} else {
+            		radFailure.setSelection(true);
+            	}
+            } else {
+        		radAlways.setSelection(true);
+            }
         }
         
         // CONTAINER
@@ -132,10 +174,20 @@ extends AbstractWindow {
 
     protected void saveChanges() {
         if (this.proc == null) {
-            this.proc = ProcessorRepository.buildProcessor(this.cboProcessorType.getSelectionIndex(), this.procKeys, this.currentTarget);
+            this.proc = (AbstractProcessor)ProcessorRepository.buildProcessor(this.cboProcessorType.getSelectionIndex(), this.procKeys, this.currentTarget);
         }
         this.pnlParams.initProcessor(proc);
 
+        if (! this.preprocess) {
+        	if (radAlways.getSelection()) {
+        		this.proc.setRunScheme(Processor.RUN_SCHEME_ALWAYS);
+        	} else if (radSuccess.getSelection()) {
+        		this.proc.setRunScheme(Processor.RUN_SCHEME_SUCCESS);
+        	} else if (radFailure.getSelection()) {
+        		this.proc.setRunScheme(Processor.RUN_SCHEME_FAILURE);
+        	}
+        }
+        
         this.hasBeenUpdated = false;
         this.close();
     }

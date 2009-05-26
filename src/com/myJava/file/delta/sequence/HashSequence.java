@@ -12,7 +12,7 @@ import com.myJava.object.ToStringHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -37,12 +37,12 @@ This file is part of Areca.
 public class HashSequence {
     private static final int SIZE = FrameworkConfiguration.getInstance().getDeltaHashMapSize();
     
-    private long blockSize; // For information purpose;
+    private int blockSize; // For information purpose;
     private int size = 0;
     private List retList = new ArrayList();
     private SimilarEntrySet[] entries = new SimilarEntrySet[SIZE];
 
-    public HashSequence(long blockSize) {
+    public HashSequence(int blockSize) {
         this.blockSize = blockSize;
     }
 
@@ -75,7 +75,7 @@ public class HashSequence {
         }
     }
 
-    public long getBlockSize() {
+    public int getBlockSize() {
         return blockSize;
     }
 

@@ -7,7 +7,7 @@ import java.io.InputStream;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -42,7 +42,7 @@ public class FileSequencer {
         proc.open();
         int read;
         while ((read = in.read()) != -1) {
-            proc.processByte(read);
+            proc.processByte((byte)read);
         }
         proc.close();
         return proc.getSequence();

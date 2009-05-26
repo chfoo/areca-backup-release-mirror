@@ -9,7 +9,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -54,7 +54,13 @@ public class HashInputStreamListener implements InputStreamListener {
 			dg.update(b, off, read);			
 		}
 	}
-	
+
+	public void read(int b) {
+		if (b >= 0) {
+			dg.update((byte)b);	
+		}
+	}
+
 	public byte[] getHash() {
 		if (! closed) {
 			throw new IllegalStateException("The stream is not closed");

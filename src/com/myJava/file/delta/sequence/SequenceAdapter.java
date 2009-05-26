@@ -25,7 +25,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -82,9 +82,8 @@ public class SequenceAdapter implements Constants {
         if (nb == -1) {
             return null;
         } else {
-            long blockSize = IOHelper.get64(sig, 2);
+            int blockSize = (int)IOHelper.get64(sig, 2);
             HashSequence seq = new HashSequence(blockSize);
-            int r, t = 0;
             while (IOHelper.readFully(in, entryData) != -1) {
                 byte[] fullHash = new byte[HASH_ALG_KLENGTH];
                 IOHelper.readFully(in, fullHash);

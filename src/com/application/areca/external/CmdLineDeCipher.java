@@ -21,7 +21,7 @@ import com.myJava.file.iterator.FileSystemIterator;
  * <BR>
  * @author Ludovic QUESNELLE
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*

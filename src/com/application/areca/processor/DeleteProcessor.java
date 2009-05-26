@@ -12,7 +12,7 @@ import com.myJava.object.HashHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -68,6 +68,7 @@ public class DeleteProcessor extends AbstractProcessor {
     
     public Duplicable duplicate() {
         DeleteProcessor pro = new DeleteProcessor();
+        copyAttributes(pro);
         pro.delay = this.delay;
         return pro;
     }
@@ -84,12 +85,14 @@ public class DeleteProcessor extends AbstractProcessor {
         } else {
             DeleteProcessor other = (DeleteProcessor)obj;
             return 
-                EqualsHelper.equals(this.delay, other.delay);
+                super.equals(other)
+            	&& EqualsHelper.equals(this.delay, other.delay);
         }
     }
     
     public int hashCode() {
         int h = HashHelper.initHash(this);
+        h = HashHelper.hash(h, super.hashCode());
         h = HashHelper.hash(h, this.delay);
         return h;
     }

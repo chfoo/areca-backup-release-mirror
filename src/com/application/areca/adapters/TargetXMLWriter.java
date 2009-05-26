@@ -27,6 +27,7 @@ import com.application.areca.processor.DeleteProcessor;
 import com.application.areca.processor.FileDumpProcessor;
 import com.application.areca.processor.MailSendProcessor;
 import com.application.areca.processor.MergeProcessor;
+import com.application.areca.processor.Processor;
 import com.application.areca.processor.ProcessorList;
 import com.application.areca.processor.ShellScriptProcessor;
 import com.myJava.file.FileSystemManager;
@@ -36,7 +37,7 @@ import com.myJava.file.FileSystemManager;
  * 
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -176,25 +177,35 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("/>");     
     }
     
-    protected void serializeProcessorHeader(String header, boolean postProcess) {
+    protected void serializeProcessorHeader(String header, boolean postProcess, Processor proc) {
         sb.append("\n<");
         sb.append(header);
         sb.append(" ");     
         sb.append(XML_PP_AFTER);
         sb.append("=");
         sb.append(encode(postProcess));  
-        sb.append(" ");   
+        sb.append(" "); 
+        sb.append(XML_PP_RUN_SCHEME);
+        sb.append("=");
+        sb.append(encode(transcodeRunScheme(proc)));  
+        sb.append(" "); 
+    }
+    
+    protected String transcodeRunScheme(Processor proc) {
+    	if (proc.getRunScheme() == Processor.RUN_SCHEME_ALWAYS) {
+    		return XML_PP_RUN_SCHEME_ALWAYS;
+    	} else if (proc.getRunScheme() == Processor.RUN_SCHEME_FAILURE) {
+    		return XML_PP_RUN_SCHEME_FAILURE;
+    	} else {
+    		return XML_PP_RUN_SCHEME_SUCCESS;
+    	}
     }
 
     protected void serializeProcessor(FileDumpProcessor pp, boolean postProcess) {
-        serializeProcessorHeader(XML_PROCESSOR_DUMP, postProcess);
+        serializeProcessorHeader(XML_PROCESSOR_DUMP, postProcess, pp);
         sb.append(XML_PP_DUMP_DIRECTORY);
         sb.append("=");
         sb.append(encode(FileSystemManager.getAbsolutePath(pp.getDestinationFolder())));
-        sb.append(" ");     
-        sb.append(XML_PP_ONLY_IF_ERROR);
-        sb.append("=");
-        sb.append(encode(pp.isOnlyIfError()));     
         sb.append(" ");     
         sb.append(XML_PP_DUMP_NAME);
         sb.append("=");
@@ -203,7 +214,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
     }
     
     protected void serializeProcessor(MergeProcessor pp, boolean postProcess) {
-        serializeProcessorHeader(XML_PROCESSOR_MERGE, postProcess);
+        serializeProcessorHeader(XML_PROCESSOR_MERGE, postProcess, pp);
         sb.append(XML_PP_MERGE_FROM_DELAY);
         sb.append("=");
         sb.append(encode(pp.getFromDelay()));
@@ -219,7 +230,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
     }
     
     protected void serializeProcessor(DeleteProcessor pp, boolean postProcess) {
-        serializeProcessorHeader(XML_PROCESSOR_DELETE, postProcess);
+        serializeProcessorHeader(XML_PROCESSOR_DELETE, postProcess, pp);
         sb.append(XML_PP_DELAY);
         sb.append("=");
         sb.append(encode(pp.getDelay()));
@@ -227,7 +238,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
     }
     
     protected void serializeProcessor(MailSendProcessor pp, boolean postProcess) {
-        serializeProcessorHeader(XML_PROCESSOR_EMAIL, postProcess);
+        serializeProcessorHeader(XML_PROCESSOR_EMAIL, postProcess, pp);
         sb.append(XML_PP_EMAIL_RECIPIENTS);
         sb.append("=");
         sb.append(encode(pp.getRecipients()));
@@ -243,11 +254,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XML_PP_EMAIL_PASSWORD);
         sb.append("=");
         sb.append(encode(pp.getPassword()));  
-        sb.append(" ");     
-        sb.append(XML_PP_ONLY_IF_ERROR);
-        sb.append("=");
-        sb.append(encode(pp.isOnlyIfError()));     
-        sb.append(" ");     
+        sb.append(" ");        
         sb.append(XML_PP_EMAIL_SMTPS);
         sb.append("=");
         sb.append(encode(pp.isSmtps()));    
@@ -267,7 +274,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
     }
     
     protected void serializeProcessor(ShellScriptProcessor pp, boolean postProcess) {
-        serializeProcessorHeader(XML_PROCESSOR_SHELL, postProcess);
+        serializeProcessorHeader(XML_PROCESSOR_SHELL, postProcess, pp);
         sb.append(XML_PP_SHELL_SCRIPT);
         sb.append("=");
         sb.append(encode(pp.getCommand()));

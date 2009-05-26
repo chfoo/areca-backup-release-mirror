@@ -19,7 +19,7 @@
  * <BR>Library generation : gcc -shared -lacl -Wl,-soname,libarecafs.so -o libarecafs.so  com_myJava_file_metadata_posix_jni_wrapper_FileAccessWrapper.o
  *
  * 
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*

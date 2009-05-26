@@ -16,7 +16,6 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
 import com.application.areca.AbstractRecoveryTarget;
-import com.application.areca.ApplicationException;
 import com.application.areca.HistoryEntryTypes;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
@@ -31,7 +30,7 @@ import com.myJava.util.history.HistoryEntry;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -163,14 +162,10 @@ implements Listener, Refreshable, HistoryEntryTypes {
 
     public void handleEvent(Event event) {
         if (application.isCurrentObjectTarget()) {
-            try {
-                int result = application.showConfirmDialog(RM.getLabel("history.clear.confirm.question"), RM.getLabel("history.clear.confirm.title"));
-                if (result == SWT.YES) {
-                    this.application.getCurrentTarget().clearHistory();   
-                    this.refresh();
-                }
-            } catch (ApplicationException e) {
-                this.application.handleException(e);
+            int result = application.showConfirmDialog(RM.getLabel("history.clear.confirm.question"), RM.getLabel("history.clear.confirm.title"));
+            if (result == SWT.YES) {
+                this.application.getCurrentTarget().clearHistory();   
+                this.refresh();
             }
         }
     }

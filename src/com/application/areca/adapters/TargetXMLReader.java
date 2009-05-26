@@ -36,6 +36,7 @@ import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.plugins.FileSystemPolicyXMLHandler;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
+import com.application.areca.processor.AbstractProcessor;
 import com.application.areca.processor.DeleteProcessor;
 import com.application.areca.processor.FileDumpProcessor;
 import com.application.areca.processor.MailSendProcessor;
@@ -51,7 +52,7 @@ import com.myJava.file.CompressionArguments;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -239,6 +240,40 @@ public class TargetXMLReader implements XMLTags {
             sources.add(new File(pathNode.getNodeValue()));
         }
     }
+    
+    protected void readProcessorAttributes(Node node, AbstractProcessor proc) throws AdapterException {
+        Node runSchemeNode = node.getAttributes().getNamedItem(XML_PP_RUN_SCHEME);
+        short runScheme = Processor.RUN_SCHEME_ALWAYS;
+    	if (runSchemeNode != null) {
+    		if (XML_PP_RUN_SCHEME_ALWAYS.equals(runSchemeNode.getNodeValue())) {
+            	runScheme = Processor.RUN_SCHEME_ALWAYS;
+    		} else if (XML_PP_RUN_SCHEME_FAILURE.equals(runSchemeNode.getNodeValue())) {
+            	runScheme = Processor.RUN_SCHEME_FAILURE;
+    		} else if (XML_PP_RUN_SCHEME_SUCCESS.equals(runSchemeNode.getNodeValue())) {
+            	runScheme = Processor.RUN_SCHEME_SUCCESS;
+    		} else {
+    			throw new AdapterException("Run rule not supported for processor " + proc.getName() + " : " + runSchemeNode.getNodeValue());
+    		}
+    	} else {
+            // BACKWARD-COMPATIBILITY //
+            Node failureOnlyNode = node.getAttributes().getNamedItem(XML_PP_ONLY_IF_ERROR);
+            if (failureOnlyNode != null) {
+                if (Boolean.valueOf(failureOnlyNode.getNodeValue()).booleanValue()) {
+                	runScheme = Processor.RUN_SCHEME_FAILURE;
+                }
+            } else {
+                Node failureOnlyNode_old = node.getAttributes().getNamedItem("smtp_" + XML_PP_ONLY_IF_ERROR);
+                if (failureOnlyNode_old != null) {
+                    if (Boolean.valueOf(failureOnlyNode_old.getNodeValue()).booleanValue()) {
+                    	runScheme = Processor.RUN_SCHEME_FAILURE;
+                    }
+                }
+            }
+            // EOF BACKWARD-COMPATIBILITY //
+    	}
+    	
+		proc.setRunScheme(runScheme);
+    }
    
     protected Processor readDumpProcessor(Node node) throws AdapterException {
         Node paramNode = node.getAttributes().getNamedItem(XML_PP_DUMP_DIRECTORY);
@@ -246,12 +281,8 @@ public class TargetXMLReader implements XMLTags {
             throw new AdapterException("Dump directory not found for File Dump Processor. A '" + XML_PP_DUMP_DIRECTORY + "' attribute must be set.");
         }          
         FileDumpProcessor pp = new FileDumpProcessor();
+        readProcessorAttributes(node, pp);
         pp.setDestinationFolder(new File(paramNode.getNodeValue()));
-        
-        Node failureOnlyNode = node.getAttributes().getNamedItem(XML_PP_ONLY_IF_ERROR);
-        if (failureOnlyNode != null) {
-            pp.setOnlyIfError(Boolean.valueOf(failureOnlyNode.getNodeValue()).booleanValue());
-        }
         
         Node nameNode = node.getAttributes().getNamedItem(XML_PP_DUMP_NAME);
         if (nameNode != null) {
@@ -269,7 +300,7 @@ public class TargetXMLReader implements XMLTags {
         
         ShellScriptProcessor pp = new ShellScriptProcessor();
         pp.setCommand(scriptNode.getNodeValue());
-        
+        readProcessorAttributes(node, pp);
         
         Node paramNode = node.getAttributes().getNamedItem(XML_PP_SHELL_PARAMS);
         if (paramNode != null) {
@@ -305,6 +336,7 @@ public class TargetXMLReader implements XMLTags {
         } else {
             pp.setKeepDeletedEntries(false);
         }
+        readProcessorAttributes(node, pp);
         return pp;
     }
     
@@ -314,6 +346,7 @@ public class TargetXMLReader implements XMLTags {
         if (delayNode == null) {
             throw new AdapterException("Delay not found for delete processor. A '" + XML_PP_DELAY + "' attribute must be set.");
         }  
+        readProcessorAttributes(node, pp);
         pp.setDelay(Integer.parseInt(delayNode.getNodeValue()));
         return pp;
     }
@@ -339,22 +372,12 @@ public class TargetXMLReader implements XMLTags {
             pp.setPassword(passwordNode.getNodeValue());
         }
         
-        Node failureOnlyNode = node.getAttributes().getNamedItem(XML_PP_ONLY_IF_ERROR);
-        if (failureOnlyNode != null) {
-            pp.setOnlyIfError(Boolean.valueOf(failureOnlyNode.getNodeValue()).booleanValue());
-        }
+        readProcessorAttributes(node, pp);
         
         Node smtpsNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_SMTPS);
         if (smtpsNode != null) {
             pp.setSmtps(Boolean.valueOf(smtpsNode.getNodeValue()).booleanValue());
         }
-        
-        // BACKWARD-COMPATIBILITY //
-        Node failureOnlyNode_old = node.getAttributes().getNamedItem("smtp_" + XML_PP_ONLY_IF_ERROR);
-        if (failureOnlyNode_old != null) {
-            pp.setOnlyIfError(Boolean.valueOf(failureOnlyNode_old.getNodeValue()).booleanValue());
-        }
-        // EOF BACKWARD-COMPATIBILITY //
         
         Node titleNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_TITLE);
         if (titleNode != null) {
@@ -696,7 +719,8 @@ public class TargetXMLReader implements XMLTags {
             throw new AdapterException("Regex not found : your filter must have a '" + XML_FILTER_RG_PATTERN + "' attribute.");
         }          
         RegexArchiveFilter filter = new RegexArchiveFilter();
-        initFilter(filter, filterNode, regexNode);
+        initFilter(filter, filterNode, null);
+        filter.setRegex(regexNode.getNodeValue());
         return filter;
     }
     

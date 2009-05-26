@@ -14,6 +14,7 @@ import com.application.areca.metadata.MetadataConstants;
 import com.application.areca.metadata.MetadataEncoder;
 import com.myJava.file.iterator.FilePathComparator;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
+import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
@@ -21,7 +22,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -122,6 +123,9 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
     }
     
     public AbstractMetaDataEntry decodeEntry(String serialized) {
+    	if (DEBUG) {
+    		Logger.defaultLogger().fine("Parsing trace : [" + serialized + "]");
+    	}
     	TraceEntry entry = new TraceEntry();
     	
 		int index = serialized.indexOf(MetadataConstants.SEPARATOR);

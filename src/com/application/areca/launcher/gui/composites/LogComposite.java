@@ -25,6 +25,7 @@ import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.Refreshable;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.system.OSTool;
+import com.myJava.util.Util;
 import com.myJava.util.log.LogHelper;
 import com.myJava.util.log.LogProcessor;
 import com.myJava.util.log.Logger;
@@ -33,7 +34,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -57,7 +58,7 @@ This file is part of Areca.
  */
 public class LogComposite 
 extends Composite 
-implements LogProcessor, Refreshable, Listener {
+implements LogProcessor, Refreshable {
 	private static Color RED = new Color(Application.getInstance().getDisplay(), 250, 0, 0);
 	private static Color ORANGE = new Color(Application.getInstance().getDisplay(), 250, 120, 0);
 	private static Color BLUE = new Color(Application.getInstance().getDisplay(), 0, 0, 250);
@@ -73,6 +74,7 @@ implements LogProcessor, Refreshable, Listener {
 
 	private StyledText txtLog;
 	private Button btnClear;
+	private Button btnThreadDump;
 	private Combo cboLogLevel;
 
 	public LogComposite(Composite parent) {
@@ -108,7 +110,7 @@ implements LogProcessor, Refreshable, Listener {
 
 	private Composite buildBottomComposite(Composite parent) {
 		Composite panel = new Composite(parent, SWT.NONE);
-		panel.setLayout(new GridLayout(3, false));
+		panel.setLayout(new GridLayout(4, false));
 
 		Label lblLevel = new Label(panel, SWT.NONE);
 		lblLevel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
@@ -142,11 +144,24 @@ implements LogProcessor, Refreshable, Listener {
 				ArecaPreferences.setLogLevel(LogComposite.this.logLevel);
 			}
 		});
+		
+		btnThreadDump = new Button(panel, SWT.PUSH);
+		btnThreadDump.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
+		btnThreadDump.setText(RM.getLabel("app.logtd.label"));
+		btnThreadDump.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event arg0) {
+				Util.logAllThreadInformations();
+			}
+		});
 
 		btnClear = new Button(panel, SWT.PUSH);
-		btnClear.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
+		btnClear.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 		btnClear.setText(RM.getLabel("app.clearlog.label"));
-		btnClear.addListener(SWT.Selection, this);
+		btnClear.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event arg0) {
+				application.clearLog();
+			}
+		});
 
 		return panel;
 	}
@@ -214,10 +229,6 @@ implements LogProcessor, Refreshable, Listener {
 
 	public void refresh() {
 		// Does nothing
-	}
-
-	public void handleEvent(Event event) {
-		application.clearLog();
 	}
 
 	public void displayApplicationMessage(final String messageKey, final String title, final String message) {

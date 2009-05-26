@@ -4,7 +4,7 @@ package com.myJava.file;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -29,4 +29,5 @@ This file is part of Areca.
 public interface InputStreamListener {
 	public void close();
 	public void read(byte[] b, int off, int len, int read);
+	public void read(int b);
 }

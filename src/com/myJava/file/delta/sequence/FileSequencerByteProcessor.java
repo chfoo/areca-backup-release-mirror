@@ -8,7 +8,7 @@ import com.myJava.file.delta.tools.LinkedList;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -36,71 +36,48 @@ implements ByteProcessor, Constants {
     private String hashAlgorithm = HASH_ALG;
     private int blockSize;
 
-    private long totalRead = 0;
     private long position = 0;
     private int currentQuickHash = 0;
     private HashSequence ret;
     private LinkedList block;
+    
+    private long totalReadMod = 0;
 
     public FileSequencerByteProcessor(int blockSize) {
         this.blockSize = blockSize;
     }
 
     public void close() throws ByteProcessorException {
-        if (totalRead % blockSize != 0) {
+        if (totalReadMod != 0) {
             int d;
             for (d = 0; d<blockSize; d++) {
-                totalRead++;
                 currentQuickHash = HashTool.hash(currentQuickHash, HashSequenceEntry.DEFAULT_BYTE);
                 block.add(HashSequenceEntry.DEFAULT_BYTE);
 
-                if (totalRead % blockSize == 0) {
+                totalReadMod++;
+                if (totalReadMod == blockSize) {
+                	totalReadMod = 0;
                     ret.add(currentQuickHash, block.computeHash(hashAlgorithm), position++, blockSize - d - 1);
                     break;
                 }
             }
         }
-
-        /*
-        if (fileToWrite != null) {
-            OutputStream bos = null;
-            try {
-            	File parent = FileSystemManager.getParentFile(fileToWrite);
-            	FileTool.getInstance().createDir(parent);
-            	
-                bos = new GZIPOutputStream(FileSystemManager.getFileOutputStream(fileToWrite));
-                SequenceAdapter adapter = new SequenceAdapter();
-                adapter.serialize(bos, ret);
-            } catch (IOException e) {
-                Logger.defaultLogger().error(e);
-                throw new ByteProcessorException(e.getMessage());
-            } finally {
-                if (bos != null) {
-                    try {
-                        bos.close();
-                    } catch (IOException e) {
-                        Logger.defaultLogger().error(e);
-                        throw new ByteProcessorException(e.getMessage());
-                    }
-                }
-            }
-        }
-        */
     }
 
     public void open() {
         ret = new HashSequence(blockSize);
-        block = new LinkedList(blockSize, 1024);
+        block = new LinkedList(blockSize);
     }
 
-    public void processByte(int read) {
-        byte bRead = (byte)read;
-        totalRead++;
-        currentQuickHash = HashTool.hash(currentQuickHash, bRead);
-        block.add(bRead);
-        if (totalRead % blockSize == 0) {
+    public void processByte(byte read) {
+        totalReadMod++;
+
+        currentQuickHash = HashTool.hash(currentQuickHash, read);
+        block.add(read);
+        if (totalReadMod == blockSize) {
             ret.add(currentQuickHash, block.computeHash(hashAlgorithm), position++, blockSize);
             currentQuickHash = 0;
+            totalReadMod = 0;
         }
     }
 

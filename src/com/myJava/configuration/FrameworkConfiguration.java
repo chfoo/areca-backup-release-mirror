@@ -19,7 +19,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -227,6 +227,11 @@ public class FrameworkConfiguration {
      */
     public static String KEY_TMP_DIRECTORY = "fs.tmp.directory";
     
+    /**
+     * Handler which is used to browse urls and open files
+     */
+    public static String KEY_VIEWER_HANDLER = "viewer.handler.impl"; 
+    
     public static int DEF_ENCRYPTION_KG_ITER = 96731;
     public static String DEF_ENCRYPTION_KG_SALT = "ù%${{²]}}[|`è€$£^¤*!§:/..;;,,_?\"\\°à@@%µ";
     public static String DEF_ENCRYPTION_KG_SALT_ENC = "UTF-8";
@@ -258,11 +263,13 @@ public class FrameworkConfiguration {
     public static int DEF_DELTA_HASHMAP_SIZE = 10007;
     public static int DEF_DELTA_QUICKHASH_MULTIPLIER = 691 * 13 * 11; 
     public static int DEF_DELTA_QUICKHASH_MODULUS = 4013423 * 17; 
-    //public static String DEF_FILESYSTEM_ACCESSOR = "com.myJava.file.metadata.posix.jni.JNIMetaDataAccessor";
-    public static String DEF_FILESYSTEM_ACCESSOR = "com.myJava.file.metadata.posix.basic.DefaultMetaDataAccessor";
+    public static String DEF_FILESYSTEM_ACCESSOR = "com.myJava.file.metadata.posix.jni.JNIMetaDataAccessor";
+    //public static String DEF_FILESYSTEM_ACCESSOR = "com.myJava.file.metadata.posix.basic.DefaultMetaDataAccessor";
     public static String DEF_FILE_CONTENT_HASH_ALGORITHM = "SHA";
     public static int DEF_FS_MAX_MOUNT_POINTS = 2000;
     public static String DEF_TMP_DIRECTORY = null;
+    //public static String DEF_VIEWER_HANDLER = "com.myJava.system.viewer.DefaultViewerHandler";
+    public static String DEF_VIEWER_HANDLER = "com.myJava.system.viewer.DesktopViewerHandler";
     
     private static String VM_PROPS_PREFIX = "launcher.d.";
     
@@ -328,6 +335,10 @@ public class FrameworkConfiguration {
     
     public String getFileSystemAccessorImpl() {
     	return getProperty(KEY_FILESYSTEM_ACCESSOR, DEF_FILESYSTEM_ACCESSOR);
+    }
+    
+    public String getViewerHandlerImpl() {
+    	return getProperty(KEY_VIEWER_HANDLER, DEF_VIEWER_HANDLER);
     }
     
     public String getEncryptionKGAlg() {

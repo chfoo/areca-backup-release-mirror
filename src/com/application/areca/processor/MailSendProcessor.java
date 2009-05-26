@@ -36,7 +36,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -60,317 +60,304 @@ This file is part of Areca.
  */
 public class MailSendProcessor extends AbstractProcessor {
 
-    private String smtpServer;
-    private boolean smtps;
-    private String from;
-    private String recipients;
-    private String user;
-    private String password;
-    private boolean onlyIfError;
-    private String title = "Areca : backup report for target %TARGET_NAME%.";
-    private String intro = "Backup report :";
+	private String smtpServer;
+	private boolean smtps;
+	private String from;
+	private String recipients;
+	private String user;
+	private String password;
+	private String title = "Areca : backup report for target %TARGET_NAME%.";
+	private String intro = "Backup report :";
 
-    public MailSendProcessor() {
-        super();
-    }
-    
-    public String getRecipients() {
-        return recipients;
-    }
+	public MailSendProcessor() {
+		super();
+	}
 
-    public String getPassword() {
-        return password;
-    }
-    
-    public void setPassword(String password) {
-        this.password = password;
-    }
-    
-    public String getUser() {
-        return user;
-    }
-    
-    public void setUser(String user) {
-        this.user = user;
-    }
+	public String getRecipients() {
+		return recipients;
+	}
 
-    public String getIntro() {
-        return intro;
-    }
+	public String getPassword() {
+		return password;
+	}
 
-    public void setIntro(String intro) {
-        this.intro = intro;
-    }
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
-    public boolean isSmtps() {
-        return smtps;
-    }
+	public String getUser() {
+		return user;
+	}
 
-    public void setSmtps(boolean smtps) {
-        this.smtps = smtps;
-    }
+	public void setUser(String user) {
+		this.user = user;
+	}
 
-    public boolean isOnlyIfError() {
-        return onlyIfError;
-    }
+	public String getIntro() {
+		return intro;
+	}
 
-    public void setOnlyIfError(boolean onlyIfError) {
-        this.onlyIfError = onlyIfError;
-    }
+	public void setIntro(String intro) {
+		this.intro = intro;
+	}
 
-    public String getFrom() {
-        return from;
-    }
+	public boolean isSmtps() {
+		return smtps;
+	}
 
-    public void setFrom(String from) {
-        this.from = from;
-    }
+	public void setSmtps(boolean smtps) {
+		this.smtps = smtps;
+	}
 
-    public String getTitle() {
-        return title;
-    }
+	public String getFrom() {
+		return from;
+	}
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+	public void setFrom(String from) {
+		this.from = from;
+	}
 
-    /**
-     * Sets the recipients.
-     * <BR>Multiple recipients are separated by one of the following characters : ' '    ','    ';' 
-     */
-    public void setRecipients(String recipients) {
-        this.recipients = recipients;
-    }
-    
-    public String getSmtpServer() {
-        return smtpServer;
-    }
-    
-    /**
-     * Sets the smtp server used for transport 
-     */
-    public void setSmtpServer(String smtpServer) {
-        this.smtpServer = smtpServer;
-    }
-    
-    private String getSmtpServerName() {
-        if (smtpServer.indexOf(':') != -1) {
-            StringTokenizer stt = new StringTokenizer(smtpServer, ":");
-            return stt.nextToken().trim();
-        } else {
-            return smtpServer.trim();
-        }
-    }
+	public String getTitle() {
+		return title;
+	}
 
-    private int getSmtpServerPort() {
-        if (smtpServer.indexOf(':') != -1) {
-            StringTokenizer stt = new StringTokenizer(smtpServer, ":");
-            stt.nextToken();
-            return Integer.parseInt(stt.nextToken().trim());
-        } else {
-            return 25;
-        }
-    }
-    
-    private boolean isAuthenticated() {
-        return 
-        	this.password != null 
-        	&& this.password.trim().length() != 0
-        	&& this.user  != null
-        	&& this.user.trim().length() != 0        	
-        ;
-    }
-    
-    public void runImpl(ProcessContext context) throws ApplicationException {
-        if (context.getReport().hasErrors() || (! this.onlyIfError)) {
-            PrintStream str = null;
-            ByteArrayOutputStream baos = null;
-            Logger.defaultLogger().info("Sending a mail report to : " + this.recipients + " using SMTP server : " + this.smtpServer);
-            try {
-                String subject = TagHelper.replaceParamValues(this.title, context);
-                String content = 
-                    TagHelper.replaceParamValues(this.intro, context)
-                    + "\n"
-                    + getReportAsText(context.getReport());
-                
-                if (ArecaTechnicalConfiguration.get().isSMTPDebugMode()) {
-                    baos = new ByteArrayOutputStream();
-                	str = new PrintStream(baos);
-                }
-    
-                sendMail(
-                        subject,
-                        content,
-                        str,
-                        context
-                );
-            } catch (Exception e) {
-                Logger.defaultLogger().error("Error during mail processing", e);
-                throw new ApplicationException("Error during mail processing", e);
-            } finally {
-                if (baos != null) {
-                    Logger.defaultLogger().info(baos.toString(), "MailSendPostProcessor.run()");
-                }
-            }
-        } else {
-            Logger.defaultLogger().info("No mail report was send because the backup was successfull");
-        }
-    }
-    
-    public void sendMail(
-            String subject,
-            String content,
-            PrintStream debugStream,
-            ProcessContext context
-    ) throws ApplicationException {       
-    	Properties props = System.getProperties();
-    	props.put("mail.smtp.host", getSmtpServerName());
-    	props.put("mail.smtp.port", "" + getSmtpServerPort());
-    	
-    	Session session = Session.getInstance(props, null);
-    	if (debugStream != null) {
-	    	session.setDebug(true);
-	    	session.setDebugOut(debugStream);
-    	}
-    	
-    	try {
-    	    List recp = getAddressesAsList();
-    	    InternetAddress[] addresses = new InternetAddress[recp.size()];
-    	    for (int i=0; i<addresses.length; i++) {
-    	        addresses[i] = new InternetAddress((String)recp.get(i));
-    	    }
-    	    
-    	    MimeMessage msg = new MimeMessage(session);
+	public void setTitle(String title) {
+		this.title = title;
+	}
 
-            InternetAddress fromAddress = (this.from == null || this.from.trim().length() == 0) ? addresses[0] : new InternetAddress(this.from);
-            
-    	    msg.setFrom(fromAddress);
-    	    msg.setRecipients(Message.RecipientType.TO, addresses);
-            msg.setReplyTo(new InternetAddress[] {fromAddress});
-    	    msg.setSubject(subject);
-    	    msg.setText(content, OSTool.getIANAFileEncoding());
-    	    msg.setSentDate(new Date());
-            msg.setSender(fromAddress);
-            msg.setSentDate(new Date());
-            if (context != null && context.getReport() != null) {
-                msg.setHeader("X-Areca-Target", context.getReport().getTarget().getUid());
-            }
-            msg.setHeader("X-Areca-Version", VersionInfos.getLastVersion().getVersionId());
-    	    if (isAuthenticated()) {
-                Transport tr;
-                if (isSmtps()) {
-                    props.put("mail.smtps.auth", "true");
-                    tr = session.getTransport("smtps");
-                } else {
-                    props.put("mail.smtp.auth", "true");
-                    tr = session.getTransport("smtp");
-                }
-                
-                tr.connect(getSmtpServerName(), getSmtpServerPort(), getUser(), getPassword());
-                msg.saveChanges();
-                tr.sendMessage(msg, msg.getAllRecipients());
-                tr.close();
-    	    } else {
-    	       Transport.send(msg);
-            }
-    	} catch (MessagingException e) {
-    	    Logger.defaultLogger().error("Error during mail processing", e);
-    	    throw new ApplicationException("Error during mail processing", e);
-    	}
-    }
-    
-    /**
-     * Builds a string representation of the report using a report writer. 
-     */
-    private String getReportAsText(ProcessReport report) throws IOException {
-        ProcessReportWriter writer = null;
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
-            writer = new ProcessReportWriter(new OutputStreamWriter(baos));
-            writer.writeReport(report);
-        } finally {
-            writer.close();            
-        }
-        
-        return baos.toString();
-    }
-    
-    public String getParametersSummary() {
-        return this.recipients + " - " + this.smtpServer;
-    }
-    
-    public Duplicable duplicate() {
-        MailSendProcessor pro = new MailSendProcessor();
-        pro.recipients = this.recipients;
-        pro.smtpServer = this.smtpServer;   
-        pro.user = this.user;
-        pro.password = this.password;
-        pro.onlyIfError = this.onlyIfError;
-        pro.title = this.title;
-        pro.smtps = this.smtps;
-        pro.intro = this.intro;
-        pro.from = this.from;
-        return pro;
-    }
-    
-    public void validate() throws ProcessorValidationException {
-        if (smtpServer == null || smtpServer.trim().length() == 0) {
-            throw new ProcessorValidationException("A SMTP server must be provided");
-        }
-        if (recipients == null || recipients.trim().length() == 0) {
-            throw new ProcessorValidationException("At least one recipient must be provided");
-        }
-        
-        List recp = getAddressesAsList();
-        for (int i=0; i<recp.size(); i++) {
-            if (! CommonRules.checkEmail((String)recp.get(i))) {
-                throw new ProcessorValidationException("Invalid Email : " + recp.get(i));
-            }
-        }
-    }
-    
-    private List getAddressesAsList() {
-	    ArrayList recp = new ArrayList();
-	    StringTokenizer stt = new StringTokenizer(this.recipients, " ,;");
-	    while (stt.hasMoreTokens()) {
-	        String add = stt.nextToken();
-	        if (add != null && add.trim().length() != 0) {
-	            recp.add(add);
-	        }
-	    }
-	    return recp;
-    }
-    
-    public boolean equals(Object obj) {
-        if (obj == null || (! (obj instanceof MailSendProcessor)) ) {
-            return false;
-        } else {
-            MailSendProcessor other = (MailSendProcessor)obj;
-            return 
-            	EqualsHelper.equals(this.password, other.password)
-            	&& EqualsHelper.equals(this.user, other.user)
-            	&& EqualsHelper.equals(this.smtpServer, other.smtpServer)
-            	&& EqualsHelper.equals(this.recipients, other.recipients)
-                && EqualsHelper.equals(this.onlyIfError, other.onlyIfError)
-                && EqualsHelper.equals(this.smtps, other.smtps)
-                && EqualsHelper.equals(this.title, other.title)      
-                && EqualsHelper.equals(this.intro, other.intro)      
-                && EqualsHelper.equals(this.from, other.from)                     
-            	;
-        }
-    }
-    
-    public int hashCode() {
-        int h = HashHelper.initHash(this);
-        h = HashHelper.hash(h, this.password);
-        h = HashHelper.hash(h, this.user);
-        h = HashHelper.hash(h, this.smtpServer);
-        h = HashHelper.hash(h, this.recipients);
-        h = HashHelper.hash(h, this.onlyIfError);   
-        h = HashHelper.hash(h, this.smtps);             
-        h = HashHelper.hash(h, this.title);
-        h = HashHelper.hash(h, this.intro);    
-        h = HashHelper.hash(h, this.from);            
-        return h;
-    }
+	/**
+	 * Sets the recipients.
+	 * <BR>Multiple recipients are separated by one of the following characters : ' '    ','    ';' 
+	 */
+	 public void setRecipients(String recipients) {
+		 this.recipients = recipients;
+	 }
+
+	 public String getSmtpServer() {
+		 return smtpServer;
+	 }
+
+	 /**
+	  * Sets the smtp server used for transport 
+	  */
+	 public void setSmtpServer(String smtpServer) {
+		 this.smtpServer = smtpServer;
+	 }
+
+	 private String getSmtpServerName() {
+		 if (smtpServer.indexOf(':') != -1) {
+			 StringTokenizer stt = new StringTokenizer(smtpServer, ":");
+			 return stt.nextToken().trim();
+		 } else {
+			 return smtpServer.trim();
+		 }
+	 }
+
+	 private int getSmtpServerPort() {
+		 if (smtpServer.indexOf(':') != -1) {
+			 StringTokenizer stt = new StringTokenizer(smtpServer, ":");
+			 stt.nextToken();
+			 return Integer.parseInt(stt.nextToken().trim());
+		 } else {
+			 return 25;
+		 }
+	 }
+
+	 private boolean isAuthenticated() {
+		 return 
+		 this.password != null 
+		 && this.password.trim().length() != 0
+		 && this.user  != null
+		 && this.user.trim().length() != 0        	
+		 ;
+	 }
+
+	 public void runImpl(ProcessContext context) throws ApplicationException {
+		 PrintStream str = null;
+		 ByteArrayOutputStream baos = null;
+		 Logger.defaultLogger().info("Sending a mail report to : " + this.recipients + " using SMTP server : " + this.smtpServer);
+		 try {
+			 String subject = TagHelper.replaceParamValues(this.title, context);
+			 String content = 
+				 TagHelper.replaceParamValues(this.intro, context)
+				 + "\n"
+				 + getReportAsText(context.getReport());
+
+			 if (ArecaTechnicalConfiguration.get().isSMTPDebugMode()) {
+				 baos = new ByteArrayOutputStream();
+				 str = new PrintStream(baos);
+			 }
+
+			 sendMail(
+					 subject,
+					 content,
+					 str,
+					 context
+			 );
+		 } catch (Exception e) {
+			 Logger.defaultLogger().error("Error during mail processing", e);
+			 throw new ApplicationException("Error during mail processing", e);
+		 } finally {
+			 if (baos != null) {
+				 Logger.defaultLogger().info(baos.toString(), "MailSendPostProcessor.run()");
+			 }
+		 }
+	 }
+
+	 public void sendMail(
+			 String subject,
+			 String content,
+			 PrintStream debugStream,
+			 ProcessContext context
+	 ) throws ApplicationException {       
+		 Properties props = System.getProperties();
+		 props.put("mail.smtp.host", getSmtpServerName());
+		 props.put("mail.smtp.port", "" + getSmtpServerPort());
+
+		 Session session = Session.getInstance(props, null);
+		 if (debugStream != null) {
+			 session.setDebug(true);
+			 session.setDebugOut(debugStream);
+		 }
+
+		 try {
+			 List recp = getAddressesAsList();
+			 InternetAddress[] addresses = new InternetAddress[recp.size()];
+			 for (int i=0; i<addresses.length; i++) {
+				 addresses[i] = new InternetAddress((String)recp.get(i));
+			 }
+
+			 MimeMessage msg = new MimeMessage(session);
+
+			 InternetAddress fromAddress = (this.from == null || this.from.trim().length() == 0) ? addresses[0] : new InternetAddress(this.from);
+
+			 msg.setFrom(fromAddress);
+			 msg.setRecipients(Message.RecipientType.TO, addresses);
+			 msg.setReplyTo(new InternetAddress[] {fromAddress});
+			 msg.setSubject(subject);
+			 msg.setText(content, OSTool.getIANAFileEncoding());
+			 msg.setSentDate(new Date());
+			 msg.setSender(fromAddress);
+			 msg.setSentDate(new Date());
+			 if (context != null && context.getReport() != null) {
+				 msg.setHeader("X-Areca-Target", context.getReport().getTarget().getUid());
+			 }
+			 msg.setHeader("X-Areca-Version", VersionInfos.getLastVersion().getVersionId());
+			 if (isAuthenticated()) {
+				 Transport tr;
+				 if (isSmtps()) {
+					 props.put("mail.smtps.auth", "true");
+					 tr = session.getTransport("smtps");
+				 } else {
+					 props.put("mail.smtp.auth", "true");
+					 tr = session.getTransport("smtp");
+				 }
+
+				 tr.connect(getSmtpServerName(), getSmtpServerPort(), getUser(), getPassword());
+				 msg.saveChanges();
+				 tr.sendMessage(msg, msg.getAllRecipients());
+				 tr.close();
+			 } else {
+				 Transport.send(msg);
+			 }
+		 } catch (MessagingException e) {
+			 Logger.defaultLogger().error("Error during mail processing", e);
+			 throw new ApplicationException("Error during mail processing", e);
+		 }
+	 }
+
+	 /**
+	  * Builds a string representation of the report using a report writer. 
+	  */
+	 private String getReportAsText(ProcessReport report) throws IOException {
+		 ProcessReportWriter writer = null;
+		 ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		 try {
+			 writer = new ProcessReportWriter(new OutputStreamWriter(baos));
+			 writer.writeReport(report);
+		 } finally {
+			 writer.close();            
+		 }
+
+		 return baos.toString();
+	 }
+
+	 public String getParametersSummary() {
+		 return this.recipients + " - " + this.smtpServer;
+	 }
+
+	 public Duplicable duplicate() {
+		 MailSendProcessor pro = new MailSendProcessor();
+		 copyAttributes(pro);
+		 pro.recipients = this.recipients;
+		 pro.smtpServer = this.smtpServer;   
+		 pro.user = this.user;
+		 pro.password = this.password;
+		 pro.title = this.title;
+		 pro.smtps = this.smtps;
+		 pro.intro = this.intro;
+		 pro.from = this.from;
+		 return pro;
+	 }
+
+	 public void validate() throws ProcessorValidationException {
+		 if (smtpServer == null || smtpServer.trim().length() == 0) {
+			 throw new ProcessorValidationException("A SMTP server must be provided");
+		 }
+		 if (recipients == null || recipients.trim().length() == 0) {
+			 throw new ProcessorValidationException("At least one recipient must be provided");
+		 }
+
+		 List recp = getAddressesAsList();
+		 for (int i=0; i<recp.size(); i++) {
+			 if (! CommonRules.checkEmail((String)recp.get(i))) {
+				 throw new ProcessorValidationException("Invalid Email : " + recp.get(i));
+			 }
+		 }
+	 }
+
+	 private List getAddressesAsList() {
+		 ArrayList recp = new ArrayList();
+		 StringTokenizer stt = new StringTokenizer(this.recipients, " ,;");
+		 while (stt.hasMoreTokens()) {
+			 String add = stt.nextToken();
+			 if (add != null && add.trim().length() != 0) {
+				 recp.add(add);
+			 }
+		 }
+		 return recp;
+	 }
+
+	 public boolean equals(Object obj) {
+		 if (obj == null || (! (obj instanceof MailSendProcessor)) ) {
+			 return false;
+		 } else {
+			 MailSendProcessor other = (MailSendProcessor)obj;
+			 return 
+			 super.equals(other)
+			 && EqualsHelper.equals(this.password, other.password)
+			 && EqualsHelper.equals(this.user, other.user)
+			 && EqualsHelper.equals(this.smtpServer, other.smtpServer)
+			 && EqualsHelper.equals(this.recipients, other.recipients)
+			 && EqualsHelper.equals(this.smtps, other.smtps)
+			 && EqualsHelper.equals(this.title, other.title)      
+			 && EqualsHelper.equals(this.intro, other.intro)      
+			 && EqualsHelper.equals(this.from, other.from)                     
+			 ;
+		 }
+	 }
+
+	 public int hashCode() {
+		 int h = HashHelper.initHash(this);
+		 h = HashHelper.hash(h, super.hashCode());
+		 h = HashHelper.hash(h, this.password);
+		 h = HashHelper.hash(h, this.user);
+		 h = HashHelper.hash(h, this.smtpServer);
+		 h = HashHelper.hash(h, this.recipients);  
+		 h = HashHelper.hash(h, this.smtps);             
+		 h = HashHelper.hash(h, this.title);
+		 h = HashHelper.hash(h, this.intro);    
+		 h = HashHelper.hash(h, this.from);            
+		 return h;
+	 }
 }

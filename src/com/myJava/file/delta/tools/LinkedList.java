@@ -6,12 +6,13 @@ import java.security.NoSuchAlgorithmException;
 import com.myJava.util.log.Logger;
 
 
+
 /**
  * Implements a buffered FIFO list of bytes of fixed length
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -34,72 +35,47 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class LinkedList {
-    private LinkedListElement root;
-    private LinkedListElement current;
-    private long size = 0;
-    private long maxSize;
-    private int bufferSize;
 
-    public LinkedList(long maxSize, int bufferSize) {
+    private boolean eof = false;
+    private int maxSize;
+    private byte[] buffer;
+    private int currentIndex = 0;
+    private int firstIndex = 0;
+
+    public LinkedList(int maxSize) {
         this.maxSize = maxSize;
-        this.bufferSize = bufferSize;
+        this.buffer = new byte[maxSize];
     }
 
     public void add(byte data) {       
-        if (root == null) {
-            root = new LinkedListElement(bufferSize);
-            root.add(data);
-            current = root;
-        } else {
-            if (size == maxSize) {
-                if ( ! root.canRemove()) {
-                    root = root.getNext();
-                }
-                root.remove();
-                size--;
-            }
-        	
-            if (! current.canAdd()) {
-                current.setNext(new LinkedListElement(bufferSize));
-                current = current.getNext();
-            }
-            current.add(data);
-        }
-        
-        size++;
-    }
-    
-    public byte[] getBytes() {
-        int currentIndex = 0;
-        byte[] ret = new byte[(int)size];
-        LinkedListElement elt = root;
-        while (elt != null) {
-            byte[] dt = elt.getBytes();
-            for (int i=0; i<dt.length; i++) {
-                ret[currentIndex++] = dt[i];
-            }
-            elt = elt.getNext();
-        }
-        return ret;
+    	buffer[currentIndex] = data;
+
+    	currentIndex++;
+    	if (currentIndex == maxSize) {
+    		currentIndex = 0;
+    		eof = true;
+    	}
+    	
+    	if (eof) {
+    		firstIndex = currentIndex;
+    	}
     }
     
     public int getFirst() {
-        if (root == null) {
-            return -1;
-        } else {
-            return root.getFirst();
-        }
+    	return buffer[firstIndex];
     }
 
     public byte[] computeHash(String algorithm) {
-        LinkedListElement elt = root;
         MessageDigest digest;
         try {
             digest = MessageDigest.getInstance(algorithm);
-            while (elt != null) {
-                elt.digest(digest);
-                elt = elt.getNext();
+            if (eof) {
+                digest.update(buffer, firstIndex, maxSize - firstIndex);
+                digest.update(buffer, 0, firstIndex);
+            } else {
+                digest.update(buffer, 0, currentIndex);
             }
+
             return digest.digest();
         } catch (NoSuchAlgorithmException e) {
             Logger.defaultLogger().error(e);
@@ -108,24 +84,35 @@ public class LinkedList {
     }
 
     public String toString() {
+    	int s;
+    	
+    	if (eof) {
+    		s = maxSize;
+    	} else {
+    		s = currentIndex;
+    	}
+    	
+        byte[] dt = new byte[s];
+        for (int i=0; i<s; i++) {
+        	dt[i] = buffer[(firstIndex + i)%maxSize];
+        }
+        
         String ret = "";
-        byte[] dt = getBytes();
         for (int i=0; i<dt.length; i++) {
-            ret += (char)dt[i];
+            ret += " " + (int)dt[i];
         }
         return ret;
     }
     
     public static void main(String[] args) {
         int maxSize = 23;
-        int bufferSize = 50;
         int maxValue = 200;
         
-        LinkedList lst = new LinkedList(maxSize, bufferSize);
-        for (int i=0; i<maxValue; i++) {
+        LinkedList lst = new LinkedList(maxSize);
+        for (int i=1; i<maxValue; i++) {
             lst.add((byte)i);
             System.out.println(lst.toString());
-            System.out.println(lst.computeHash("SHA").length);
+            System.out.println(lst.getFirst());
         }
     }
 }

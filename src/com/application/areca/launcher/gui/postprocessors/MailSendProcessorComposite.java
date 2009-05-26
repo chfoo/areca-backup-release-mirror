@@ -24,7 +24,7 @@ import com.application.areca.processor.Processor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -56,7 +56,6 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
     private Text txtIntro;
     private Text txtFrom;
     private Button btnTest;
-    private Button btnOnlyError;
     private Button btnSMTPS;
     
     public MailSendProcessorComposite(Composite composite, Processor proc, ProcessorEditionWindow window) {
@@ -156,19 +155,12 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
             }
         });
         
-        // Send only if in error
-        btnOnlyError = new Button(this, SWT.CHECK);
-        btnOnlyError.setText(RM.getLabel("procedition.onlyerror.label"));
-        btnOnlyError.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
-        window.monitorControl(btnOnlyError);
-        
         if (proc != null) {
             MailSendProcessor mProc = (MailSendProcessor)proc;
             txtRecipients.setText(mProc.getRecipients());
             txtSmtp.setText(mProc.getSmtpServer());
             txtUser.setText(mProc.getUser());
             txtPassword.setText(mProc.getPassword());
-            btnOnlyError.setSelection(mProc.isOnlyIfError());
             txtTitle.setText(mProc.getTitle());
             btnSMTPS.setSelection(mProc.isSmtps());
             if (mProc.getIntro() != null) {
@@ -186,7 +178,6 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         mProc.setSmtpServer(txtSmtp.getText());
         mProc.setUser(txtUser.getText());
         mProc.setPassword(txtPassword.getText());
-        mProc.setOnlyIfError(btnOnlyError.getSelection());
         mProc.setTitle(txtTitle.getText());
         mProc.setSmtps(btnSMTPS.getSelection());
         mProc.setIntro(txtIntro.getText());

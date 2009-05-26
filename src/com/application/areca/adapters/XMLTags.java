@@ -5,7 +5,7 @@ package com.application.areca.adapters;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -37,7 +37,7 @@ public interface XMLTags {
     public static final String XML_PROCESS_DESCRIPTION = "description";
     
     public static final String XML_TARGET = "target";    
-    public static final String XML_TARGET_BASEDIR = "base_directory";
+    public static final String XML_TARGET_BASEDIR = "base_directory"; // deprecated
     public static final String XML_TARGET_ID = "id";
     public static final String XML_TARGET_UID = "uid";    
     public static final String XML_TARGET_NAME = "name";    
@@ -102,8 +102,7 @@ public interface XMLTags {
     public static final String XML_MEDIUM_ZIP_EXTENSION = "zip_ext";   
     public static final String XML_MEDIUM_TYPE = "type";
     public static final String XML_MEDIUM_TYPE_ZIP = "zip";
-    public static final String XML_MEDIUM_TYPE_ZIP64 = "zip64"; // DEPRECATED
-    public static final String XML_MEDIUM_TYPE_TGZ = "tgz";    
+    public static final String XML_MEDIUM_TYPE_ZIP64 = "zip64"; // DEPRECATED 
     public static final String XML_MEDIUM_TYPE_DIR = "directory";        
     public static final String XML_MEDIUM_FTP_LOGIN = "ftp_login";
     public static final String XML_MEDIUM_FTP_PASSWORD = "ftp_password";
@@ -129,7 +128,6 @@ public interface XMLTags {
     public static final String XML_PP_EMAIL_FROM = "from";    
     public static final String XML_PP_EMAIL_INTRO = "introduction";    
     public static final String XML_PP_EMAIL_USER = "smtp_user";
-    public static final String XML_PP_ONLY_IF_ERROR = "failure_only";
     public static final String XML_PP_EMAIL_PASSWORD = "smtp_password";    
     public static final String XML_PP_EMAIL_SMTPS = "smtp_s";    
     public static final String XML_PP_SHELL_SCRIPT = "script";
@@ -138,4 +136,9 @@ public interface XMLTags {
     public static final String XML_PP_MERGE_FROM_DELAY = "from_delay";  
     public static final String XML_PP_MERGE_TO_DELAY = "to_delay";     
     public static final String XML_PP_MERGE_KEEP_DELETED = "keep_deleted";
+    public static final String XML_PP_ONLY_IF_ERROR = "failure_only"; // deprecated since 7.1.1
+    public static final String XML_PP_RUN_SCHEME = "run_scheme";
+    public static final String XML_PP_RUN_SCHEME_ALWAYS = "always";
+    public static final String XML_PP_RUN_SCHEME_FAILURE = "failure";
+    public static final String XML_PP_RUN_SCHEME_SUCCESS = "success";
 }

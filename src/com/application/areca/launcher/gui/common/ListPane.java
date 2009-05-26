@@ -19,7 +19,7 @@ import org.eclipse.swt.widgets.Listener;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*

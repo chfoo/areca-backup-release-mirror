@@ -7,7 +7,7 @@ import com.myJava.file.delta.tools.LinkedList;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*

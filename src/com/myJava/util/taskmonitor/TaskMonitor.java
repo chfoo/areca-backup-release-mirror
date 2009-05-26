@@ -12,7 +12,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -238,10 +238,6 @@ public class TaskMonitor {
     public synchronized boolean isCancellable() {
         return cancellable;
     }
-    
-    public synchronized boolean isCancelRequested() {
-        return cancelRequested;
-    }
 
 	public boolean isPauseRequested() {
 		return pauseRequested;
@@ -293,22 +289,18 @@ public class TaskMonitor {
      * @throws TaskCancelledException
      */
     public void checkTaskState() throws TaskCancelledException {
-        if (this.isCancelRequested()) {
+        if (this.cancelRequested) {
             throw new TaskCancelledException("The [" + this.name + "] task has been cancelled.");
         }
         
     	try {
-    		boolean paused = false;
     		if (pauseRequested) {
-    			paused = true;
     			Logger.defaultLogger().info("The [" + this.name + "] task has been paused.");
-    		}
-			while (this.pauseRequested) {
-				Thread.currentThread().sleep(PAUSE_CHECK_DELAY_MS);
-			}
-			if (paused) {
+    			while (this.pauseRequested) {
+    				Thread.sleep(PAUSE_CHECK_DELAY_MS);
+    			}
     			Logger.defaultLogger().info("The [" + this.name + "] task has been resumed.");
-			}
+    		}
 		} catch (InterruptedException e) {
 			Logger.defaultLogger().error("Interrupted", e);
 		}

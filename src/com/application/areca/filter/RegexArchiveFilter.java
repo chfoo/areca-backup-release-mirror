@@ -3,7 +3,6 @@ package com.application.areca.filter;
 import java.io.File;
 import java.util.regex.Pattern;
 
-import com.application.areca.Utils;
 import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
@@ -13,7 +12,7 @@ import com.myJava.object.HashHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -46,12 +45,26 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
      * Compiled pattern
      */
     private Pattern pattern;
+    
+    /**
+     * Apply pattern to filename only
+     */
+    private boolean applyToFileName = false;
+
+	public boolean isApplyToFileName() {
+		return applyToFileName;
+	}
+
+	public void setApplyToFileName(boolean applyToFileName) {
+		this.applyToFileName = applyToFileName;
+	}
+
+	public String getRegex() {
+		return regex;
+	}
 
 	public void acceptParameters(String parameters) {
-        if (Utils.isEmpty(parameters)) {
-            throw new IllegalArgumentException("Invalid parameters : " + parameters);
-        }
-        setRegex(parameters);
+		setRegex(parameters);
     }
     
     public boolean acceptIteration(File entry) {
@@ -62,7 +75,8 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
         if (entry == null) {
             return false;
         } else {
-            if (pattern.matcher(entry.getAbsolutePath()).find()) {
+        	String toMatch = this.applyToFileName ? entry.getName() : entry.getAbsolutePath();
+            if (pattern.matcher(toMatch).find()) {
             	return !exclude;
             } else {
             	return exclude;
@@ -74,6 +88,7 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
         RegexArchiveFilter filter = new RegexArchiveFilter();
         filter.exclude = this.exclude;
         filter.setRegex(this.regex);
+        filter.setApplyToFileName(this.applyToFileName);
         return filter;
     }
 
@@ -81,7 +96,7 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
 		return regex;
 	}
 
-	private void setRegex(String regex) {
+	public void setRegex(String regex) {
 		this.regex = regex;
         this.pattern = Pattern.compile(regex);
 	}
@@ -94,6 +109,7 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
             return 
             	EqualsHelper.equals(this.exclude, other.exclude)
             	&& EqualsHelper.equals(this.regex, other.regex)
+            	&& EqualsHelper.equals(this.applyToFileName, other.applyToFileName)            	
            	;
         }
     }
@@ -101,6 +117,7 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
     public int hashCode() {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, this.regex);
+        h = HashHelper.hash(h, this.applyToFileName);
         h = HashHelper.hash(h, this.exclude);
         return h;
     }

@@ -21,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -45,115 +45,102 @@ This file is part of Areca.
  */
 public class FileDumpProcessor extends AbstractProcessor {
 
-    private File destinationFolder;
-    private String reportName = "%TARGET_UID%_%ARCHIVE_NAME%.report";
-    private boolean onlyIfError;
+	private File destinationFolder;
+	private String reportName = "%TARGET_UID%_%ARCHIVE_NAME%.report";
 
-    /**
-     * @param target
-     */
-    public FileDumpProcessor() {
-        super();
-    }
+	/**
+	 * @param target
+	 */
+	public FileDumpProcessor() {
+		super();
+	}
 
-    public File getDestinationFolder() {
-        return destinationFolder;
-    }
+	public File getDestinationFolder() {
+		return destinationFolder;
+	}
 
-    public void setDestinationFolder(File destinationFolder) {
-        this.destinationFolder = destinationFolder;
-    }
+	public void setDestinationFolder(File destinationFolder) {
+		this.destinationFolder = destinationFolder;
+	}
 
-    public String getReportName() {
-        return reportName;
-    }
+	public String getReportName() {
+		return reportName;
+	}
 
-    public void setReportName(String name) {
-        this.reportName = name;
-    }
+	public void setReportName(String name) {
+		this.reportName = name;
+	}
 
-    public boolean isOnlyIfError() {
-        return onlyIfError;
-    }
+	public void runImpl(ProcessContext context) throws ApplicationException {
+		ProcessReportWriter writer = null;
+		File destination = new File(
+				destinationFolder, 
+				TagHelper.replaceParamValues(
+						TagHelper.replaceTag(reportName, TagHelper.PARAM_ARCHIVE, TagHelper.PARAM_ARCHIVE_NAME), // The %ARCHIVE% tag cannot be used here !
+						context
+				)
+		);
+		Logger.defaultLogger().info("Writing backup report on : " + FileSystemManager.getAbsolutePath(destination));
 
-    public void setOnlyIfError(boolean onlyIfError) {
-        this.onlyIfError = onlyIfError;
-    }
+		try {
+			ProcessReport report = context.getReport();
+			if (! FileSystemManager.exists(destinationFolder)) {
+				FileTool tool = FileTool.getInstance();
+				tool.createDir(destinationFolder);
+			}
+			writer = new ProcessReportWriter(FileSystemManager.getWriter(destination));
+			writer.writeReport(report);
+		} catch (FileNotFoundException e) {
+			Logger.defaultLogger().error("The report filename is incorrect : " + FileSystemManager.getAbsolutePath(destination), e);            
+			throw new IllegalArgumentException("The report filename is incorrect : " + FileSystemManager.getAbsolutePath(destination));
+		} catch (IOException e) {
+			Logger.defaultLogger().error("Exception caught during report generation", e);            
+			throw new ApplicationException("Exception caught during report generation", e);
+		} finally {
+			try {
+				writer.close();
+			} catch (IOException e1) {
+				Logger.defaultLogger().error("Exception caught during report generation", e1);
+			}
+		}
+	}
 
-    public void runImpl(ProcessContext context) throws ApplicationException {
-        if ((context.getReport().hasErrors()) || (! this.onlyIfError)) {
-            ProcessReportWriter writer = null;
-            File destination = new File(
-                    destinationFolder, 
-                    TagHelper.replaceParamValues(
-                            TagHelper.replaceTag(reportName, TagHelper.PARAM_ARCHIVE, TagHelper.PARAM_ARCHIVE_NAME), // The %ARCHIVE% tag cannot be used here !
-                            context
-                    )
-            );
-            Logger.defaultLogger().info("Writing backup report on : " + FileSystemManager.getAbsolutePath(destination));
-            
-            try {
-                ProcessReport report = context.getReport();
-                if (! FileSystemManager.exists(destinationFolder)) {
-                    FileTool tool = FileTool.getInstance();
-                    tool.createDir(destinationFolder);
-                }
-                writer = new ProcessReportWriter(FileSystemManager.getWriter(destination));
-                writer.writeReport(report);
-            } catch (FileNotFoundException e) {
-                Logger.defaultLogger().error("The report filename is incorrect : " + FileSystemManager.getAbsolutePath(destination), e);            
-                throw new IllegalArgumentException("The report filename is incorrect : " + FileSystemManager.getAbsolutePath(destination));
-            } catch (IOException e) {
-                Logger.defaultLogger().error("Exception caught during report generation", e);            
-                throw new ApplicationException("Exception caught during report generation", e);
-            } finally {
-                try {
-                    writer.close();
-                } catch (IOException e1) {
-                    Logger.defaultLogger().error("Exception caught during report generation", e1);
-                }
-            }
-        } else {
-            Logger.defaultLogger().info("No report file was written on disk because the backup was successfull");
-        }
-    }
+	public String getParametersSummary() {
+		return FileSystemManager.getAbsolutePath(this.destinationFolder);
+	}
 
-    public String getParametersSummary() {
-        return FileSystemManager.getAbsolutePath(this.destinationFolder);
-    }
+	public Duplicable duplicate() {
+		FileDumpProcessor pro = new FileDumpProcessor();
+		copyAttributes(pro);
+		pro.destinationFolder = this.destinationFolder;
+		pro.reportName = this.reportName;
+		return pro;
+	}
 
-    public Duplicable duplicate() {
-        FileDumpProcessor pro = new FileDumpProcessor();
-        pro.destinationFolder = this.destinationFolder;
-        pro.reportName = this.reportName;
-        pro.onlyIfError = this.onlyIfError;
-        return pro;
-    }
+	public void validate() throws ProcessorValidationException {
+		if (FileSystemManager.isFile(this.destinationFolder)) {
+			throw new ProcessorValidationException("Invalid argument : '" + FileSystemManager.getAbsolutePath(this.destinationFolder) + "' is a file - Please select a directory.");
+		}
+	}
 
-    public void validate() throws ProcessorValidationException {
-        if (FileSystemManager.isFile(this.destinationFolder)) {
-            throw new ProcessorValidationException("Invalid argument : '" + FileSystemManager.getAbsolutePath(this.destinationFolder) + "' is a file - Please select a directory.");
-        }
-    }
+	public boolean equals(Object obj) {
+		if (obj == null || (! (obj instanceof FileDumpProcessor)) ) {
+			return false;
+		} else {
+			FileDumpProcessor other = (FileDumpProcessor)obj;
+			return                 
+			super.equals(other)
+			&& EqualsHelper.equals(this.destinationFolder, other.destinationFolder)
+			&& EqualsHelper.equals(this.reportName, other.reportName)
+			;
+		}
+	}
 
-    public boolean equals(Object obj) {
-        if (obj == null || (! (obj instanceof FileDumpProcessor)) ) {
-            return false;
-        } else {
-            FileDumpProcessor other = (FileDumpProcessor)obj;
-            return 
-                EqualsHelper.equals(this.destinationFolder, other.destinationFolder)
-                && EqualsHelper.equals(this.reportName, other.reportName)
-                && EqualsHelper.equals(this.onlyIfError, other.onlyIfError)
-            ;
-        }
-    }
-
-    public int hashCode() {
-        int h = HashHelper.initHash(this);
-        h = HashHelper.hash(h, FileSystemManager.getAbsolutePath(this.destinationFolder));
-        h = HashHelper.hash(h, this.reportName);
-        h = HashHelper.hash(h, this.onlyIfError);
-        return h;
-    }
+	public int hashCode() {
+		int h = HashHelper.initHash(this);
+		h = HashHelper.hash(h, super.hashCode());
+		h = HashHelper.hash(h, FileSystemManager.getAbsolutePath(this.destinationFolder));
+		h = HashHelper.hash(h, this.reportName);
+		return h;
+	}
 }

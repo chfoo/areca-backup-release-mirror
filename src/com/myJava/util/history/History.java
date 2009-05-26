@@ -1,6 +1,5 @@
 package com.myJava.util.history;
 
-import java.io.IOException;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 
@@ -10,7 +9,7 @@ import java.util.HashMap;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -42,7 +41,7 @@ public interface History {
     /**
      * Add an entry
      */
-    public void addEntry(HistoryEntry entry) throws IOException;
+    public void addEntry(HistoryEntry entry);
     
     /**
      * Return the internal content of the history as a Map
@@ -57,14 +56,9 @@ public interface History {
     public GregorianCalendar[] getOrderedKeys();
     
     /**
-     * Return the entry for the given date
-     */
-    public HistoryEntry getEntry(GregorianCalendar date);
-    
-    /**
      * Write data on disk
      */
-    public void flush() throws IOException;
+    public void flush();
     
     /**
      * Removes all entries from the history
@@ -78,12 +72,7 @@ public interface History {
     public void clearData();
     
     /**
-     * Load the history from disk
-     */
-    public void load() throws IOException;
-    
-    /**
      * Imports the content of the source history
      */
-    public void importHistory(History source) throws IOException;
+    public void importHistory(History source);
 }

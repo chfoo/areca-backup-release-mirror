@@ -20,12 +20,13 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.Util;
+import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -56,33 +57,41 @@ public class DefaultHistory implements History {
     protected HashMap content;
     protected FileTool tool = FileTool.getInstance();
     
-    public DefaultHistory(File file) throws IOException {
+    public DefaultHistory(File file) {
         this.file = file;
-        this.load();
+        try {
+			this.load();
+		} catch (Throwable e) {
+			Logger.defaultLogger().error("Error during load of target history.", e);
+		}
     }
     
     public boolean isEmpty() {
         return content.isEmpty();
     }
 
-    public synchronized void importHistory(History h) throws IOException {
-        Map map = h.getContent();
-        Iterator iter = map.entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry entry = (Map.Entry)iter.next();
-            HistoryEntry value = (HistoryEntry)entry.getValue();
-            
-            addEntryWithoutFlush(value);
-        }
+    public synchronized void importHistory(History h) {
+        try {
+			Map map = h.getContent();
+			Iterator iter = map.entrySet().iterator();
+			while (iter.hasNext()) {
+			    Map.Entry entry = (Map.Entry)iter.next();
+			    HistoryEntry value = (HistoryEntry)entry.getValue();
+			    
+			    addEntryWithoutFlush(value);
+			}
 
-        this.flush();
+			this.flush();
+		} catch (Throwable e) {
+			Logger.defaultLogger().error("Error during import of target history.", e);
+		}
     }
     
     private void addEntryWithoutFlush(HistoryEntry entry) {        
         addEntryToContent(entry);
     }
     
-    public synchronized void addEntry(HistoryEntry entry) throws IOException {      
+    public synchronized void addEntry(HistoryEntry entry) {      
         addEntryWithoutFlush(entry);
         this.flush();
     }
@@ -93,26 +102,30 @@ public class DefaultHistory implements History {
      * <BR>The advantage of this approach is that it is compatible with FileSystemDrivers that do not support writing
      * "append" mode. 
      */
-    public synchronized void flush() throws IOException {       
-        if (file != null) {
-            FileTool tool = FileTool.getInstance();
-            if (! FileSystemManager.exists(FileSystemManager.getParentFile(file))) {
-                tool.createDir(FileSystemManager.getParentFile(file));
-            }
-            
-            Writer fw = new OutputStreamWriter(new GZIPOutputStream(FileSystemManager.getFileOutputStream(file)));
-            fw.write(HDR + VERSION);
-            
-            Iterator iter = this.content.keySet().iterator();
-            while (iter.hasNext()) {
-                GregorianCalendar date = (GregorianCalendar)iter.next();
-                HistoryEntry entry = this.getEntry(date);
-                
-                fw.write("\n" + encode(entry));
-            }
-            fw.flush();
-            fw.close();
-        }
+    public synchronized void flush() {       
+        try {
+			if (file != null) {
+			    FileTool tool = FileTool.getInstance();
+			    if (! FileSystemManager.exists(FileSystemManager.getParentFile(file))) {
+			        tool.createDir(FileSystemManager.getParentFile(file));
+			    }
+			    
+			    Writer fw = new OutputStreamWriter(new GZIPOutputStream(FileSystemManager.getFileOutputStream(file)));
+			    fw.write(HDR + VERSION);
+			    
+			    Iterator iter = this.content.keySet().iterator();
+			    while (iter.hasNext()) {
+			        GregorianCalendar date = (GregorianCalendar)iter.next();
+			        HistoryEntry entry = this.getEntry(date);
+			        
+			        fw.write("\n" + encode(entry));
+			    }
+			    fw.flush();
+			    fw.close();
+			}
+		} catch (Throwable e) {
+			Logger.defaultLogger().error("Error during flush of target history.", e);
+		}
     }
     
     public void clearData() {
@@ -123,6 +136,7 @@ public class DefaultHistory implements History {
     
     /**
      * @see History#getContent()
+     * TODO : not thread safe ... use synchronized maps
      */
     public synchronized HashMap getContent() {
         return content;
@@ -135,7 +149,7 @@ public class DefaultHistory implements History {
         return keys;
     }
     
-    public synchronized HistoryEntry getEntry(GregorianCalendar date) {
+    private synchronized HistoryEntry getEntry(GregorianCalendar date) {
         return (HistoryEntry)(content.get(date));
     }
     
@@ -143,7 +157,7 @@ public class DefaultHistory implements History {
         this.content.clear();
     }
     
-    public void load() throws IOException {
+    private void load() throws IOException {
         this.content = new HashMap();
         if (this.file != null && FileSystemManager.exists(this.file)) {
             BufferedReader reader = null;

@@ -8,7 +8,7 @@ import com.myJava.object.Duplicable;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -31,7 +31,17 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface Processor extends Comparable, Duplicable {
+	public static short RUN_SCHEME_ALWAYS = 0;
+	public static short RUN_SCHEME_FAILURE = 1;
+	public static short RUN_SCHEME_SUCCESS = 2;
+	
     public void run(ProcessContext context) throws ApplicationException;
     public String getParametersSummary();
     public void validate() throws ProcessorValidationException;
+    
+    /**
+     * Tells when the processor must be run (always, in case of failure, or for successfull backups)
+     * @return
+     */
+    public short getRunScheme();
 }

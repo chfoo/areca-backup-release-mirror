@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -63,7 +63,7 @@ public class EvictionManager {
         }
     }
     
-    private static final boolean TH_DUMP = true;
+    private static final boolean TH_DUMP = false;
     
     /**
      * Clears data caches until the memory usage is below the target memory ratio.
@@ -72,7 +72,7 @@ public class EvictionManager {
         Logger.defaultLogger().info("GC started : Memory usage = " + OSTool.getMemoryUsage(), this.getClass().getName());
         
         while (! canGrow(TARGET_CACHE_MEMORY_USAGE_RATIO)) {
-            Logger.defaultLogger().info("Performing a VM garbage collect.", this.getClass().getName());
+            //Logger.defaultLogger().info("Performing a VM garbage collect.", this.getClass().getName());
             Runtime.getRuntime().gc(); // First try : standard VM gc ...
             
             if (! canGrow(TARGET_CACHE_MEMORY_USAGE_RATIO)) {

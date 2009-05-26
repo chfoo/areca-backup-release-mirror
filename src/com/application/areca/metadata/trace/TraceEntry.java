@@ -7,7 +7,7 @@ import com.application.areca.metadata.AbstractMetaDataEntry;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*

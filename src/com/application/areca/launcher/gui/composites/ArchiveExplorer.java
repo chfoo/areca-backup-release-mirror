@@ -43,7 +43,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * 
  * @author Olivier PETRUCCI <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -282,13 +282,19 @@ implements MouseListener, Listener {
 				element = element == null ? stt.nextToken() : element + "/"
 						+ stt.nextToken();
 				parent = getElement(parent, element);
+				if (parent == null) {
+					Logger.defaultLogger().warn("No tree item found for key : [" + element + "]. Initial entry : " + entry.toString());
+					break;
+				}
 				try {
 					refreshNode(parent, (TraceEntry) parent.getData(), null);
 				} catch (ApplicationException e) {
 					Logger.defaultLogger().error(e);
 				}
 			}
-			this.tree.setSelection(parent);
+			if (parent != null) {
+				this.tree.setSelection(parent);
+			}
 
 			Application.getInstance().setCurrentEntry(entry);
 			Application.getInstance().setCurrentFilter(buildFilter(entry));

@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ArecaTechnicalConfiguration;
+import com.application.areca.ArecaURLs;
 import com.application.areca.MemoryHelper;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
@@ -32,6 +33,7 @@ import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileTool;
 import com.myJava.file.driver.AbstractFileSystemDriver;
 import com.myJava.system.OSTool;
+import com.myJava.system.viewer.ViewerHandlerHelper;
 import com.myJava.util.log.Logger;
 import com.myJava.util.version.VersionData;
 
@@ -39,7 +41,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -62,7 +64,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class AboutWindow
-extends AbstractWindow {
+extends AbstractWindow
+implements ArecaURLs {
 	private static final String CURRENT_YEAR = "2009";
     private static final int widthHint = computeWidth(400);
     private static final int heightHint = computeHeight(250);
@@ -95,13 +98,13 @@ extends AbstractWindow {
             lnk.addListener (SWT.Selection, new Listener() {
                 public void handleEvent(Event event) {
                     try {
-                        OSTool.launchBrowser(event.text);
+                        ViewerHandlerHelper.getViewerHandler().browse(new URL(event.text));
                     } catch (Exception e) {
                         Logger.defaultLogger().error(e);
                     }
                 }
             });
-            lnk.setText("<A HREF=\"http://areca.sourceforge.net\">areca.sf.net</A>");
+            lnk.setText("<A HREF=\"" + ARECA_URL + "\">areca-backup.org</A>");
             lnk.setLayoutData(dt3);
             
             tabs.setSelection(0);
@@ -256,13 +259,13 @@ extends AbstractWindow {
         lnk.addListener (SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
                 try {
-                    OSTool.launchBrowser(event.text);
+                	ViewerHandlerHelper.getViewerHandler().browse(new URL(event.text));
                 } catch (Exception e) {
                     Logger.defaultLogger().error(e);
                 }
             }
         });
-        lnk.setText("<A HREF=\"http://sourceforge.net/project/project_donations.php?group_id=171505\">" + RM.getLabel("about.support") + "</A>");
+        lnk.setText("<A HREF=\"" + DONATION_URL + "\">" + RM.getLabel("about.support") + "</A>");
         lnk.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
         
         return content;

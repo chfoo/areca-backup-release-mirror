@@ -7,7 +7,7 @@ import java.io.InputStream;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -46,13 +46,7 @@ public class EventInputStream extends InputStream {
 
 	public int read() throws IOException {
 		int read = in.read();
-		
-		if (read == -1) {
-			listener.read(new byte[0], 0, 0, -1);
-		} else {
-			listener.read(new byte[]{(byte)read}, 0, 1, 1);
-		}
-		
+		listener.read(read);
 		return read;
 	}
 

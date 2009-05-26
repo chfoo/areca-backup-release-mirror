@@ -1,0 +1,34 @@
+package com.application.areca;
+
+/**
+ * 
+ * <BR>
+ * @author Olivier PETRUCCI
+ * <BR>
+ *
+ */
+
+ /*
+ Copyright 2005-2009, Olivier PETRUCCI.
+
+This file is part of Areca.
+
+    Areca is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    Areca is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Areca; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+public interface ArecaURLs {
+	public String HELP_ROOT = "http://www.areca-backup.org/documentation.php?fromApplication=1&currentVersion=";
+	public String DONATION_URL = "http://sourceforge.net/project/project_donations.php?group_id=171505";
+	public String ARECA_URL = "http://www.areca-backup.org";
+}

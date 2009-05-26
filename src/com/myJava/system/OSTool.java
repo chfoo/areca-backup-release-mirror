@@ -3,9 +3,6 @@ package com.myJava.system;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,7 +21,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -48,11 +45,9 @@ This file is part of Areca.
  */
 public class OSTool {
     
-    private static String APPLE_FILE_MGR = "com.apple.eio.FileManager";
     private static final long MAX_MEMORY = Runtime.getRuntime().maxMemory();
     private static final long MAX_MEMORY_KB = MAX_MEMORY / 1024;
     private static final long MAX_MEMORY_MB = MAX_MEMORY / 1048576;
-    private static final String[] BROWSERS = FrameworkConfiguration.getInstance().getOSBrowsers();
     
     private static boolean IS_SYSTEM_WINDOWS;
     private static boolean IS_SYSTEM_MAC;
@@ -153,14 +148,6 @@ public class OSTool {
         return TMP_DIR;
     }
     
-    /**
-     * Attempts to launch the default external browser.
-     */
-    public static void launchBrowser(URL url) 
-    throws OSToolException, NoBrowserFoundException {
-        launchBrowser(url.toExternalForm());
-    }
-    
 	public static int execute(String[] cmd) throws IOException {
 		return execute(cmd, false);
 	}
@@ -218,44 +205,6 @@ public class OSTool {
         }
         
         return ret;
-    }
-    
-    /**
-     * Attempts to launch the default external browser.
-     */
-    public static void launchBrowser(String url) 
-    throws OSToolException, NoBrowserFoundException {
-        
-        try {
-            if (isSystemMACOS()) {
-                Class fileMgr = Class.forName(APPLE_FILE_MGR);
-                Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[] {String.class});
-                openURL.invoke(null, new Object[] {url});
-            } else if (isSystemWindows()) {
-                // Workaround : there is a bug in Win2K and certain WinXP releases which prevents the help url to be loaded properly.
-                if (url.startsWith("file:/") && url.charAt(6) != '/') {
-                    url = "file:///" + url.substring(6);
-                    url = URLDecoder.decode(url);
-                }
-                OSTool.execute(new String[] {"rundll32", "url.dll,FileProtocolHandler", url}, true);
-            } else {
-                String browser = null;
-                for (int count = 0; count < BROWSERS.length && browser == null; count++) {
-                    if (OSTool.execute(new String[] {"which", BROWSERS[count]}) == 0) {
-                        browser = BROWSERS[count];
-                    }
-                }
-                
-                if (browser != null) {
-                    // Browser found --> Go !
-                	OSTool.execute(new String[] {browser, url}, true);
-                } else {
-                    throw new NoBrowserFoundException("No browser cound be found.");
-                }
-            }
-        } catch (Throwable e) {
-            throw new OSToolException("Error during external browser invocation.", e);
-        }
     }
     
     public static boolean isSystemWindows() {

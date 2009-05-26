@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 
-import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.delta.sequence.ByteProcessor;
 import com.myJava.file.delta.sequence.ByteProcessorException;
 import com.myJava.file.delta.sequence.HashSequence;
@@ -19,7 +18,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -41,17 +40,15 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class DeltaReader implements Constants {
-    private static final int LL_BUFFER_SIZE = FrameworkConfiguration.getInstance().getDeltaLinkedListBufferSize();
-    
-    private long blockSize;
+public class DeltaReader implements Constants {   
+    private int blockSize;
     private HashSequence seq;
     private InputStream in;
     private String hashAlgorithm = HASH_ALG;
     private DeltaProcessor[] processors;
     private ByteProcessor bproc;
 
-    public DeltaReader(long blockSize, InputStream in, DeltaProcessor[] processors, ByteProcessor bproc) {
+    public DeltaReader(int blockSize, InputStream in, DeltaProcessor[] processors, ByteProcessor bproc) {
         this.blockSize = blockSize;
         this.in = in;
         this.processors = processors;
@@ -69,8 +66,12 @@ public class DeltaReader implements Constants {
         this.bproc = bproc;
     }
     
+    private long computeSig(long totalRead) {
+    	return totalRead%blockSize;
+    }
+    
     public void read(TaskMonitor monitor) throws IOException, DeltaException, DeltaProcessorException, ByteProcessorException, TaskCancelledException {
-        LinkedList currentBlock = new LinkedList(blockSize, LL_BUFFER_SIZE);
+        LinkedList currentBlock = new LinkedList(blockSize);
         long totalRead = 0;
         long position = 0;
         int currentQuickHash = 0;
@@ -90,20 +91,24 @@ public class DeltaReader implements Constants {
         	monitor.checkTaskState();
         	
             int read = in.read();
+            byte bRead;
             if (read == -1) {
                 if (totalRead == 0 || totalRead == breakSize) {
+                	bRead = (byte)read;
                     break;
                 } else {
                     if (breakSize == -1) {
                         breakSize = totalRead + blockSize -1 ;
-                        significant = (int)(totalRead%blockSize);
+                        significant = computeSig(totalRead);
                     }
-                    read = HashSequenceEntry.DEFAULT_BYTE;
+                    bRead = HashSequenceEntry.DEFAULT_BYTE;
                 }
-            } else if (bproc != null) {
-                bproc.processByte(read);
+            } else {
+            	bRead = (byte)read;
+            	if (bproc != null) {
+            		bproc.processByte(bRead);
+            	}
             }
-            byte bRead = (byte)(read);
             
             // Read data
             totalRead++;
@@ -118,11 +123,9 @@ public class DeltaReader implements Constants {
             boolean found = false;
             if (totalRead >= blockSize) {
                 if (seq != null && seq.contains(currentQuickHash)) {
-                	//Logger.defaultLogger().fine("Quick Hash found : " + currentQuickHash + " - Total read = " + totalRead + " - Last Block index = " + lastBlockIndex + " - Position = " + position);
                     byte[] fh = currentBlock.computeHash(hashAlgorithm);
                     List entries = seq.get(currentQuickHash, fh);
                     if (entries != null) {
-                    	//Logger.defaultLogger().info(entries.size() + " entries found.");
                         Iterator iter = entries.iterator();
                         HashSequenceEntry candidate = null;
                         while (iter.hasNext()) {

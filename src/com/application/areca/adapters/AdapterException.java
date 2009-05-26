@@ -3,7 +3,7 @@ package com.application.areca.adapters;
 /**
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*

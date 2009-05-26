@@ -14,7 +14,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -54,8 +54,8 @@ extends AbstractLauncher {
 	}
     
     protected void initialize() {
-    	((ConsoleLogProcessor)Logger.defaultLogger().find(ConsoleLogProcessor.class)).setFullLog(false);
         ArecaTechnicalConfiguration.initialize();
+    	((ConsoleLogProcessor)Logger.defaultLogger().find(ConsoleLogProcessor.class)).setFullLog(false);
         Map javaargs = FrameworkConfiguration.getInstance().getJavaProperties();
         if (javaargs != null) {
             Iterator iter = javaargs.keySet().iterator();

@@ -1,5 +1,7 @@
 package com.application.areca.launcher.gui;
 
+import java.net.URL;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -17,14 +19,14 @@ import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
-import com.myJava.system.OSTool;
+import com.myJava.system.viewer.ViewerHandlerHelper;
 import com.myJava.util.log.Logger;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -100,7 +102,7 @@ extends AbstractWindow {
             lnk.addListener (SWT.Selection, new Listener() {
                 public void handleEvent(Event event) {
                     try {
-                        OSTool.launchBrowser(event.text);
+                    	ViewerHandlerHelper.getViewerHandler().browse(new URL(event.text));
                     } catch (Exception e) {
                         Logger.defaultLogger().error(e);
                     }

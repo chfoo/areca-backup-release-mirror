@@ -6,7 +6,7 @@ import java.util.GregorianCalendar;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*

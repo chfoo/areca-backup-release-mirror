@@ -9,6 +9,7 @@ import java.io.Writer;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -19,7 +20,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -42,6 +43,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public abstract class AbstractMetadataAdapter {
+	protected boolean DEBUG = ArecaTechnicalConfiguration.get().isMetaDataDebugMode();
+	
     protected static final String DATA_CHARSET = "UTF-8";
     protected static final String VERSION_HEADER = "#### MDT_FORMAT_VERSION=";
     //protected static final String VERSION = VERSION_HEADER + "1"; // Initial metadata version : uses the default character encoding

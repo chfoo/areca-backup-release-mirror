@@ -1,5 +1,7 @@
 package com.application.areca.version;
 
+import java.io.IOException;
+
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ShellEvent;
@@ -18,8 +20,7 @@ import org.eclipse.swt.widgets.Text;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.system.NoBrowserFoundException;
-import com.myJava.system.OSTool;
-import com.myJava.system.OSToolException;
+import com.myJava.system.viewer.ViewerHandlerHelper;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 import com.myJava.util.version.VersionData;
@@ -28,7 +29,7 @@ import com.myJava.util.version.VersionData;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -105,9 +106,9 @@ extends ApplicationWindow {
         btnOK.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
                 try {
-                    OSTool.launchBrowser(data.getDownloadUrl());
+                	ViewerHandlerHelper.getViewerHandler().browse(data.getDownloadUrl());
                     close();
-                } catch (OSToolException e1) {
+                } catch (IOException e1) {
                     Logger.defaultLogger().error(e1);
                     lbl.setText("Error connecting to : " + data.getDownloadUrl());
                 } catch (NoBrowserFoundException e1) {

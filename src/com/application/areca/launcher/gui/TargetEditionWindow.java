@@ -89,7 +89,7 @@ import com.myJava.util.log.Logger;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -120,7 +120,7 @@ extends AbstractWindow {
     private static final String DEFAULT_ARCHIVE_PATTERN = "%YY%%MM%%DD%";
     
     protected AbstractRecoveryTarget target;
-    protected FileSystemPolicy currentPolicy = null;
+    public FileSystemPolicy currentPolicy = null;
     protected boolean hasBeenSaved = false;
     protected ArrayList lstEncryptionAlgorithms = new ArrayList();
     
@@ -148,7 +148,7 @@ extends AbstractWindow {
     protected Group grpZipOptions;
     protected Group grpZipComment;
     protected Button rdDir;
-    protected Button rdZip;
+    public Button rdZip;
     protected Button rdZip64;
     protected Button chkTrackDirectories;
     protected Button chkFollowSubDirectories;
@@ -351,6 +351,8 @@ extends AbstractWindow {
             this.strButton.put(plugin.getId(), btn);
         }
         
+        new Label(grpPath, SWT.NONE).setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 1));
+        
         // Name
         lblArchiveName = new Label(grpPath, SWT.NONE);
         lblArchiveName.setText(RM.getLabel("targetedition.archivenamefield.label"));
@@ -548,17 +550,14 @@ extends AbstractWindow {
         rdSingle = new Button(grpStorage, SWT.RADIO);
         rdSingle.setText(RM.getLabel("targetedition.zip.unit.label"));
         rdSingle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-
-        // ZIP COMMENT
-        grpZipComment = new Group(composite, SWT.NONE);
-        grpZipComment.setText(RM.getLabel("targetedition.zipcommentgrp.label"));
-        grpZipComment.setLayout(new GridLayout(1, false));
-        grpZipComment.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
         
-        txtZipComment = new Text(grpZipComment, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-        monitorControl(txtZipComment);
-        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true);
-        txtZipComment.setLayoutData(dt);
+        new Label(grpStorage, SWT.NONE);
+        
+        chkAddExtension = new Button(grpStorage, SWT.CHECK);
+        chkAddExtension.setText(RM.getLabel("targetedition.addextension.label"));
+        chkAddExtension.setToolTipText(RM.getLabel("targetedition.addextension.tt"));
+        monitorControl(chkAddExtension);
+        chkAddExtension.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
         
         // ZIP OPTIONS
         grpZipOptions = new Group(composite, SWT.NONE);
@@ -623,13 +622,18 @@ extends AbstractWindow {
         lblMultiVolumesDigits = new Label(grpZipOptions, SWT.NONE);
         lblMultiVolumesDigits.setText(RM.getLabel("targetedition.mv.digits.label"));
         lblMultiVolumesDigits.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-        lblMultiVolumesDigits.setToolTipText(RM.getLabel("targetedition.mv.digits.tt"));
+        lblMultiVolumesDigits.setToolTipText(RM.getLabel("targetedition.mv.digits.tt"));       
+
+        // ZIP COMMENT
+        grpZipComment = new Group(composite, SWT.NONE);
+        grpZipComment.setText(RM.getLabel("targetedition.zipcommentgrp.label"));
+        grpZipComment.setLayout(new GridLayout(1, false));
+        grpZipComment.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
         
-        chkAddExtension = new Button(grpZipOptions, SWT.CHECK);
-        chkAddExtension.setText(RM.getLabel("targetedition.addextension.label"));
-        chkAddExtension.setToolTipText(RM.getLabel("targetedition.addextension.tt"));
-        monitorControl(chkAddExtension);
-        chkAddExtension.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 5, 1));
+        txtZipComment = new Text(grpZipComment, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+        monitorControl(txtZipComment);
+        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true);
+        txtZipComment.setLayoutData(dt);
     }
     
     private void initAdvancedTab(Composite composite) {
@@ -1144,12 +1148,14 @@ extends AbstractWindow {
             this.postProcessesTab.setProcessors(target.getPostProcessors());
         } else {     
             // Default settings
-            rdZip.setSelection(true);
+            rdZip64.setSelection(true);
             rdFile.setSelection(true);
             rdMultiple.setSelection(true);
             chkFollowSubDirectories.setSelection(true);
             rdSingle.setSelection(true);
             selectEncoding(ZipConstants.DEFAULT_CHARSET);
+            chkTrackDirectories.setSelection(true);
+            chkTrackPermissions.setSelection(true);
             cboZipLevel.select(9);
             if (OSTool.isSystemWindows()) {
                 this.chkFollowLinks.setSelection(true);

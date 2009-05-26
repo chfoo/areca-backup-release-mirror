@@ -12,7 +12,7 @@ import com.application.areca.processor.Processor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -45,7 +45,7 @@ public abstract class AbstractProcessorComposite extends Composite {
         this.window = window;
         this.currentProcessor = proc;
     }
-
+    
     public abstract void initProcessor(Processor proc);
     public abstract boolean validateParams();
 }

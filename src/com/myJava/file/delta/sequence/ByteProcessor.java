@@ -4,7 +4,7 @@ package com.myJava.file.delta.sequence;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -28,6 +28,6 @@ This file is part of Areca.
  */
 public interface ByteProcessor {
     public void open() throws ByteProcessorException;
-    public void processByte(int data) throws ByteProcessorException;
+    public void processByte(byte data) throws ByteProcessorException;
     public void close() throws ByteProcessorException;
 }

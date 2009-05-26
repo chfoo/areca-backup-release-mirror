@@ -6,7 +6,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -63,6 +63,11 @@ extends FrameworkConfiguration {
     public static String KEY_BACKUP_DEBUG_MODE = "backup.debug";
     
     /**
+     * Enable thread monitor
+     */
+    public static String KEY_ENABLE_TH_MONITOR = "thread.monitor";
+    
+    /**
      * Enable check debug log
      */
     public static String KEY_CHECK_DEBUG_MODE = "check.debug";
@@ -101,6 +106,11 @@ extends FrameworkConfiguration {
      * Tells whether Areca will do some checks (for instance check that the storage location is not a subdirectory of the sources directories)
      */
     public static String KEY_CHECK_DIRECTORY_CONSISTENCY = "repository.check.consistency";
+    
+    /**
+     * Activate debug mode for metadata handling
+     */
+    public static String KEY_MDT_DEBUG = "metadata.debug";
     
     /**
      * Minimum bucket size for delta storage
@@ -142,6 +152,11 @@ extends FrameworkConfiguration {
      */
     public static String KEY_MAX_FTP_RETRIES = "ftp.max.retries";
     
+    /**
+     * Delay before the thread monitor raises an inactivity alert
+     */
+    public static String KEY_TH_MONITOR_DELAY = "thread.monitor.delay";
+    
     public static boolean DEF_SMTP_DEBUG = false;
     public static long DEF_MEMORY_BASE_KB = 4 * 1024;
     public static double DEF_MEMORY_BY_ENTRY_KB = 1.3;
@@ -164,6 +179,9 @@ extends FrameworkConfiguration {
     public static String DEF_FORCED_PLUGIN_LOCATION = null;
     public static String DEF_FORCED_LN_LOCATION = null;
     public static int DEF_MAX_FTP_RETRIES = 5;
+    public static boolean DEF_MDT_DEBUG = false;
+    public static boolean DEF_ENABLE_TH_MONITOR = false;
+    public static long DEF_TH_MONITOR_DELAY = 1000*60*3;
     
     public ArecaTechnicalConfiguration() {
         super();
@@ -214,6 +232,9 @@ extends FrameworkConfiguration {
         return getProperty(KEY_FILESTREAMS_DEBUG, DEF_FILESTREAMS_DEBUG);
     }
     
+    public boolean isMetaDataDebugMode() {
+        return getProperty(KEY_MDT_DEBUG, DEF_MDT_DEBUG);
+    }
     
     public boolean isRepositoryHDCache() {
         return getProperty(KEY_REPOSITORYACCESS_HD_CACHE, DEF_REPOSITORYACCESS_HD_CACHE);
@@ -261,6 +282,14 @@ extends FrameworkConfiguration {
     
     public boolean isXMLBackup() {
         return getProperty(KEY_XML_BACKUP, DEF_XML_BACKUP);
+    }
+    
+    public boolean isThreadMonitorEnabled() {
+        return getProperty(KEY_ENABLE_TH_MONITOR, DEF_ENABLE_TH_MONITOR);
+    }
+    
+    public long getThreadMonitorDelay() {
+        return getProperty(KEY_TH_MONITOR_DELAY, DEF_TH_MONITOR_DELAY);
     }
     
     public boolean isBackupDebug() {

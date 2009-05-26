@@ -1,6 +1,5 @@
 package com.application.areca;
 
-import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Calendar;
@@ -37,7 +36,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -208,631 +207,602 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 	/**
 	 * @return Returns the medium.
 	 */
-	 public ArchiveMedium getMedium() {
-		 return medium;
-	 }
+	public ArchiveMedium getMedium() {
+		return medium;
+	}
 
-	 public TargetSearchResult search(SearchCriteria criteria) throws ApplicationException {
-		 return this.medium.search(criteria);
-	 }
+	public TargetSearchResult search(SearchCriteria criteria) throws ApplicationException {
+		return this.medium.search(criteria);
+	}
 
-	 /**
-	  * @param medium The medium to set.
-	  */
-	 public void setMedium(ArchiveMedium medium, boolean revalidateMedium) {
-		 this.medium = medium;
-		 this.medium.setTarget(this, revalidateMedium);
-	 }
+	/**
+	 * @param medium The medium to set.
+	 */
+	public void setMedium(ArchiveMedium medium, boolean revalidateMedium) {
+		this.medium = medium;
+		this.medium.setTarget(this, revalidateMedium);
+	}
 
-	 public void addFilter(ArchiveFilter filter) {
-		 this.filterGroup.addFilter(filter);
-	 }
+	public void addFilter(ArchiveFilter filter) {
+		this.filterGroup.addFilter(filter);
+	}
 
-	 public Iterator getFilterIterator() {
-		 return this.filterGroup.getFilterIterator();
-	 } 
+	public Iterator getFilterIterator() {
+		return this.filterGroup.getFilterIterator();
+	} 
 
-	 public History getHistory() {
-		 return this.medium.getHistory();
-	 }
+	public History getHistory() {
+		return this.medium.getHistory();
+	}
 
-	 public void clearHistory() throws ApplicationException {
-		 try {
-			 History hist = this.medium.getHistory();
-			 if (hist != null) {
-				 hist.clear();
-				 hist.flush();
-			 }
-		 } catch (IOException e) {
-			 throw new ApplicationException(e);
-		 }
-	 }
+	public void clearHistory() {
+		History hist = this.medium.getHistory();
+		if (hist != null) {
+			hist.clear();
+			hist.flush();
+		}
+	}
 
-	 /**
-	  * Open and lock the target
-	  */
-	  protected void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
-		  context.setBackupScheme(backupScheme);
-		  medium.open(manifest, context, backupScheme);
-	  }   
+	/**
+	 * Open and lock the target
+	 */
+	protected void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
+		context.setBackupScheme(backupScheme);
+		medium.open(manifest, context, backupScheme);
+	}   
 
-	  public synchronized void processBackup(
-			  Manifest manifest, 
-			  String backupScheme,
-			  boolean disablePreCheck,
-			  boolean disableArchiveCheck,
-			  ProcessContext context
-	  ) throws ApplicationException {
-		  boolean backupRequired = true;
-		  try {
-			  this.validateTargetState(ACTION_BACKUP);
+	public synchronized void processBackup(
+			Manifest manifest, 
+			String backupScheme,
+			boolean disablePreCheck,
+			boolean disableArchiveCheck,
+			ProcessContext context
+	) throws ApplicationException {
+		boolean backupRequired = true;
+		try {
+			this.validateTargetState(ACTION_BACKUP);
 
-			  if (this.medium.isPreBackupCheckUseful() && (!disablePreCheck) && backupScheme.equals(BACKUP_SCHEME_INCREMENTAL)) {
-				  context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2, "pre-check");
-				  context.getInfoChannel().print("Pre-check in progress ...");
-				  this.processSimulateImpl(context, false);
-				  context.getInfoChannel().print("Pre-check completed.");
-				  backupRequired = (context.getReport().getSavedFiles() > 0 || context.getReport().getDeletedFiles() > 0);
-				  context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8, "backup");
-				  context.reset(false);
-			  }
+			if (this.medium.isPreBackupCheckUseful() && (!disablePreCheck) && backupScheme.equals(BACKUP_SCHEME_INCREMENTAL)) {
+				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2, "pre-check");
+				context.getInfoChannel().print("Pre-check in progress ...");
+				this.processSimulateImpl(context, false);
+				context.getInfoChannel().print("Pre-check completed.");
+				backupRequired = (context.getReport().getSavedFiles() > 0 || context.getReport().getDeletedFiles() > 0);
+				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8, "backup");
+				context.reset(false);
+			}
 
-			  if (backupRequired) {
-				  if (! this.preProcessors.isEmpty()) {
-					  context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1, "pre-processors");
-					  TaskMonitor preProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
-					  try {     
-						  this.preProcessors.run(context);
-					  } finally {
-						  preProcessMon.enforceCompletion();
-					  }
-				  }
-				  
-				  // Create main task monitor
-				  double remaining = 
-					  1.0 
-					  - (this.postProcessors.isEmpty() ? 0 : 0.1) 
-					  - (this.preProcessors.isEmpty() ? 0 : 0.1)
-					  - (disableArchiveCheck ? 0 : 0.4);
+			if (backupRequired) {
+				if (! this.preProcessors.isEmpty()) {
+					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1, "pre-processors");
+					TaskMonitor preProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
+					try {     
+						this.preProcessors.run(context);
+					} finally {
+						preProcessMon.enforceCompletion();
+					}
+				}
 
-				  if (remaining != 1) {
-					  context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(remaining, "backup-main");
-				  }
+				// Create main task monitor
+				double remaining = 
+					1.0 
+					- (this.postProcessors.isEmpty() ? 0 : 0.1) 
+					- (this.preProcessors.isEmpty() ? 0 : 0.1)
+					- (disableArchiveCheck ? 0 : 0.4);
 
-				  if (manifest == null) {
-					  manifest = new Manifest(Manifest.TYPE_BACKUP);
-				  }
+				if (remaining != 1) {
+					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(remaining, "backup-main");
+				}
 
-				  try {
-					  // Start the backup
-					  context.reset(false);
-					  context.getInfoChannel().print("Backup in progress ...");
-					  context.getTaskMonitor().checkTaskState();
-					  context.getReport().startDataFlowTimer();
-					  this.open(manifest, context, backupScheme);
+				if (manifest == null) {
+					manifest = new Manifest(Manifest.TYPE_BACKUP);
+				}
 
-					  try {
-						  HistoryEntry entry = new HistoryEntry(HISTO_BACKUP, "Backup.");
-						  History h = this.getHistory();
-						  if (h != null) {
-							  h.addEntry(entry);
-						  }
-					  } catch (IOException e1) {
-						  throw new ApplicationException(e1);
-					  }
+				try {
+					// Start the backup
+					context.reset(false);
+					context.getInfoChannel().print("Backup in progress ...");
+					context.getTaskMonitor().checkTaskState();
+					context.getReport().startDataFlowTimer();
+					this.open(manifest, context, backupScheme);
 
-					  RecoveryEntry entry = this.nextElement(context);
-					  long index = 0;
-					  while (entry != null) {
-						  context.getInfoChannel().getTaskMonitor().checkTaskState();
-						  if (this.filterEntryBeforeStore(entry)) {
-							  try {
-								  index++;
-								  context.getInfoChannel().updateCurrentTask(index, 0, entry.toString());
-								  this.medium.store(entry, context);
-							  } catch (StoreException e) {
-								  throw new ApplicationException(e);
-							  }
-						  }
-						  entry = this.nextElement(context); 
-					  }
-					  this.commitBackup(context);
-					  context.getReport().stopDataFlowTimer();
-					  Logger.defaultLogger().info(Utils.formatLong(context.getInputBytesInKB()) + " kb read in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
-					  Logger.defaultLogger().info("Average data input : " + Utils.formatLong(context.getInputBytesInKBPerSecond()) + " kb/second.");
-					  Logger.defaultLogger().info(Utils.formatLong(context.getOutputBytesInKB()) + " kb written in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
-					  Logger.defaultLogger().info("Average data output : " + Utils.formatLong(context.getOutputBytesInKBPerSecond()) + " kb/second.");
-				  } catch (Throwable e) {
-					  if (! TaskCancelledException.isTaskCancellation(e)) {
-						  Logger.defaultLogger().error(e);
-					  }
-					  this.rollbackBackup(context);
-					  throw wrapException(e);
-				  }
-			  }
-		  } finally {
-			  if ((! context.getReport().hasErrors()) && (! disableArchiveCheck)) {
-				  context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.4, "archive check");
-				  TaskMonitor checkMon = context.getTaskMonitor().getCurrentActiveSubTask();
-				  
-				  try {
-					  // Get the date
-					  Manifest mf = ManifestManager.readManifestForArchive((AbstractFileSystemMedium)this.medium, ((AbstractFileSystemMedium)this.medium).getLastArchive());
-					  GregorianCalendar cal = mf.getDate();
-					  
-					  // Check the archive
-					  context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.6, "effective check");
-					  this.processArchiveCheck(null, true, cal, context);
-					  if (context.getInvalidRecoveredFiles() != null && context.getInvalidRecoveredFiles().size() != 0) {
-						  context.getReport().setHasErrors(true);
-						  context.getInfoChannel().error("The created archive was not successfully checked. It will be deleted.");
-						  context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.4, "deletion");  
-						  this.processDeleteArchives(cal, context);
-					  }
-				  } finally {
-					  checkMon.enforceCompletion();
-				  }
-			  }
-			  
-			  if (backupRequired) {
-				  if (! this.postProcessors.isEmpty()) {
-					  context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1, "post-processors");
-					  TaskMonitor postProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
-					  try {     
-						  this.postProcessors.run(context);
-					  } finally {
-						  postProcessMon.enforceCompletion();
-					  }
-				  }
-				  context.getInfoChannel().print("Backup completed."); 
-			  } else {
-				  // No backup is necessary
-				  context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
-				  context.getInfoChannel().print("No backup required - Operation completed.");     
-			  }
-		  }
-	  }
+					History h = this.getHistory();
+					if (h != null) {
+						h.addEntry(new HistoryEntry(HISTO_BACKUP, "Backup."));
+					}
 
-	  /**
-	   * Launch a simulation process.
-	   */
-	  public synchronized SimulationResult processSimulate(ProcessContext context) throws ApplicationException {
-		  try {
-			  validateTargetState(ACTION_SIMULATE);
-			  context.getInfoChannel().print("Simulation in progress ...");
-			  return this.processSimulateImpl(context, true);
-		  } finally {
-			  context.getInfoChannel().print("Simulation completed.");            
-		  }
-	  }    
+					RecoveryEntry entry = this.nextElement(context);
+					long index = 0;
+					while (entry != null) {
+						context.getInfoChannel().getTaskMonitor().checkTaskState();
+						if (this.filterEntryBeforeStore(entry)) {
+							try {
+								index++;
+								context.getInfoChannel().updateCurrentTask(index, 0, entry.toString());
+								this.medium.store(entry, context);
+							} catch (StoreException e) {
+								throw new ApplicationException(e);
+							}
+						}
+						entry = this.nextElement(context); 
+					}
+					this.commitBackup(context);
+					context.getReport().stopDataFlowTimer();
+					Logger.defaultLogger().info(Utils.formatLong(context.getInputBytesInKB()) + " kb read in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
+					Logger.defaultLogger().info("Average data input : " + Utils.formatLong(context.getInputBytesInKBPerSecond()) + " kb/second.");
+					Logger.defaultLogger().info(Utils.formatLong(context.getOutputBytesInKB()) + " kb written in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
+					Logger.defaultLogger().info("Average data output : " + Utils.formatLong(context.getOutputBytesInKBPerSecond()) + " kb/second.");
+				} catch (Throwable e) {
+					if (! TaskCancelledException.isTaskCancellation(e)) {
+						Logger.defaultLogger().error(e);
+					}
+					this.rollbackBackup(context);
+					throw wrapException(e);
+				}
+			}
+		} finally {
+			if ((! context.getReport().hasErrors()) && (! disableArchiveCheck)) {
+				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.4, "archive check");
+				TaskMonitor checkMon = context.getTaskMonitor().getCurrentActiveSubTask();
 
-	  /**
-	   * Launch a simulation process.
-	   */
-	  public synchronized SimulationResult processSimulateImpl(ProcessContext context, boolean returnDetailedResult) throws ApplicationException {
-		  try {  
-			  TaskMonitor simulationGlobalMonitor = context.getInfoChannel().getTaskMonitor().getCurrentActiveSubTask();
+				try {
+					// Get the date
+					Manifest mf = ManifestManager.readManifestForArchive((AbstractFileSystemMedium)this.medium, ((AbstractFileSystemMedium)this.medium).getLastArchive());
+					GregorianCalendar cal = mf.getDate();
 
-			  SimulationResult entries = new SimulationResult();
-			  FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)this.nextElement(context);
-			  long index = 0;
-			  while (entry != null) {
-				  context.getTaskMonitor().checkTaskState();
-				  if (this.filterEntryBeforeStore(entry)) {
-					  index++;
-					  context.getInfoChannel().updateCurrentTask(index, 0, entry.toString());
-					  this.medium.simulateEntryProcessing(entry, !returnDetailedResult, context);
-					  if (entry.getStatus() != EntryStatus.STATUS_NOT_STORED) {
-						  if (entry.getStatus() == EntryStatus.STATUS_DELETED) {
-							  context.getReport().addDeletedFile();
-						  } else {
-							  context.getReport().addSavedFile();
-						  }
-						  
-						  if (returnDetailedResult) {
-							  entries.addEntry(entry);
-						  } else {
-							  // Once we get a stored entry in "not detailed" mode, stop this method --> We know that it will be necessary to make a backup
-							  simulationGlobalMonitor.enforceCompletion();
-							  break;
-						  }
-					  } else {
-						  context.getReport().addIgnoredFile();
-					  }
-				  }
-				  entry = (FileSystemRecoveryEntry)this.nextElement(context); 
-			  }
-			  context.getTaskMonitor().checkTaskState();
-			  medium.closeSimulation(context); 
+					// Check the archive
+					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.6, "effective check");
+					this.processArchiveCheck(null, true, cal, context);
+					if (context.getInvalidRecoveredFiles() != null && context.getInvalidRecoveredFiles().size() != 0) {
+						context.getReport().setHasErrors(true);
+						context.getInfoChannel().error("The created archive was not successfully checked. It will be deleted.");
+						context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.4, "deletion");  
+						this.processDeleteArchives(cal, context);
+					}
+				} finally {
+					checkMon.enforceCompletion();
+				}
+			}
 
-			  return entries;
-		  } catch (Throwable e) {
-			  throw wrapException(e);
-		  }
-	  }    
+			if (backupRequired) {
+				if (! this.postProcessors.isEmpty()) {
+					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1, "post-processors");
+					TaskMonitor postProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
+					try {     
+						this.postProcessors.run(context);
+					} finally {
+						postProcessMon.enforceCompletion();
+					}
+				}
+				context.getInfoChannel().print("Backup completed."); 
+			} else {
+				// No backup is necessary
+				context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
+				context.getInfoChannel().print("No backup required - Operation completed.");     
+			}
+		}
+	}
 
-	  public static void addBasicInformationsToManifest(Manifest mf) {
-		  mf.addProperty(ManifestKeys.VERSION, VersionInfos.getLastVersion().getVersionId());
-		  mf.addProperty(ManifestKeys.VERSION_DATE, VersionInfos.formatVersionDate(VersionInfos.getLastVersion().getVersionDate()));        
-		  mf.addProperty(ManifestKeys.BUILD_ID, VersionInfos.getBuildId());
-		  mf.addProperty(ManifestKeys.ENCODING, OSTool.getIANAFileEncoding());        
-		  mf.addProperty(ManifestKeys.OS_NAME, OSTool.getOSDescription());
-	  }
+	/**
+	 * Launch a simulation process.
+	 */
+	public synchronized SimulationResult processSimulate(ProcessContext context) throws ApplicationException {
+		try {
+			validateTargetState(ACTION_SIMULATE);
+			context.getInfoChannel().print("Simulation in progress ...");
+			return this.processSimulateImpl(context, true);
+		} finally {
+			context.getInfoChannel().print("Simulation completed.");            
+		}
+	}    
 
-	  /**
-	   * Commit the backup and release the lock on the target
-	   */
-	  protected void commitBackup(ProcessContext context) throws ApplicationException {
-		  try {
-			  context.getTaskMonitor().checkTaskState();
-			  context.getTaskMonitor().setCancellable(false);
-			  context.getManifest().addProperty(ManifestKeys.FILTERED_ENTRIES, context.getReport().getFilteredEntries());
-			  context.getManifest().addProperty(ManifestKeys.BACKUP_DURATION, Utils.formatDuration(System.currentTimeMillis() - context.getReport().getStartMillis()));     
-			  context.getManifest().addProperty(ManifestKeys.TARGET_ID, this.getUid());
-			  addBasicInformationsToManifest(context.getManifest());
+	/**
+	 * Launch a simulation process.
+	 */
+	public synchronized SimulationResult processSimulateImpl(ProcessContext context, boolean returnDetailedResult) throws ApplicationException {
+		try {  
+			TaskMonitor simulationGlobalMonitor = context.getInfoChannel().getTaskMonitor().getCurrentActiveSubTask();
 
-			  medium.commitBackup(context);
-			  context.getReport().setHasErrors(false);
-		  } catch (Throwable e) {
-			  Logger.defaultLogger().error("Exception caught during backup commit.", e);
-			  this.rollbackBackup(context);
-			  throw wrapException(e);
-		  }
-	  }
-	  
-	  private ApplicationException wrapException(Throwable e) {
-		  if (e instanceof ApplicationException) {
-			  return (ApplicationException)e;
-		  } else {
-			  Logger.defaultLogger().error(e);
-			  return new ApplicationException(e);
-		  }
-	  }
+			SimulationResult entries = new SimulationResult();
+			FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)this.nextElement(context);
+			long index = 0;
+			while (entry != null) {
+				context.getTaskMonitor().checkTaskState();
+				if (this.filterEntryBeforeStore(entry)) {
+					index++;
+					context.getInfoChannel().updateCurrentTask(index, 0, entry.toString());
+					this.medium.simulateEntryProcessing(entry, !returnDetailedResult, context);
+					if (entry.getStatus() != EntryStatus.STATUS_NOT_STORED) {
+						if (entry.getStatus() == EntryStatus.STATUS_DELETED) {
+							context.getReport().addDeletedFile();
+						} else {
+							context.getReport().addSavedFile();
+						}
 
-	  /**
-	   * Rollback the backup and release the lock on the target
-	   */
-	  protected void rollbackBackup(ProcessContext context) throws ApplicationException {
-		  try {
-			  context.getTaskMonitor().setCancellable(false);
-			  HistoryEntry entry = new HistoryEntry(HISTO_BACKUP_CANCEL, "Backup cancellation.");
-			  History h = this.getHistory();
-			  if (h != null) {
-				  h.addEntry(entry);
-			  }
-		  } catch (IOException e1) {
-			  throw new ApplicationException(e1);
-		  } finally {
-			  try {
-				  medium.rollbackBackup(context);
-			  } finally {
-				  context.getReport().setHasErrors(true);
-			  }
-		  }
-	  }
+						if (returnDetailedResult) {
+							entries.addEntry(entry);
+						} else {
+							// Once we get a stored entry in "not detailed" mode, stop this method --> We know that it will be necessary to make a backup
+							simulationGlobalMonitor.enforceCompletion();
+							break;
+						}
+					} else {
+						context.getReport().addIgnoredFile();
+					}
+				}
+				entry = (FileSystemRecoveryEntry)this.nextElement(context); 
+			}
+			context.getTaskMonitor().checkTaskState();
+			medium.closeSimulation(context); 
 
-	  public void processMerge(
-			  int fromDelay, 
-			  int toDelay, 
-			  Manifest manifest, 
-			  boolean keepDeletedEntries,
-			  ProcessContext context
-	  ) throws ApplicationException {
-		  if (fromDelay != 0 && toDelay != 0 && fromDelay < toDelay) {
-			  // switch from/to
-			  int tmp = toDelay;
-			  toDelay = fromDelay;
-			  fromDelay = tmp;
-		  }
+			return entries;
+		} catch (Throwable e) {
+			throw wrapException(e);
+		}
+	}    
 
-		  // From
-		  GregorianCalendar fromDate = null;
-		  if (fromDelay != 0) {
-			  fromDate = new GregorianCalendar();
-			  fromDate.add(Calendar.DATE, -1 * fromDelay);
-		  }
+	public static void addBasicInformationsToManifest(Manifest mf) {
+		mf.addProperty(ManifestKeys.VERSION, VersionInfos.getLastVersion().getVersionId());
+		mf.addProperty(ManifestKeys.VERSION_DATE, VersionInfos.formatVersionDate(VersionInfos.getLastVersion().getVersionDate()));        
+		mf.addProperty(ManifestKeys.BUILD_ID, VersionInfos.getBuildId());
+		mf.addProperty(ManifestKeys.ENCODING, OSTool.getIANAFileEncoding());        
+		mf.addProperty(ManifestKeys.OS_NAME, OSTool.getOSDescription());
+	}
 
-		  // To
-		  GregorianCalendar toDate = new GregorianCalendar();
-		  toDate.add(Calendar.DATE, -1 * toDelay);
+	/**
+	 * Commit the backup and release the lock on the target
+	 */
+	protected void commitBackup(ProcessContext context) throws ApplicationException {
+		try {
+			context.getTaskMonitor().checkTaskState();
+			context.getTaskMonitor().setCancellable(false);
+			context.getManifest().addProperty(ManifestKeys.FILTERED_ENTRIES, context.getReport().getFilteredEntries());
+			context.getManifest().addProperty(ManifestKeys.BACKUP_DURATION, Utils.formatDuration(System.currentTimeMillis() - context.getReport().getStartMillis()));     
+			context.getManifest().addProperty(ManifestKeys.TARGET_ID, this.getUid());
+			addBasicInformationsToManifest(context.getManifest());
 
-		  // Go !
-		  processMerge(fromDate, toDate, manifest, keepDeletedEntries, context);
-	  }
+			medium.commitBackup(context);
+			context.getReport().setHasErrors(false);
+		} catch (Throwable e) {
+			Logger.defaultLogger().error("Exception caught during backup commit.", e);
+			this.rollbackBackup(context);
+			throw wrapException(e);
+		}
+	}
 
-	  /**
-	   * Merge archives
-	   */
-	  public void processMerge(
-			  GregorianCalendar fromDate, 
-			  GregorianCalendar toDate, 
-			  Manifest manifest,
-			  boolean keepDeletedEntries,
-			  ProcessContext context
-	  ) throws ApplicationException {
-		  try {
-			  validateTargetState(ACTION_MERGE_OR_DELETE);  
-			  context.getInfoChannel().print("Merge in progress ...");
+	private ApplicationException wrapException(Throwable e) {
+		if (e instanceof ApplicationException) {
+			return (ApplicationException)e;
+		} else {
+			Logger.defaultLogger().error(e);
+			return new ApplicationException(e);
+		}
+	}
 
-			  try {
+	/**
+	 * Rollback the backup and release the lock on the target
+	 */
+	protected void rollbackBackup(ProcessContext context) throws ApplicationException {
+		try {
+			context.getTaskMonitor().setCancellable(false);
+			History h = this.getHistory();
+			if (h != null) {
+				h.addEntry(new HistoryEntry(HISTO_BACKUP_CANCEL, "Backup cancellation."));
+			}
+		} finally {
+			try {
+				medium.rollbackBackup(context);
+			} finally {
+				context.getReport().setHasErrors(true);
+			}
+		}
+	}
 
-				  HistoryEntry entry = new HistoryEntry(HISTO_MERGE, "Merge from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate) + ".");
-				  History h = this.getHistory();
-				  if (h != null) {
-					  h.addEntry(entry);
-				  }
-			  } catch (IOException e) {
-				  throw new ApplicationException(e);
-			  }        
-			  this.medium.merge(fromDate, toDate, manifest, keepDeletedEntries, context);
-			  this.commitMerge(context);
-		  } catch (Throwable e) {
-			  Logger.defaultLogger().error(e);
-			  this.rollbackMerge(context);
-			  throw wrapException(e);
-		  } finally {
-			  context.getInfoChannel().print("Merge completed.");
-		  }
-	  }  
+	public void processMerge(
+			int fromDelay, 
+			int toDelay, 
+			Manifest manifest, 
+			boolean keepDeletedEntries,
+			ProcessContext context
+	) throws ApplicationException {
+		if (fromDelay != 0 && toDelay != 0 && fromDelay < toDelay) {
+			// switch from/to
+			int tmp = toDelay;
+			toDelay = fromDelay;
+			fromDelay = tmp;
+		}
 
-	  /**
-	   * Delete archives
-	   */
-	  public void processDeleteArchives(
-			  GregorianCalendar fromDate,
-			  ProcessContext context
-	  ) throws ApplicationException {
-		  validateTargetState(ACTION_MERGE_OR_DELETE);  
-		  try {
-			  context.getTaskMonitor().setCancellable(false);
-			  context.getInfoChannel().print("Deletion in progress ...");
+		// From
+		GregorianCalendar fromDate = null;
+		if (fromDelay != 0) {
+			fromDate = new GregorianCalendar();
+			fromDate.add(Calendar.DATE, -1 * fromDelay);
+		}
 
-			  try {
-				  History h = this.getHistory();
-				  if (h != null) {
-					  HistoryEntry entry = new HistoryEntry(HISTO_DELETE, "Archive deletion from " + Utils.formatDisplayDate(fromDate) + ".");
-					  h.addEntry(entry);
-				  }
-			  } catch (IOException e) {
-				  throw new ApplicationException(e);
-			  }        
-			  this.medium.deleteArchives(fromDate, context);
-		  } catch (Throwable e) {
-			  throw wrapException(e);
-		  } finally {
-			  context.getTaskMonitor().resetCancellationState();
-			  context.getInfoChannel().print("Deletion completed.");
-		  }   
-	  }  
+		// To
+		GregorianCalendar toDate = new GregorianCalendar();
+		toDate.add(Calendar.DATE, -1 * toDelay);
 
-	  /**
-	   * Deletes the archive which are newer than "delay" days.
-	   */
-	  public void processDeleteArchives(int delay, ProcessContext context) throws ApplicationException {
-		  GregorianCalendar mergeDate = new GregorianCalendar();
-		  mergeDate.add(Calendar.DATE, -1 * delay);
+		// Go !
+		processMerge(fromDate, toDate, manifest, keepDeletedEntries, context);
+	}
 
-		  processDeleteArchives(mergeDate, context);
-	  }
+	/**
+	 * Merge archives
+	 */
+	public void processMerge(
+			GregorianCalendar fromDate, 
+			GregorianCalendar toDate, 
+			Manifest manifest,
+			boolean keepDeletedEntries,
+			ProcessContext context
+	) throws ApplicationException {
+		try {
+			validateTargetState(ACTION_MERGE_OR_DELETE);  
+			context.getInfoChannel().print("Merge in progress ...");
+			History h = this.getHistory();
+			if (h != null) {
+				h.addEntry(new HistoryEntry(HISTO_MERGE, "Merge from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate) + "."));
+			}       
+			this.medium.merge(fromDate, toDate, manifest, keepDeletedEntries, context);
+			this.commitMerge(context);
+		} catch (Throwable e) {
+			Logger.defaultLogger().error(e);
+			this.rollbackMerge(context);
+			throw wrapException(e);
+		} finally {
+			context.getInfoChannel().print("Merge completed.");
+		}
+	}  
 
-	  protected void commitMerge(ProcessContext context) throws ApplicationException {
-		  try {
-			  context.getTaskMonitor().checkTaskState();
-			  context.getTaskMonitor().setCancellable(false);
-			  this.medium.commitMerge(context);
-			  context.getReport().setHasErrors(false);
-			  context.getTaskMonitor().resetCancellationState();
-		  } catch (TaskCancelledException e) {
-			  throw new ApplicationException(e);
-		  }
-	  }
+	/**
+	 * Delete archives
+	 */
+	public void processDeleteArchives(
+			GregorianCalendar fromDate,
+			ProcessContext context
+	) throws ApplicationException {
+		validateTargetState(ACTION_MERGE_OR_DELETE);  
+		try {
+			context.getTaskMonitor().setCancellable(false);
+			context.getInfoChannel().print("Deletion in progress ...");
 
-	  protected void rollbackMerge(ProcessContext context) throws ApplicationException {
-		  context.getInfoChannel().getTaskMonitor().setCancellable(false);
-		  try {
-			  HistoryEntry entry = new HistoryEntry(HISTO_MERGE_CANCEL, "Merge cancellation.");
-			  History h = this.getHistory();
-			  if (h != null) {
-				  h.addEntry(entry);
-			  }
-		  } catch (Throwable e) {
-			  Logger.defaultLogger().error(e);
-		  } 
+			History h = this.getHistory();
+			if (h != null) {
+				h.addEntry(new HistoryEntry(HISTO_DELETE, "Archive deletion from " + Utils.formatDisplayDate(fromDate) + "."));
+			}       
+			this.medium.deleteArchives(fromDate, context);
+		} catch (Throwable e) {
+			throw wrapException(e);
+		} finally {
+			context.getTaskMonitor().resetCancellationState();
+			context.getInfoChannel().print("Deletion completed.");
+		}   
+	}  
 
-		  try {
-			  this.medium.rollbackMerge(context);
-		  } finally {
-			  context.getReport().setHasErrors(true);
-		  }
-		  context.getTaskMonitor().resetCancellationState();
-	  }
+	/**
+	 * Deletes the archive which are newer than "delay" days.
+	 */
+	public void processDeleteArchives(int delay, ProcessContext context) throws ApplicationException {
+		GregorianCalendar mergeDate = new GregorianCalendar();
+		mergeDate.add(Calendar.DATE, -1 * delay);
 
-	  /**
-	   * Recover stored data
-	   */
-	  public void processRecover(
-			  String destination, 
-			  String[] filters, 
-			  GregorianCalendar date, 
-			  boolean keepDeletedEntries,
-			  boolean checkRecoveredFiles, 
-			  ProcessContext context
-	  ) throws ApplicationException {
-		  validateTargetState(ACTION_RECOVER);
-		  TaskMonitor globalMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
-		  try {
-			  String strDate = date == null ? "" : " as of " + CalendarUtils.getDateToString(date);
-			  context.getInfoChannel().print("Recovery" + strDate + " in progress ...");
-			  StringBuffer sb = new StringBuffer("Recovery destination = " + destination);
-			  if (filters != null && filters.length != 0) {
-				  sb.append(", Items = {");
-				  for (int i=0; i<filters.length; i++) {
-					  if (i != 0) {
-						  sb.append(", ");
-					  }
-					  sb.append(filters[i]);
-				  }
-				  sb.append("}");
-			  }
-			  Logger.defaultLogger().info(sb.toString());
+		processDeleteArchives(mergeDate, context);
+	}
 
-			  if (date == null) {
-				  date = new GregorianCalendar();
-			  }
-			  try {
-				  HistoryEntry entry = new HistoryEntry(HISTO_RECOVER, "Recovery : " + Utils.formatDisplayDate(date) + ".");
-				  History h = this.getHistory();
-				  if (h != null) {
-					  h.addEntry(entry);
-				  }
-			  } catch (IOException e1) {
-				  throw new ApplicationException(e1);
-			  }   
-			  this.processRecoverImpl(destination, filters, date, keepDeletedEntries, checkRecoveredFiles, context);
-		  } finally {
-			  context.getInfoChannel().print("Recovery completed.");
-			  globalMonitor.enforceCompletion();
-		  }
-	  }
+	protected void commitMerge(ProcessContext context) throws ApplicationException {
+		try {
+			context.getTaskMonitor().checkTaskState();
+			context.getTaskMonitor().setCancellable(false);
+			this.medium.commitMerge(context);
+			context.getReport().setHasErrors(false);
+			context.getTaskMonitor().resetCancellationState();
+		} catch (TaskCancelledException e) {
+			throw new ApplicationException(e);
+		}
+	}
 
-	  /**
-	   * Recovers a specific version of a given file
-	   */
-	  public void processRecover(
-			  String destination, 
-			  GregorianCalendar date, 
-			  String entry, 
-			  boolean checkRecoveredFiles, 
-			  ProcessContext context
-	  ) throws ApplicationException {
-		  validateTargetState(ACTION_RECOVER);
-		  TaskMonitor globalMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
-		  try {
-			  String strDate = date == null ? "" : " as of " + CalendarUtils.getDateToString(date);
-			  context.getInfoChannel().print("Recovery of " + entry + strDate + " in progress ...");
-			  Logger.defaultLogger().info("Recovery destination = " + destination);
-			  this.processRecoverImpl(destination, date, entry, checkRecoveredFiles,context);
-		  } finally {
-			  context.getInfoChannel().print("Recovery of " + entry + " completed.");
-			  globalMonitor.enforceCompletion();
-		  }
-	  }
+	protected void rollbackMerge(ProcessContext context) throws ApplicationException {
+		context.getInfoChannel().getTaskMonitor().setCancellable(false);
+		try {
+			HistoryEntry entry = new HistoryEntry(HISTO_MERGE_CANCEL, "Merge cancellation.");
+			History h = this.getHistory();
+			if (h != null) {
+				h.addEntry(entry);
+			}
+		} catch (Throwable e) {
+			Logger.defaultLogger().error(e);
+		} 
 
-	  /**
-	   * Recover stored data
-	   */
-	  protected abstract void processRecoverImpl(
-			  String destination, 
-			  String[] filters, 
-			  GregorianCalendar date, 
-			  boolean keepDeletedEntries,
-			  boolean checkRecoveredFiles, 
-			  ProcessContext context
-	  ) throws ApplicationException;    
+		try {
+			this.medium.rollbackMerge(context);
+		} finally {
+			context.getReport().setHasErrors(true);
+		}
+		context.getTaskMonitor().resetCancellationState();
+	}
 
-	  /**
-	   * Check the archive's content
-	   */
-	  public abstract void processArchiveCheck(
-			  String destination, 
-			  boolean checkOnlyArchiveContent, 
-			  GregorianCalendar date, 
-			  ProcessContext context
-	  ) throws ApplicationException;
+	/**
+	 * Recover stored data
+	 */
+	public void processRecover(
+			String destination, 
+			String[] filters, 
+			GregorianCalendar date, 
+			boolean keepDeletedEntries,
+			boolean checkRecoveredFiles, 
+			ProcessContext context
+	) throws ApplicationException {
+		validateTargetState(ACTION_RECOVER);
+		TaskMonitor globalMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
+		try {
+			String strDate = date == null ? "" : " as of " + CalendarUtils.getDateToString(date);
+			context.getInfoChannel().print("Recovery" + strDate + " in progress ...");
+			StringBuffer sb = new StringBuffer("Recovery destination = " + destination);
+			if (filters != null && filters.length != 0) {
+				sb.append(", Items = {");
+				for (int i=0; i<filters.length; i++) {
+					if (i != 0) {
+						sb.append(", ");
+					}
+					sb.append(filters[i]);
+				}
+				sb.append("}");
+			}
+			Logger.defaultLogger().info(sb.toString());
 
-	  /**
-	   * Recover stored data
-	   */
-	  protected abstract void processRecoverImpl(
-			  String destination, 
-			  GregorianCalendar date, 
-			  String name, 
-			  boolean checkRecoveredFiles,
-			  ProcessContext context
-	  ) throws ApplicationException;    
+			if (date == null) {
+				date = new GregorianCalendar();
+			}
+			History h = this.getHistory();
+			if (h != null) {
+				h.addEntry(new HistoryEntry(HISTO_RECOVER, "Recovery : " + Utils.formatDisplayDate(date) + "."));
+			} 
+			this.processRecoverImpl(destination, filters, date, keepDeletedEntries, checkRecoveredFiles, context);
+		} finally {
+			context.getInfoChannel().print("Recovery completed.");
+			globalMonitor.enforceCompletion();
+		}
+	}
 
-	  public void doBeforeDelete() {
-		  if (this.getMedium() != null) {
-			  this.getMedium().doBeforeDelete();
-		  }
-	  }
+	/**
+	 * Recovers a specific version of a given file
+	 */
+	public void processRecover(
+			String destination, 
+			GregorianCalendar date, 
+			String entry, 
+			boolean checkRecoveredFiles, 
+			ProcessContext context
+	) throws ApplicationException {
+		validateTargetState(ACTION_RECOVER);
+		TaskMonitor globalMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
+		try {
+			String strDate = date == null ? "" : " as of " + CalendarUtils.getDateToString(date);
+			context.getInfoChannel().print("Recovery of " + entry + strDate + " in progress ...");
+			Logger.defaultLogger().info("Recovery destination = " + destination);
+			this.processRecoverImpl(destination, date, entry, checkRecoveredFiles,context);
+		} finally {
+			context.getInfoChannel().print("Recovery of " + entry + " completed.");
+			globalMonitor.enforceCompletion();
+		}
+	}
 
-	  public void doAfterDelete() {
-		  if (this.getMedium() != null) {
-			  this.getMedium().doAfterDelete();
-		  }
-	  }
+	/**
+	 * Recover stored data
+	 */
+	protected abstract void processRecoverImpl(
+			String destination, 
+			String[] filters, 
+			GregorianCalendar date, 
+			boolean keepDeletedEntries,
+			boolean checkRecoveredFiles, 
+			ProcessContext context
+	) throws ApplicationException;    
 
-	  public abstract RecoveryEntry nextElement(ProcessContext context) throws ApplicationException;
+	/**
+	 * Check the archive's content
+	 */
+	public abstract void processArchiveCheck(
+			String destination, 
+			boolean checkOnlyArchiveContent, 
+			GregorianCalendar date, 
+			ProcessContext context
+	) throws ApplicationException;
 
-	  public abstract Manifest buildDefaultMergeManifest(GregorianCalendar fromDate, GregorianCalendar toDate) throws ApplicationException;
+	/**
+	 * Recover stored data
+	 */
+	protected abstract void processRecoverImpl(
+			String destination, 
+			GregorianCalendar date, 
+			String name, 
+			boolean checkRecoveredFiles,
+			ProcessContext context
+	) throws ApplicationException;    
 
-	  protected boolean filterEntryBeforeStore(RecoveryEntry entry) {
-		  return true;
-	  }
+	public void doBeforeDelete() {
+		if (this.getMedium() != null) {
+			this.getMedium().doBeforeDelete();
+		}
+	}
 
-	  public String toString() {
-		  if (this.targetName == null) {
-			  return "Element " + this.id;
-		  } else {
-			  return this.targetName;
-		  }
-	  }
+	public void doAfterDelete() {
+		if (this.getMedium() != null) {
+			this.getMedium().doAfterDelete();
+		}
+	}
 
-	  public boolean equals(Object arg0) {
-		  if (arg0 == null) {
-			  return false;
-		  } else if (! (arg0 instanceof AbstractRecoveryTarget)) {
-			  return false;
-		  } else {
-			  AbstractRecoveryTarget other = (AbstractRecoveryTarget)arg0;
-			  return (
-					  EqualsHelper.equals(other.getUid(), this.getUid())
-			  );
-		  }
-	  }
+	public abstract RecoveryEntry nextElement(ProcessContext context) throws ApplicationException;
 
-	  public int hashCode() {
-		  int result = HashHelper.initHash(this);
-		  result = HashHelper.hash(result, this.getUid());
-		  return result;
-	  }
+	public abstract Manifest buildDefaultMergeManifest(GregorianCalendar fromDate, GregorianCalendar toDate) throws ApplicationException;
 
-	  /**
-	   * Compute indicators on the stored data. 
-	   */
-	  public IndicatorMap computeIndicators() throws ApplicationException {
-		  try {
-			  validateTargetState(ACTION_INDICATORS);
-			  return this.medium.computeIndicators();
-		  } catch (TaskCancelledException e) {
-			  throw new ApplicationException(e);
-		  }
-	  }
+	protected boolean filterEntryBeforeStore(RecoveryEntry entry) {
+		return true;
+	}
 
-	  /**
-	   * Build a new UID.
-	   */
-	  private static String generateNewUID() {
-		  try {
-			  SecureRandom prng = SecureRandom.getInstance("SHA1PRNG");
-			  return String.valueOf(Math.abs((long)prng.nextInt())); // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE ... hence the cast as "long"
-		  } catch (NoSuchAlgorithmException e) {
-			  Logger.defaultLogger().error("Error generating a random integer. Using Math.random instead.", e);
-			  return "" + Math.abs((int)(Math.random() * 10000000 + System.currentTimeMillis()));
-		  }
-	  }
+	public String toString() {
+		if (this.targetName == null) {
+			return "Element " + this.id;
+		} else {
+			return this.targetName;
+		}
+	}
 
-	  public void secureUpdateCurrentTask(long taskIndex, long taskCount, String task, ProcessContext context) {
-		  try {
-			  context.getInfoChannel().updateCurrentTask(taskIndex, taskCount, task);
-		  } catch (Throwable e) {
-			  Logger.defaultLogger().error(e);
-		  }
-	  }
+	public boolean equals(Object arg0) {
+		if (arg0 == null) {
+			return false;
+		} else if (! (arg0 instanceof AbstractRecoveryTarget)) {
+			return false;
+		} else {
+			AbstractRecoveryTarget other = (AbstractRecoveryTarget)arg0;
+			return (
+					EqualsHelper.equals(other.getUid(), this.getUid())
+			);
+		}
+	}
 
-	  public void secureUpdateCurrentTask(String task, ProcessContext context) {
-		  secureUpdateCurrentTask(0, 1, task, context);
-	  }
+	public int hashCode() {
+		int result = HashHelper.initHash(this);
+		result = HashHelper.hash(result, this.getUid());
+		return result;
+	}
+
+	/**
+	 * Compute indicators on the stored data. 
+	 */
+	public IndicatorMap computeIndicators() throws ApplicationException {
+		try {
+			validateTargetState(ACTION_INDICATORS);
+			return this.medium.computeIndicators();
+		} catch (TaskCancelledException e) {
+			throw new ApplicationException(e);
+		}
+	}
+
+	/**
+	 * Build a new UID.
+	 */
+	private static String generateNewUID() {
+		try {
+			SecureRandom prng = SecureRandom.getInstance("SHA1PRNG");
+			return String.valueOf(Math.abs((long)prng.nextInt())); // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE ... hence the cast as "long"
+		} catch (NoSuchAlgorithmException e) {
+			Logger.defaultLogger().error("Error generating a random integer. Using Math.random instead.", e);
+			return "" + Math.abs((int)(Math.random() * 10000000 + System.currentTimeMillis()));
+		}
+	}
+
+	public void secureUpdateCurrentTask(long taskIndex, long taskCount, String task, ProcessContext context) {
+		try {
+			context.getInfoChannel().updateCurrentTask(taskIndex, taskCount, task);
+		} catch (Throwable e) {
+			Logger.defaultLogger().error(e);
+		}
+	}
+
+	public void secureUpdateCurrentTask(String task, ProcessContext context) {
+		secureUpdateCurrentTask(0, 1, task, context);
+	}
 }
 

@@ -10,7 +10,7 @@ import com.myJava.util.Util;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -52,6 +52,7 @@ public abstract class AbstractProxy {
     public abstract void completePendingCommand(boolean blocking) throws IOException, RemoteConnectionException;
     protected abstract void resetContextData();
     protected abstract void resetClient(Throwable e);
+    public abstract void connect() throws RemoteConnectionException;
     public abstract void disconnect();
     public abstract boolean deleteFile(String remoteFile) throws RemoteConnectionException;
     public abstract boolean deleteDir(String remoteDir) throws RemoteConnectionException;

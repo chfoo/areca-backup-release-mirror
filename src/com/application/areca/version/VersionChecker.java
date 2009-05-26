@@ -13,7 +13,7 @@ import com.myJava.util.version.VersionDataAdapterException;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -37,7 +37,7 @@ This file is part of Areca.
  */
 public class VersionChecker {
     
-    private static final String DEFAULT_CHECK_URL = "http://areca.sourceforge.net/version.php";
+    private static final String DEFAULT_CHECK_URL = "http://www.areca-backup.org/version.php";
     private static VersionChecker instance = new VersionChecker();
     
     private String chekUrl;

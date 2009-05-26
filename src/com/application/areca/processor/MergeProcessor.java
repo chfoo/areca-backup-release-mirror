@@ -12,7 +12,7 @@ import com.myJava.object.HashHelper;
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -101,6 +101,7 @@ public class MergeProcessor extends AbstractProcessor {
     
     public Duplicable duplicate() {
         MergeProcessor pro = new MergeProcessor();
+        copyAttributes(pro);
         pro.fromDelay = this.fromDelay;
         pro.toDelay = this.toDelay;
         pro.keepDeletedEntries = this.keepDeletedEntries;
@@ -127,7 +128,8 @@ public class MergeProcessor extends AbstractProcessor {
         } else {
             MergeProcessor other = (MergeProcessor)obj;
             return 
-                EqualsHelper.equals(this.fromDelay, other.fromDelay)
+            	super.equals(other)
+            	&& EqualsHelper.equals(this.fromDelay, other.fromDelay)
                 && EqualsHelper.equals(this.toDelay, other.toDelay)
                 && EqualsHelper.equals(this.keepDeletedEntries, other.keepDeletedEntries);
         }
@@ -135,6 +137,7 @@ public class MergeProcessor extends AbstractProcessor {
     
     public int hashCode() {
         int h = HashHelper.initHash(this);
+        h = HashHelper.hash(h, super.hashCode());
         h = HashHelper.hash(h, this.fromDelay);
         h = HashHelper.hash(h, this.toDelay);
         h = HashHelper.hash(h, this.keepDeletedEntries);

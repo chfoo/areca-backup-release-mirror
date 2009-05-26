@@ -9,12 +9,13 @@ import com.application.areca.launcher.gui.common.ActionConstants;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.SecuredRunner;
+import com.myJava.system.viewer.ViewerHandlerHelper;
 
 /**
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
- * <BR>Areca Build ID : 2105312326281569706
+ *
  */
 
  /*
@@ -76,7 +77,8 @@ public class AppActionReferenceHolder implements ActionConstants{
     public static AppAction AC_RECOVER_FILTER = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_WITH_FILTER);
     public static AppAction AC_RECOVER_FILTER_LATEST = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_FROM_LOGICAL);
     public static AppAction AC_RECOVER_HISTORY = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_ENTRY);
-    public static AppAction AC_TEXTEDIT_HISTORY = new AppAction("app.editaction", CMD_EDIT_FILE);   
+    public static AppAction AC_VIEW_TEXT_HISTORY = new AppAction("app.texteditaction", CMD_VIEW_FILE_AS_TEXT);   
+    public static AppAction AC_VIEW_HISTORY = new AppAction("app.editaction", CMD_VIEW_FILE);  
     public static AppAction AC_COPY_FILENAMES = new AppAction("app.copyfilenames", CMD_COPY_FILENAMES);  
     
     public static AppAction AC_SEARCH_PHYSICAL = new AppAction("mainpanel.physical", CMD_SEARCH_PHYSICAL);    
@@ -171,10 +173,18 @@ public class AppActionReferenceHolder implements ActionConstants{
                             && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_MISSING                    
                     );
 
-                    AC_TEXTEDIT_HISTORY.setEnabled(
+                    AC_VIEW_TEXT_HISTORY.setEnabled(
                             available 
                             && cmd != null 
                             && cmd.length() != 0 
+                            && application.getCurrentEntryData() != null
+                            && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_DELETED
+                            && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_MISSING
+                    );
+                    
+                    AC_VIEW_HISTORY.setEnabled(
+                            available 
+                            && ViewerHandlerHelper.getViewerHandler().isOpenSupported()  
                             && application.getCurrentEntryData() != null
                             && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_DELETED
                             && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_MISSING
