@@ -1,15 +1,21 @@
 package com.application.areca.launcher.gui;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.Utils;
 import com.application.areca.context.ProcessReport;
+import com.application.areca.context.ProcessReportWriter;
 import com.application.areca.launcher.gui.common.AbstractWindow;
+import com.application.areca.launcher.gui.common.SavePanel;
+import com.myJava.util.log.Logger;
 
 /**
  * <BR>
@@ -39,130 +45,62 @@ This file is part of Areca.
  */
 public class ReportWindow 
 extends AbstractWindow {
-    
-    protected ProcessReport report;
-    
-    protected Label lblProcessed;
-    protected Label lblFiltered;
-    protected Label lblUnfilteredDirs;
-    protected Label lblUnfilteredFiles;
-    protected Label lblIgnored;
-    protected Label lblSaved;
-    protected Label lblTime;    
-    
-    protected Label lblTProcessed;
-    protected Label lblTFiltered;
-    protected Label lblTUnfilteredDirs;
-    protected Label lblTUnfilteredFiles;
-    protected Label lblTIgnored;
-    protected Label lblTSaved;
-    protected Label lblTTime;    
-    
-    public ReportWindow(ProcessReport report) {
-        super();
-        this.report = report;
-    }
 
-    protected Control createContents(Composite parent) {
-        Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout(1, false);
-        composite.setLayout(layout);
-        
-        GridData mainData2 = new GridData(SWT.FILL, SWT.FILL, true, false);
-        createBottomComposite(composite).setLayoutData(mainData2);
-        
-        initContent();
-        composite.pack();
-        
-        return composite;
-    }
-    
-    private Composite createBottomComposite(Composite parent) {
-        Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout(6, false);
-        layout.horizontalSpacing = 20;
-        composite.setLayout(layout);
+	protected Text txtContent;
+	protected ProcessReport report;
 
-        // LIGNE 1:
-        lblTProcessed = new Label(composite, SWT.NONE);
-        lblTProcessed.setText(RM.getLabel("report.processed.label"));
-        lblProcessed = new Label(composite, SWT.NONE);
-        GridData dt1 = new GridData();
-        dt1.grabExcessHorizontalSpace = true;
-        lblProcessed.setLayoutData(dt1);
-        
-        lblTFiltered = new Label(composite, SWT.NONE);
-        lblTFiltered.setText(RM.getLabel("report.filtered.label"));
-        lblFiltered = new Label(composite, SWT.NONE);
-        
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        
-        // LIGNE 2 :
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        
-        lblTUnfilteredDirs = new Label(composite, SWT.NONE);
-        lblTUnfilteredDirs.setText(RM.getLabel("report.dircount.label"));
-        lblUnfilteredDirs = new Label(composite, SWT.NONE);
-        GridData dt2 = new GridData();
-        dt2.grabExcessHorizontalSpace = true;
-        lblUnfilteredDirs.setLayoutData(dt2);
-        
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        
-        // LIGNE 3 :
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        
-        lblTUnfilteredFiles = new Label(composite, SWT.NONE);
-        lblTUnfilteredFiles.setText(RM.getLabel("report.filecount.label"));
-        lblUnfilteredFiles = new Label(composite, SWT.NONE);
-        
-        lblTSaved = new Label(composite, SWT.NONE);
-        lblTSaved.setText(RM.getLabel("report.saved.label"));
-        lblSaved = new Label(composite, SWT.NONE);
-        GridData dt3 = new GridData();
-        dt3.grabExcessHorizontalSpace = true;
-        lblSaved.setLayoutData(dt3);
-        
-        // LIGNE 4 :
-        lblTTime = new Label(composite, SWT.NONE);
-        lblTTime.setText(RM.getLabel("report.duration.label"));    
-        lblTime = new Label(composite, SWT.NONE);
-        
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        
-        lblTIgnored = new Label(composite, SWT.NONE);
-        lblTIgnored.setText(RM.getLabel("report.ignored.label"));
-        lblIgnored = new Label(composite, SWT.NONE);
-        
-        return composite;
-    }
-    
-    private void initContent() {               
-        this.lblUnfilteredDirs.setText("" + report.getUnfilteredDirectories());
-        this.lblUnfilteredFiles.setText("" + report.getUnfilteredFiles());
-        this.lblFiltered.setText("" + report.getFilteredEntries());
-        this.lblIgnored.setText("" + report.getIgnoredFiles());
-        this.lblSaved.setText("" + report.getSavedFiles());
-        this.lblTime.setText(Utils.formatDuration(System.currentTimeMillis() - report.getStartMillis()));
-        this.lblProcessed.setText("" + report.getProcessedEntries());
-    }
+	public ReportWindow(ProcessReport report) {
+		super();
+		this.report = report;
+	}
 
-    public String getTitle() {
-        return RM.getLabel("report.dialog.title");
-    }
+	protected Control createContents(Composite parent) {
+		Composite composite = new Composite(parent, SWT.NONE);
+		composite.setLayout(new GridLayout(1, false));
 
-    protected boolean checkBusinessRules() {
-        return true;
-    }
+		txtContent = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true);
+        dt.widthHint = computeWidth(500);
+        dt.heightHint = computeHeight(200);
+		txtContent.setLayoutData(dt);
+		txtContent.setEditable(false);
 
-    protected void saveChanges() {
-    }
+		ProcessReportWriter writer = null;
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try {
+			writer = new ProcessReportWriter(new OutputStreamWriter(baos));
+			writer.writeReport(report);
+		} catch (IOException e) {
+			Logger.defaultLogger().error(e);
+		} finally {
+			try {
+				writer.close();
+			} catch (IOException e) {
+				Logger.defaultLogger().error(e);
+			}            
+		}
+		txtContent.setText(baos.toString());
 
-    protected void updateState(boolean rulesSatisfied) {
-    }
+        SavePanel pnlSave = new SavePanel(RM.getLabel("common.close.label"), this);
+        pnlSave.setShowCancel(false);
+        pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		composite.pack();
+		return composite;
+	}
+
+	public String getTitle() {
+		return RM.getLabel("report.dialog.title");
+	}
+
+	protected boolean checkBusinessRules() {
+		return true;
+	}
+
+	protected void saveChanges() {
+		this.cancelChanges();
+	}
+
+	protected void updateState(boolean rulesSatisfied) {
+	}
 }

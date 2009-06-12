@@ -47,7 +47,11 @@ public abstract class AbstractFilterComposite extends Composite {
         this.currentFilter = filter;
         this.filterIndex = filterIndex;
     }
-
+    
+    public boolean allowTest() {
+    	return true;
+    }
+    
     public abstract void initFilter(ArchiveFilter filter);
     public abstract boolean validateParams();
 }

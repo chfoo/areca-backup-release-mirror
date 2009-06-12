@@ -336,7 +336,15 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_FILTER_RG_PATTERN);
         sb.append("=");
-        sb.append(encode(filter.getStringParameters()));
+        sb.append(encode(filter.getRegex()));
+        sb.append(" ");
+        sb.append(XML_FILTER_RG_MODE);
+        sb.append("=");
+        sb.append(encode(filter.getScheme()));
+        sb.append(" ");
+        sb.append(XML_FILTER_RG_FULL_MATCH);
+        sb.append("=");
+        sb.append(encode(filter.isMatch()));
         sb.append("/>");        
     }
     

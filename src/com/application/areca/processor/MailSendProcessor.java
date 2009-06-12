@@ -72,6 +72,10 @@ public class MailSendProcessor extends AbstractProcessor {
 	public MailSendProcessor() {
 		super();
 	}
+	
+	public String getKey() {
+		return "Send report by email";
+	}
 
 	public String getRecipients() {
 		return recipients;

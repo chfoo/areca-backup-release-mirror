@@ -41,11 +41,14 @@ public class SavePanel implements Listener {
     
     protected String saveLabel;
     protected String cancelLabel;
+    protected String optionLabel;
     protected AbstractWindow parentWindow;
     protected boolean showCancel =true;
+    protected boolean showOptionButton = false;
     
     protected Button btnSave;
     protected Button btnCancel;
+    protected Button btnAdd;
 
     public SavePanel(String saveLabel, String cancelLabel, AbstractWindow parentWindow) {
         this.saveLabel = saveLabel;
@@ -68,10 +71,15 @@ public class SavePanel implements Listener {
         );
     }
     
+    public void addOptionButton(String label) {
+    	this.optionLabel = ResourceManager.instance().getLabel(label);
+    	this.showOptionButton = true;
+    }
+    
     public Composite buildComposite(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         
-        GridLayout layout = new GridLayout(2, false);
+        GridLayout layout = new GridLayout(showOptionButton ? 2 : 1, false);
         layout.verticalSpacing = 0;
         layout.marginBottom = 0;
         layout.marginTop = 0;
@@ -81,9 +89,18 @@ public class SavePanel implements Listener {
         layout.marginWidth = 0;
         composite.setLayout(layout);
         
+        if (showOptionButton) {
+            btnAdd = new Button(composite, SWT.PUSH);
+            btnAdd.setText(this.optionLabel);
+            GridData ld = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+            ld.minimumWidth = AbstractWindow.computeWidth(MIN_BUTTON_WIDTH);
+            btnAdd.setLayoutData(ld);
+            btnAdd.addListener(SWT.Selection, this);
+        }
+        
+        
         Composite content = buildInnerComposite(composite);
-        GridData dt = new GridData(SWT.RIGHT, SWT.BOTTOM, true, false);
-        content.setLayoutData(dt);
+        content.setLayoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, true, false));
         return composite;
     }
     
@@ -132,8 +149,12 @@ public class SavePanel implements Listener {
     public Button getBtnSave() {
         return btnSave;
     }
+ 
+    public Button getOptionButton() {
+		return btnAdd;
+	}
 
-    public void setBtnSave(Button btnSave) {
+	public void setBtnSave(Button btnSave) {
         this.btnSave = btnSave;
     }
     

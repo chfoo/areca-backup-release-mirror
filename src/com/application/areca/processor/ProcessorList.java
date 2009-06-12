@@ -65,13 +65,16 @@ public class ProcessorList implements Duplicable {
                 context.reset(true);
                 
                 Processor processor = (Processor)iter.next();
+                String key = processor.getKey() + " (" + processor.getParametersSummary() + ")";
                 context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(taskShare, processor.getClass().getName());
 	            TaskMonitor itemMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
 	            try {
                     processor.run(context);
+	                context.getReport().getStatus().addItem(key);
 	            } catch (Throwable e) {
 	                Logger.defaultLogger().error("Error during processor.", e);
 	                exceptions.append("\n").append(e.getMessage());
+	                context.getReport().getStatus().addItem(key, e.getMessage());
 	            } finally {
 	                itemMonitor.enforceCompletion();
 	            }

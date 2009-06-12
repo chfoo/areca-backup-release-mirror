@@ -58,6 +58,10 @@ public class ShellScriptProcessor extends AbstractProcessor {
     public void setCommand(String command) {
         this.command = command;
     }
+    
+	public String getKey() {
+		return "Execute shell script";
+	}
 
     public String getCommandParameters() {
         return commandParameters;
@@ -105,7 +109,11 @@ public class ShellScriptProcessor extends AbstractProcessor {
                 errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                 err = " : [" + errorReader.readLine() + "]";
             }
-            Logger.defaultLogger().info("Shell command [" + paramsToString(fullCommand) + "] executed - Exit value = [" + retValue + "]" + err); 
+            Logger.defaultLogger().info("Shell command [" + paramsToString(fullCommand) + "] executed - exit value = " + retValue + err); 
+       
+            if (retValue != 0) {
+            	throw new ApplicationException("Error running " + paramsToString(fullCommand) + " - exit value = " + retValue + err);
+            }
         } catch (Throwable e) {
             if (e instanceof ApplicationException) {
                 throw (ApplicationException)e;

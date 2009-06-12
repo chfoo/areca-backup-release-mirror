@@ -96,4 +96,8 @@ public class DeleteProcessor extends AbstractProcessor {
         h = HashHelper.hash(h, this.delay);
         return h;
     }
+
+	public String getKey() {
+		return "Delete Archives";
+	}
 }

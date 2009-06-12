@@ -114,6 +114,7 @@ public interface ZipConstants {
     
     static final long MAX_INT = 0xFFFFFFFF;
     
-    public static final String DEFAULT_CHARSET = "UTF-8";
-    //static final String DEFAULT_CHARSET = "Cp437";
+    public static final String CHARSET_CP437 = "Cp437";
+    public static final String CHARSET_UTF8 = "UTF-8";
+    public static final String DEFAULT_CHARSET = CHARSET_UTF8;
 }

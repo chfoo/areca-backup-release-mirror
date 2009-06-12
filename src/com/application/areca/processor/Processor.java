@@ -35,6 +35,8 @@ public interface Processor extends Comparable, Duplicable {
 	public static short RUN_SCHEME_FAILURE = 1;
 	public static short RUN_SCHEME_SUCCESS = 2;
 	
+	public String getKey();
+	
     public void run(ProcessContext context) throws ApplicationException;
     public String getParametersSummary();
     public void validate() throws ProcessorValidationException;

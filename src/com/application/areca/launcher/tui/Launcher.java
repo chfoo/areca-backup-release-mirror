@@ -110,6 +110,8 @@ implements CommandConstants {
             }
             ProcessContext context = new ProcessContext(target, channel, new TaskMonitor("tui-main"));
             
+            context.getReport().setLogMessagesContainer(Logger.defaultLogger().getTlLogProcessor().activateMessageTracking());
+            
             Logger.defaultLogger().info("Starting the process ... config = [" + command.getOption(OPTION_CONFIG) + "]" + suffix);
             channel.print("Starting the process ... config = [" + command.getOption(OPTION_CONFIG) + "]" + suffix);
             
@@ -257,6 +259,8 @@ implements CommandConstants {
                 Runnable rn = new Runnable() {
                     public void run() {
                         try {
+                            
+                        	cloneCtx.getReport().setLogMessagesContainer(Logger.defaultLogger().getTlLogProcessor().activateMessageTracking());
                             process.processBackupOnTarget(
                                     tg,
                                     manifest,
@@ -274,6 +278,9 @@ implements CommandConstants {
                 if (forceSync) {
                 	// Sync mode
                 	rn.run();
+                	
+                	// Clear log for the next target.
+                    Logger.defaultLogger().getTlLogProcessor().clearLog();
                 } else {
                 	// Async mode
 	                Thread th = new Thread(rn);

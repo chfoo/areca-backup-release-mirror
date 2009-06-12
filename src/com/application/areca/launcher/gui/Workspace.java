@@ -137,7 +137,7 @@ public class Workspace {
             File f = new File(path);
             if (FileSystemManager.exists(f)) {
                 Logger.defaultLogger().remove(FileLogProcessor.class);
-                Logger.defaultLogger().remove(ConsoleLogProcessor.class);
+                Logger.defaultLogger().remove(ConsoleLogProcessor.class); // we don't want the default console processor that is set in the Logger class.
                 FileLogProcessor proc;
                 if (ArecaTechnicalConfiguration.get().getLogLocationOverride() == null) {
                 	proc = new FileLogProcessor(new File(FileSystemManager.getAbsolutePath(f) + "/" + ArecaFileConstants.LOG_SUBDIRECTORY_NAME + "/", VersionInfos.APP_SHORT_NAME.toLowerCase()));

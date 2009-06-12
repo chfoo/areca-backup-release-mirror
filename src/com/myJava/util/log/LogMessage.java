@@ -1,7 +1,6 @@
-package com.application.areca;
+package com.myJava.util.log;
 
 /**
- * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -27,9 +26,33 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public interface ArecaURLs {
-	public String HELP_ROOT = "http://www.areca-backup.org/documentation.php?fromApplication=1&currentVersion=";
-	public String DONATION_URL = "http://sourceforge.net/project/project_donations.php?group_id=171505";
-	public String ARECA_URL = "http://www.areca-backup.org";
-	public String REGEX_URL = "http://www.areca-backup.org/regex.php";
+public class LogMessage {
+	private int level;
+	private String message;
+	private String source;
+	private Throwable exception;
+	
+	public LogMessage(int level, String message, String source, Throwable exception) {
+		super();
+		this.level = level;
+		this.message = message;
+		this.source = source;
+		this.exception = exception;
+	}
+	
+	public int getLevel() {
+		return level;
+	}
+	
+	public String getMessage() {
+		return message;
+	}
+	
+	public String getSource() {
+		return source;
+	}
+	
+	public Throwable getException() {
+		return exception;
+	}
 }

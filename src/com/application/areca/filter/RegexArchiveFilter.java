@@ -35,7 +35,10 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class RegexArchiveFilter extends AbstractArchiveFilter {
-    
+    public static String SCHEME_FULLPATH = "full_path";
+    public static String SCHEME_NAME = "file_name";
+    public static String SCHEME_PARENTDIR = "parent_directory";
+	
 	/**
 	 * Uncompiled pattern
 	 */
@@ -49,14 +52,20 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
     /**
      * Apply pattern to filename only
      */
-    private boolean applyToFileName = false;
+    private String scheme = SCHEME_FULLPATH;
+    
+    /**
+     * true : match the regex
+     * <BR>false : find the pattern defined by the regex
+     */
+    private boolean match = false;
 
-	public boolean isApplyToFileName() {
-		return applyToFileName;
+	public String getScheme() {
+		return scheme;
 	}
 
-	public void setApplyToFileName(boolean applyToFileName) {
-		this.applyToFileName = applyToFileName;
+	public void setScheme(String scheme) {
+		this.scheme = scheme;
 	}
 
 	public String getRegex() {
@@ -68,27 +77,54 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
     }
     
     public boolean acceptIteration(File entry) {
-        return true;
+    	if (scheme.equals(SCHEME_PARENTDIR)) {
+    		// Check that the directory itself is accepted by the filter
+    		return acceptStorage(entry.getAbsolutePath());
+    	} else {
+    		return true;
+    	}
     }
-    
-    public boolean acceptStorage(File entry) {
+
+    public boolean isMatch() {
+		return match;
+	}
+
+	public void setMatch(boolean match) {
+		this.match = match;
+	}
+
+	public boolean acceptStorage(File entry) {
         if (entry == null) {
             return false;
         } else {
-        	String toMatch = this.applyToFileName ? entry.getName() : entry.getAbsolutePath();
-            if (pattern.matcher(toMatch).find()) {
-            	return !exclude;
-            } else {
-            	return exclude;
-            }
+        	String toMatch;
+        	if (scheme.equals(SCHEME_FULLPATH)) {
+        		toMatch = entry.getAbsolutePath();
+        	} else if (scheme.equals(SCHEME_NAME)) {
+        		toMatch = entry.getName();
+        	} else {
+        		toMatch = entry.getParent();
+        	}
+        	return acceptStorage(toMatch);
         }
     }
+	
+	private boolean acceptStorage(String toMatch) {
+    	boolean found = match ? pattern.matcher(toMatch).matches() : pattern.matcher(toMatch).find();
+    	
+        if (found) {
+        	return !exclude;
+        } else {
+        	return exclude;
+        }
+	}
     
     public Duplicable duplicate() {
         RegexArchiveFilter filter = new RegexArchiveFilter();
         filter.exclude = this.exclude;
         filter.setRegex(this.regex);
-        filter.setApplyToFileName(this.applyToFileName);
+        filter.setScheme(this.scheme);
+        filter.setMatch(this.match);
         return filter;
     }
 
@@ -109,7 +145,8 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
             return 
             	EqualsHelper.equals(this.exclude, other.exclude)
             	&& EqualsHelper.equals(this.regex, other.regex)
-            	&& EqualsHelper.equals(this.applyToFileName, other.applyToFileName)            	
+            	&& EqualsHelper.equals(this.match, other.match)     
+            	&& EqualsHelper.equals(this.scheme, other.scheme)              	      	
            	;
         }
     }
@@ -117,7 +154,8 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
     public int hashCode() {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, this.regex);
-        h = HashHelper.hash(h, this.applyToFileName);
+        h = HashHelper.hash(h, this.scheme);
+        h = HashHelper.hash(h, this.match);
         h = HashHelper.hash(h, this.exclude);
         return h;
     }

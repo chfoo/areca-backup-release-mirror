@@ -449,13 +449,15 @@ extends AbstractWindow {
         btnRemoveSource.setText(RM.getLabel("targetedition.removeprocaction.label"));
         btnRemoveSource.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
-                if (tblSources.getSelectionIndex() != -1) {
+            	int idx = tblSources.getSelectionIndex();
+                if (idx != -1) {
                     int result = application.showConfirmDialog(
                             RM.getLabel("targetedition.removesourceaction.confirm.message"),
                             RM.getLabel("targetedition.confirmremovesource.title"));
                     
                     if (result == SWT.YES) {
-                        tblSources.remove(tblSources.getSelectionIndex());
+                        tblSources.remove(idx);
+                        tblSources.setSelection(Math.max(0, Math.min(tblSources.getItemCount() - 1, idx)));
                         registerUpdate();                  
                     }
                 }
@@ -1023,6 +1025,7 @@ extends AbstractWindow {
         updateFilterListState();
         this.preProcessesTab.updateProcListState();
         this.postProcessesTab.updateProcListState();
+        this.updateSourceListState();
     }
     
     protected void updateFilterListState() {

@@ -62,19 +62,22 @@ public class ProcessorsTable {
     protected Button btnAddProc;
     protected Button btnRemoveProc;
     protected Button btnModifyProc;
+    
+    protected Button btnUp;
+    protected Button btnDown;
 
     protected boolean preprocess = true;
     protected final TargetEditionWindow main;
 
     public ProcessorsTable(Composite parent, TargetEditionWindow tge, boolean preprocess) {
 
-        parent.setLayout(initLayout(4));
+        parent.setLayout(initLayout(5));
         this.main = tge;
         this.preprocess = preprocess;
 
         TableViewer viewer = new TableViewer(parent, SWT.BORDER | SWT.SINGLE);
         tblProc = viewer.getTable();
-        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1);
+        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true, 4, 2);
         dt.heightHint = AbstractWindow.computeHeight(50);
         tblProc.setLayoutData(dt);
         
@@ -85,7 +88,7 @@ public class ProcessorsTable {
 
         TableColumn col2 = new TableColumn(tblProc, SWT.NONE);
         col2.setText(RM.getLabel("targetedition.proctable.parameters.label"));
-        col2.setWidth(AbstractWindow.computeWidth(300));
+        col2.setWidth(AbstractWindow.computeWidth(200));
         col2.setMoveable(true);
 
         tblProc.setHeaderVisible(true);
@@ -94,6 +97,28 @@ public class ProcessorsTable {
         viewer.addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {
                 editCurrentProcessor();
+            }
+        });
+        
+        
+        btnUp = new Button(parent, SWT.PUSH);
+        //btnUp.setText("" + (char)9651);
+        btnUp.setText(RM.getLabel("common.up.label"));
+        btnUp.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false));
+        btnUp.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event) {
+                up();
+            }
+        });
+        
+        
+        btnDown = new Button(parent, SWT.PUSH);
+        //btnDown.setText("" + (char)9661);
+        btnDown.setText(RM.getLabel("common.down.label"));
+        btnDown.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
+        btnDown.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event) {
+                down();
             }
         });
 
@@ -121,16 +146,7 @@ public class ProcessorsTable {
         btnRemoveProc.setText(RM.getLabel("targetedition.removeprocaction.label"));
         btnRemoveProc.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
-                if (tblProc.getSelectionIndex() != -1) {
-                    int result = Application.getInstance().showConfirmDialog(
-                            RM.getLabel("targetedition.removeprocaction.confirm.message"),
-                            RM.getLabel("targetedition.confirmremoveproc.title"));
-
-                    if (result == SWT.YES) {
-                        tblProc.remove(tblProc.getSelectionIndex());
-                        main.publicRegisterUpdate();                 
-                    }
-                }
+            	removeCurrentProcessor();
             }
         });
 
@@ -142,21 +158,66 @@ public class ProcessorsTable {
             }
         });
     }
+    
+    private void up() {
+    	shift(-1);
+    }
 
+    private void down() {
+    	shift(1);
+    }
+    
+    private void shift(int shift) {
+        int index = tblProc.getSelectionIndex();
+    	int tgIndex = index + shift;
+    	
+    	if (index != -1 && tgIndex >= 0 && tgIndex < tblProc.getItemCount()) {
+    		TableItem item = tblProc.getItem(index);
+        	TableItem target = tblProc.getItem(tgIndex);
+        	Processor srcProc = (Processor)item.getData();
+        	Processor tgProc = (Processor)target.getData();
+        	
+            target.dispose();
+            item.dispose();
+        	
+            TableItem item2 = new TableItem(tblProc, SWT.NONE, tgIndex + (index < tgIndex ? -1 : 0));
+            TableItem target2 = new TableItem(tblProc, SWT.NONE, index);
+            configure(item2, (Processor)srcProc);
+        	configure(target2, (Processor)tgProc);
+            
+            tblProc.setSelection(tgIndex);
+        }
+    }
+    
     private GridLayout initLayout(int nbCols) {
         GridLayout layout = new GridLayout();
         layout.marginWidth = 0;
         layout.numColumns = nbCols;
         layout.marginHeight = 0;
-        layout.verticalSpacing = 10;
-        layout.horizontalSpacing = 10;
         return layout;
     }
 
     public void updateProcListState() {
         int index =  this.tblProc.getSelectionIndex();
         this.btnRemoveProc.setEnabled(index != -1);
-        this.btnModifyProc.setEnabled(index != -1);       
+        this.btnModifyProc.setEnabled(index != -1);    
+        this.btnDown.setEnabled(index != -1);
+        this.btnUp.setEnabled(index != -1);    
+    }
+    
+    private void removeCurrentProcessor() {
+    	int idx = tblProc.getSelectionIndex();
+        if (idx != -1) {
+            int result = Application.getInstance().showConfirmDialog(
+                    RM.getLabel("targetedition.removeprocaction.confirm.message"),
+                    RM.getLabel("targetedition.confirmremoveproc.title"));
+
+            if (result == SWT.YES) {
+                tblProc.remove(idx);
+                tblProc.setSelection(Math.max(0, Math.min(tblProc.getItemCount() - 1, idx)));
+                main.publicRegisterUpdate();                 
+            }
+        }
     }
 
 
@@ -215,15 +276,17 @@ public class ProcessorsTable {
         Iterator processors = list.iterator();
         int index = tblProc.getSelectionIndex();
         while (processors.hasNext()) {
-            Processor proc = (Processor)processors.next();
-
             TableItem item = new TableItem(tblProc, SWT.NONE);
-            item.setText(0, ProcessorRepository.getName(proc));
-            item.setText(1, proc.getParametersSummary());
-            item.setData(proc);
+            configure(item, (Processor)processors.next());
         } 
         if (index != -1) {
             tblProc.setSelection(index);
         }  
+    }
+    
+    private void configure(TableItem item, Processor proc) {
+        item.setText(0, ProcessorRepository.getName(proc));
+        item.setText(1, proc.getParametersSummary());
+        item.setData(proc);
     }
 }

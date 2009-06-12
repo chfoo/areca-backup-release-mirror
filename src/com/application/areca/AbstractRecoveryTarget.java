@@ -7,6 +7,7 @@ import java.util.GregorianCalendar;
 import java.util.Iterator;
 
 import com.application.areca.context.ProcessContext;
+import com.application.areca.context.StatusList;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.FilterGroup;
 import com.application.areca.impl.AbstractFileSystemMedium;
@@ -60,9 +61,6 @@ This file is part of Areca.
  */
 public abstract class AbstractRecoveryTarget 
 implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
-
-	private static final String K_FILTERED = "filtered entries";
-
 	public static final String BACKUP_SCHEME_FULL = "Full backup";
 	public static final String BACKUP_SCHEME_INCREMENTAL = "Incremental backup";
 	public static final String BACKUP_SCHEME_DIFFERENTIAL = "Differential backup";
@@ -327,21 +325,23 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 						entry = this.nextElement(context); 
 					}
 					this.commitBackup(context);
+					context.getReport().setWrittenKBytes(context.getOutputBytesInKB());
 					context.getReport().stopDataFlowTimer();
 					Logger.defaultLogger().info(Utils.formatLong(context.getInputBytesInKB()) + " kb read in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
 					Logger.defaultLogger().info("Average data input : " + Utils.formatLong(context.getInputBytesInKBPerSecond()) + " kb/second.");
-					Logger.defaultLogger().info(Utils.formatLong(context.getOutputBytesInKB()) + " kb written in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
+					Logger.defaultLogger().info(Utils.formatLong(context.getReport().getWrittenKBytes()) + " kb written in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
 					Logger.defaultLogger().info("Average data output : " + Utils.formatLong(context.getOutputBytesInKBPerSecond()) + " kb/second.");
+
 				} catch (Throwable e) {
 					if (! TaskCancelledException.isTaskCancellation(e)) {
 						Logger.defaultLogger().error(e);
 					}
-					this.rollbackBackup(context);
+					this.rollbackBackup(context, e.getMessage());
 					throw wrapException(e);
 				}
 			}
 		} finally {
-			if ((! context.getReport().hasErrors()) && (! disableArchiveCheck)) {
+			if ((! context.getReport().getStatus().hasError()) && (! disableArchiveCheck)) {
 				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.4, "archive check");
 				TaskMonitor checkMon = context.getTaskMonitor().getCurrentActiveSubTask();
 
@@ -354,8 +354,9 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.6, "effective check");
 					this.processArchiveCheck(null, true, cal, context);
 					if (context.getInvalidRecoveredFiles() != null && context.getInvalidRecoveredFiles().size() != 0) {
-						context.getReport().setHasErrors(true);
-						context.getInfoChannel().error("The created archive was not successfully checked. It will be deleted.");
+						String msg = "The created archive was not successfully checked. It will be deleted.";
+						context.getReport().getStatus().addItem(StatusList.KEY_BACKUP, msg);
+						context.getInfoChannel().error(msg);
 						context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.4, "deletion");  
 						this.processDeleteArchives(cal, context);
 					}
@@ -462,10 +463,10 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 			addBasicInformationsToManifest(context.getManifest());
 
 			medium.commitBackup(context);
-			context.getReport().setHasErrors(false);
+			context.getReport().getStatus().addItem(StatusList.KEY_BACKUP);
 		} catch (Throwable e) {
 			Logger.defaultLogger().error("Exception caught during backup commit.", e);
-			this.rollbackBackup(context);
+			this.rollbackBackup(context, e.getMessage());
 			throw wrapException(e);
 		}
 	}
@@ -482,7 +483,7 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 	/**
 	 * Rollback the backup and release the lock on the target
 	 */
-	protected void rollbackBackup(ProcessContext context) throws ApplicationException {
+	protected void rollbackBackup(ProcessContext context, String message) throws ApplicationException {
 		try {
 			context.getTaskMonitor().setCancellable(false);
 			History h = this.getHistory();
@@ -493,7 +494,7 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 			try {
 				medium.rollbackBackup(context);
 			} finally {
-				context.getReport().setHasErrors(true);
+				context.getReport().getStatus().addItem(StatusList.KEY_BACKUP, message);
 			}
 		}
 	}
@@ -548,7 +549,7 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 			this.commitMerge(context);
 		} catch (Throwable e) {
 			Logger.defaultLogger().error(e);
-			this.rollbackMerge(context);
+			this.rollbackMerge(context, e.getMessage());
 			throw wrapException(e);
 		} finally {
 			context.getInfoChannel().print("Merge completed.");
@@ -595,14 +596,14 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 			context.getTaskMonitor().checkTaskState();
 			context.getTaskMonitor().setCancellable(false);
 			this.medium.commitMerge(context);
-			context.getReport().setHasErrors(false);
+			context.getReport().getStatus().addItem(StatusList.KEY_MERGE);
 			context.getTaskMonitor().resetCancellationState();
 		} catch (TaskCancelledException e) {
 			throw new ApplicationException(e);
 		}
 	}
 
-	protected void rollbackMerge(ProcessContext context) throws ApplicationException {
+	protected void rollbackMerge(ProcessContext context, String message) throws ApplicationException {
 		context.getInfoChannel().getTaskMonitor().setCancellable(false);
 		try {
 			HistoryEntry entry = new HistoryEntry(HISTO_MERGE_CANCEL, "Merge cancellation.");
@@ -617,7 +618,7 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 		try {
 			this.medium.rollbackMerge(context);
 		} finally {
-			context.getReport().setHasErrors(true);
+			context.getReport().getStatus().addItem(StatusList.KEY_MERGE, message);
 		}
 		context.getTaskMonitor().resetCancellationState();
 	}

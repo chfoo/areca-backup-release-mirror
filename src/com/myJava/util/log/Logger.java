@@ -46,6 +46,7 @@ public final class Logger {
 	private LogConsumer consumer;
 	private Thread consumerThread;
 	private static int WAIT = 5000;
+	private ThreadLocalLogProcessor tlLogProcessor; // specific log processor - depends on the current thread ... to be refactored
 
 	private static Logger defaultLogger = new Logger();
 	
@@ -103,6 +104,14 @@ public final class Logger {
 		}
 	}
 
+	public ThreadLocalLogProcessor getTlLogProcessor() {
+		return tlLogProcessor;
+	}
+
+	public void setTlLogProcessor(ThreadLocalLogProcessor tlLogProcessor) {
+		this.tlLogProcessor = tlLogProcessor;
+	}
+
 	public Logger() {
 		this.setLogLevel(FrameworkConfiguration.getInstance().getLogLevel());
 		this.addProcessor(new ConsoleLogProcessor());
@@ -147,6 +156,10 @@ public final class Logger {
 			LogProcessor proc = (LogProcessor)iter.next();
 			proc.displayApplicationMessage(messageKey, title, message);
 		}
+		
+		if (tlLogProcessor != null) {
+			tlLogProcessor.displayApplicationMessage(messageKey, title, message);
+		}
 	}
 
 	public LogProcessor find(Class c) {
@@ -184,6 +197,10 @@ public final class Logger {
 				proc.clearLog();
 			}
 		}
+		
+		if (tlLogProcessor != null) {
+			tlLogProcessor.clearLog();
+		}
 	}
 
 	private void log(int level, String message, Throwable e, String source) {
@@ -192,6 +209,10 @@ public final class Logger {
 				messages.add(new LogMessage(level, message, e, source));
 				lock.notify();
 			}
+		}
+		
+		if (tlLogProcessor != null) {
+			tlLogProcessor.log(level, message, e, source);
 		}
 	}
 

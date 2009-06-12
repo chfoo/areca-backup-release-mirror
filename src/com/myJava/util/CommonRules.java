@@ -104,16 +104,12 @@ public abstract class CommonRules {
     /**
      * - not null
      * <BR>- contains a "@"
-     * <BR>- ends with ".something"
      */
     public static boolean checkEmail(String value) {
         if (value == null) {
             return false;
         } else {
-            int indexArobas = value.indexOf("@");
-            int lastIndexDot = value.lastIndexOf(".");
-
-            return (indexArobas != -1 && lastIndexDot != -1 && indexArobas <lastIndexDot && lastIndexDot < value.length() - 2);
+            return (value.indexOf("@") != -1);
         }
     }
 

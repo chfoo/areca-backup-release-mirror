@@ -214,7 +214,14 @@ implements MouseListener, Listener {
 		boolean stored = true;
 		if (data.getType() != MetadataConstants.T_SYMLINK && data.getType() != MetadataConstants.T_PIPE) {
 			length = Math.max(0, Long.parseLong(data.getData().substring(1)));
-			stored = data.getData().charAt(0) == '1';
+			char c = data.getData().charAt(0);
+			if (c == '1') {
+				stored = true;
+			} else if (c == '0') {
+				stored = false;
+			} else {
+				Logger.defaultLogger().warn("Caution : inconsistency in logical view for entry " + data.getKey() + " / " + data.getType() + " / " + data.getData());
+			}
 		}
 
 		if (stored) {

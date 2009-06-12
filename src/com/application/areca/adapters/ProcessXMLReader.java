@@ -44,13 +44,14 @@ public class ProcessXMLReader implements XMLTags {
     protected Document xmlConfig;
     protected File configurationFile;
     protected MissingDataListener missingDataListener = null;
+	protected boolean readIDInfosOnly = false;
     
     public ProcessXMLReader(File configurationFile) throws AdapterException {
         try {
             this.configurationFile = configurationFile;
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-           
+            
             xmlConfig = builder.parse(configurationFile);
         } catch (Exception e) {
             AdapterException ex = new AdapterException(e);
@@ -62,6 +63,10 @@ public class ProcessXMLReader implements XMLTags {
     public void setMissingDataListener(MissingDataListener missingDataListener) {
         this.missingDataListener = missingDataListener;
     }
+    
+	public void setReadIDInfosOnly(boolean readIDInfosOnly) {
+		this.readIDInfosOnly = readIDInfosOnly;
+	}
     
     public TargetGroup load() throws AdapterException {
         try {
@@ -90,6 +95,7 @@ public class ProcessXMLReader implements XMLTags {
             NodeList targets = root.getElementsByTagName(XML_TARGET);
             for (int i=0; i<targets.getLength(); i++) {
                 TargetXMLReader targetAdapter = new TargetXMLReader(targets.item(i), process, version);
+                targetAdapter.setReadIDInfosOnly(this.readIDInfosOnly);
                 targetAdapter.setMissingDataListener(missingDataListener);
                 process.addTarget(targetAdapter.readTarget());
             }

@@ -7,12 +7,9 @@
 
 package com.myJava.file.archive.zip64;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PushbackInputStream;
 import java.nio.charset.Charset;
 import java.util.zip.CRC32;
@@ -20,7 +17,6 @@ import java.util.zip.Inflater;
 import java.util.zip.ZipException;
 
 import com.myJava.configuration.FrameworkConfiguration;
-import com.myJava.util.log.Logger;
 
 /**
  * This class implements an input stream filter for reading files in the
@@ -196,7 +192,7 @@ implements ZipConstants {
             b = new byte[blen];
         } 
         readFully(b, 0, len);
-        ZipEntry e = createZipEntry(decode(b, 0, len));
+        ZipEntry e = createZipEntry(ZipStringEncoder.decode(b, 0, len, this.charset));
         // now get the remaining fields for the entry
         e.version = get16(tmpbuf, LOCVER);
         e.flag = get16(tmpbuf, LOCFLG);
@@ -219,29 +215,6 @@ implements ZipConstants {
             e.extra = bb;
         }
         return e;
-    }
-    
-    private String decode(byte[] b, int off, int len) {
-        byte[] bytes = new byte[len];
-        for (int i=0; i<len; i++) {
-            bytes[i] = b[i+off];
-        }
-        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(bais, charset));
-        String ret;
-        try {
-            ret = reader.readLine();
-        } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            throw new IllegalArgumentException(e.getMessage());
-        } finally {
-            try {
-                reader.close();
-            } catch (IOException e) {
-                Logger.defaultLogger().error(e);
-            }
-        }
-        return ret;
     }
 
     protected ZipEntry createZipEntry(String name) {

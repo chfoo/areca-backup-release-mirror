@@ -232,6 +232,16 @@ public class FrameworkConfiguration {
      */
     public static String KEY_VIEWER_HANDLER = "viewer.handler.impl"; 
     
+    /**
+     * Maximum number of messages that are kept in memory for the "ThreadLocal" log processor
+     */
+    public static String KEY_MAX_INLINE_LOG_MESSAGES = "threadlocal.log.max.messages"; 
+    
+    /**
+     * Log level for the "ThreadLocal" log processor
+     */
+    public static String KEY_INLINE_LOG_LEVEL = "threadlocal.log.level"; 
+    
     public static int DEF_ENCRYPTION_KG_ITER = 96731;
     public static String DEF_ENCRYPTION_KG_SALT = "ù%${{²]}}[|`è€$£^¤*!§:/..;;,,_?\"\\°à@@%µ";
     public static String DEF_ENCRYPTION_KG_SALT_ENC = "UTF-8";
@@ -270,6 +280,9 @@ public class FrameworkConfiguration {
     public static String DEF_TMP_DIRECTORY = null;
     //public static String DEF_VIEWER_HANDLER = "com.myJava.system.viewer.DefaultViewerHandler";
     public static String DEF_VIEWER_HANDLER = "com.myJava.system.viewer.DesktopViewerHandler";
+    public static int DEF_MAX_INLINE_LOG_MESSAGES = 200; 
+    public static int DEF_INLINE_LOG_LEVEL = 3; // WARNING 
+    
     
     private static String VM_PROPS_PREFIX = "launcher.d.";
     
@@ -319,6 +332,14 @@ public class FrameworkConfiguration {
                 }
             }
         }
+    }
+    
+    public int getInlineLogLevel() {
+    	return getProperty(KEY_INLINE_LOG_LEVEL, DEF_INLINE_LOG_LEVEL);
+    }
+    
+    public int getMaxInlineLogMessages() {
+    	return getProperty(KEY_MAX_INLINE_LOG_MESSAGES, DEF_MAX_INLINE_LOG_MESSAGES);
     }
     
     public int getMaxCachedMountPoints() {

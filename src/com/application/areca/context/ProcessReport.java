@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import com.application.areca.AbstractRecoveryTarget;
+import com.myJava.util.log.LogMessagesContainer;
+import com.myJava.util.log.Logger;
 
 /**
  * Contains reporting data.
@@ -87,19 +89,22 @@ public class ProcessReport {
     protected long startMillis = System.currentTimeMillis();
 
     protected AbstractRecoveryTarget target;
-
-    /**
-     * Tells whether the process has errors (true by default - set to "false" during commit)
-     */
-    protected boolean hasErrors = true;
     
     /**
-     * Tells whether the process has warnings 
+     * nr of written kbytes
      */
-    protected boolean hasWarnings = false;
+    protected long writtenKBytes;
+
+    /**
+     * Tells whether the process has errors
+     */
+    protected StatusList status = new StatusList();
+    
+    protected LogMessagesContainer logMessagesContainer;
     
     public ProcessReport(AbstractRecoveryTarget target) {
         this.target = target;
+        this.logMessagesContainer = Logger.defaultLogger().getTlLogProcessor().getMessageContainer();
     } 
     
     public AbstractRecoveryTarget getTarget() {
@@ -115,6 +120,9 @@ public class ProcessReport {
         this.ignoredFiles = 0;
         this.recoveryResult = null;
         this.savedFiles = 0;
+        if (this.logMessagesContainer != null) {
+        	this.logMessagesContainer.clear();
+        }
     }
 
     public RecoveryResult getRecoveryResult() {
@@ -204,20 +212,8 @@ public class ProcessReport {
 		return this.dataFlowStop;
 	}
 
-    public boolean hasErrors() {
-		return hasErrors;
-	}
-
-	public void setHasErrors(boolean hasErrors) {
-		this.hasErrors = hasErrors;
-	}
-
-	public boolean hasWarnings() {
-		return hasWarnings;
-	}
-
-	public void setHasWarnings(boolean hasWarnings) {
-		this.hasWarnings = hasWarnings;
+	public StatusList getStatus() {
+		return status;
 	}
 
 	public int getDeletedFiles() {
@@ -227,4 +223,20 @@ public class ProcessReport {
     public void setDeletedFiles(int deletedFiles) {
         this.deletedFiles = deletedFiles;
     }
+
+	public LogMessagesContainer getLogMessagesContainer() {
+		return logMessagesContainer;
+	}
+
+	public void setLogMessagesContainer(LogMessagesContainer logMessagesContainer) {
+		this.logMessagesContainer = logMessagesContainer;
+	}
+
+	public long getWrittenKBytes() {
+		return writtenKBytes;
+	}
+
+	public void setWrittenKBytes(long writtenBytes) {
+		this.writtenKBytes = writtenBytes;
+	}
 }

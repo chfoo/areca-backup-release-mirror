@@ -1,7 +1,5 @@
 package com.application.areca.launcher.gui.composites;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -189,11 +187,7 @@ implements LogProcessor, Refreshable {
 			if (level <= logLevel) {			
 				String txt = LogHelper.format(level, message, source, true);
 				if (e != null) {
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					PrintStream ps = new PrintStream(baos);
-					e.printStackTrace(ps);
-					ps.close();
-					txt += "\n" + new String(baos.toByteArray());
+					txt += "\n" + LogHelper.formatException(e);
 				}
 				txt += "\n";
 				final String fTxt = txt;

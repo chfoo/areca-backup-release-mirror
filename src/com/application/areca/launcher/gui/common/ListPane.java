@@ -73,7 +73,6 @@ public class ListPane {
         menu.addSelectionListener(new SelectionListener() {
 
             public void widgetDefaultSelected(SelectionEvent e) {
-                System.out.println("dd");
             }
 
             public void widgetSelected(SelectionEvent e) {

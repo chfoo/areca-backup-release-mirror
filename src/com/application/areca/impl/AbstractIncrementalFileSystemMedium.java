@@ -1142,7 +1142,7 @@ implements TargetActions {
 	 * Stores an entry
 	 */
 	public void store(RecoveryEntry entry, final ProcessContext context) 
-	throws StoreException, ApplicationException, TaskCancelledException {
+	throws StoreException, ApplicationException, TaskCancelledException {	
 		if (TH_MON_ENABLED) {
 			ThreadMonitor.getInstance().notify(this.getTarget().getUid());
 		}

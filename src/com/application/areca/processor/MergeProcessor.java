@@ -50,6 +50,10 @@ public class MergeProcessor extends AbstractProcessor {
     public int getToDelay() {
         return toDelay;
     }
+    
+	public String getKey() {
+		return "Merge Archives";
+	}
 
     public void setToDelay(int toDelay) {
         this.toDelay = toDelay;

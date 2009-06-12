@@ -2,9 +2,14 @@ package com.application.areca.context;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Iterator;
 
 import com.application.areca.Utils;
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.util.log.FileLogProcessor;
+import com.myJava.util.log.LogHelper;
+import com.myJava.util.log.LogMessage;
+import com.myJava.util.log.LogMessagesContainer;
 import com.myJava.util.log.Logger;
 
 /**
@@ -35,7 +40,6 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class ProcessReportWriter {
-
     private Writer writer;
     
     public ProcessReportWriter(Writer writer) {
@@ -43,34 +47,60 @@ public class ProcessReportWriter {
     }
 
     public void writeReport(ProcessReport report) throws IOException {
-        writeSeparator();
         write("" + report.getTarget().getTargetName() + " (" + report.getTarget().getUid() + ") on " + Utils.formatDisplayDate(report.getStartDate()));
+        
+        writeSeparator();
+        write("Overall Status : " + (report.getStatus().hasError() ? "Failure":"Success"));
+        if (report.getStatus().size() > 1) {
+	        write("Detailed Status :");
+	        Iterator sttIter = report.getStatus().iterator();
+	        while (sttIter.hasNext()) {
+	        	StatusItem itm = (StatusItem)sttIter.next();
+	        	String hdr = "     " + itm.getKey() + " : ";
+	        	if (itm.isHasErrors()) {
+	        		write(hdr + "Failure");
+	        	} else {
+	        		write(hdr + "Success");
+	        	}
+	        }
+        }
+        
+        writeSeparator();
         long dur = System.currentTimeMillis() - report.getStartMillis();
         write("Duration : " + Utils.formatDuration(dur));
         
-        if (! report.hasErrors()) {
-            writeCommitedReport(report);
-        } else {
-            writeRollbackedReport(report);
+        if (! report.getStatus().hasError(StatusList.KEY_BACKUP)) {
+            write("Written kbytes : " + report.getWrittenKBytes());
+            writeSeparator();
+            write("Processed directories and files : " + report.getProcessedEntries());
+            write("Filtered directories and files : " + report.getFilteredEntries());
+            write("Unfiltered directories : " + report.getUnfilteredDirectories());
+            write("Unfiltered files : " + report.getUnfilteredFiles());
+            write("Ignored files (not modified) : " + report.getIgnoredFiles());
+            write("Saved files : " + report.getSavedFiles());
         }
-    }
-    
-    public void writeCommitedReport(ProcessReport report) throws IOException {
-        write("Report status : OK");
+        
+        LogMessagesContainer ctn = report.getLogMessagesContainer();
+        if (! ctn.isEmpty()) {
+            writeSeparator();
+        	write("Errors and Warnings :");
+        	Iterator iter = ctn.iterator();
+        	while (iter.hasNext()) {
+        		LogMessage message = (LogMessage)iter.next();
+        		write(com.myJava.util.log.LogHelper.format(message.getLevel(), message.getMessage(), message.getSource(), true));
+        		if (message.getException() != null) {
+        			write(LogHelper.formatException(message.getException()));
+        		}
+        	}
+        	
+        	if (ctn.isMaxSizeReached()) {
+                writeSeparator();
+        		write("Maximum number of messages reached (" + FrameworkConfiguration.getInstance().getMaxInlineLogMessages() + "). You can increase it by modifying the '" + FrameworkConfiguration.KEY_MAX_INLINE_LOG_MESSAGES + "' property in your technical configuration.");
+        	}
+        }
+    	
         writeSeparator();
-        write("Processed directories and files : " + report.getProcessedEntries());
-        write("Filtered directories and files : " + report.getFilteredEntries());
-        write("Unfiltered directories : " + report.getUnfilteredDirectories());
-        write("Unfiltered files : " + report.getUnfilteredFiles());
-        write("Ignored files (not modified) : " + report.getIgnoredFiles());
-        write("Saved files : " + report.getSavedFiles());
-        writeSeparator();
-    }
-    
-    public void writeRollbackedReport(ProcessReport report) throws IOException {
-        write("Report status : FAILED !");
         write("See log file for more details : " + ((FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class)).getCurrentLogFile());
-        writeSeparator();
     }
     
     private void write(String line) throws IOException {

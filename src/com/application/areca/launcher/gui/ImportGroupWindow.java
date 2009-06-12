@@ -45,10 +45,10 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ImportGroupWindow 
+public class ImportGroupWindow
 extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
-    
+
     private Text location;
     private Button saveButton;
 
@@ -56,23 +56,23 @@ extends AbstractWindow {
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(1, false);
         composite.setLayout(layout);
-        
+
         Label lblAdvise = new Label(composite, SWT.NONE);
         lblAdvise.setText(RM.getLabel("importgrp.intro.label"));
         lblAdvise.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-        
+
         new Label(composite, SWT.NONE);
-        
+
         Group grpLocation = new Group(composite, SWT.NONE);
         grpLocation.setText(RM.getLabel("importgrp.location.label"));
         GridLayout grpLayout = new GridLayout(2, false);
         grpLocation.setLayout(grpLayout);
         grpLocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        
+
         location = new Text(grpLocation, SWT.BORDER);
         location.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         monitorControl(location);
-        
+
         Button btnBrowse = new Button(grpLocation, SWT.PUSH);
         btnBrowse.setText(RM.getLabel("common.browseaction.label"));
         btnBrowse.addListener(SWT.Selection, new Listener() {
@@ -97,39 +97,39 @@ extends AbstractWindow {
         btnBrowse.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 
         SavePanel pnlSave = new SavePanel(RM.getLabel("common.import.label"), this);
-        pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true));        
+        pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true));
         saveButton = pnlSave.getBtnSave();
-        
+
         composite.pack();
         return composite;
     }
-    
+
     public String getTitle() {
         return RM.getLabel("importgrp.dialog.title");
     }
 
     protected boolean checkBusinessRules() {
         boolean ok = true;
-        
-        this.resetErrorState(location);     
+
+        this.resetErrorState(location);
         if (this.location.getText() == null || this.location.getText().length() == 0) {
             ok = false;
         } else {
             File f = new File(location.getText());
-            ok = 
-                FileSystemManager.exists(f) 
-                && FileSystemManager.isFile(f) 
+            ok =
+                FileSystemManager.exists(f)
+                && FileSystemManager.isFile(f)
                 && FileSystemManager.getName(f).toLowerCase().endsWith(".xml");
         }
-        
+
         if (! ok) {
             this.setInError(location);
         }
-        
+
         return ok;
     }
 
-    protected void saveChanges() {               
+    protected void saveChanges() {
         application.importGroup(new File(location.getText()));
         this.hasBeenUpdated = false;
         this.close();

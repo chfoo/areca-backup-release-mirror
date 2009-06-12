@@ -50,8 +50,8 @@ public abstract class AbstractProcessor implements Processor {
     public boolean shallRun(ProcessContext context) {
     	return
     		runScheme == Processor.RUN_SCHEME_ALWAYS
-    		|| (runScheme == Processor.RUN_SCHEME_FAILURE && context.getReport().hasErrors())
-    		|| (runScheme == Processor.RUN_SCHEME_SUCCESS && (! context.getReport().hasErrors()));
+    		|| (runScheme == Processor.RUN_SCHEME_FAILURE && context.getReport().getStatus().hasError())
+    		|| (runScheme == Processor.RUN_SCHEME_SUCCESS && (! context.getReport().getStatus().hasError()));
     }
 
 	protected void copyAttributes(AbstractProcessor proc) {
@@ -65,7 +65,7 @@ public abstract class AbstractProcessor implements Processor {
             if (shallRun(context)) {
             	this.runImpl(context);
             } else {
-            	Logger.defaultLogger().info("The processor will not be run (rule = \"" + getSchemeAsString() + "\" and state = \"" + (context.getReport().hasErrors() ? "Failure":"Success") + "\")");
+            	Logger.defaultLogger().info("The processor will not be run (rule = \"" + getSchemeAsString() + "\" and state = \"" + (context.getReport().getStatus().hasError() ? "Failure":"Success") + "\")");
             }
         } catch (ProcessorValidationException e) {
             throw new ApplicationException("Error during processor validation : " + e.getMessage(), e);

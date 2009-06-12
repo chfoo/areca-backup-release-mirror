@@ -215,7 +215,7 @@ extends AbstractWindow {
 					    item.setText(1, uncheckedMsg);
 					}
 					
-					if (! errorFiles.isEmpty()) {
+					if (! errorFiles.isEmpty() || ! unrecoveredFiles.isEmpty()) {
 						result.setText(RM.getLabel("check.invalid.message"));
 					} else if (! uncheckedFiles.isEmpty()) {
 						result.setText(RM.getLabel("check.unchecked.message"));

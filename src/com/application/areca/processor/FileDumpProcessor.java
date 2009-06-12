@@ -143,4 +143,8 @@ public class FileDumpProcessor extends AbstractProcessor {
 		h = HashHelper.hash(h, this.reportName);
 		return h;
 	}
+	
+	public String getKey() {
+		return "Write report";
+	}
 }

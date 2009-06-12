@@ -66,6 +66,8 @@ public interface XMLTags {
     public static final String XML_FILTER_EXCLUDE = "exclude";   
     public static final String XML_FILTER_DIR_PATH = "directory";
     public static final String XML_FILTER_RG_PATTERN = "rgpattern";
+    public static final String XML_FILTER_RG_MODE = "mode";
+    public static final String XML_FILTER_RG_FULL_MATCH = "full_match";
     public static final String XML_FILTER_PARAM = "param";    
     public static final String XML_FILTER_EXTENSION = "ext";  
     

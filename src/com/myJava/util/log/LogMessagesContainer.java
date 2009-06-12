@@ -1,4 +1,9 @@
-package com.application.areca;
+package com.myJava.util.log;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import com.myJava.configuration.FrameworkConfiguration;
 
 /**
  * 
@@ -27,9 +32,35 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public interface ArecaURLs {
-	public String HELP_ROOT = "http://www.areca-backup.org/documentation.php?fromApplication=1&currentVersion=";
-	public String DONATION_URL = "http://sourceforge.net/project/project_donations.php?group_id=171505";
-	public String ARECA_URL = "http://www.areca-backup.org";
-	public String REGEX_URL = "http://www.areca-backup.org/regex.php";
+public class LogMessagesContainer {
+	private static int MAX_SIZE = FrameworkConfiguration.getInstance().getMaxInlineLogMessages();
+	
+	private ArrayList content = new ArrayList();
+	private boolean maxSizeReached = false;
+	
+	public void addLogMessage(LogMessage message) {
+		if (! maxSizeReached && content.size() < MAX_SIZE) {
+			content.add(message);
+		} else {
+			maxSizeReached = true;
+		}
+	}
+	
+	public Iterator iterator() {
+		return content.iterator();
+	}
+	
+	public boolean clear() {
+		content.clear();
+		maxSizeReached = false;
+		return true;
+	}
+	
+	public boolean isEmpty() {
+		return content.isEmpty();
+	}
+
+	public boolean isMaxSizeReached() {
+		return maxSizeReached;
+	}
 }

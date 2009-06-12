@@ -76,4 +76,8 @@ public class FilterGroupComposite extends AbstractFilterComposite {
     public boolean validateParams() {
         return true;
     }
+
+	public boolean allowTest() {
+		return false;
+	}
 }

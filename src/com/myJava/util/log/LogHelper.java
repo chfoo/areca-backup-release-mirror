@@ -1,5 +1,7 @@
 package com.myJava.util.log;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -38,6 +40,14 @@ public class LogHelper {
     	return verbose ?
     			formatVerbose(level, message, source)
     			: formatNonVerbose(level, message, source);
+    }
+    
+    public static String formatException(Throwable e) {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos);
+		e.printStackTrace(ps);
+		ps.close();
+		return new String(baos.toByteArray());
     }
     
     private static String formatVerbose(int level, String message, String source) {
@@ -83,7 +93,7 @@ public class LogHelper {
         return logLev + logSource + logMess;
     }
     
-    private static String resolveLevel(int l) {
+    public static String resolveLevel(int l) {
     	if (l == 1) {
     		return "ERROR";
     	} else if (l <=4) {

@@ -1120,6 +1120,10 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			public void runCommand() throws ApplicationException {
 				rProcess.processBackupOnTarget(rTarget, rManifest, resolvedBackupScheme, disablePreCheck, disableArchiveCheck, context);
 			}
+			
+			protected void finishCommandInError(Exception e) {
+				finishCommand();
+			}
 
 			protected void finishCommand() {
 				if (ReportingConfiguration.getInstance().isReportingEnabled()) {
@@ -1602,7 +1606,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 		protected void finishCommandInError(Exception e) {
 		}
 
-		public void run() {
+		public void run() {           
 			addChannel(channel);
 
 			try {
@@ -1612,6 +1616,9 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 				}
 				this.context = new ProcessContext(rTarget, channel, new TaskMonitor(taskName));
 
+				// Activate message tracking for current thread.
+	            this.context.getReport().setLogMessagesContainer(Logger.defaultLogger().getTlLogProcessor().activateMessageTracking());
+				
 				channel.startRunning();
 				registerState(true);
 				AppActionReferenceHolder.refresh();
