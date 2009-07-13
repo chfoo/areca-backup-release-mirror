@@ -77,8 +77,10 @@ public class AppActionReferenceHolder implements ActionConstants{
     public static AppAction AC_RECOVER_FILTER = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_WITH_FILTER);
     public static AppAction AC_RECOVER_FILTER_LATEST = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_FROM_LOGICAL);
     public static AppAction AC_RECOVER_HISTORY = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_ENTRY);
-    public static AppAction AC_VIEW_TEXT_HISTORY = new AppAction("app.texteditaction", CMD_VIEW_FILE_AS_TEXT);   
-    public static AppAction AC_VIEW_HISTORY = new AppAction("app.editaction", CMD_VIEW_FILE);  
+    public static AppAction AC_VIEW_TEXT_HISTORY = new AppAction("app.texteditaction", CMD_VIEW_FILE_AS_TEXT_HISTO);   
+    public static AppAction AC_VIEW_HISTORY = new AppAction("app.editaction", CMD_VIEW_FILE_HISTO);  
+    public static AppAction AC_VIEW_TEXT = new AppAction("app.texteditaction", CMD_VIEW_FILE_AS_TEXT);   
+    public static AppAction AC_VIEW = new AppAction("app.editaction", CMD_VIEW_FILE);  
     public static AppAction AC_COPY_FILENAMES = new AppAction("app.copyfilenames", CMD_COPY_FILENAMES);  
     
     public static AppAction AC_SEARCH_PHYSICAL = new AppAction("mainpanel.physical", CMD_SEARCH_PHYSICAL);    
@@ -178,17 +180,21 @@ public class AppActionReferenceHolder implements ActionConstants{
                             && cmd != null 
                             && cmd.length() != 0 
                             && application.getCurrentEntryData() != null
+                            && application.getCurrentFilter().isViewable()
                             && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_DELETED
                             && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_MISSING
                     );
+                    AC_VIEW_TEXT.setEnabled(AC_VIEW_TEXT_HISTORY.isEnabled());
                     
                     AC_VIEW_HISTORY.setEnabled(
                             available 
                             && ViewerHandlerHelper.getViewerHandler().isOpenSupported()  
                             && application.getCurrentEntryData() != null
+                            && application.getCurrentFilter().isViewable()
                             && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_DELETED
                             && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_MISSING
                     );
+                    AC_VIEW.setEnabled(AC_VIEW_HISTORY.isEnabled());
                     
                     AC_COPY_FILENAMES.setEnabled(true);
                 } else {

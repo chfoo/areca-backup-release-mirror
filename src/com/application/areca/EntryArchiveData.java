@@ -58,6 +58,7 @@ public class EntryArchiveData {
 	public short getStatus() {
 		return status;
 	}
+	
 	public void setStatus(short status) {
 		this.status = status;
 	}

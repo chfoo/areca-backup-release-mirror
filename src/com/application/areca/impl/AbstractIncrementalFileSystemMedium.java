@@ -1542,7 +1542,7 @@ implements TargetActions {
 		int maxEntries = (int)MemoryHelper.getMaxManageableEntries();
 
 		// Set final filter
-		String[] filters = (argFilter == null || argFilter.length == 0) ? new String[] {""} : argFilter;
+		String[] filters = (argFilter == null || argFilter.length == 0) ? new String[] {"/"} : argFilter; // OP : changed back to "/", due to recovery problems when using non optimized recovery mode (previous value : "")
 
 		if (toDate != null) {
 			toDate = (GregorianCalendar)toDate.clone();

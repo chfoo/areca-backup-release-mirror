@@ -327,6 +327,7 @@ implements MouseListener, Listener {
         for (int i=0; i<nodes.length; i++) {
             TreeItem current = nodes[i];
             TraceEntry data = (TraceEntry)current.getData();
+            ret.initViewable(data);
             filter[i] = data.getKey() + (data.getType() == MetadataConstants.T_DIR ? "/" : "");
             
             if (
@@ -347,6 +348,7 @@ implements MouseListener, Listener {
 	private RecoveryFilter buildFilter(TraceEntry entry) {
 		RecoveryFilter filter = new RecoveryFilter();
 		filter.setContainsDeletedDirectory(false);
+		filter.initViewable(entry);
 		filter.setFilter(new String[] { entry.getKey() });
 		return filter;
 	}

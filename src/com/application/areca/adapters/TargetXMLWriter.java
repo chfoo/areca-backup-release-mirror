@@ -102,7 +102,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_TARGET_FOLLOW_SUBDIRECTORIES);
         sb.append("=");
-        sb.append(encode(! tg.isFollowSubdirectories()));
+        sb.append(encode(tg.isFollowSubdirectories()));
         
         sb.append(" ");
         sb.append(XML_TARGET_CREATE_XML_SECURITY_COPY);

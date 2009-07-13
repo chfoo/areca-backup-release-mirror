@@ -57,9 +57,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 5813306861864613399L;
+		BUILD_ID = 5395323866577938824L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.1.3", new GregorianCalendar(2009, 6, 12), "Regular expression filter bug fix; Minor XML configuration bug fix; Recovery bug fix."));
 		VERSIONS.add(new VersionData("7.1.2", new GregorianCalendar(2009, 5, 12), "New regular expression filters options; Backup report enhancements; Post processors enhancements; Minor bugfixes."));
 		VERSIONS.add(new VersionData("7.1.1", new GregorianCalendar(2009, 4, 26), "Ability to view files contained in your archives using the default applications configured on your system. Post-backup actions enhancements; Minor other enhancements."));
 		VERSIONS.add(new VersionData("7.1", new GregorianCalendar(2009, 3, 21), "Minor error messages enhancements; Named pipes are now properly handled by Areca; Better \"Check Archive\" feature."));

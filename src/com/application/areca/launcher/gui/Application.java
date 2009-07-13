@@ -197,6 +197,10 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 		}
 	}
 
+	public RecoveryFilter getCurrentFilter() {
+		return currentFilter;
+	}
+
 	public Clipboard getClipboard() {
 		return clipboard;
 	}
@@ -474,7 +478,13 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 				}
 			}
 			copyString(cp.toString());
-		} else if (command.equals(CMD_RECOVER_ENTRY) || command.equals(CMD_VIEW_FILE_AS_TEXT) || command.equals(CMD_VIEW_FILE)) {
+		} else if (
+				command.equals(CMD_RECOVER_ENTRY) 
+				|| command.equals(CMD_VIEW_FILE_AS_TEXT_HISTO) 
+				|| command.equals(CMD_VIEW_FILE_HISTO)
+				|| command.equals(CMD_VIEW_FILE_AS_TEXT) 
+				|| command.equals(CMD_VIEW_FILE)
+		) {
 			// RECOVER ENTRY
 			final String path;
 			final boolean checkRecoveredFiles;
@@ -511,12 +521,17 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 						protected void finishCommand() {
 							showRecoveryResultWindow(context);
 
-							if (command.equals(CMD_VIEW_FILE_AS_TEXT) || command.equals(CMD_VIEW_FILE)) {
+							if (
+									command.equals(CMD_VIEW_FILE_AS_TEXT_HISTO) 
+									|| command.equals(CMD_VIEW_FILE_HISTO)
+									|| command.equals(CMD_VIEW_FILE_AS_TEXT) 
+									|| command.equals(CMD_VIEW_FILE)									
+							) {
 								File entry = new File(path, rEntry.getKey());
 								final File f = new File(path, FileSystemManager.getName(entry));
 								FileSystemManager.deleteOnExit(f);
 
-								if (command.equals(CMD_VIEW_FILE_AS_TEXT)) {
+								if (command.equals(CMD_VIEW_FILE_AS_TEXT_HISTO) || command.equals(CMD_VIEW_FILE_AS_TEXT)) {
 									launchFileEditor(FileSystemManager.getAbsolutePath(f), true);
 								} else {
 									SecuredRunner.execute(new Runnable(){
@@ -543,7 +558,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 					rn.rEntry = this.currentEntry;
 					rn.rName = RM.getLabel("app.recoverfileaction.process.message");
 					rn.rPath = FileSystemManager.getAbsolutePath(new File(path));
-					rn.rFromDate = this.currentEntryData.getManifest().getDate();
+					rn.rFromDate = command.equals(CMD_VIEW_FILE_AS_TEXT_HISTO) || command.equals(CMD_VIEW_FILE_HISTO) ? this.currentEntryData.getManifest().getDate() : null;
 					rn.launch();                    
 				}  
 			}        
@@ -1327,6 +1342,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 		} 
 
 		this.currentFilter = argCurrentFilter;
+		AppActionReferenceHolder.refresh();
 	}
 
 	public GregorianCalendar getCurrentFromDate() {

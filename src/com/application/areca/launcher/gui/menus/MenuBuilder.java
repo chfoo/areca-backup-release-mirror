@@ -166,6 +166,7 @@ extends AppActionReferenceHolder {
         Menu menu = new Menu(parent, SWT.POP_UP);
         
         add(AC_RECOVER_FILTER, menu);
+        addSeparator(menu);
         add(AC_COPY_FILENAMES, menu);
         
         return menu;
@@ -175,7 +176,11 @@ extends AppActionReferenceHolder {
         Menu menu = new Menu(parent, SWT.POP_UP);
         
         add(AC_RECOVER_FILTER_LATEST, menu);
+        addSeparator(menu);
         add(AC_COPY_FILENAMES, menu);
+        addSeparator(menu);
+        add(AC_VIEW, menu);
+        add(AC_VIEW_TEXT, menu);
         
         return menu;
     }
@@ -184,6 +189,7 @@ extends AppActionReferenceHolder {
         Menu menu = new Menu(parent, SWT.POP_UP);
         
         add(AC_RECOVER_HISTORY, menu);
+        addSeparator(menu);
         add(AC_VIEW_HISTORY, menu);
         add(AC_VIEW_TEXT_HISTORY, menu);
         

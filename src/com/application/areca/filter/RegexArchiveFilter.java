@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
+import com.myJava.system.OSTool;
 
 /**
  * Checks that the entry matches the regex passed as argument
@@ -112,6 +113,12 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
 	private boolean acceptStorage(String toMatch) {
     	boolean found = match ? pattern.matcher(toMatch).matches() : pattern.matcher(toMatch).find();
     	
+    	// Backward compatibility ... toMatch should be produced by Filesystemmanager.getAbsolutePath()
+    	if (OSTool.isSystemWindows() && ! found) {
+    		toMatch = toMatch.replace('\\', '/');
+    		found = match ? pattern.matcher(toMatch).matches() : pattern.matcher(toMatch).find();
+    	}
+
         if (found) {
         	return !exclude;
         } else {

@@ -1,5 +1,8 @@
 package com.application.areca.launcher.gui;
 
+import com.application.areca.metadata.MetadataConstants;
+import com.application.areca.metadata.trace.TraceEntry;
+
 /**
  * <BR>
  * @author Olivier PETRUCCI
@@ -29,16 +32,33 @@ This file is part of Areca.
 public class RecoveryFilter {
     private String[] filter;
     private boolean containsDeletedDirectory;
+    private boolean viewable = true;
+    
     public boolean isContainsDeletedDirectory() {
         return containsDeletedDirectory;
     }
+    
     public void setContainsDeletedDirectory(boolean containsDeletedDirectory) {
         this.containsDeletedDirectory = containsDeletedDirectory;
     }
+    
     public String[] getFilter() {
         return filter;
     }
+    
     public void setFilter(String[] filter) {
         this.filter = filter;
     }
+    
+    public int size() {
+    	return filter.length;
+    }
+
+	public boolean isViewable() {
+		return viewable && filter.length == 1;
+	}
+
+	public void initViewable(TraceEntry entry) {
+		viewable = viewable && (entry.getType() == MetadataConstants.T_FILE);
+	}
 }

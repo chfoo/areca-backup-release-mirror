@@ -43,7 +43,8 @@ public interface XMLTags {
     public static final String XML_TARGET_NAME = "name";    
     public static final String XML_TARGET_FOLLOW_SYMLINKS = "follow_symlinks";  
     public static final String XML_TARGET_TRACK_EMPTY_DIRS = "register_empty_directories";
-    public static final String XML_TARGET_FOLLOW_SUBDIRECTORIES = "follow_subdirectories";    
+    public static final String XML_TARGET_FOLLOW_SUBDIRECTORIES_DEPREC = "follow_subdirectories";
+    public static final String XML_TARGET_FOLLOW_SUBDIRECTORIES = "follow_subdirs";    
     public static final String XML_TARGET_DESCRIPTION = "description";    
     public static final String XML_TARGET_CREATE_XML_SECURITY_COPY = "xml_security_copy";   
     

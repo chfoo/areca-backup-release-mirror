@@ -155,9 +155,15 @@ public class TargetXMLReader implements XMLTags {
 
 			Node followSubDirectoriesNode = targetNode.getAttributes().getNamedItem(XML_TARGET_FOLLOW_SUBDIRECTORIES);  
 			if (followSubDirectoriesNode != null) {
-				target.setFollowSubdirectories(! Boolean.valueOf(followSubDirectoriesNode.getNodeValue()).booleanValue());
+				target.setFollowSubdirectories(Boolean.valueOf(followSubDirectoriesNode.getNodeValue()).booleanValue());
 			} else {
-				target.setFollowSubdirectories(true);
+				// Backward compatibility : fix of bug 2817721 - inverted boolean in the xml config
+				followSubDirectoriesNode = targetNode.getAttributes().getNamedItem(XML_TARGET_FOLLOW_SUBDIRECTORIES_DEPREC);  
+				if (followSubDirectoriesNode != null) {
+					target.setFollowSubdirectories(! Boolean.valueOf(followSubDirectoriesNode.getNodeValue()).booleanValue());
+				} else {
+					target.setFollowSubdirectories(true);
+				}
 			}
 
 			Node createSecurityCopyNode = targetNode.getAttributes().getNamedItem(XML_TARGET_CREATE_XML_SECURITY_COPY);  

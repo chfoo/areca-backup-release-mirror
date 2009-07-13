@@ -38,6 +38,8 @@ public interface ActionConstants {
     public static final String CMD_BACKUP_ALL = "backup all";    
     public static final String CMD_RECOVER = "recover";
     public static final String CMD_RECOVER_ENTRY = "recover entry";
+    public static final String CMD_VIEW_FILE_AS_TEXT_HISTO = "view file as text (histo)";
+    public static final String CMD_VIEW_FILE_HISTO = "view file (histo)";
     public static final String CMD_VIEW_FILE_AS_TEXT = "view file as text";
     public static final String CMD_VIEW_FILE = "view file";
     public static final String CMD_COPY_FILENAMES = "copy filenames";

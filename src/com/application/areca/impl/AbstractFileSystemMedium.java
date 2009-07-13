@@ -659,7 +659,7 @@ implements TargetActions, IndicatorTypes {
 					Logger.defaultLogger().info("Creating a XML backup copy of target \"" + this.target.getTargetName() + "\" on : " + FileSystemManager.getAbsolutePath(targetFile));
 					TargetGroup process = new TargetGroup(targetFile);
 					process.addTarget(this.target);
-					process.setComments("This group contains a backup copy of your target : \"" + this.target.getTargetName() + "\". It can be used in case of computer crash.\nDo not modify it as is will be automatically updated during backup processes.");
+					process.setComments("This group contains a backup copy of your target : \"" + this.target.getTargetName() + "\". It can be used if your configuration has been lost (for instance in case of computer crash).\nDo not modify it since it will be automatically updated during backups.");
 
 					ProcessXMLWriter writer = new ProcessXMLWriter(true);
 					writer.serializeProcess(process);
