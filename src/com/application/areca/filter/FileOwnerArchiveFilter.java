@@ -98,7 +98,7 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 				} else {
 					match = true;
 				}
-				return match ? !exclude : exclude;
+				return match ? !logicalNot : logicalNot;
 			} catch (IOException e) {
 				String msg = "Error reading file permissions for "+ FileSystemManager.getAbsolutePath(entry);
 				Logger.defaultLogger().info(msg);
@@ -109,7 +109,7 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 
 	public Duplicable duplicate() {
 		FileOwnerArchiveFilter filter = new FileOwnerArchiveFilter();
-		filter.exclude = this.exclude;
+		filter.logicalNot = this.logicalNot;
 		filter.owner = this.owner;
 		filter.group = this.group;
 		return filter;
@@ -125,7 +125,7 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 			return false;
 		} else {
 			FileOwnerArchiveFilter other = (FileOwnerArchiveFilter) obj;
-			return EqualsHelper.equals(this.exclude, other.exclude)
+			return EqualsHelper.equals(this.logicalNot, other.logicalNot)
 					&& EqualsHelper.equals(this.owner, other.owner)
 					&& EqualsHelper.equals(this.group, other.group);
 		}
@@ -134,7 +134,7 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 	public int hashCode() {
 		int h = HashHelper.initHash(this);
 		h = HashHelper.hash(h, this.owner);
-		h = HashHelper.hash(h, this.exclude);
+		h = HashHelper.hash(h, this.logicalNot);
 		h = HashHelper.hash(h, this.group);
 		return h;
 	}

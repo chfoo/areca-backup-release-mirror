@@ -64,7 +64,8 @@ public interface XMLTags {
     public static final String XML_FILTER_TP = "spec_file_filter";
     public static final String XML_FILTER_LOCKED = "locked_filter";    
     public static final String XML_FILTER_FILEEXTENSION = "extension_filter";   
-    public static final String XML_FILTER_EXCLUDE = "exclude";   
+    public static final String XML_FILTER_LOGICAL_NOT_DEPRECATED = "exclude";
+    public static final String XML_FILTER_LOGICAL_NOT = "logical_not";
     public static final String XML_FILTER_DIR_PATH = "directory";
     public static final String XML_FILTER_RG_PATTERN = "rgpattern";
     public static final String XML_FILTER_RG_MODE = "mode";

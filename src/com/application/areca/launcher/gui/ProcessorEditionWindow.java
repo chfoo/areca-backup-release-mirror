@@ -16,7 +16,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
 import com.application.areca.ResourceManager;
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.postprocessors.AbstractProcessorComposite;
@@ -66,10 +66,10 @@ extends AbstractWindow {
     protected Button radSuccess;
     
     protected AbstractProcessor proc;  
-    protected FileSystemRecoveryTarget currentTarget;
+    protected FileSystemTarget currentTarget;
     protected Button btnSave;
 
-    public ProcessorEditionWindow(Processor proc, FileSystemRecoveryTarget currentTarget, boolean preprocess) {
+    public ProcessorEditionWindow(Processor proc, FileSystemTarget currentTarget, boolean preprocess) {
         super();
         this.proc = (AbstractProcessor)proc;
         this.currentTarget = currentTarget;       

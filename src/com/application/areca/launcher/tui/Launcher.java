@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.application.areca.AbstractArecaLauncher;
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ArecaFileConstants;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.TargetGroup;
@@ -102,7 +102,7 @@ implements CommandConstants {
             ProcessXMLReader adapter = new ProcessXMLReader(new File(command.getOption(OPTION_CONFIG)));
             adapter.setMissingDataListener(new MissingDataListener());
             TargetGroup process = adapter.load();
-            AbstractRecoveryTarget target = null;
+            AbstractTarget target = null;
             String suffix = ".";
             if (command.hasOption(OPTION_TARGET)) {
                 target = getTarget(process, command.getOption(OPTION_TARGET));
@@ -214,11 +214,11 @@ implements CommandConstants {
         String fOption = command.getOption(OPTION_FULL_BACKUP);
         String dOption = command.getOption(OPTION_DIFFERENTIAL_BACKUP);        
         if (fOption != null && fOption.trim().length() != 0) {
-            backupScheme = AbstractRecoveryTarget.BACKUP_SCHEME_FULL;
+            backupScheme = AbstractTarget.BACKUP_SCHEME_FULL;
         } else if (dOption != null && dOption.trim().length() != 0) {
-            backupScheme = AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL;
+            backupScheme = AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL;
         } else {
-            backupScheme = AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL;
+            backupScheme = AbstractTarget.BACKUP_SCHEME_INCREMENTAL;
         }
         
         final boolean disableCheck = ! (
@@ -240,7 +240,7 @@ implements CommandConstants {
         }
         
         if (command.hasOption(OPTION_TARGET)) {
-            AbstractRecoveryTarget target = getTarget(process, command.getOption(OPTION_TARGET));            
+            AbstractTarget target = getTarget(process, command.getOption(OPTION_TARGET));            
             process.processBackupOnTarget(
                     target,
                     manifest,
@@ -254,7 +254,7 @@ implements CommandConstants {
             
             Iterator iter = process.getTargetIterator();
             while (iter.hasNext()) {
-                final AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
+                final AbstractTarget tg = (AbstractTarget)iter.next();
                 final ProcessContext cloneCtx = new ProcessContext(tg, new LoggerUserInformationChannel(!forceSync), new TaskMonitor("tui-clone"));
                 Runnable rn = new Runnable() {
                     public void run() {
@@ -308,7 +308,7 @@ implements CommandConstants {
         String strDelay = command.getOption(OPTION_DELAY);
         String strFrom = command.getOption(OPTION_FROM);
         String strTo = command.getOption(OPTION_TO);
-        AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
+        AbstractTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         
         boolean keepDeletedEntries = (
                 command.getOption(OPTION_KEEP_DELETED_ENTRIES) != null
@@ -364,7 +364,7 @@ implements CommandConstants {
     private void processDelete(UserCommandLine command, TargetGroup process, ProcessContext context) 
     throws Exception {
         String strDelay = command.getOption(OPTION_DELAY);
-        AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
+        AbstractTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         if (strDelay != null) {
             // A delay (in days) is provided
             process.processDeleteOnTarget(
@@ -387,7 +387,7 @@ implements CommandConstants {
      */
     private void processRecover(UserCommandLine command, TargetGroup process, ProcessContext context) 
     throws Exception {
-        AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
+        AbstractTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         
         String destination = command.getOption(OPTION_DESTINATION);
         if (FileNameUtil.endsWithSeparator(destination)) {
@@ -412,7 +412,7 @@ implements CommandConstants {
 
     private void processCheck(UserCommandLine command, TargetGroup process, ProcessContext context) 
     throws Exception {
-        AbstractRecoveryTarget target =getTarget(process, command.getOption(OPTION_TARGET));
+        AbstractTarget target =getTarget(process, command.getOption(OPTION_TARGET));
         
         String destination = command.getOption(OPTION_DESTINATION);
         if (destination == "") {
@@ -455,9 +455,9 @@ implements CommandConstants {
         channel.print("\n" + process.getDescription());
     }
     
-    private AbstractRecoveryTarget getTarget(TargetGroup process, String targetId) 
+    private AbstractTarget getTarget(TargetGroup process, String targetId) 
     throws InvalidCommandException {
-        AbstractRecoveryTarget target = process.getTargetById(Integer.parseInt(targetId));
+        AbstractTarget target = process.getTargetById(Integer.parseInt(targetId));
         if (target == null) {
             throw new InvalidCommandException("invalid target ID : " + targetId);
         } else {

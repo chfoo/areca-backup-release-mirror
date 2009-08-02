@@ -59,7 +59,7 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public abstract class AbstractRecoveryTarget 
+public abstract class AbstractTarget 
 implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 	public static final String BACKUP_SCHEME_FULL = "Full backup";
 	public static final String BACKUP_SCHEME_INCREMENTAL = "Incremental backup";
@@ -82,7 +82,7 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 	}
 
 	protected void copyAttributes(Object clone) {
-		AbstractRecoveryTarget other = (AbstractRecoveryTarget)clone;
+		AbstractTarget other = (AbstractTarget)clone;
 		other.group = group;
 		other.id = group.getNextFreeTargetId();
 		other.uid = generateNewUID();
@@ -355,10 +355,12 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 					this.processArchiveCheck(null, true, cal, context);
 					if (context.getInvalidRecoveredFiles() != null && context.getInvalidRecoveredFiles().size() != 0) {
 						String msg = "The created archive was not successfully checked. It will be deleted.";
-						context.getReport().getStatus().addItem(StatusList.KEY_BACKUP, msg);
+						context.getReport().getStatus().addItem(StatusList.KEY_ARCHIVE_CHECK, msg);
 						context.getInfoChannel().error(msg);
 						context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.4, "deletion");  
 						this.processDeleteArchives(cal, context);
+					} else {
+						context.getReport().getStatus().addItem(StatusList.KEY_ARCHIVE_CHECK);
 					}
 				} finally {
 					checkMon.enforceCompletion();
@@ -753,10 +755,10 @@ implements HistoryEntryTypes, Duplicable, Identifiable, TargetActions {
 	public boolean equals(Object arg0) {
 		if (arg0 == null) {
 			return false;
-		} else if (! (arg0 instanceof AbstractRecoveryTarget)) {
+		} else if (! (arg0 instanceof AbstractTarget)) {
 			return false;
 		} else {
-			AbstractRecoveryTarget other = (AbstractRecoveryTarget)arg0;
+			AbstractTarget other = (AbstractTarget)arg0;
 			return (
 					EqualsHelper.equals(other.getUid(), this.getUid())
 			);

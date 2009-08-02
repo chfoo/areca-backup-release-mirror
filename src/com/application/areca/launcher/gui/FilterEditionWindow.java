@@ -19,7 +19,7 @@ import org.eclipse.swt.widgets.Listener;
 
 import com.application.areca.ResourceManager;
 import com.application.areca.filter.ArchiveFilter;
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.filters.AbstractFilterComposite;
@@ -65,9 +65,9 @@ extends AbstractWindow {
 	protected String usualPath = null;
 
 	protected ArchiveFilter currentFilter;  
-	protected FileSystemRecoveryTarget currentTarget;
+	protected FileSystemTarget currentTarget;
 
-	public FilterEditionWindow(ArchiveFilter currentFilter, FileSystemRecoveryTarget currentTarget) {
+	public FilterEditionWindow(ArchiveFilter currentFilter, FileSystemTarget currentTarget) {
 		super();
 		this.currentFilter = currentFilter;
 		this.currentTarget = currentTarget;
@@ -116,7 +116,7 @@ extends AbstractWindow {
 		cboFilterType.select(FilterRepository.getIndex(currentFilter));  
 		if (this.currentFilter != null) {
 			this.cboFilterType.setEnabled(false);
-			chkExclude.setSelection(currentFilter.isExclude());
+			chkExclude.setSelection(currentFilter.isLogicalNot());
 		} else {
 			chkExclude.setSelection(true);
 		}
@@ -153,7 +153,7 @@ extends AbstractWindow {
 		return currentFilter;
 	}
 
-	public FileSystemRecoveryTarget getCurrentTarget() {
+	public FileSystemTarget getCurrentTarget() {
 		return currentTarget;
 	}
 
@@ -206,7 +206,7 @@ extends AbstractWindow {
 	}
 
 	protected void initFilter(ArchiveFilter filter) {
-		filter.setExclude(this.chkExclude.getSelection());
+		filter.setLogicalNot(this.chkExclude.getSelection());
 		if (pnlParams != null) {
 			pnlParams.initFilter(filter);
 		}

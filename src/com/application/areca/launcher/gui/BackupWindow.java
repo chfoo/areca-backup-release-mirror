@@ -14,7 +14,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.TargetGroup;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
@@ -71,7 +71,7 @@ extends AbstractWindow {
         this.manifest = manifest;
         this.disablePreCheck = disablePreCheck;
         this.scope = scope;
-        isTarget = scope instanceof AbstractRecoveryTarget;
+        isTarget = scope instanceof AbstractTarget;
         isGroup = scope instanceof TargetGroup;
         isWorkspace = scope instanceof Workspace;
     }
@@ -85,18 +85,18 @@ extends AbstractWindow {
         boolean fullOk = false;
 
         if (isTarget) {
-        	AbstractRecoveryTarget target = (AbstractRecoveryTarget)scope;
-            incrOk = target.supportsBackupScheme(AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);
-            diffOk = target.supportsBackupScheme(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL);        
-            fullOk = target.supportsBackupScheme(AbstractRecoveryTarget.BACKUP_SCHEME_FULL);
+        	AbstractTarget target = (AbstractTarget)scope;
+            incrOk = target.supportsBackupScheme(AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
+            diffOk = target.supportsBackupScheme(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL);        
+            fullOk = target.supportsBackupScheme(AbstractTarget.BACKUP_SCHEME_FULL);
         } else if (isGroup) {
         	TargetGroup group = (TargetGroup)scope;
         	Iterator iter = group.getTargetIterator();
         	while (iter.hasNext()) {
-            	AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();
-                incrOk |= target.supportsBackupScheme(AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);
-                diffOk |= target.supportsBackupScheme(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL);        
-                fullOk |= target.supportsBackupScheme(AbstractRecoveryTarget.BACKUP_SCHEME_FULL);
+            	AbstractTarget target = (AbstractTarget)iter.next();
+                incrOk |= target.supportsBackupScheme(AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
+                diffOk |= target.supportsBackupScheme(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL);        
+                fullOk |= target.supportsBackupScheme(AbstractTarget.BACKUP_SCHEME_FULL);
         	}
         } else {
         	Iterator groups = ((Workspace)scope).getGroupIterator();
@@ -104,10 +104,10 @@ extends AbstractWindow {
         		TargetGroup group = (TargetGroup)groups.next();
             	Iterator iter = group.getTargetIterator();
             	while (iter.hasNext()) {
-                	AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();
-                    incrOk |= target.supportsBackupScheme(AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);
-                    diffOk |= target.supportsBackupScheme(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL);        
-                    fullOk |= target.supportsBackupScheme(AbstractRecoveryTarget.BACKUP_SCHEME_FULL);
+                	AbstractTarget target = (AbstractTarget)iter.next();
+                    incrOk |= target.supportsBackupScheme(AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
+                    diffOk |= target.supportsBackupScheme(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL);        
+                    fullOk |= target.supportsBackupScheme(AbstractTarget.BACKUP_SCHEME_FULL);
             	}
         	}
         }
@@ -186,6 +186,8 @@ extends AbstractWindow {
             txtTitle.setText(manifest.getTitle() == null ? "" : manifest.getTitle());
             txtDescription.setText(manifest.getDescription() == null ? "" : manifest.getDescription());
         }
+        
+        chkCheckArchive.setSelection(true);
 
     	updateManifestState();
 
@@ -220,16 +222,16 @@ extends AbstractWindow {
         
         String backupScheme;
         if (radDifferential.getSelection()) {
-            backupScheme = AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL;
+            backupScheme = AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL;
         } else if (radFull.getSelection()) {
-            backupScheme = AbstractRecoveryTarget.BACKUP_SCHEME_FULL;
+            backupScheme = AbstractTarget.BACKUP_SCHEME_FULL;
         } else {
-            backupScheme = AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL;
+            backupScheme = AbstractTarget.BACKUP_SCHEME_INCREMENTAL;
         }
 
         if (isTarget) {
 	        this.application.launchBackupOnTarget(
-	        		(AbstractRecoveryTarget)scope, this.manifest, 
+	        		(AbstractTarget)scope, this.manifest, 
 	        		backupScheme, disablePreCheck, ! chkCheckArchive.getSelection()
 	        );     
         } else if (isGroup) {

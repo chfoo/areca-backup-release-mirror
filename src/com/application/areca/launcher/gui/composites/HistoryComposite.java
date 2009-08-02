@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.HistoryEntryTypes;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
@@ -130,7 +130,7 @@ implements Listener, Refreshable, HistoryEntryTypes {
         return this.getClass().getName();
     }
 
-    private void fillTargetData(AbstractRecoveryTarget target) {
+    private void fillTargetData(AbstractTarget target) {
         History h = target.getHistory();
         if (h != null) {
             HashMap content = h.getContent();

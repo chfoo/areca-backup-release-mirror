@@ -92,7 +92,7 @@ public class FileExtensionArchiveFilter extends AbstractArchiveFilter {
 
     public Duplicable duplicate() {
         FileExtensionArchiveFilter clone = new FileExtensionArchiveFilter();
-        clone.exclude = this.exclude;
+        clone.logicalNot = this.logicalNot;
         clone.extensions = (ArrayList)this.extensions.clone();
         return clone;
     }
@@ -115,10 +115,10 @@ public class FileExtensionArchiveFilter extends AbstractArchiveFilter {
 		        Iterator iter = this.extensions.iterator();
 		        while (iter.hasNext()) {
 		            if (checkExtension(FileSystemManager.getName(entry), (String)iter.next())) {
-		                return ! exclude;
+		                return ! logicalNot;
 		            }
 		        }
-		        return exclude;
+		        return logicalNot;
             }
         }
     }
@@ -133,7 +133,7 @@ public class FileExtensionArchiveFilter extends AbstractArchiveFilter {
         } else {
             FileExtensionArchiveFilter other = (FileExtensionArchiveFilter)obj;
             return 
-            	EqualsHelper.equals(this.exclude, other.exclude)
+            	EqualsHelper.equals(this.logicalNot, other.logicalNot)
             	&& EqualsHelper.equals(this.extensions, other.extensions)
            	;
         }
@@ -142,7 +142,7 @@ public class FileExtensionArchiveFilter extends AbstractArchiveFilter {
     public int hashCode() {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, this.extensions);
-        h = HashHelper.hash(h, this.exclude);
+        h = HashHelper.hash(h, this.logicalNot);
         return h;
     }
 }

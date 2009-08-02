@@ -3,6 +3,7 @@ package com.application.areca.launcher.gui;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -20,8 +21,11 @@ import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -47,7 +51,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.filter.ArchiveFilter;
@@ -57,7 +61,7 @@ import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.impl.AbstractFileSystemMedium;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.EncryptionConfiguration;
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.impl.IncrementalDirectoryMedium;
 import com.application.areca.impl.IncrementalZipMedium;
 import com.application.areca.impl.handler.DefaultArchiveHandler;
@@ -67,6 +71,7 @@ import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.FileComparator;
 import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
@@ -119,7 +124,7 @@ extends AbstractWindow {
     private static final String PLUGIN_HD = "hd";
     private static final String DEFAULT_ARCHIVE_PATTERN = "%YY%%MM%%DD%";
     
-    protected AbstractRecoveryTarget target;
+    protected AbstractTarget target;
     public FileSystemPolicy currentPolicy = null;
     protected boolean hasBeenSaved = false;
     protected ArrayList lstEncryptionAlgorithms = new ArrayList();
@@ -198,7 +203,7 @@ extends AbstractWindow {
     protected Button btnRemoveSource;
     protected Button btnModifySource;
     
-    public TargetEditionWindow(AbstractRecoveryTarget target) {
+    public TargetEditionWindow(AbstractTarget target) {
         super();
         this.target = target;
     }
@@ -405,7 +410,7 @@ extends AbstractWindow {
     private void initSourcesTab(Composite composite) {
         composite.setLayout(initLayout(4));
         
-        TableViewer viewer = new TableViewer(composite, SWT.BORDER | SWT.SINGLE);
+        TableViewer viewer = new TableViewer(composite, SWT.BORDER | SWT.MULTI);
         tblSources = viewer.getTable();
         GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1);
         dt.heightHint = computeHeight(100);
@@ -425,6 +430,21 @@ extends AbstractWindow {
             }
         });
         
+        tblSources.addKeyListener(new KeyListener() {
+			public void keyPressed(KeyEvent evt) {
+				if (evt.character == SWT.DEL) {
+	            	deleteCurrentSource();
+				}
+			}
+
+			public void keyReleased(KeyEvent evt) {
+			}
+        });
+        
+        Label lblDnd = new Label(composite, SWT.NONE | SWT.WRAP);
+        lblDnd.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 4, 1));
+        lblDnd.setText(RM.getLabel("targetedition.sources.dnd.label"));
+        
         btnAddSource = new Button(composite, SWT.PUSH);
         btnAddSource.setText(RM.getLabel("targetedition.addprocaction.label"));
         btnAddSource.addListener(SWT.Selection, new Listener(){
@@ -432,6 +452,7 @@ extends AbstractWindow {
                 File newFile = showSourceEditionFrame(null);
                 if (newFile != null) {
                     addSource(newFile);
+                    sortSources();
                     registerUpdate();                
                 }
             }
@@ -449,18 +470,7 @@ extends AbstractWindow {
         btnRemoveSource.setText(RM.getLabel("targetedition.removeprocaction.label"));
         btnRemoveSource.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
-            	int idx = tblSources.getSelectionIndex();
-                if (idx != -1) {
-                    int result = application.showConfirmDialog(
-                            RM.getLabel("targetedition.removesourceaction.confirm.message"),
-                            RM.getLabel("targetedition.confirmremovesource.title"));
-                    
-                    if (result == SWT.YES) {
-                        tblSources.remove(idx);
-                        tblSources.setSelection(Math.max(0, Math.min(tblSources.getItemCount() - 1, idx)));
-                        registerUpdate();                  
-                    }
-                }
+            	deleteCurrentSource();
             }
         });
         
@@ -471,6 +481,46 @@ extends AbstractWindow {
                 updateSourceListState();
             }
         });
+        
+        final int operation = DND.DROP_MOVE;
+        Transfer[] types = new Transfer[] { FileTransfer.getInstance() };
+        DropTarget target = new DropTarget(tblSources, operation);
+        target.setTransfer(types);
+        target.addDropListener(new DropTargetAdapter() {
+            public void dragEnter(DropTargetEvent event) {
+                event.detail = operation;
+                event.feedback = DND.FEEDBACK_SCROLL;
+            }
+
+            public void dragOver(DropTargetEvent event) {
+                event.detail = operation;
+                event.feedback = DND.FEEDBACK_SCROLL;
+            }
+
+            public void drop(DropTargetEvent event) {
+            	String[] files = (String[])event.data;
+                for (int i=0; i<files.length; i++) {
+                    addSource(new File(files[i]));	
+                } 
+                sortSources();
+                registerUpdate();
+            }
+        });
+    }
+    
+    private void deleteCurrentSource() {
+    	int[] idx = tblSources.getSelectionIndices();
+        if (idx.length != 0) {
+            int result = application.showConfirmDialog(
+                    RM.getLabel("targetedition.removesourceaction.confirm.message"),
+                    RM.getLabel("targetedition.confirmremovesource.title"));
+            
+            if (result == SWT.YES) {
+               	tblSources.remove(idx);
+                tblSources.setSelection(Math.max(0, Math.min(tblSources.getItemCount() - 1, idx[0])));
+                registerUpdate();                  
+            }
+        }
     }
     
     private void editCurrentSource() {
@@ -478,6 +528,7 @@ extends AbstractWindow {
             TableItem item = tblSources.getItem(tblSources.getSelectionIndex());
             File source = (File)item.getData();
             updateSource(item, showSourceEditionFrame(source));
+            sortSources();
             registerUpdate();  
         }
     }
@@ -839,6 +890,17 @@ extends AbstractWindow {
             }
         });
         
+        treFilters.addKeyListener(new KeyListener() {
+			public void keyPressed(KeyEvent evt) {
+				if (evt.character == SWT.DEL) {
+	            	deleteCurrentFilter();
+				}
+			}
+
+			public void keyReleased(KeyEvent evt) {
+			}
+        });
+        
         Transfer[] types = new Transfer[] { TextTransfer.getInstance() };
         final int operation = DND.DROP_MOVE;
 
@@ -933,26 +995,7 @@ extends AbstractWindow {
         btnRemoveFilter.setText(RM.getLabel("targetedition.removefilteraction.label"));
         btnRemoveFilter.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
-                if (treFilters.getSelectionCount() != 0) {
-                    TreeItem item = treFilters.getSelection()[0];
-                    TreeItem parentItem = item.getParentItem();
-                    
-                    if (parentItem != null) {
-                        int result = application.showConfirmDialog(
-                                RM.getLabel("targetedition.removefilteraction.confirm.message"),
-                                RM.getLabel("targetedition.removefilteraction.confirm.title"));
-
-                        if (result == SWT.YES) {
-                            FilterGroup fg = (FilterGroup)parentItem.getData();
-                            ArchiveFilter filter = (ArchiveFilter)item.getData();
-                            fg.remove(filter);
-
-                            updateFilterData(parentItem);
-                            expandAll(treFilters.getItem(0));
-                            registerUpdate();   
-                        }                  
-                    }
-                }
+            	deleteCurrentFilter();
             }
         });
         
@@ -963,6 +1006,30 @@ extends AbstractWindow {
                 updateFilterListState();
             }
         });
+    }
+    
+    private void deleteCurrentFilter() {
+        if (treFilters.getSelectionCount() != 0) {
+            TreeItem item = treFilters.getSelection()[0];
+            TreeItem parentItem = item.getParentItem();
+            
+            if (parentItem != null) {
+                int result = application.showConfirmDialog(
+                        RM.getLabel("targetedition.removefilteraction.confirm.message"),
+                        RM.getLabel("targetedition.removefilteraction.confirm.title"));
+
+                if (result == SWT.YES) {
+                    FilterGroup fg = (FilterGroup)parentItem.getData();
+                    ArchiveFilter filter = (ArchiveFilter)item.getData();
+                    fg.remove(filter);
+
+                    updateFilterData(parentItem);
+                    expandAll(treFilters.getItem(0));
+                    registerUpdate();   
+                }                  
+            }
+        }
+    
     }
     
     private void editCurrentFilter() {
@@ -1037,9 +1104,9 @@ extends AbstractWindow {
     }
     
     protected void updateSourceListState() {
-        int index =  this.tblSources.getSelectionIndex();
-        this.btnRemoveSource.setEnabled(index != -1);
-        this.btnModifySource.setEnabled(index != -1);       
+        int[] idx =  this.tblSources.getSelectionIndices();
+        this.btnRemoveSource.setEnabled(idx.length != 0);
+        this.btnModifySource.setEnabled(idx.length == 1);       
     }
     
     private void initValues() {
@@ -1058,11 +1125,11 @@ extends AbstractWindow {
                 rdMultiple.setSelection(true);
             }
 
-            chkTrackDirectories.setSelection(((FileSystemRecoveryTarget)target).isTrackEmptyDirectories());
-            chkFollowSubDirectories.setSelection(((FileSystemRecoveryTarget)target).isFollowSubdirectories());
+            chkTrackDirectories.setSelection(((FileSystemTarget)target).isTrackEmptyDirectories());
+            chkFollowSubDirectories.setSelection(((FileSystemTarget)target).isFollowSubdirectories());
             chkTrackPermissions.setSelection(fMedium.isTrackPermissions());
             chkNoXMLCopy.setSelection(! target.isCreateSecurityCopyOnBackup());
-            chkFollowLinks.setSelection( ! ((FileSystemRecoveryTarget)target).isTrackSymlinks());
+            chkFollowLinks.setSelection( ! ((FileSystemTarget)target).isTrackSymlinks());
             
             if (fMedium.getCompressionArguments().isCompressed()) {
                 if (fMedium.getCompressionArguments().isMultiVolumes()) {
@@ -1137,10 +1204,11 @@ extends AbstractWindow {
             }
             
             // INIT SOURCES
-            Iterator sources = ((FileSystemRecoveryTarget)target).getSources().iterator();
+            Iterator sources = ((FileSystemTarget)target).getSources().iterator();
             while (sources.hasNext()) {
                 addSource((File)sources.next());
             }
+            sortSources();
 
             // INIT FILTERS
             this.mdlFilters = (FilterGroup)target.getFilterGroup().duplicate();
@@ -1169,15 +1237,15 @@ extends AbstractWindow {
             // Default filters
             this.mdlFilters = new FilterGroup();
             mdlFilters.setAnd(true);
-            mdlFilters.setExclude(false);
+            mdlFilters.setLogicalNot(false);
             
             FileExtensionArchiveFilter filter1 = new FileExtensionArchiveFilter();
             filter1.acceptParameters("*.tmp, *.temp");
-            filter1.setExclude(true);
+            filter1.setLogicalNot(true);
             mdlFilters.addFilter(filter1);
             
             LockedFileFilter filter2 = new LockedFileFilter();
-            filter2.setExclude(true);
+            filter2.setLogicalNot(true);
             mdlFilters.addFilter(filter2);
             
             addFilter(null, mdlFilters);
@@ -1263,14 +1331,14 @@ extends AbstractWindow {
     }
     
     private ArchiveFilter showFilterEditionFrame(ArchiveFilter filter) {
-        FilterEditionWindow frm = new FilterEditionWindow(filter, (FileSystemRecoveryTarget)this.getTarget());
+        FilterEditionWindow frm = new FilterEditionWindow(filter, (FileSystemTarget)this.getTarget());
         showDialog(frm);
         ArchiveFilter ft = frm.getCurrentFilter();
         return ft;
     }
     
     private File showSourceEditionFrame(File source) {
-        SourceEditionWindow frm = new SourceEditionWindow(source, (FileSystemRecoveryTarget)this.getTarget());
+        SourceEditionWindow frm = new SourceEditionWindow(source, (FileSystemTarget)this.getTarget());
         showDialog(frm);
         return frm.getSource();
     }
@@ -1309,7 +1377,7 @@ extends AbstractWindow {
         }
         
         String filterExclude = RM.getLabel(
-                filter.isExclude() ? "filteredition.exclusion.label" : "filteredition.inclusion.label"
+                filter.isLogicalNot() ? "filteredition.exclusion.label" : "filteredition.inclusion.label"
         );
         item.setText(0, prefix + FilterRepository.getName(filter.getClass()));
         item.setText(1, filter.getStringParameters() == null ? "" : filter.getStringParameters());
@@ -1335,6 +1403,26 @@ extends AbstractWindow {
     private void addSource(File source) {
         TableItem item = new TableItem(tblSources, SWT.NONE);
         updateSource(item, source);
+    }
+    
+    private void sortSources() {
+    	TableItem[] items = tblSources.getItems();    	
+    	File[] files = new File[items.length];
+    	for (int i=0; i<items.length; i++) {
+    		files[i] = (File)items[i].getData();
+    	}
+    	
+    	Arrays.sort(files, new FileComparator());
+    	tblSources.setItemCount(0);
+    	
+    	File pred = null;
+    	for (int i=0; i<files.length; i++) {
+    		if (! files[i].equals(pred)) {
+	            TableItem item = new TableItem(tblSources, SWT.NONE);
+	            updateSource(item, files[i]);
+	            pred = files[i];
+    		}
+    	}
     }
     
     private void updateSource(TableItem item, File source) {
@@ -1583,11 +1671,11 @@ extends AbstractWindow {
         }
     }
     
-    public AbstractRecoveryTarget getTarget() {
+    public AbstractTarget getTarget() {
         return target;
     }
     
-    public AbstractRecoveryTarget getTargetIfValidated() {
+    public AbstractTarget getTargetIfValidated() {
         if (this.hasBeenSaved) {
             return target;
         } else {
@@ -1601,7 +1689,7 @@ extends AbstractWindow {
 
     protected void saveChanges() {
         try {
-            FileSystemRecoveryTarget newTarget = new FileSystemRecoveryTarget();
+            FileSystemTarget newTarget = new FileSystemTarget();
             newTarget.setGroup(application.getCurrentTargetGroup());
 
             String storageSubDirectory; // Necessary for backward compatibility

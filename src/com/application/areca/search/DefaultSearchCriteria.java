@@ -3,7 +3,7 @@ package com.application.areca.search;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 
 /**
  * <BR>
@@ -62,7 +62,7 @@ public class DefaultSearchCriteria implements SearchCriteria {
         return targets;
     }
     
-    public void addTarget(AbstractRecoveryTarget target) {
+    public void addTarget(AbstractTarget target) {
         this.targets.add(target);
     }
 

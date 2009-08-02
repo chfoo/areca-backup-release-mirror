@@ -63,6 +63,18 @@ public class VersionData {
         this.description = description;
     }
     
+    public int getYear() {
+    	return this.versionDate.get(Calendar.YEAR);
+    }
+    
+    public int getMonth() {
+    	return this.versionDate.get(Calendar.MONTH);
+    }
+    
+    public int getDay() {
+    	return this.versionDate.get(Calendar.DAY_OF_MONTH);
+    }
+    
     public URL getDownloadUrl() {
         return downloadUrl;
     }

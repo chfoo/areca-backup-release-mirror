@@ -57,12 +57,13 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 5395323866577938824L;
+		BUILD_ID = 5278315534136814768L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.1.4", new GregorianCalendar(2009, 7, 2), "Drag and Drop in sources configuration window; Bugfix when recovering a specific version of a file (the latest version was always recovered); Minor enhancements."));
 		VERSIONS.add(new VersionData("7.1.3", new GregorianCalendar(2009, 6, 12), "Regular expression filter bug fix; Minor XML configuration bug fix; Recovery bug fix."));
 		VERSIONS.add(new VersionData("7.1.2", new GregorianCalendar(2009, 5, 12), "New regular expression filters options; Backup report enhancements; Post processors enhancements; Minor bugfixes."));
-		VERSIONS.add(new VersionData("7.1.1", new GregorianCalendar(2009, 4, 26), "Ability to view files contained in your archives using the default applications configured on your system. Post-backup actions enhancements; Minor other enhancements."));
+		VERSIONS.add(new VersionData("7.1.1", new GregorianCalendar(2009, 4, 26), "Ability to view files contained in your archives using the default applications configured on your system; Post-backup actions enhancements; Minor other enhancements."));
 		VERSIONS.add(new VersionData("7.1", new GregorianCalendar(2009, 3, 21), "Minor error messages enhancements; Named pipes are now properly handled by Areca; Better \"Check Archive\" feature."));
 		VERSIONS.add(new VersionData("7.0.9", new GregorianCalendar(2009, 3, 3), "Synchronous backup mode available from command-line interface; The 256 characters limit on file path is disabled if the Java version is over 1.6; Enhanced FTP connexions management."));
 		VERSIONS.add(new VersionData("7.0.8", new GregorianCalendar(2009, 2, 21), "Logical view bug fix; Image backups bug fix."));

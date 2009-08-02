@@ -6,6 +6,8 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
@@ -19,7 +21,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
 import com.application.areca.ResourceManager;
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
 import com.application.areca.launcher.gui.ProcessorRepository;
@@ -157,6 +159,17 @@ public class ProcessorsTable {
                 updateProcListState();
             }
         });
+        
+        tblProc.addKeyListener(new KeyListener() {
+			public void keyPressed(KeyEvent evt) {
+				if (evt.character == SWT.DEL) {
+					removeCurrentProcessor();
+				}
+			}
+
+			public void keyReleased(KeyEvent evt) {
+			}
+        });
     }
     
     private void up() {
@@ -232,7 +245,7 @@ public class ProcessorsTable {
     }
 
     private Processor showProcEditionFrame(Processor proc) {
-        ProcessorEditionWindow frm = new ProcessorEditionWindow(proc, (FileSystemRecoveryTarget)main.getTarget(), preprocess);
+        ProcessorEditionWindow frm = new ProcessorEditionWindow(proc, (FileSystemTarget)main.getTarget(), preprocess);
         main.showDialog(frm);
         Processor prc = frm.getCurrentProcessor();
         return prc;

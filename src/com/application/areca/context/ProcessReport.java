@@ -3,7 +3,7 @@ package com.application.areca.context;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.myJava.util.log.LogMessagesContainer;
 import com.myJava.util.log.Logger;
 
@@ -88,7 +88,7 @@ public class ProcessReport {
      */
     protected long startMillis = System.currentTimeMillis();
 
-    protected AbstractRecoveryTarget target;
+    protected AbstractTarget target;
     
     /**
      * nr of written kbytes
@@ -102,12 +102,12 @@ public class ProcessReport {
     
     protected LogMessagesContainer logMessagesContainer;
     
-    public ProcessReport(AbstractRecoveryTarget target) {
+    public ProcessReport(AbstractTarget target) {
         this.target = target;
         this.logMessagesContainer = Logger.defaultLogger().getTlLogProcessor().getMessageContainer();
     } 
     
-    public AbstractRecoveryTarget getTarget() {
+    public AbstractTarget getTarget() {
         return target;
     }
     /**

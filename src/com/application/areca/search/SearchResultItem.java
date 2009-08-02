@@ -2,7 +2,7 @@ package com.application.areca.search;
 
 import java.util.GregorianCalendar;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.metadata.trace.TraceEntry;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
@@ -35,7 +35,7 @@ This file is part of Areca.
  */
 public class SearchResultItem {
 
-    private AbstractRecoveryTarget target;
+    private AbstractTarget target;
     private TraceEntry entry;
     private GregorianCalendar calendar;
     
@@ -58,11 +58,11 @@ public class SearchResultItem {
         this.entry = entry;
     }
     
-    public AbstractRecoveryTarget getTarget() {
+    public AbstractTarget getTarget() {
         return target;
     }
     
-    public void setTarget(AbstractRecoveryTarget target) {
+    public void setTarget(AbstractTarget target) {
         this.target = target;
     }
 

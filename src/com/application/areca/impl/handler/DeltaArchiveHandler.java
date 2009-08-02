@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.cache.ArchiveManifestCache;
@@ -183,11 +183,11 @@ extends AbstractArchiveHandler {
 			lastArchive = null;
 			for (int i=previousArchives.length - 1; i>=0; i--) {
 				boolean validated = true;
-				if (context.getBackupScheme().equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+				if (context.getBackupScheme().equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
 					Manifest mf = ArchiveManifestCache.getInstance().getManifest(medium, previousArchives[i]);
 					validated = 
 						mf != null 
-						&& mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME).equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL);
+						&& mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME).equals(AbstractTarget.BACKUP_SCHEME_FULL);
 				}
 
 				if (validated) {

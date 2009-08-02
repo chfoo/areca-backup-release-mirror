@@ -2,7 +2,7 @@ package com.application.areca.plugins;
 
 import org.w3c.dom.Node;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.adapters.AdapterException;
 import com.application.areca.adapters.TargetXMLReader;
 import com.application.areca.adapters.TargetXMLWriter;
@@ -35,7 +35,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface FileSystemPolicyXMLHandler {
-    public FileSystemPolicy read(Node mediumNode, AbstractRecoveryTarget target, TargetXMLReader reader) throws AdapterException;
+    public FileSystemPolicy read(Node mediumNode, AbstractTarget target, TargetXMLReader reader) throws AdapterException;
     public void write(FileSystemPolicy policy, TargetXMLWriter writer, boolean removeSensitiveData, StringBuffer sb);
     public void setVersion(int version);
 }

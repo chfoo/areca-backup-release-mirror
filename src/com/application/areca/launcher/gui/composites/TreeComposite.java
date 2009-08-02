@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.Identifiable;
 import com.application.areca.TargetGroup;
 import com.application.areca.launcher.gui.Application;
@@ -96,7 +96,7 @@ implements MouseListener, Listener {
             new DragSourceAdapter() {
                 public void dragStart(DragSourceEvent event) {   
                     TreeItem[] selection = tree.getSelection();
-                    if (selection.length > 0 && selection[0].getData() instanceof AbstractRecoveryTarget) {
+                    if (selection.length > 0 && selection[0].getData() instanceof AbstractTarget) {
                         event.doit = true;
                     } else {
                         event.doit = false;
@@ -130,7 +130,7 @@ implements MouseListener, Listener {
             public void drop(DropTargetEvent event) {
                 if (event.item != null) {
                     TreeItem item = (TreeItem) event.item;
-                    AbstractRecoveryTarget draggedTarget = Application.getInstance().getCurrentTarget();
+                    AbstractTarget draggedTarget = Application.getInstance().getCurrentTarget();
                     TargetGroup sourceProcess = draggedTarget.getGroup();
                     TargetGroup destinationProcess = extractRecoveryProcess(item);
 
@@ -164,7 +164,7 @@ implements MouseListener, Listener {
             if (data instanceof TargetGroup) {
                 return (TargetGroup)data;
             } else {
-                AbstractRecoveryTarget tg = (AbstractRecoveryTarget)data;
+                AbstractTarget tg = (AbstractTarget)data;
                 return tg.getGroup();
             }
         }
@@ -200,7 +200,7 @@ implements MouseListener, Listener {
         Iterator iter = process.getSortedTargetIterator();
         while (iter.hasNext()) {
             TreeItem targetNode = new TreeItem(processNode, SWT.NONE);
-            AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();
+            AbstractTarget target = (AbstractTarget)iter.next();
 
             targetNode.setText(" " + target.getTargetName());
             targetNode.setImage(ArecaImages.ICO_REF_TARGET);
@@ -216,7 +216,7 @@ implements MouseListener, Listener {
         }
     }
 
-    public void setSelectedTarget(AbstractRecoveryTarget target) {
+    public void setSelectedTarget(AbstractTarget target) {
         if (target != null) {
             TreeItem processNode = null;
             TargetGroup process = target.getGroup();
@@ -233,7 +233,7 @@ implements MouseListener, Listener {
             TreeItem[] targets = processNode.getItems();
             for (int i=0; i<targets.length; i++) {
                 TreeItem child = targets[i];
-                AbstractRecoveryTarget cTarget = (AbstractRecoveryTarget)child.getData();
+                AbstractTarget cTarget = (AbstractTarget)child.getData();
                 if (cTarget.equals(target)) {
                     tree.setSelection(child);
                     break;
@@ -249,7 +249,7 @@ implements MouseListener, Listener {
         TreeItem item = tree.getItem(new Point(e.x, e.y));
 
         if (item != null) {
-            if (item.getData() instanceof AbstractRecoveryTarget) {
+            if (item.getData() instanceof AbstractTarget) {
                 showMenu(e, Application.getInstance().getTargetContextMenu());
             } else if (item.getData() instanceof TargetGroup) {
                 showMenu(e, Application.getInstance().getProcessContextMenu());            

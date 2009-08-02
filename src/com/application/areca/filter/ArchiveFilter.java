@@ -38,17 +38,9 @@ extends Duplicable {
     
     public boolean acceptStorage(File f);
     
-    /**
-     * Indique si le filtre fonctionne en inclusion ou exclusion
-     * @return
-     */
-    public boolean isExclude();
+    public boolean isLogicalNot();
     
-    /**
-     * Indique si le filtre fonctionne en inclusion ou exclusion
-     * @param exclude
-     */
-    public void setExclude(boolean exclude);
+    public void setLogicalNot(boolean logicalNot);
     
     /**
      * Parses the string provided as argument and inits the filter
@@ -61,7 +53,7 @@ extends Duplicable {
     public String getStringParameters();
     
     /**
-     * Tells wether the filter needs to be parametrized or not 
+     * Tells whether the filter needs to be parameterized or not 
      */
     public boolean requiresParameters();
 }

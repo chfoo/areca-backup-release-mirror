@@ -60,7 +60,7 @@ implements Identifiable {
 	public void doBeforeDelete() {
     	Iterator iter = this.getTargetIterator();
     	while (iter.hasNext()) {
-    		AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
+    		AbstractTarget tg = (AbstractTarget)iter.next();
     		tg.doBeforeDelete();
     	}
     }
@@ -68,7 +68,7 @@ implements Identifiable {
     public void doAfterDelete() {
     	Iterator iter = this.getTargetIterator();
     	while (iter.hasNext()) {
-    		AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
+    		AbstractTarget tg = (AbstractTarget)iter.next();
     		tg.doAfterDelete();
     	}
     }
@@ -77,11 +77,11 @@ implements Identifiable {
      * Returns an iterator on targets, sorted by name
      */
     public Iterator getSortedTargetIterator() {
-        AbstractRecoveryTarget[] tgs = new AbstractRecoveryTarget[targets.size()];
+        AbstractTarget[] tgs = new AbstractTarget[targets.size()];
         Iterator iter = getTargetIterator();
         int i = 0;
         while (iter.hasNext()) {
-            tgs[i++] = (AbstractRecoveryTarget)iter.next();
+            tgs[i++] = (AbstractTarget)iter.next();
         }
         Arrays.sort(tgs, new TargetComparator());
         
@@ -94,8 +94,8 @@ implements Identifiable {
     
     private static class TargetComparator implements Comparator {
         public int compare(Object o1, Object o2) {
-            AbstractRecoveryTarget tg1 = (AbstractRecoveryTarget)o1;
-            AbstractRecoveryTarget tg2 = (AbstractRecoveryTarget)o2;
+            AbstractTarget tg1 = (AbstractTarget)o1;
+            AbstractTarget tg2 = (AbstractTarget)o2;
             return tg1.getTargetName().toLowerCase().compareTo(tg2.getTargetName().toLowerCase());
         }
     }
@@ -117,20 +117,20 @@ implements Identifiable {
         return (firstLetter + fileName.substring(1)).replace('_', ' ');
     }
     
-    public void addTarget(AbstractRecoveryTarget target) {
+    public void addTarget(AbstractTarget target) {
         this.targets.put(new Integer(target.getId()), target);
     }
     
-    public AbstractRecoveryTarget getTargetById(int id) {
-        return (AbstractRecoveryTarget)targets.get(new Integer(id));
+    public AbstractTarget getTargetById(int id) {
+        return (AbstractTarget)targets.get(new Integer(id));
     }
     
-    public void removeTarget(AbstractRecoveryTarget target) {
+    public void removeTarget(AbstractTarget target) {
         this.removeTarget(target.getId());
     }
     
     public void removeTarget(int id) {
-    	AbstractRecoveryTarget tg = this.getTargetById(id);
+    	AbstractTarget tg = this.getTargetById(id);
     	if (tg != null) {
     		tg.doBeforeDelete();
     	}
@@ -143,7 +143,7 @@ implements Identifiable {
     public boolean isRunning() {
         Iterator iter = this.getTargetIterator();            
         while (iter.hasNext()) {
-            AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();
+            AbstractTarget target = (AbstractTarget)iter.next();
             if (target.isRunning()) {
                 return true;
             }
@@ -158,11 +158,11 @@ implements Identifiable {
         } else {
             Iterator iter = this.getTargetIterator();            
             
-            AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();
+            AbstractTarget target = (AbstractTarget)iter.next();
             int id = target.getId();
 
             while (iter.hasNext()) {
-                target = (AbstractRecoveryTarget)iter.next();
+                target = (AbstractTarget)iter.next();
                 id = (int)Math.max(id, target.getId());
             }
             
@@ -207,7 +207,7 @@ implements Identifiable {
      * Launch a backup on a target
      */
     public void processBackupOnTarget(
-    		AbstractRecoveryTarget target, 
+    		AbstractTarget target, 
     		Manifest manifest, 
     		String backupScheme,
     		boolean disablePreCheck,
@@ -226,7 +226,7 @@ implements Identifiable {
     /**
      * Launch a simulation on a target
      */
-    public SimulationResult processSimulateOnTarget(AbstractRecoveryTarget target, ProcessContext context) throws ApplicationException {
+    public SimulationResult processSimulateOnTarget(AbstractTarget target, ProcessContext context) throws ApplicationException {
         this.initProgress(context);
         return target.processSimulate(context);
     }
@@ -234,7 +234,7 @@ implements Identifiable {
     /**
      * Compute indicators for a target
      */
-    public IndicatorMap processIndicatorsOnTarget(AbstractRecoveryTarget target, ProcessContext context) throws ApplicationException {
+    public IndicatorMap processIndicatorsOnTarget(AbstractTarget target, ProcessContext context) throws ApplicationException {
         this.initProgress(context);
         return target.computeIndicators();
     }
@@ -243,7 +243,7 @@ implements Identifiable {
      * Launch a check on a target
      */
     public void processCheckOnTarget(
-    		AbstractRecoveryTarget target, 
+    		AbstractTarget target, 
     		String destination,
     		boolean checkOnlyArchiveContent, 
     		GregorianCalendar date, 
@@ -257,7 +257,7 @@ implements Identifiable {
      * Launch a recovery on a target
      */
     public void processRecoverOnTarget(
-    		AbstractRecoveryTarget target, 
+    		AbstractTarget target, 
     		String[] filters, 
     		String path, 
     		GregorianCalendar date, 
@@ -270,7 +270,7 @@ implements Identifiable {
     }
     
     public void processRecoverOnTarget(
-    		AbstractRecoveryTarget target, 
+    		AbstractTarget target, 
     		String path, 
     		GregorianCalendar date, 
     		String entry, 
@@ -284,33 +284,33 @@ implements Identifiable {
     /**
      * Launch a merge on a target
      */
-    public void processMergeOnTarget(AbstractRecoveryTarget target, GregorianCalendar fromDate, GregorianCalendar toDate, Manifest manifest, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {  
+    public void processMergeOnTarget(AbstractTarget target, GregorianCalendar fromDate, GregorianCalendar toDate, Manifest manifest, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {  
 		this.initProgress(context);
         target.processMerge(fromDate, toDate, manifest, keepDeletedEntries, context);
     }  
     
-    public void processMergeOnTarget(AbstractRecoveryTarget target, int fromDelay, int toDelay, Manifest manifest, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
+    public void processMergeOnTarget(AbstractTarget target, int fromDelay, int toDelay, Manifest manifest, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
  		this.initProgress(context);
  		processMergeOnTargetImpl(target, fromDelay, toDelay, manifest, keepDeletedEntries, context);
     }  
     
-    public void processMergeOnTargetImpl(AbstractRecoveryTarget target, int fromDelay, int toDelay, Manifest manifest, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException { 
+    public void processMergeOnTargetImpl(AbstractTarget target, int fromDelay, int toDelay, Manifest manifest, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException { 
         target.processMerge(fromDelay, toDelay, manifest, keepDeletedEntries, context);
     }
     
     /**
      * Deletes archives for a target
      */
-    public void processDeleteOnTarget(AbstractRecoveryTarget target, int delay, ProcessContext context) throws ApplicationException {
+    public void processDeleteOnTarget(AbstractTarget target, int delay, ProcessContext context) throws ApplicationException {
 		this.initProgress(context);
         processDeleteOnTargetImpl(target, delay, context);
     }  
     
-    public void processDeleteOnTargetImpl(AbstractRecoveryTarget target, int delay, ProcessContext context) throws ApplicationException {  
+    public void processDeleteOnTargetImpl(AbstractTarget target, int delay, ProcessContext context) throws ApplicationException {  
         target.processDeleteArchives(delay, context);
     }  
     
-    public void processDeleteOnTarget(AbstractRecoveryTarget target, GregorianCalendar fromDate, ProcessContext context) throws ApplicationException {   
+    public void processDeleteOnTarget(AbstractTarget target, GregorianCalendar fromDate, ProcessContext context) throws ApplicationException {   
 		this.initProgress(context);
         target.processDeleteArchives(fromDate, context);
     }  
@@ -330,7 +330,7 @@ implements Identifiable {
         
         Iterator iter = this.getTargetIterator();
         while (iter.hasNext()) {
-            AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();         
+            AbstractTarget target = (AbstractTarget)iter.next();         
             buf.append("\n");
             buf.append(target.getDescription());
         }        

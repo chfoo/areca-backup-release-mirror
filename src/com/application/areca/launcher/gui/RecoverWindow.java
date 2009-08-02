@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ResourceManager;
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.myJava.system.OSTool;
@@ -104,7 +104,7 @@ extends AbstractWindow {
 	        lblLocation.setLayoutData(dtLocation);
 	        txtLocation.addModifyListener(new ModifyListener() {
 	            public void modifyText(ModifyEvent e) {
-	                lblLocation.setText("(" + txtLocation.getText() + "/" + FileSystemRecoveryTarget.RECOVERY_LOCATION_SUFFIX + ")");
+	                lblLocation.setText("(" + txtLocation.getText() + "/" + FileSystemTarget.RECOVERY_LOCATION_SUFFIX + ")");
 	                grpLocation.layout();
 	            }
 	        });

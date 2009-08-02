@@ -16,7 +16,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
@@ -307,7 +307,7 @@ public class MainWindow extends AbstractWindow {
         }
     }
 
-    public void enforceSelectedTarget(AbstractRecoveryTarget target) {
+    public void enforceSelectedTarget(AbstractTarget target) {
         this.pnlTree.setSelectedTarget(target);
     }
 }

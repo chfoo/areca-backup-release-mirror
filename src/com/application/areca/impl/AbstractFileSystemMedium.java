@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.application.areca.AbstractMedium;
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.EntryArchiveData;
@@ -153,7 +153,7 @@ implements TargetActions, IndicatorTypes {
 			// The backup directory mustn't be included in the base directory
 			File backupDir = fileSystemPolicy.getArchiveDirectory();
 
-			Iterator iter = ((FileSystemRecoveryTarget)this.getTarget()).sources.iterator();
+			Iterator iter = ((FileSystemTarget)this.getTarget()).sources.iterator();
 			while (iter.hasNext()) {
 				File src = (File)iter.next();
 				if (CHECK_DIRECTORY_CONSISTENCY && AbstractFileSystemMedium.tool.isParentOf(src, backupDir)) {
@@ -243,7 +243,7 @@ implements TargetActions, IndicatorTypes {
 					archive = archives[i];
 
 					Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, archive);
-					if (mf != null && AbstractRecoveryTarget.BACKUP_SCHEME_FULL.equals(mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME))) {
+					if (mf != null && AbstractTarget.BACKUP_SCHEME_FULL.equals(mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME))) {
 						latestFullArchive = archive;
 						break;
 					}
@@ -495,8 +495,8 @@ implements TargetActions, IndicatorTypes {
 		checkFileSystemPolicy();
 	}
 
-	public void setTarget(AbstractRecoveryTarget target, boolean revalidate) {
-        this.target = (FileSystemRecoveryTarget)target;
+	public void setTarget(AbstractTarget target, boolean revalidate) {
+        this.target = (FileSystemTarget)target;
 		if (revalidate) {
 			fileSystemPolicy.synchronizeConfiguration();
 		}

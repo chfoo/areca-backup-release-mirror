@@ -120,15 +120,15 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
     	}
 
         if (found) {
-        	return !exclude;
+        	return !logicalNot;
         } else {
-        	return exclude;
+        	return logicalNot;
         }
 	}
     
     public Duplicable duplicate() {
         RegexArchiveFilter filter = new RegexArchiveFilter();
-        filter.exclude = this.exclude;
+        filter.logicalNot = this.logicalNot;
         filter.setRegex(this.regex);
         filter.setScheme(this.scheme);
         filter.setMatch(this.match);
@@ -150,7 +150,7 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
         } else {
             RegexArchiveFilter other = (RegexArchiveFilter)obj;
             return 
-            	EqualsHelper.equals(this.exclude, other.exclude)
+            	EqualsHelper.equals(this.logicalNot, other.logicalNot)
             	&& EqualsHelper.equals(this.regex, other.regex)
             	&& EqualsHelper.equals(this.match, other.match)     
             	&& EqualsHelper.equals(this.scheme, other.scheme)              	      	
@@ -163,7 +163,7 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
         h = HashHelper.hash(h, this.regex);
         h = HashHelper.hash(h, this.scheme);
         h = HashHelper.hash(h, this.match);
-        h = HashHelper.hash(h, this.exclude);
+        h = HashHelper.hash(h, this.logicalNot);
         return h;
     }
 }

@@ -18,7 +18,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.EntryStatus;
 import com.application.areca.SimulationResult;
@@ -68,10 +68,10 @@ implements Listener {
 	protected Label lblCreated;
 	protected Label lblModified;
 	protected Label lblTotalSize;
-	protected AbstractRecoveryTarget target;
+	protected AbstractTarget target;
 	protected Font italic;
 
-	public SimulationWindow(SimulationResult entries, AbstractRecoveryTarget target) {
+	public SimulationWindow(SimulationResult entries, AbstractTarget target) {
 		super();
 		this.entries = entries;
 		this.target = target;

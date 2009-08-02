@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ResourceManager;
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.myJava.file.FileSystemManager;
@@ -54,10 +54,10 @@ extends AbstractWindow {
     private Text location;
     
     protected File source;  
-    protected FileSystemRecoveryTarget currentTarget;
+    protected FileSystemTarget currentTarget;
     protected Button btnSave;
 
-    public SourceEditionWindow(File source, FileSystemRecoveryTarget currentTarget) {
+    public SourceEditionWindow(File source, FileSystemTarget currentTarget) {
         super();
         this.source = source;
         this.currentTarget = currentTarget;

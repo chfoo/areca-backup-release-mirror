@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.Label;
 import com.application.areca.ResourceManager;
 import com.application.areca.TargetGroup;
 import com.application.areca.impl.AbstractFileSystemMedium;
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.myJava.file.FileSystemManager;
@@ -53,10 +53,10 @@ extends AbstractWindow {
     private boolean deleteContent = false;
     private Button chkDeleteContent;
     private boolean ok = false;
-    private FileSystemRecoveryTarget target;
+    private FileSystemTarget target;
     private TargetGroup process;
     
-    public DeleteWindow(FileSystemRecoveryTarget target) {
+    public DeleteWindow(FileSystemTarget target) {
         super();
         this.target = target;
     }

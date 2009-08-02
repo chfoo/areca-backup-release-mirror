@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.eclipse.swt.widgets.Composite;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.postprocessors.AbstractProcessorComposite;
 import com.application.areca.launcher.gui.postprocessors.DeleteProcessorComposite;
@@ -101,7 +101,7 @@ public class ProcessorRepository {
         return pnl;
     }
     
-    public static Processor buildProcessor(int index, List procs, AbstractRecoveryTarget target) {
+    public static Processor buildProcessor(int index, List procs, AbstractTarget target) {
         String key = getKey(index, procs);
         Processor proc = null;
         if (key == K_DUMP) {

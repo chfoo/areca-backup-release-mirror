@@ -59,21 +59,21 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
         if (entry == null) {
             return false;
         } else if (FileSystemManager.isFile(entry)) {
-            return contains(directory, entry) ? ! exclude : exclude;
+            return contains(directory, entry) ? ! logicalNot : logicalNot;
         } else {
             if (contains(directory, entry)) {
-                return ! exclude;
+                return ! logicalNot;
             } else if (contains(entry, directory)) {
                 return true; // Always accept parent directories (exclusion or not)
             } else {
-                return exclude;
+                return logicalNot;
             }
         }
     }
     
     public Duplicable duplicate() {
         DirectoryArchiveFilter filter = new DirectoryArchiveFilter();
-        filter.exclude = this.exclude;
+        filter.logicalNot = this.logicalNot;
         filter.directory = this.directory;
         return filter;
     }    
@@ -102,7 +102,7 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
             DirectoryArchiveFilter other = (DirectoryArchiveFilter)obj;
             return 
             	EqualsHelper.equals(this.directory, other.directory)
-            	&& EqualsHelper.equals(this.exclude, other.exclude)
+            	&& EqualsHelper.equals(this.logicalNot, other.logicalNot)
            	;
         }
     }
@@ -110,7 +110,7 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
     public int hashCode() {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, FileSystemManager.getAbsolutePath(this.directory));
-        h = HashHelper.hash(h, this.exclude);
+        h = HashHelper.hash(h, this.logicalNot);
         return h;
     }
 }

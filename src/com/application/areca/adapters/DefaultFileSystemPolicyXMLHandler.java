@@ -4,7 +4,7 @@ import java.io.File;
 
 import org.w3c.dom.Node;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.impl.policy.DefaultFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.myJava.file.FileSystemManager;
@@ -39,7 +39,7 @@ public class DefaultFileSystemPolicyXMLHandler
 extends AbstractFileSystemPolicyXMLHandler {
 	public FileSystemPolicy read(
 			Node mediumNode, 
-			AbstractRecoveryTarget target, 
+			AbstractTarget target, 
 			TargetXMLReader reader
 	) throws AdapterException {
         DefaultFileSystemPolicy policy = new DefaultFileSystemPolicy();

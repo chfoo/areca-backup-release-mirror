@@ -12,7 +12,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.HistoryEntryTypes;
 import com.application.areca.ResourceManager;
@@ -110,7 +110,7 @@ implements Listener, Refreshable, HistoryEntryTypes {
         return this.getClass().getName();
     }
 
-    private void fillTargetData(AbstractRecoveryTarget target) {
+    private void fillTargetData(AbstractTarget target) {
         try {
             IndicatorMap indicators = target.getMedium().computeIndicators();
             Integer[] keys = indicators.getSortedIndicatorKeys();

@@ -142,7 +142,7 @@ public interface ArchiveMedium extends Duplicable {
     /**
      * Return the target to which the medium is bound
      */
-    public AbstractRecoveryTarget getTarget();
+    public AbstractTarget getTarget();
     
     /**
      * Return a description of the storage medium 
@@ -222,7 +222,7 @@ public interface ArchiveMedium extends Duplicable {
     /**
      * Set the medium's target
      */
-    public void setTarget(AbstractRecoveryTarget target, boolean revalidate);
+    public void setTarget(AbstractTarget target, boolean revalidate);
     
     /**
      * Tells whether the backup scheme passed as argument is supported by the medium or not

@@ -140,7 +140,7 @@ implements ArchiveFilter, FileSystemIteratorFilter {
             FilterGroup other = (FilterGroup)obj;
             return (
                     EqualsHelper.equals(other.isAnd(), this.isAnd())
-                    && EqualsHelper.equals(other.isExclude(), this.isExclude())
+                    && EqualsHelper.equals(other.isLogicalNot(), this.isLogicalNot())
                     && EqualsHelper.equals(other.filters, this.filters)                    
             );
         }
@@ -160,7 +160,7 @@ implements ArchiveFilter, FileSystemIteratorFilter {
     public Duplicable duplicate() {
         FilterGroup other = new FilterGroup();
         other.setAnd(this.isAnd);
-        other.setExclude(this.isExclude);
+        other.setLogicalNot(this.isExclude);
         Iterator iter = this.getFilterIterator();
         while (iter.hasNext()) {
             ArchiveFilter filter = (ArchiveFilter)iter.next();
@@ -169,7 +169,7 @@ implements ArchiveFilter, FileSystemIteratorFilter {
         return other;
     }
 
-    public boolean isExclude() {
+    public boolean isLogicalNot() {
         return isExclude;
     }
 
@@ -185,7 +185,7 @@ implements ArchiveFilter, FileSystemIteratorFilter {
         throw new UnsupportedOperationException("Parameters are not supported by this implementation.");
     }
 
-    public void setExclude(boolean exclude) {
+    public void setLogicalNot(boolean exclude) {
         isExclude = exclude;
     }
 }

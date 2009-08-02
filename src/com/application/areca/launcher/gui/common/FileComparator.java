@@ -1,12 +1,12 @@
-package com.application.areca.search;
+package com.application.areca.launcher.gui.common;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.io.File;
+import java.util.Comparator;
 
-import com.application.areca.AbstractTarget;
+import com.myJava.file.FileSystemManager;
 
 /**
+ * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -32,26 +32,12 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class SearchResult {
+public class FileComparator implements Comparator {
 
-    private Map resultsByTarget = new HashMap();
-    
-    public SearchResult() {
-    }
-
-    public Iterator targetIterator() {
-        return this.resultsByTarget.keySet().iterator();
-    }
-    
-    public int size() {
-        return this.resultsByTarget.size();
-    }
-    
-    public TargetSearchResult getTargetSearchResult(AbstractTarget target) {
-        return (TargetSearchResult)this.resultsByTarget.get(target);
-    }
-
-    public void setTargetSearchResult(AbstractTarget target, TargetSearchResult result) {
-        this.resultsByTarget.put(target, result);
-    }
+	public int compare(Object o1, Object o2) {	
+		String f1 = FileSystemManager.getAbsolutePath(((File)o1));
+		String f2 = FileSystemManager.getAbsolutePath(((File)o2));
+		
+		return f1.compareTo(f2);
+	}
 }

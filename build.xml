@@ -1,0 +1,84 @@
+<!--
+     Areca's ant compilation script
+     Builds Areca's main jar file (areca.jar) and library file (libarecafs.so ... for unix-like operating systems)
+
+     Syntax : ant -buildfile compile.xml
+-->
+
+<project name="Areca compilation" default="compileall">
+    <description>Areca's compilation script</description>
+
+    <!-- Path to SWT libraries (download the SWT package if this file is missing on your system) -->
+    <property name="swtfile" value="/usr/lib/java/swt.jar"/>
+
+    <property name="root" value="."/>
+
+    <!-- Test the OS -->
+    <condition property="isWindows">
+        <and>
+            <os family="windows"/>
+        </and>
+    </condition>
+
+
+    <target name="compilejava">
+        <description>Java compilation task (builds areca.jar)</description>
+
+        <delete dir="${root}/classes"/>
+        <mkdir dir="${root}/classes"/>
+
+        <javac srcdir="${root}/src"
+               destdir="${root}/classes"
+               debug="off"
+               source="1.4"
+        >
+            <classpath>
+                <fileset dir="${root}/lib">
+                    <include name="**/*.jar"/>
+                </fileset>
+                <fileset file="${swtfile}"/>
+            </classpath>
+        </javac>
+
+        <jar destfile="${root}/areca.jar">
+            <fileset dir="${root}/classes"/>
+            <fileset dir="${root}">
+                <include name="icons/**"/>
+            </fileset>
+        </jar>
+
+        <delete dir="${root}/classes"/>
+    </target>
+
+    <target name="jnicheck" if="isWindows">
+        <echo>No JNI needed on Windows</echo>
+    </target>
+
+    <target name="compilejni" unless="isWindows">
+        <description>JNI compilation task (builds libarecafs.so ... for unix-like operating systems only)</description>
+        <exec dir="${root}/jni" executable="gcc">
+            <arg value="-c"/>
+            <arg value="-fPIC"/>
+            <arg value="-lacl"/>
+            <arg value="com_myJava_file_metadata_posix_jni_wrapper_FileAccessWrapper.c"/>
+            <arg value="-o"/>
+            <arg value="com_myJava_file_metadata_posix_jni_wrapper_FileAccessWrapper.o"/>
+        </exec>
+        <exec dir="${root}/jni" executable="gcc">
+            <arg value="-shared"/>
+            <arg value="-lacl"/>
+            <arg value="-o"/>
+            <arg value="libarecafs.so"/>
+            <arg value="com_myJava_file_metadata_posix_jni_wrapper_FileAccessWrapper.o"/>
+        </exec>
+        <delete file="${root}/jni/com_myJava_file_metadata_posix_jni_wrapper_FileAccessWrapper.o"/>
+        <move file="${root}/jni/libarecafs.so" todir="${root}"/>
+    </target>
+
+    <target name="compileall">
+        <description>Global compilation task (builds areca.jar and libarecafs.so)</description>
+        <antcall target="compilejava"/>
+        <antcall target="jnicheck"/>
+        <antcall target="compilejni"/>
+    </target>
+</project>

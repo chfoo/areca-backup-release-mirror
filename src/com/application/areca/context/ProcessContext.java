@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.UserInformationChannel;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.content.ContentFileIterator;
@@ -156,7 +156,7 @@ public class ProcessContext {
         }
     }
     
-    public ProcessContext(AbstractRecoveryTarget target, UserInformationChannel channel) {
+    public ProcessContext(AbstractTarget target, UserInformationChannel channel) {
         this(target, channel, null);
     }
     
@@ -168,7 +168,7 @@ public class ProcessContext {
 		return nbChecked;
 	}
 
-	public ProcessContext(AbstractRecoveryTarget target, UserInformationChannel channel, TaskMonitor taskMonitor) {
+	public ProcessContext(AbstractTarget target, UserInformationChannel channel, TaskMonitor taskMonitor) {
         this.currentReport = new ProcessReport(target);
         this.infoChannel = channel;
         if (taskMonitor != null) {

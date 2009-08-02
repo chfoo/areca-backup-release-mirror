@@ -1,6 +1,6 @@
 package com.application.areca.launcher.gui;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.adapters.AdapterException;
 import com.application.areca.adapters.XMLTags;
 
@@ -33,11 +33,11 @@ This file is part of Areca.
 public class MissingDataListener
 implements com.application.areca.adapters.MissingDataListener, XMLTags {
     
-    public Object missingEncryptionDataDetected(AbstractRecoveryTarget target) throws AdapterException {
+    public Object missingEncryptionDataDetected(AbstractTarget target) throws AdapterException {
         return Application.getInstance().retrieveMissingEncryptionData(target);
     }
 
-	public Object missingFTPDataDetected(AbstractRecoveryTarget target) throws AdapterException {
+	public Object missingFTPDataDetected(AbstractTarget target) throws AdapterException {
         return Application.getInstance().retrieveMissingFTPData(target);
 	}
 }

@@ -2,7 +2,7 @@ package com.application.areca.adapters;
 
 import org.w3c.dom.Node;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 
@@ -37,7 +37,7 @@ extends AbstractFileSystemPolicyXMLHandler {
 	
     public FileSystemPolicy read(
     		Node mediumNode, 
-    		AbstractRecoveryTarget target,
+    		AbstractTarget target,
     		TargetXMLReader reader
     ) throws AdapterException {
     	

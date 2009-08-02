@@ -1,12 +1,7 @@
-package com.application.areca.search;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
-import com.application.areca.AbstractTarget;
+package com.application.areca;
 
 /**
+ * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -32,26 +27,33 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class SearchResult {
+public class TranslationData implements Comparable {
+	private String language;
+	private boolean deprecated;
 
-    private Map resultsByTarget = new HashMap();
-    
-    public SearchResult() {
-    }
+	public TranslationData(String language, boolean deprecated) {
+		this.language = language;
+		this.deprecated = deprecated;
+	}
 
-    public Iterator targetIterator() {
-        return this.resultsByTarget.keySet().iterator();
-    }
-    
-    public int size() {
-        return this.resultsByTarget.size();
-    }
-    
-    public TargetSearchResult getTargetSearchResult(AbstractTarget target) {
-        return (TargetSearchResult)this.resultsByTarget.get(target);
-    }
+	public String getLanguage() {
+		return language;
+	}
+	
+	public void setLanguage(String language) {
+		this.language = language;
+	}
+	
+	public boolean isDeprecated() {
+		return deprecated;
+	}
+	
+	public void setDeprecated(boolean deprecated) {
+		this.deprecated = deprecated;
+	}
 
-    public void setTargetSearchResult(AbstractTarget target, TargetSearchResult result) {
-        this.resultsByTarget.put(target, result);
-    }
+	public int compareTo(Object arg0) {
+		TranslationData other = (TranslationData)arg0;
+		return this.getLanguage().compareTo(other.getLanguage());
+	}
 }

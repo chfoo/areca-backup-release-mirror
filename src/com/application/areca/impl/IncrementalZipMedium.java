@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.context.ProcessContext;
@@ -131,7 +131,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 	public boolean supportsBackupScheme(String backupScheme) {
 		return 
 		super.supportsBackupScheme(backupScheme)
-		&& ! (backupScheme.equals(AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL) && this.imageBackups);
+		&& ! (backupScheme.equals(AbstractTarget.BACKUP_SCHEME_INCREMENTAL) && this.imageBackups);
 	}
 
 	protected void prepareContext(ProcessContext context) {

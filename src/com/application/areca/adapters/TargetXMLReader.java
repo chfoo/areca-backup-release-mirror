@@ -9,7 +9,7 @@ import java.util.Set;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
 import com.application.areca.TargetGroup;
@@ -25,7 +25,7 @@ import com.application.areca.filter.RegexArchiveFilter;
 import com.application.areca.filter.SpecialFileFilter;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.EncryptionConfiguration;
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.impl.IncrementalDirectoryMedium;
 import com.application.areca.impl.IncrementalZipMedium;
 import com.application.areca.impl.handler.ArchiveHandler;
@@ -101,7 +101,7 @@ public class TargetXMLReader implements XMLTags {
 		return missingDataListener;
 	}
 
-	public FileSystemRecoveryTarget readTarget() throws IOException, AdapterException, ApplicationException {
+	public FileSystemTarget readTarget() throws IOException, AdapterException, ApplicationException {
 		Node id = targetNode.getAttributes().getNamedItem(XML_TARGET_ID);
 		Node uid = targetNode.getAttributes().getNamedItem(XML_TARGET_UID);        
 		Node name = targetNode.getAttributes().getNamedItem(XML_TARGET_NAME);     
@@ -115,7 +115,7 @@ public class TargetXMLReader implements XMLTags {
 			strUid = uid.getNodeValue();
 		}
 
-		FileSystemRecoveryTarget target = new FileSystemRecoveryTarget();
+		FileSystemTarget target = new FileSystemTarget();
 		target.setId(Integer.parseInt(id.getNodeValue()));
 		target.setUid(strUid);
 		target.setGroup(group);
@@ -232,7 +232,7 @@ public class TargetXMLReader implements XMLTags {
 		return target;
 	}
 
-	protected void addProcessor(Node node, Processor action, AbstractRecoveryTarget target) throws AdapterException {
+	protected void addProcessor(Node node, Processor action, AbstractTarget target) throws AdapterException {
 		Node executeAfterNode = node.getAttributes().getNamedItem(XML_PP_AFTER);
 		boolean executeAfter = true;
 		if (executeAfterNode != null) {
@@ -418,7 +418,7 @@ public class TargetXMLReader implements XMLTags {
 		return (overwriteNode != null && overwriteNode.getNodeValue().equalsIgnoreCase("true"));   
 	}
 
-	protected ArchiveMedium readMedium(Node mediumNode, AbstractRecoveryTarget target) throws IOException, AdapterException, ApplicationException {
+	protected ArchiveMedium readMedium(Node mediumNode, AbstractTarget target) throws IOException, AdapterException, ApplicationException {
 		Node typeNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_TYPE);
 		if (typeNode == null) {
 			throw new AdapterException("Medium type not found : your medium must have a '" + XML_MEDIUM_TYPE + "' attribute.");
@@ -428,7 +428,7 @@ public class TargetXMLReader implements XMLTags {
 		Node trackDirsNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_TRACK_DIRS);
 		if (trackDirsNode != null) {
 			boolean trackDirs = trackDirsNode.getNodeValue().equalsIgnoreCase("true");
-			((FileSystemRecoveryTarget)target).setTrackEmptyDirectories(trackDirs); 
+			((FileSystemTarget)target).setTrackEmptyDirectories(trackDirs); 
 		}
 		// EOF backward compatibility
 
@@ -543,7 +543,7 @@ public class TargetXMLReader implements XMLTags {
 
 	protected FileSystemPolicy readFileSystemPolicy(
 			Node mediumNode, 
-			AbstractRecoveryTarget target
+			AbstractTarget target
 	) throws IOException, AdapterException, ApplicationException {
 		Node policyNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_POLICY);
 		String policyId;
@@ -567,7 +567,7 @@ public class TargetXMLReader implements XMLTags {
 
 	protected EncryptionPolicy readEncryptionPolicy(
 			Node mediumNode, 
-			AbstractRecoveryTarget target
+			AbstractTarget target
 	) throws IOException, AdapterException, ApplicationException {
 		Node encryptedNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTED);
 		boolean isEncrypted = (encryptedNode != null && encryptedNode.getNodeValue().equalsIgnoreCase("true"));   
@@ -775,9 +775,12 @@ public class TargetXMLReader implements XMLTags {
 	}    
 
 	protected void initFilter(ArchiveFilter filter, Node filterNode, Node paramNode) {
-		Node excludeNode = filterNode.getAttributes().getNamedItem(XML_FILTER_EXCLUDE);
-		boolean isExclude = (excludeNode != null && excludeNode.getNodeValue().equalsIgnoreCase("true"));
-		filter.setExclude(isExclude);
+		Node logicalNotNode = filterNode.getAttributes().getNamedItem(XML_FILTER_LOGICAL_NOT);
+		if (logicalNotNode == null) {
+			logicalNotNode = filterNode.getAttributes().getNamedItem(XML_FILTER_LOGICAL_NOT_DEPRECATED);
+		}
+		boolean isLogicalNot = (logicalNotNode != null && logicalNotNode.getNodeValue().equalsIgnoreCase("true"));
+		filter.setLogicalNot(isLogicalNot);
 
 		if (paramNode != null) {
 			filter.acceptParameters(paramNode.getNodeValue());

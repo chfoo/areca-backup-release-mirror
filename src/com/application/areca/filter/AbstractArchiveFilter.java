@@ -1,6 +1,6 @@
 package com.application.areca.filter;
 
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 
 /**
  * Filter base class
@@ -31,15 +31,15 @@ This file is part of Areca.
  */
 public abstract class AbstractArchiveFilter implements ArchiveFilter {
 
-    protected boolean exclude = false;
-    protected FileSystemRecoveryTarget medium;
+    protected boolean logicalNot = false;
+    protected FileSystemTarget medium;
     
-    public boolean isExclude() {
-        return exclude;
+    public boolean isLogicalNot() {
+        return logicalNot;
     }
     
-    public void setExclude(boolean exclude) {
-        this.exclude = exclude;
+    public void setLogicalNot(boolean logicalNot) {
+        this.logicalNot = logicalNot;
     }
     
     public boolean requiresParameters() {

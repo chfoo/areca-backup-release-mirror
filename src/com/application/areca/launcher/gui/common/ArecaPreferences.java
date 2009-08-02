@@ -2,6 +2,7 @@ package com.application.areca.launcher.gui.common;
 
 import java.util.Locale;
 
+import com.application.areca.TranslationData;
 import com.application.areca.Utils;
 import com.application.areca.context.ReportingConfiguration;
 import com.myJava.configuration.FrameworkConfiguration;
@@ -188,12 +189,12 @@ public final class ArecaPreferences {
 	
 	public static String resolveLanguage() {
     	String currentLg = getLang();
-        String[] lges = Utils.getTranslations();
+        TranslationData[] lges = Utils.getTranslations();
         
         // Check that the language exists in the language list
         boolean found = false;
         for (int i=0; i<lges.length; i++) {
-            if (lges[i].equals(currentLg)) {
+            if (lges[i].getLanguage().equals(currentLg)) {
             	found = true;
             	break;
             }

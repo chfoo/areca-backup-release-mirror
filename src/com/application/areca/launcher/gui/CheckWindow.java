@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ResourceManager;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.launcher.gui.common.AbstractWindow;
@@ -162,7 +162,7 @@ extends AbstractWindow {
         txtLocation.setText(OSTool.getTempDirectory());
         radUseDefaultLocation.setSelection(true);
         
-        AbstractRecoveryTarget target = Application.getInstance().getCurrentTarget();
+        AbstractTarget target = Application.getInstance().getCurrentTarget();
         AbstractIncrementalFileSystemMedium medium = (AbstractIncrementalFileSystemMedium)target.getMedium();
         chkCheckSelectedEntries.setEnabled(medium.getHandler().autonomousArchives());
         chkCheckSelectedEntries.setSelection(medium.getHandler().autonomousArchives());

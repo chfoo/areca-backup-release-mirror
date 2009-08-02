@@ -11,7 +11,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ResourceManager;
 import com.application.areca.UserInformationChannel;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
@@ -54,7 +54,7 @@ implements UserInformationChannel, Colors, Listener {
 
     private Composite parent;
     private String currentMessage = "";
-    private AbstractRecoveryTarget target;
+    private AbstractTarget target;
     
     private Label lblMessage;
     private ProgressBar pgbProgress;
@@ -72,7 +72,7 @@ implements UserInformationChannel, Colors, Listener {
      * @param parent
      * @param style
      */
-    public InfoChannel(AbstractRecoveryTarget target, Composite parent) {
+    public InfoChannel(AbstractTarget target, Composite parent) {
         super(parent, SWT.NONE);
         this.parent = parent;
         this.target = target;

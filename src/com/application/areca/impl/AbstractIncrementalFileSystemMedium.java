@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.EntryArchiveData;
@@ -537,7 +537,7 @@ implements TargetActions {
 
 				// Special case : if we are looking for a full backup then 
 				//                       the first archive must be a full backup
-				if (backupScheme != null && backupScheme.equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL)) {
+				if (backupScheme != null && backupScheme.equals(AbstractTarget.BACKUP_SCHEME_FULL)) {
 					return archives[0];
 				}
 
@@ -583,21 +583,21 @@ implements TargetActions {
 			Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, recoveredArchives[i]);
 			if (mf != null) {
 				String prp = mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME);
-				if (prp == null || prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL)) {
+				if (prp == null || prp.equals(AbstractTarget.BACKUP_SCHEME_INCREMENTAL)) {
 					// do nothing
-				} else if (prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+				} else if (prp.equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
 					hasDifferentialBackup = true;
-				} else if (prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL)) {
+				} else if (prp.equals(AbstractTarget.BACKUP_SCHEME_FULL)) {
 					hasFullBackup = true;
 				}
 			}
 		}  
 		if (hasFullBackup) {
-			manifest.addProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractRecoveryTarget.BACKUP_SCHEME_FULL);
+			manifest.addProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractTarget.BACKUP_SCHEME_FULL);
 		} else if (hasDifferentialBackup) {
-			manifest.addProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL);            
+			manifest.addProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL);            
 		} else {
-			manifest.addProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);            
+			manifest.addProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);            
 		}
 	}
 
@@ -766,7 +766,7 @@ implements TargetActions {
 					context.getManifest().addProperty(ManifestKeys.ARCHIVE_SIZE, context.getOutputStreamListener().getWritten());					
 					context.getManifest().addProperty(ManifestKeys.ARCHIVE_NAME, FileSystemManager.getName(context.getCurrentArchiveFile()));
 
-					AbstractRecoveryTarget.addBasicInformationsToManifest(context.getManifest());
+					AbstractTarget.addBasicInformationsToManifest(context.getManifest());
 					this.storeManifest(context);
 
 					// Store the trace file
@@ -807,13 +807,13 @@ implements TargetActions {
 			LogHelper.logFileInformations("Backup location :", fileSystemPolicy.getArchiveDirectory());  
 
 			// Read the previous trace
-			if (backupScheme.equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL)) {
+			if (backupScheme.equals(AbstractTarget.BACKUP_SCHEME_FULL)) {
 				Logger.defaultLogger().info("Using an empty archive as reference.");
 				context.setReferenceTrace(null);
 			} else {
 				File lastArchive;
-				if (backupScheme.equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
-					lastArchive = this.getLastArchive(AbstractRecoveryTarget.BACKUP_SCHEME_FULL, null);
+				if (backupScheme.equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+					lastArchive = this.getLastArchive(AbstractTarget.BACKUP_SCHEME_FULL, null);
 				} else {
 					lastArchive = this.getLastArchive();
 				}
@@ -840,7 +840,7 @@ implements TargetActions {
 			context.setManifest(manifest);
 			manifest.addProperty(
 					ManifestKeys.OPTION_BACKUP_SCHEME, 
-					context.getReferenceTrace() == null ? AbstractRecoveryTarget.BACKUP_SCHEME_FULL : backupScheme
+					context.getReferenceTrace() == null ? AbstractTarget.BACKUP_SCHEME_FULL : backupScheme
 			);
 
 			// Archive creation
@@ -848,7 +848,7 @@ implements TargetActions {
 
 			// TraceWriter creation
 			File traceFile = new File(getDataDirectory(context.getCurrentArchiveFile()), getTraceFileName());
-			context.setTraceAdapter(new ArchiveTraceAdapter(traceFile, ((FileSystemRecoveryTarget)this.target).isTrackSymlinks()));
+			context.setTraceAdapter(new ArchiveTraceAdapter(traceFile, ((FileSystemTarget)this.target).isTrackSymlinks()));
 			context.getTraceAdapter().setTrackPermissions(this.trackPermissions);
 
 			File contentFile = new File(getDataDirectory(context.getCurrentArchiveFile()), getContentFileName());
@@ -1094,7 +1094,7 @@ implements TargetActions {
 							fEntry.setStatus(EntryStatus.STATUS_NOT_STORED);  
 						} else {
 							boolean link = false;
-							if (((FileSystemRecoveryTarget)this.target).isTrackSymlinks() && FileMetaDataAccessor.TYPE_LINK == type) {
+							if (((FileSystemTarget)this.target).isTrackSymlinks() && FileMetaDataAccessor.TYPE_LINK == type) {
 								link = true;
 								fEntry.setSize(0);
 							}
@@ -1117,7 +1117,7 @@ implements TargetActions {
 					// File found in source files but not found in trace -> new File
 					fEntry.setStatus(EntryStatus.STATUS_CREATED);
 
-					if (((FileSystemRecoveryTarget)this.target).isTrackSymlinks() && FileMetaDataAccessor.TYPE_LINK == FileSystemManager.getType(fEntry.getFile())) {
+					if (((FileSystemTarget)this.target).isTrackSymlinks() && FileMetaDataAccessor.TYPE_LINK == FileSystemManager.getType(fEntry.getFile())) {
 						fEntry.setSize(0);
 					}
 
@@ -1156,7 +1156,7 @@ implements TargetActions {
 				if (
 						FileSystemManager.isFile(fEntry.getFile()) && (
 								(FileMetaDataAccessor.TYPE_LINK != type)
-								|| (! ((FileSystemRecoveryTarget)this.target).isTrackSymlinks())
+								|| (! ((FileSystemTarget)this.target).isTrackSymlinks())
 						) && (FileMetaDataAccessor.TYPE_PIPE != type)
 				) {
 					// The entry is stored if it has been modified
@@ -1257,7 +1257,7 @@ implements TargetActions {
 	}
 
 	public boolean supportsBackupScheme(String backupScheme) {
-		if (imageBackups && backupScheme.equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+		if (imageBackups && backupScheme.equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
 			return false;
 		} else {
 			return true;
@@ -1661,7 +1661,7 @@ implements TargetActions {
 		this.target.secureUpdateCurrentTask("Applying metadata ...", context);
 		UpdateMetaDataTraceHandler handler = new UpdateMetaDataTraceHandler();
 		handler.setDestination(destination);
-		ArchiveTraceAdapter adapter = new ArchiveTraceAdapter(traceFile, ((FileSystemRecoveryTarget)this.target).isTrackSymlinks());
+		ArchiveTraceAdapter adapter = new ArchiveTraceAdapter(traceFile, ((FileSystemTarget)this.target).isTrackSymlinks());
 
 		try {
 			adapter.traverseTraceFile(handler, context);
@@ -1696,18 +1696,18 @@ implements TargetActions {
 
 			for (int i=listedArchives.length - 1; i>=0; i--) {
 				Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, listedArchives[i]);
-				String prp = mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);
-				if (prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL) && ! ignoreAllArchives) {
+				String prp = mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
+				if (prp.equals(AbstractTarget.BACKUP_SCHEME_FULL) && ! ignoreAllArchives) {
 					Logger.defaultLogger().info("Adding " + FileSystemManager.getAbsolutePath(listedArchives[i]) + " (" + prp + ") to recovery list.");
 					result.getRecoveredArchives().add(0, listedArchives[i]);
 					ignoreAllArchives = true;
 					Logger.defaultLogger().info("Previous archives will be ignored.");
-				} else if (prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)  && ! ignoreIncrementalAndDifferentialArchives && ! ignoreAllArchives) {
+				} else if (prp.equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)  && ! ignoreIncrementalAndDifferentialArchives && ! ignoreAllArchives) {
 					Logger.defaultLogger().info("Adding " + FileSystemManager.getAbsolutePath(listedArchives[i]) + " (" + prp + ") to recovery list.");
 					result.getRecoveredArchives().add(0, listedArchives[i]);
 					ignoreIncrementalAndDifferentialArchives = true;
 					Logger.defaultLogger().info("Previous incremental and differential archives will be ignored.");                            
-				} else if (prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL) && ! ignoreIncrementalAndDifferentialArchives && ! ignoreAllArchives) {
+				} else if (prp.equals(AbstractTarget.BACKUP_SCHEME_INCREMENTAL) && ! ignoreIncrementalAndDifferentialArchives && ! ignoreAllArchives) {
 					Logger.defaultLogger().info("Adding " + FileSystemManager.getAbsolutePath(listedArchives[i]) + " (" + prp + ") to recovery list.");
 					result.getRecoveredArchives().add(0, listedArchives[i]);
 				} else {
@@ -2075,7 +2075,7 @@ implements TargetActions {
 				SearchMatcher matcher = new SearchMatcher((DefaultSearchCriteria)criteria);
 
 				Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, archive);
-				String root = ((FileSystemRecoveryTarget)this.getTarget()).getSourceDirectory();
+				String root = ((FileSystemTarget)this.getTarget()).getSourceDirectory();
 
 				while (iter.hasNext()) {
 					TraceEntry trcEntry = iter.next();

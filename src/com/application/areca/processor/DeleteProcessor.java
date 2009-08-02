@@ -1,6 +1,6 @@
 package com.application.areca.processor;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
 import com.myJava.object.Duplicable;
@@ -54,7 +54,7 @@ public class DeleteProcessor extends AbstractProcessor {
     }
     
     public void runImpl(ProcessContext context) throws ApplicationException {
-        AbstractRecoveryTarget target = context.getReport().getTarget();
+        AbstractTarget target = context.getReport().getTarget();
         target.getGroup().processDeleteOnTargetImpl(target, delay, new ProcessContext(target, context.getInfoChannel()));
     }
     

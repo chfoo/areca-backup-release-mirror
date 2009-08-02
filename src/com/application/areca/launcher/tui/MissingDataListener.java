@@ -1,6 +1,6 @@
 package com.application.areca.launcher.tui;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.adapters.AdapterException;
 import com.application.areca.adapters.XMLTags;
 
@@ -33,11 +33,11 @@ This file is part of Areca.
 public class MissingDataListener
 implements com.application.areca.adapters.MissingDataListener, XMLTags {
 
-    public Object missingEncryptionDataDetected(AbstractRecoveryTarget target) throws AdapterException {
+    public Object missingEncryptionDataDetected(AbstractTarget target) throws AdapterException {
         throw new AdapterException("No encryption key found : your medium must have a '" + XML_MEDIUM_ENCRYPTIONKEY + "' attribute because it is encrypted (" + XML_MEDIUM_ENCRYPTED + " = true).");
     }
 
-	public Object missingFTPDataDetected(AbstractRecoveryTarget target) throws AdapterException {
+	public Object missingFTPDataDetected(AbstractTarget target) throws AdapterException {
         throw new AdapterException("No FTP password found : your medium must have a '" + XML_MEDIUM_FTP_PASSWORD + "' attribute.");
 	}
 }

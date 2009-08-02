@@ -38,7 +38,8 @@ This file is part of Areca.
  */
 public class ResourceManager {
     public static final String RESOURCE_NAME = "resources";
-    private static ResourceManager instance = new ResourceManager(RESOURCE_NAME);
+    public static final String RESOURCE_NAME_DEPRECATED_SUFFIX = "_d";
+    private static ResourceManager instance = new ResourceManager(RESOURCE_NAME, RESOURCE_NAME_DEPRECATED_SUFFIX);
     
     private ResourceBundle properties = null;
     private ResourceBundle defaultProperties = null;
@@ -47,11 +48,15 @@ public class ResourceManager {
         return instance;
     }
 
-    protected ResourceManager(String domain) {
+    protected ResourceManager(String domain, String deprecatedSuffix) {
         try {
             properties = ResourceBundle.getBundle(domain, Locale.getDefault());
         } catch (MissingResourceException ex) {
-            properties = ResourceBundle.getBundle(domain, Locale.ENGLISH);
+        	try {
+                properties = ResourceBundle.getBundle(domain + deprecatedSuffix, Locale.getDefault());
+            } catch (MissingResourceException ex2) {
+            	properties = ResourceBundle.getBundle(domain, Locale.ENGLISH);
+            }
         } catch (Exception ex) {
             Logger.defaultLogger().error(ex);
         } finally {

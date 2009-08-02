@@ -99,7 +99,7 @@ public class FileDateArchiveFilter extends AbstractArchiveFilter {
                 value = ! greaterThan;
             }
             
-            if (exclude) {
+            if (logicalNot) {
                 return ! value;
             } else {
                 return value;
@@ -109,7 +109,7 @@ public class FileDateArchiveFilter extends AbstractArchiveFilter {
     
     public Duplicable duplicate() {
         FileDateArchiveFilter filter = new FileDateArchiveFilter();
-        filter.exclude = this.exclude;
+        filter.logicalNot = this.logicalNot;
         filter.minDate = this.minDate;
         filter.greaterThan = this.greaterThan;
         return filter;
@@ -125,7 +125,7 @@ public class FileDateArchiveFilter extends AbstractArchiveFilter {
         } else {
             FileDateArchiveFilter other = (FileDateArchiveFilter)obj;
             return 
-            	EqualsHelper.equals(this.exclude, other.exclude)
+            	EqualsHelper.equals(this.logicalNot, other.logicalNot)
             	&& EqualsHelper.equals(this.greaterThan, other.greaterThan)
             	&& EqualsHelper.equals(this.minDate, other.minDate)
            	;
@@ -135,7 +135,7 @@ public class FileDateArchiveFilter extends AbstractArchiveFilter {
     public int hashCode() {
         int h = HashHelper.initHash(this);
         h = HashHelper.hash(h, this.greaterThan);
-        h = HashHelper.hash(h, this.exclude);
+        h = HashHelper.hash(h, this.logicalNot);
         h = HashHelper.hash(h, this.minDate);
         return h;
     }

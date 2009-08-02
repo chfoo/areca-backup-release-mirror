@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
 import com.application.areca.ArecaURLs;
@@ -43,7 +43,7 @@ import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.context.ReportingConfiguration;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ActionConstants;
 import com.application.areca.launcher.gui.common.ArecaImages;
@@ -274,7 +274,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			// BACKUP
 			if (TargetGroup.class.isAssignableFrom(this.getCurrentObject().getClass())) {
 				this.showBackupWindow(null, getCurrentTargetGroup(), false); 
-			} else if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
+			} else if (FileSystemTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
 				// BACKUP WITH MANIFEST
 				Manifest mf;
 				try {
@@ -287,7 +287,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			}
 		} else if (command.equals(CMD_MERGE)) {
 			// MERGE
-			AbstractRecoveryTarget target = this.getCurrentTarget();
+			AbstractTarget target = this.getCurrentTarget();
 			ArchiveMedium medium = target.getMedium();
 			if (! ((AbstractIncrementalFileSystemMedium)medium).isOverwrite()) {
 				try {
@@ -304,8 +304,8 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 					RM.getLabel("app.deletearchivesaction.confirm.title"));
 
 			if (result == SWT.YES) {
-				if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
-					FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
+				if (FileSystemTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
+					FileSystemTarget target = (FileSystemTarget)this.getCurrentObject();
 					TargetGroup process = target.getGroup();
 					ProcessRunner rn = new ProcessRunner(target) {
 						public void runCommand() throws ApplicationException {
@@ -325,7 +325,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			showEditTarget(null);
 		} else if (command.equals(CMD_EDIT_TARGET)) {
 			// EDIT TARGET
-			showEditTarget((AbstractRecoveryTarget)this.getCurrentObject());
+			showEditTarget((AbstractTarget)this.getCurrentObject());
 		} else if (command.equals(CMD_DEL_TARGET)) {            
 			// DELETE TARGET
 			showDeleteTarget();
@@ -400,7 +400,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			showDialog(frm);        
 		} else if (
 				command.equals(CMD_RECOVER) || command.equals(CMD_RECOVER_WITH_FILTER)
-				|| command.equals(CMD_RECOVER_FROM_LOGICAL)
+				|| command.equals(CMD_RECOVER_WITH_FILTER_LATEST)
 		) {
 			// RECOVER
 			RecoverWindow window = new RecoverWindow(true);
@@ -411,8 +411,8 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			final boolean recoverDeletedEntries = window.isRecoverDeletedEntries();
 
 			if (path != null) {
-				if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
-					FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
+				if (FileSystemTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
+					FileSystemTarget target = (FileSystemTarget)this.getCurrentObject();
 					TargetGroup process = target.getGroup();
 					ProcessRunner rn = new ProcessRunner(target) {
 						public void runCommand() throws ApplicationException {
@@ -437,7 +437,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 					if (command.equals(CMD_RECOVER) || command.equals(CMD_RECOVER_WITH_FILTER)) {
 						rn.rFromDate = getCurrentDate();
 					}
-					if (command.equals(CMD_RECOVER_WITH_FILTER) || command.equals(CMD_RECOVER_FROM_LOGICAL)) {
+					if (command.equals(CMD_RECOVER_WITH_FILTER) || command.equals(CMD_RECOVER_WITH_FILTER_LATEST)) {
 						rn.argument = this.currentFilter;
 					}
 					rn.launch();                    
@@ -479,7 +479,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			}
 			copyString(cp.toString());
 		} else if (
-				command.equals(CMD_RECOVER_ENTRY) 
+				command.equals(CMD_RECOVER_ENTRY_HISTO) 
 				|| command.equals(CMD_VIEW_FILE_AS_TEXT_HISTO) 
 				|| command.equals(CMD_VIEW_FILE_HISTO)
 				|| command.equals(CMD_VIEW_FILE_AS_TEXT) 
@@ -488,7 +488,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			// RECOVER ENTRY
 			final String path;
 			final boolean checkRecoveredFiles;
-			if (command.equals(CMD_RECOVER_ENTRY)) {
+			if (command.equals(CMD_RECOVER_ENTRY_HISTO)) {
 				RecoverWindow window = new RecoverWindow(false);
 				this.showDialog(window);
 				path = window.getLocation();
@@ -499,15 +499,17 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			}
 
 			if (path != null) {
-				if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
-					FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
+				if (FileSystemTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
+					FileSystemTarget target = (FileSystemTarget)this.getCurrentObject();
 					TargetGroup process = target.getGroup();
 					ProcessRunner rn = new ProcessRunner(target) {
+						private File recoveredFile;
+
 						public void runCommand() throws ApplicationException {
 							File entry = new File(path, rEntry.getKey());
-							File f = new File(path, FileSystemManager.getName(entry));
-							if (FileSystemManager.exists(f)) {
-								FileSystemManager.delete(f);
+							recoveredFile = new File(path, FileSystemManager.getName(entry));
+							if (FileSystemManager.exists(recoveredFile)) {
+								FileSystemManager.delete(recoveredFile);
 							}
 							rProcess.processRecoverOnTarget(
 									rTarget, 
@@ -525,7 +527,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 									command.equals(CMD_VIEW_FILE_AS_TEXT_HISTO) 
 									|| command.equals(CMD_VIEW_FILE_HISTO)
 									|| command.equals(CMD_VIEW_FILE_AS_TEXT) 
-									|| command.equals(CMD_VIEW_FILE)									
+									|| command.equals(CMD_VIEW_FILE)	
 							) {
 								File entry = new File(path, rEntry.getKey());
 								final File f = new File(path, FileSystemManager.getName(entry));
@@ -558,8 +560,8 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 					rn.rEntry = this.currentEntry;
 					rn.rName = RM.getLabel("app.recoverfileaction.process.message");
 					rn.rPath = FileSystemManager.getAbsolutePath(new File(path));
-					rn.rFromDate = command.equals(CMD_VIEW_FILE_AS_TEXT_HISTO) || command.equals(CMD_VIEW_FILE_HISTO) ? this.currentEntryData.getManifest().getDate() : null;
-					rn.launch();                    
+					rn.rFromDate = command.equals(CMD_RECOVER_ENTRY_HISTO) || command.equals(CMD_VIEW_FILE_AS_TEXT_HISTO) || command.equals(CMD_VIEW_FILE_HISTO) ? this.currentEntryData.getManifest().getDate() : null;
+					rn.launch();  
 				}  
 			}        
 		}  else if (command.equals(CMD_VIEW_MANIFEST)) {
@@ -568,8 +570,8 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 	}
 
 	public ProcessRunner launchArchiveCheck(final String path, final boolean checkSelectedEntries, final CheckWindow window) {
-		if (FileSystemRecoveryTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
-			FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
+		if (FileSystemTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
+			FileSystemTarget target = (FileSystemTarget)this.getCurrentObject();
 			TargetGroup process = target.getGroup();
 			ProcessRunner rn = new ProcessRunner(target) {
 				public void runCommand() throws ApplicationException {
@@ -625,10 +627,10 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 		clipboard.setContents(new Object[] {s}, new Transfer[] {textTransfer});
 	}
 
-	public void showEditTarget(AbstractRecoveryTarget target) {
+	public void showEditTarget(AbstractTarget target) {
 		TargetEditionWindow frmEdit = new TargetEditionWindow(target);
 		showDialog(frmEdit);
-		AbstractRecoveryTarget newTarget = frmEdit.getTargetIfValidated();
+		AbstractTarget newTarget = frmEdit.getTargetIfValidated();
 		if (newTarget != null) {
 			TargetGroup process = newTarget.getGroup();
 			process.addTarget(newTarget);
@@ -927,14 +929,14 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 	private String generateShortcutScript(
 			File executable,
 			TargetGroup process, 
-			AbstractRecoveryTarget target,
+			AbstractTarget target,
 			String commentPrefix,
 			String commandPrefix,
 			boolean check,
 			boolean full,
 			boolean differential
 	) {
-		String type = full ? AbstractRecoveryTarget.BACKUP_SCHEME_FULL : (differential ? AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL : AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL);
+		String type = full ? AbstractTarget.BACKUP_SCHEME_FULL : (differential ? AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL : AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
 
 		String comments = commentPrefix + type + "\n" + commentPrefix + "Target Group : \"" + process.getName() + "\"\n";
 		String configPath = FileSystemManager.getAbsolutePath(process.getSourceFile());
@@ -988,9 +990,9 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 		Logger.defaultLogger().clearLog(LogComposite.class);
 	}
 
-	private void duplicateTarget(AbstractRecoveryTarget target) throws ApplicationException {
+	private void duplicateTarget(AbstractTarget target) throws ApplicationException {
 		try {
-			AbstractRecoveryTarget clone = (AbstractRecoveryTarget)target.duplicate();
+			AbstractTarget clone = (AbstractTarget)target.duplicate();
 			this.getCurrentTargetGroup().addTarget(clone);
 			clone.getMedium().install();
 
@@ -1011,7 +1013,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 				try {
 					Iterator iter = this.getCurrentTargetGroup().getTargetIterator();
 					while (iter.hasNext()) {
-						((AbstractRecoveryTarget)iter.next()).getMedium().destroyRepository();
+						((AbstractTarget)iter.next()).getMedium().destroyRepository();
 					}
 				} catch (Exception e) {
 					handleException(e);
@@ -1026,7 +1028,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 
 	public void showDeleteTarget() {
 		try {
-			DeleteWindow window = new DeleteWindow((FileSystemRecoveryTarget)this.getCurrentTarget());
+			DeleteWindow window = new DeleteWindow((FileSystemTarget)this.getCurrentTarget());
 			showDialog(window);
 
 			if (window.isOk()) {
@@ -1047,7 +1049,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 		this.enableWaitCursor();
 
 		// VIEW ARCHIVE DETAIL
-		FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
+		FileSystemTarget target = (FileSystemTarget)this.getCurrentObject();
 
 		try {
 			AbstractIncrementalFileSystemMedium fsMedium = (AbstractIncrementalFileSystemMedium)target.getMedium();
@@ -1110,20 +1112,20 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 	/**
 	 * Find a supported backup scheme for the target.
 	 */
-	private String resolveBackupScheme(AbstractRecoveryTarget target, String backupScheme) {
+	private String resolveBackupScheme(AbstractTarget target, String backupScheme) {
 		if (target.supportsBackupScheme(backupScheme)) {
 			return backupScheme;
-		} else if (AbstractRecoveryTarget.BACKUP_SCHEME_INCREMENTAL.equals(backupScheme)) {
-			return resolveBackupScheme(target, AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL);
-		} else if (AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL.equals(backupScheme)) {
-			return resolveBackupScheme(target, AbstractRecoveryTarget.BACKUP_SCHEME_FULL);
+		} else if (AbstractTarget.BACKUP_SCHEME_INCREMENTAL.equals(backupScheme)) {
+			return resolveBackupScheme(target, AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL);
+		} else if (AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL.equals(backupScheme)) {
+			return resolveBackupScheme(target, AbstractTarget.BACKUP_SCHEME_FULL);
 		} else {
 			throw new IllegalStateException("Unable to resolve backup scheme for target " + target.getTargetName());
 		}
 	}
 
 	public void launchBackupOnTarget(
-			AbstractRecoveryTarget target, 
+			AbstractTarget target, 
 			Manifest manifest, 
 			String backupScheme, 
 			final boolean disablePreCheck,
@@ -1135,7 +1137,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			public void runCommand() throws ApplicationException {
 				rProcess.processBackupOnTarget(rTarget, rManifest, resolvedBackupScheme, disablePreCheck, disableArchiveCheck, context);
 			}
-			
+
 			protected void finishCommandInError(Exception e) {
 				finishCommand();
 			}
@@ -1165,7 +1167,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 	) {
 		Iterator iter = group.getTargetIterator();
 		while (iter.hasNext()) {
-			AbstractRecoveryTarget tg = (AbstractRecoveryTarget)iter.next();
+			AbstractTarget tg = (AbstractTarget)iter.next();
 			Manifest clone = mf == null ? null : (Manifest)mf.duplicate(); 
 			this.launchBackupOnTarget(tg, clone, backupScheme, false, disableArchiveCheck);
 		}
@@ -1185,7 +1187,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 
 	public void launchMergeOnTarget(final boolean keepDeletedEntries, Manifest manifest) {
 		// MERGE
-		FileSystemRecoveryTarget target = (FileSystemRecoveryTarget)this.getCurrentObject();
+		FileSystemTarget target = (FileSystemTarget)this.getCurrentObject();
 		TargetGroup process = target.getGroup();
 		ProcessRunner rn = new ProcessRunner(target) {
 			public void runCommand() throws ApplicationException {
@@ -1208,7 +1210,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 		showDialog(frm);
 	}
 
-	public void showMergeWindow(AbstractRecoveryTarget target, Manifest manifest) {
+	public void showMergeWindow(AbstractTarget target, Manifest manifest) {
 		MergeWindow frm = new MergeWindow(
 				manifest, 
 				target);
@@ -1239,13 +1241,13 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 		}
 	}
 
-	public Object retrieveMissingEncryptionData(AbstractRecoveryTarget tg) {
+	public Object retrieveMissingEncryptionData(AbstractTarget tg) {
 		MissingEncryptionDataWindow frm = new MissingEncryptionDataWindow(tg);
 		showDialog(frm);
 		return new Object[] {frm.getAlgo(), frm.getPassword(), new Boolean(frm.isEncryptFileNames())};
 	}
 
-	public Object retrieveMissingFTPData(AbstractRecoveryTarget tg) {
+	public Object retrieveMissingFTPData(AbstractTarget tg) {
 		MissingFTPDataWindow frm = new MissingFTPDataWindow(tg);
 		showDialog(frm);
 		return new Object[] {frm.getPassword()};
@@ -1290,8 +1292,8 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 
 		if (TargetGroup.class.isAssignableFrom(this.currentObject.getClass())) {
 			return (TargetGroup)this.currentObject;
-		} else if (AbstractRecoveryTarget.class.isAssignableFrom(this.currentObject.getClass())) {
-			return ((AbstractRecoveryTarget)this.currentObject).getGroup();
+		} else if (AbstractTarget.class.isAssignableFrom(this.currentObject.getClass())) {
+			return ((AbstractTarget)this.currentObject).getGroup();
 		} else {
 			return null;
 		}
@@ -1306,12 +1308,12 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 		}
 	}
 
-	public AbstractRecoveryTarget getCurrentTarget() {
+	public AbstractTarget getCurrentTarget() {
 		if (this.currentObject == null) {
 			return null;
 		}
 
-		return (AbstractRecoveryTarget)this.currentObject;
+		return (AbstractTarget)this.currentObject;
 	}
 
 	public boolean isCurrentObjectProcess() {
@@ -1319,7 +1321,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 	}
 
 	public boolean isCurrentObjectTarget() {
-		return (currentObject != null && FileSystemRecoveryTarget.class.isAssignableFrom(currentObject.getClass()));
+		return (currentObject != null && FileSystemTarget.class.isAssignableFrom(currentObject.getClass()));
 	}
 
 	public void setCurrentEntry(TraceEntry currentEntry) {
@@ -1571,7 +1573,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 		this.channels.remove(channel);
 	}
 
-	public void enforceSelectedTarget(AbstractRecoveryTarget target) {
+	public void enforceSelectedTarget(AbstractTarget target) {
 		this.setCurrentObject(target, false);
 		this.mainWindow.enforceSelectedTarget(target);
 	}
@@ -1585,7 +1587,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 	public abstract class ProcessRunner implements Runnable {
 		protected TargetGroup rProcess;
 		protected String rName;
-		protected AbstractRecoveryTarget rTarget;
+		protected AbstractTarget rTarget;
 		protected String rPath;
 		protected GregorianCalendar rFromDate;
 		protected GregorianCalendar rToDate;
@@ -1598,7 +1600,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 
 		public abstract void runCommand() throws ApplicationException;
 
-		public ProcessRunner(AbstractRecoveryTarget target) {
+		public ProcessRunner(AbstractTarget target) {
 			this.rTarget = target;
 			channel = new InfoChannel(rTarget, mainWindow.getProgressContainer());
 
@@ -1633,8 +1635,8 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 				this.context = new ProcessContext(rTarget, channel, new TaskMonitor(taskName));
 
 				// Activate message tracking for current thread.
-	            this.context.getReport().setLogMessagesContainer(Logger.defaultLogger().getTlLogProcessor().activateMessageTracking());
-				
+				this.context.getReport().setLogMessagesContainer(Logger.defaultLogger().getTlLogProcessor().activateMessageTracking());
+
 				channel.startRunning();
 				registerState(true);
 				AppActionReferenceHolder.refresh();

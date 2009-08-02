@@ -109,9 +109,9 @@ public class SpecialFileFilter extends AbstractArchiveFilter {
 		} else {
 			try {
 				if (matchParameters(entry)) {
-					return ! exclude;
+					return ! logicalNot;
 				} else {
-					return exclude;
+					return logicalNot;
 				}
 			} catch (IOException e) {
 				Logger.defaultLogger().error("Error during filtering of " + FileSystemManager.getAbsolutePath(entry), e);
@@ -122,7 +122,7 @@ public class SpecialFileFilter extends AbstractArchiveFilter {
 
 	public Duplicable duplicate() {
 		SpecialFileFilter filter = new SpecialFileFilter();
-		filter.exclude = this.exclude;
+		filter.logicalNot = this.logicalNot;
 		filter.blockSpecFile = this.blockSpecFile;
 		filter.charSpecFile = this.charSpecFile;
 		filter.link = this.link;
@@ -170,7 +170,7 @@ public class SpecialFileFilter extends AbstractArchiveFilter {
 		} else {
 			SpecialFileFilter other = (SpecialFileFilter)obj;
 			return 
-				EqualsHelper.equals(this.exclude, other.exclude)
+				EqualsHelper.equals(this.logicalNot, other.logicalNot)
 				&& EqualsHelper.equals(this.pipe, other.pipe)
 				&& EqualsHelper.equals(this.blockSpecFile, other.blockSpecFile)
 				&& EqualsHelper.equals(this.charSpecFile, other.charSpecFile)
@@ -182,7 +182,7 @@ public class SpecialFileFilter extends AbstractArchiveFilter {
 
 	public int hashCode() {
 		int h = HashHelper.initHash(this);
-		h = HashHelper.hash(h, this.exclude);
+		h = HashHelper.hash(h, this.logicalNot);
 		h = HashHelper.hash(h, this.blockSpecFile);
 		h = HashHelper.hash(h, this.charSpecFile);
 		h = HashHelper.hash(h, this.link);

@@ -24,7 +24,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ResourceManager;
 import com.application.areca.TargetGroup;
 import com.application.areca.launcher.gui.Application;
@@ -216,7 +216,7 @@ implements MouseListener, Listener, Refreshable {
         Iterator existingTgs = this.targets.iterator();
         Map map = new HashMap(this.targets.size());
         while (existingTgs.hasNext()) {
-            AbstractRecoveryTarget target = (AbstractRecoveryTarget)existingTgs.next();
+            AbstractTarget target = (AbstractTarget)existingTgs.next();
             map.put(target.getUid(), target);
         }
         
@@ -226,8 +226,8 @@ implements MouseListener, Listener, Refreshable {
             TargetGroup process = (TargetGroup)pIter.next();
             Iterator tIter = process.getSortedTargetIterator();
             while (tIter.hasNext() && ! hasChanged) {
-                AbstractRecoveryTarget target = (AbstractRecoveryTarget)tIter.next();
-                AbstractRecoveryTarget exist = (AbstractRecoveryTarget)map.remove(target.getUid());
+                AbstractTarget target = (AbstractTarget)tIter.next();
+                AbstractTarget exist = (AbstractTarget)map.remove(target.getUid());
                 if (exist == null || ! (exist.getTargetName().equals(target.getTargetName()))) {
                     return true;
                 }
@@ -274,7 +274,7 @@ implements MouseListener, Listener, Refreshable {
             TargetGroup process = (TargetGroup)pIter.next();
             Iterator tIter = process.getSortedTargetIterator();
             while (tIter.hasNext()) {
-                AbstractRecoveryTarget target = (AbstractRecoveryTarget)tIter.next();
+                AbstractTarget target = (AbstractTarget)tIter.next();
                 this.targets.add(target);
                 Button chk = new Button(pnlTargets, SWT.CHECK);
                 chk.setText(target.getTargetName());
@@ -295,7 +295,7 @@ implements MouseListener, Listener, Refreshable {
         Iterator tgIter = this.targets.iterator();
         while (chkIter.hasNext()) {
             Button chk = (Button)chkIter.next();
-            AbstractRecoveryTarget target = (AbstractRecoveryTarget)tgIter.next();
+            AbstractTarget target = (AbstractTarget)tgIter.next();
             chk.setSelection(
                     (this.application.isCurrentObjectTarget() && this.application.getCurrentTarget().getUid().equals(target.getUid()))
                     || (this.application.isCurrentObjectProcess() && this.application.getCurrentTargetGroup().getUid().equals(target.getGroup().getUid()))
@@ -323,7 +323,7 @@ implements MouseListener, Listener, Refreshable {
                     for (int i=0; i<this.targets.size(); i++) {
                         Button chk = (Button)this.checkBoxes.get(i);
                         if (chk.getSelection()) {
-                            AbstractRecoveryTarget target = (AbstractRecoveryTarget)this.targets.get(i);
+                            AbstractTarget target = (AbstractTarget)this.targets.get(i);
                             TargetSearchResult targetResult = target.search(criteria);
                             if (! targetResult.isEmpty()) {
                                 result.setTargetSearchResult(target, targetResult);
@@ -351,7 +351,7 @@ implements MouseListener, Listener, Refreshable {
         if (result != null) {
             Iterator iter = result.targetIterator();
             while (iter.hasNext()) {
-                AbstractRecoveryTarget target = (AbstractRecoveryTarget)iter.next();
+                AbstractTarget target = (AbstractTarget)iter.next();
     
                 TreeItem targetNode =new TreeItem(tree, SWT.NONE);
                 targetNode.setText(target.getTargetName());

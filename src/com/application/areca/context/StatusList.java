@@ -31,6 +31,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class StatusList {
+	public static String KEY_ARCHIVE_CHECK = "Archive Check";
 	public static String KEY_BACKUP = "Backup";
 	public static String KEY_MERGE = "Merge";
 	

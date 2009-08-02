@@ -2,7 +2,7 @@ package com.application.areca.launcher.gui.menus;
 
 import com.application.areca.EntryStatus;
 import com.application.areca.TargetGroup;
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.Workspace;
 import com.application.areca.launcher.gui.common.ActionConstants;
@@ -75,8 +75,8 @@ public class AppActionReferenceHolder implements ActionConstants{
     public static AppAction AC_CLEAR_LOG = new AppAction("app.clearlog", ACTION_CLEAR_LOG);    
 
     public static AppAction AC_RECOVER_FILTER = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_WITH_FILTER);
-    public static AppAction AC_RECOVER_FILTER_LATEST = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_FROM_LOGICAL);
-    public static AppAction AC_RECOVER_HISTORY = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_ENTRY);
+    public static AppAction AC_RECOVER_FILTER_LATEST = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_WITH_FILTER_LATEST);
+    public static AppAction AC_RECOVER_HISTORY = new AppAction("app.recoverfilesaction", ArecaImages.ICO_ACT_RESTAURE, CMD_RECOVER_ENTRY_HISTO);
     public static AppAction AC_VIEW_TEXT_HISTORY = new AppAction("app.texteditaction", CMD_VIEW_FILE_AS_TEXT_HISTO);   
     public static AppAction AC_VIEW_HISTORY = new AppAction("app.editaction", CMD_VIEW_FILE_HISTO);  
     public static AppAction AC_VIEW_TEXT = new AppAction("app.texteditaction", CMD_VIEW_FILE_AS_TEXT);   
@@ -126,7 +126,7 @@ public class AppActionReferenceHolder implements ActionConstants{
                     AC_DUP_TARGET.setEnabled(false);     
                     AC_DEL_TARGET.setEnabled(false);      
                     AC_VIEW_MANIFEST.setEnabled(false);
-                } else if (FileSystemRecoveryTarget.class.isAssignableFrom(application.getCurrentObject().getClass())) {
+                } else if (FileSystemTarget.class.isAssignableFrom(application.getCurrentObject().getClass())) {
                     boolean available = ! application.getCurrentTarget().isRunning();
                     
                     AC_BUILD_BATCH.setEnabled(true);

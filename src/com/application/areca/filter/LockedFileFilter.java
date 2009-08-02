@@ -59,7 +59,7 @@ public class LockedFileFilter extends AbstractArchiveFilter {
         } else {
         	if (! FileSystemManager.exists(entry)) { // dangling links are accepted 
     		    Logger.defaultLogger().warn("The following file is a dangling link : " + FileSystemManager.getAbsolutePath(entry));
-        		return exclude;
+        		return logicalNot;
         	} else {
         		short type;
 				try {
@@ -69,19 +69,19 @@ public class LockedFileFilter extends AbstractArchiveFilter {
 					throw new IllegalArgumentException("Error reading attributes for " + entry.getAbsolutePath(), e);
 				}
         		if (type == FileMetaDataAccessor.TYPE_PIPE) {
-        			return exclude;  
+        			return logicalNot;  
         		} else {
 	        		ReadableCheckResult res = FileSystemManager.isReadable(entry);
 	
 	        		if (res.isReadable()) {       		    
-	        			return exclude;                
+	        			return logicalNot;                
 	        		} else {
 	        		    Logger.defaultLogger().warn("The following file is locked by the system : " + FileSystemManager.getAbsolutePath(entry));
 	        		    if (res.getCause() != null) {
 	        		        Logger.defaultLogger().info("Cause : " + res.getCause());
 	        		    }
 	        			
-	        			return ! exclude;
+	        			return ! logicalNot;
 	        		}
         		}
         	}
@@ -90,7 +90,7 @@ public class LockedFileFilter extends AbstractArchiveFilter {
 
     public Duplicable duplicate() {
         LockedFileFilter filter = new LockedFileFilter();
-        filter.exclude = this.exclude;
+        filter.logicalNot = this.logicalNot;
         return filter;
     }    
     
@@ -108,14 +108,14 @@ public class LockedFileFilter extends AbstractArchiveFilter {
         } else {
             LockedFileFilter other = (LockedFileFilter)obj;
             return 
-            	EqualsHelper.equals(this.exclude, other.exclude)
+            	EqualsHelper.equals(this.logicalNot, other.logicalNot)
            	;
         }
     }
     
     public int hashCode() {
         int h = HashHelper.initHash(this);
-        h = HashHelper.hash(h, this.exclude);
+        h = HashHelper.hash(h, this.logicalNot);
         return h;
     }
 }

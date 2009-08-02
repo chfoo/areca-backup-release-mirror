@@ -13,7 +13,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ResourceManager;
 import com.application.areca.impl.EncryptionConfiguration;
 import com.application.areca.launcher.gui.common.AbstractWindow;
@@ -52,7 +52,7 @@ extends AbstractWindow {
     private String algo;
     private String password;
     private boolean encryptFileNames;
-    private AbstractRecoveryTarget target;
+    private AbstractTarget target;
     private List encryptionAlgorithms = new ArrayList();    
     
     private Text txtPassword;
@@ -60,7 +60,7 @@ extends AbstractWindow {
     protected Combo cboEncryptionAlgorithm;
     private Button saveButton;
 
-    public MissingEncryptionDataWindow(AbstractRecoveryTarget target) {
+    public MissingEncryptionDataWindow(AbstractTarget target) {
         super();
         this.target = target;
     }

@@ -13,7 +13,7 @@ import org.eclipse.swt.widgets.TableItem;
 import com.application.areca.ResourceManager;
 import com.application.areca.TargetGroup;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.impl.handler.DefaultArchiveHandler;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
@@ -76,7 +76,7 @@ extends Composite {
     public void refresh() {
         table.removeAll();
         if (application.isCurrentObjectTarget()) {
-            fillData((FileSystemRecoveryTarget)application.getCurrentTarget());
+            fillData((FileSystemTarget)application.getCurrentTarget());
         } else if (application.isCurrentObjectProcess()) {
             fillData(application.getCurrentTargetGroup());
         }
@@ -92,7 +92,7 @@ extends Composite {
         this.addProperty(RM.getLabel("property.targets.label"), String.valueOf(process.getTargetCount()));
     }
     
-    private void fillData(FileSystemRecoveryTarget tg) {
+    private void fillData(FileSystemTarget tg) {
         try {
             String tgName = null;
             if (tg.getTargetName() == null) {

@@ -130,8 +130,8 @@ public class CommandLineParser {
             position++;
         }
 
+        // Check mandatory arguments
         Iterator it = argMap.values().iterator();
-
         while (it.hasNext()) {
             CmdLineOption option = (CmdLineOption) it.next();
             if (option.isMandatory() && (! option.hasBeenSet()))
@@ -162,6 +162,17 @@ public class CommandLineParser {
             buf.append(" (").append(option.isMandatory() ? "mandatory" : "optional").append(") : ");
             buf.append(option.getComment()).append("\n");
         }
+        
+        buf.append("\nExample : ");
+        it = argMap.values().iterator();
+        while (it.hasNext()) {
+            CmdLineOption option = (CmdLineOption) it.next();
+            if (option.isMandatory()) {
+                buf.append("-").append(option.getName()).append("=").append("my_").append(option.getName()).append(" ");
+            }
+        }
+        buf.append("\n");
+        
         return buf.toString();
     }
 }

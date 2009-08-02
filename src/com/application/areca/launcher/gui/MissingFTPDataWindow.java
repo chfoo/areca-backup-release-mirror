@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
@@ -45,12 +45,12 @@ extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
     
     private String password;
-    private AbstractRecoveryTarget target;    
+    private AbstractTarget target;    
     
     private Text txtPassword;
     private Button saveButton;
 
-    public MissingFTPDataWindow(AbstractRecoveryTarget target) {
+    public MissingFTPDataWindow(AbstractTarget target) {
         super();
         this.target = target;
     }

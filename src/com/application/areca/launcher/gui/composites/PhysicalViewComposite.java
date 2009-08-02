@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
@@ -150,7 +150,7 @@ implements SelectionListener, Refreshable {
         return this.getClass().getName();
     }
 
-    private void fillTargetData(AbstractRecoveryTarget target) {
+    private void fillTargetData(AbstractTarget target) {
         AbstractIncrementalFileSystemMedium medium = (AbstractIncrementalFileSystemMedium)target.getMedium();
         File[] archives = new File[0];
         try {
@@ -181,11 +181,11 @@ implements SelectionListener, Refreshable {
                 }
     
                 if (
-                        (prp != null && prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_FULL))
+                        (prp != null && prp.equals(AbstractTarget.BACKUP_SCHEME_FULL))
                         || i == 0
                 ) {
                     item.setImage(0, ArecaImages.ICO_FS_FOLDER_FULL);
-                } else if (prp != null && prp.equals(AbstractRecoveryTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+                } else if (prp != null && prp.equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
                     item.setImage(0, ArecaImages.ICO_FS_FOLDER_DIFFERENTIAL);
                 } else {
                     item.setImage(0, ArecaImages.ICO_FS_FOLDER);   

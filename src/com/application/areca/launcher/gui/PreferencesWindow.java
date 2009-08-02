@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ResourceManager;
+import com.application.areca.TranslationData;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
@@ -218,12 +219,16 @@ extends AbstractWindow {
         try {
         	String currentLg = ArecaPreferences.resolveLanguage();
         	
-            String[] lges = Utils.getTranslations();
+        	TranslationData[] lges = Utils.getTranslations();
             Arrays.sort(lges);
             for (int i=0; i<lges.length; i++) {
-                langCombo.add(lges[i]);
+            	String lg = lges[i].getLanguage();
+            	if (lges[i].isDeprecated()) {
+            		lg += " (" + RM.getLabel("common.deprecated.label") + ")";
+            	}
+                langCombo.add(lg);
                 
-                if (lges[i].equals(currentLg)) {
+                if (lges[i].getLanguage().equals(currentLg)) {
                     langCombo.select(i);
                 }
             }

@@ -272,6 +272,9 @@ public class JNIMetaDataAccessor implements FileMetaDataAccessor {
 			return true;
 		} catch (Throwable e) {
 			Logger.defaultLogger().warn(this.getClass().getName() + " cannot be used on this system. Got the following error : \"" + e.getClass().getName() + " : " + e.getMessage() + "\"");
+			if (e.getMessage().toLowerCase().indexOf("no acl in java.library.path") != -1) {
+				Logger.defaultLogger().warn("You should check that the 'acl' package is deployed on your computer.");
+			}
 			return false;
 		}
 	}

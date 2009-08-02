@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.metadata.manifest.Manifest;
@@ -44,13 +44,13 @@ public class MergeWindow
 extends AbstractWindow {
 
     protected Manifest manifest;
-    protected AbstractRecoveryTarget target;
+    protected AbstractTarget target;
 
     protected Text txtTitle;
     protected Text txtDescription;
     protected Button btnKeepDeletedEntries;
 
-    public MergeWindow(Manifest manifest, AbstractRecoveryTarget target) {
+    public MergeWindow(Manifest manifest, AbstractTarget target) {
         super();
         this.manifest = manifest;
         this.target = target;

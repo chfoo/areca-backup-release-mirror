@@ -79,8 +79,7 @@ public class Utils implements ArecaFileConstants {
         }
     }
 
-    public static String[] getTranslations() {
-        final int length = ResourceManager.RESOURCE_NAME.length() + 14;
+    public static TranslationData[] getTranslations() {
         final String prefix = ResourceManager.RESOURCE_NAME + "_";
         final String suffix = ".properties";
 
@@ -93,7 +92,7 @@ public class Utils implements ArecaFileConstants {
 
         File[] files = FileSystemManager.listFiles(translationsRoot, new FilenameFilter() {
             public boolean accept(File dir, String name) {
-                return name.length() == length && name.startsWith(prefix) && name.endsWith(suffix);
+                return name.startsWith(prefix) && name.endsWith(suffix);
             }
         });
 
@@ -102,11 +101,22 @@ public class Utils implements ArecaFileConstants {
             if (! FileSystemManager.exists(translationsRoot)) {
                 Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(translationsRoot) + " does not exist.");
             }
-            return new String[0];
+            return new TranslationData[0];
         } else {
-            String[] languages = new String[files.length];
+        	TranslationData[] languages = new TranslationData[files.length];
             for (int i=0; i<files.length; i++) {
-                languages[i] = FileSystemManager.getName(files[i]).substring(ResourceManager.RESOURCE_NAME.length() + 1, ResourceManager.RESOURCE_NAME.length() + 3);
+            	String fileName = FileSystemManager.getName(files[i]);
+            	String data = fileName.substring(ResourceManager.RESOURCE_NAME.length(), fileName.length() - suffix.length() + 1);
+            	String lg ;
+            	boolean deprecated;
+            	if (data.startsWith(ResourceManager.RESOURCE_NAME_DEPRECATED_SUFFIX + "_")) {
+            		deprecated = true;
+            		lg = data.substring(ResourceManager.RESOURCE_NAME_DEPRECATED_SUFFIX.length() + 1, ResourceManager.RESOURCE_NAME_DEPRECATED_SUFFIX.length() + 3);
+            	} else {
+                	deprecated = false;
+                	lg = data.substring(1, 3);
+            	}
+                languages[i] = new TranslationData(lg, deprecated);
             }
 
             return languages;
@@ -141,12 +151,12 @@ public class Utils implements ArecaFileConstants {
 
     public static String getTranslationsAsString() {
         StringBuffer sb = new StringBuffer();
-        String[] lges = Utils.getTranslations();
+        TranslationData[] lges = Utils.getTranslations();
         for (int i=0; i<lges.length; i++) {
             if (i != 0) {
                 sb.append(", ");
             }
-            sb.append(lges[i]);
+            sb.append(lges[i].getLanguage());
         }
         return sb.toString();
     }

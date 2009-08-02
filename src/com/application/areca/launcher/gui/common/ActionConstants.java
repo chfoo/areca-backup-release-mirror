@@ -37,14 +37,14 @@ public interface ActionConstants {
     public static final String CMD_BACKUP = "backup";
     public static final String CMD_BACKUP_ALL = "backup all";    
     public static final String CMD_RECOVER = "recover";
-    public static final String CMD_RECOVER_ENTRY = "recover entry";
+    public static final String CMD_RECOVER_ENTRY_HISTO = "recover entry";
     public static final String CMD_VIEW_FILE_AS_TEXT_HISTO = "view file as text (histo)";
     public static final String CMD_VIEW_FILE_HISTO = "view file (histo)";
     public static final String CMD_VIEW_FILE_AS_TEXT = "view file as text";
     public static final String CMD_VIEW_FILE = "view file";
     public static final String CMD_COPY_FILENAMES = "copy filenames";
     public static final String CMD_RECOVER_WITH_FILTER = "recover with filter";
-    public static final String CMD_RECOVER_FROM_LOGICAL = "recover latest version with filter";
+    public static final String CMD_RECOVER_WITH_FILTER_LATEST = "recover latest version with filter";
     public static final String CMD_MERGE = "merge";
     public static final String CMD_CHECK_ARCHIVES = "check archives";
     public static final String CMD_DELETE_ARCHIVES = "delete archives";

@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.Errors;
 import com.application.areca.RecoveryEntry;
@@ -58,8 +58,8 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class FileSystemRecoveryTarget
-extends AbstractRecoveryTarget
+public class FileSystemTarget
+extends AbstractTarget
 implements TargetActions {
 
     public static final String RECOVERY_LOCATION_SUFFIX = "rcv";
@@ -75,13 +75,13 @@ implements TargetActions {
     protected boolean trackSymlinks = false;
 
     public Duplicable duplicate() {
-        FileSystemRecoveryTarget other = new FileSystemRecoveryTarget();
+        FileSystemTarget other = new FileSystemTarget();
         copyAttributes(other);
         return other;
     }
 
     protected void copyAttributes(Object clone) {
-        FileSystemRecoveryTarget other = (FileSystemRecoveryTarget)clone;
+        FileSystemTarget other = (FileSystemTarget)clone;
         super.copyAttributes(other);
         other.sourcesRoot = sourcesRoot;
         other.trackSymlinks = trackSymlinks;

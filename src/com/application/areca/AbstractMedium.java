@@ -3,7 +3,7 @@ package com.application.areca;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.application.areca.impl.FileSystemRecoveryTarget;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.metadata.trace.ArchiveTraceParser;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
@@ -38,7 +38,7 @@ This file is part of Areca.
  */
 public abstract class AbstractMedium implements ArchiveMedium {
 
-    protected FileSystemRecoveryTarget target;
+    protected FileSystemTarget target;
     
     /**
      * Historique
@@ -57,7 +57,7 @@ public abstract class AbstractMedium implements ArchiveMedium {
     protected void copyAttributes(Object clone) {
     }
     
-    public AbstractRecoveryTarget getTarget() {
+    public AbstractTarget getTarget() {
         return this.target;
     }
     

@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.application.areca.AbstractRecoveryTarget;
+import com.application.areca.AbstractTarget;
 
 /**
  * <BR>
@@ -34,7 +34,7 @@ This file is part of Areca.
  */
 public class TargetSearchResult {
     
-    private AbstractRecoveryTarget target;
+    private AbstractTarget target;
     private TreeSet items = new TreeSet(new SearchResultItemComparator());
     
     public TargetSearchResult() {
@@ -44,7 +44,7 @@ public class TargetSearchResult {
         return items;
     }
     
-    public AbstractRecoveryTarget getTarget() {
+    public AbstractTarget getTarget() {
         return target;
     }
     
