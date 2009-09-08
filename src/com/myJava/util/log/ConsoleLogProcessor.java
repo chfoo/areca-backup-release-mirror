@@ -31,7 +31,8 @@ implements LogProcessor {
 	
 	private boolean fullLog = true;
     
-    public ConsoleLogProcessor() {
+    public ConsoleLogProcessor(boolean fullLog) {
+    	this.fullLog = fullLog;
     }
 
 	public boolean isFullLog() {

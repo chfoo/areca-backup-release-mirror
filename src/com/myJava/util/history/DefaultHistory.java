@@ -25,6 +25,7 @@ import com.myJava.util.log.Logger;
 /**
  * <BR>
  * @author Olivier PETRUCCI
+ * TODO : refactor : implement XML serializers / deserializers
  * <BR>
  *
  */

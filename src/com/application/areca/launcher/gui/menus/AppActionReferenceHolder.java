@@ -126,6 +126,7 @@ public class AppActionReferenceHolder implements ActionConstants{
                     AC_DUP_TARGET.setEnabled(false);     
                     AC_DEL_TARGET.setEnabled(false);      
                     AC_VIEW_MANIFEST.setEnabled(false);
+                    AC_COPY_FILENAMES.setEnabled(false);
                 } else if (FileSystemTarget.class.isAssignableFrom(application.getCurrentObject().getClass())) {
                     boolean available = ! application.getCurrentTarget().isRunning();
                     
@@ -196,7 +197,10 @@ public class AppActionReferenceHolder implements ActionConstants{
                     );
                     AC_VIEW.setEnabled(AC_VIEW_HISTORY.isEnabled());
                     
-                    AC_COPY_FILENAMES.setEnabled(true);
+                    AC_COPY_FILENAMES.setEnabled(
+                    		application.getCurrentFilter() != null 
+                    		&& application.getCurrentFilter().getFilter().length > 0
+                    );
                 } else {
                     enableCommands(false);
                 }
@@ -226,5 +230,6 @@ public class AppActionReferenceHolder implements ActionConstants{
         AC_NEW_PROCESS.setEnabled(enabled);          
         AC_HISTORY.setEnabled(enabled);
         AC_VIEW_MANIFEST.setEnabled(enabled);
+        AC_COPY_FILENAMES.setEnabled(enabled);
     }
 }

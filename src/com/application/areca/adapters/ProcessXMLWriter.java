@@ -12,6 +12,7 @@ import com.application.areca.TargetGroup;
 import com.application.areca.impl.FileSystemTarget;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.util.log.Logger;
 
 /**
  * Process serializer
@@ -45,7 +46,8 @@ public class ProcessXMLWriter extends AbstractXMLWriter {
 	//public static final int CURRENT_VERSION = 3; // introduced in v6.1
 	//public static final int CURRENT_VERSION = 4; // introduced in v7.1 : Special files filters replace symbolic links filters 
 	//public static final int CURRENT_VERSION = 5; // introduced in v7.1.3 : follow_subdirectories replaced by follow_subdirs, and fix of serialization bug
-	public static final int CURRENT_VERSION = 6; // introduced in v7.1.4 : filter parameterization change : "exclude" replaced by "logical_not" ... easier to understand
+	//public static final int CURRENT_VERSION = 6; // introduced in v7.1.4 : filter parameterization change : "exclude" replaced by "logical_not" ... easier to understand
+	public static final int CURRENT_VERSION = 7; // introduced in v7.1.5 : post processor parameterization (success / error / warning)
 	
     private TargetXMLWriter targetWriter;
     
@@ -59,25 +61,9 @@ public class ProcessXMLWriter extends AbstractXMLWriter {
         targetWriter.setRemoveSensitiveData(removeEncryptionData);
     }
     
-    public void serializeProcess(TargetGroup process) throws ApplicationException {
-        serializeProcess(process, process.getSourceFile());
-    }
-    
-    public void serializeProcess(TargetGroup process, File targetFile) throws ApplicationException {
+    public boolean serializeProcess(TargetGroup process, File targetFile) 
+    throws ApplicationException {
         try {
-            FileTool tool = FileTool.getInstance();
-            
-            if (FileSystemManager.exists(targetFile)) {
-                if (! FileSystemManager.delete(targetFile)) {
-                    throw new ApplicationException("The destination [" + FileSystemManager.getAbsolutePath(targetFile) + "] is a directory or can't be deleted.");
-                }
-            }
-            
-            // Create parent dir if it does not exist
-            if (! FileSystemManager.exists(FileSystemManager.getParentFile(targetFile))) {
-                tool.createDir(FileSystemManager.getParentFile(targetFile));
-            }
-            
             writeHeader();
             sb.append("\n<");
             sb.append(XML_PROCESS);
@@ -102,15 +88,48 @@ public class ProcessXMLWriter extends AbstractXMLWriter {
             sb.append(XML_PROCESS);
             sb.append(">");        
             
+            // Create parent directory if it does not exist
+            if (! FileSystemManager.exists(FileSystemManager.getParentFile(targetFile))) {
+            	FileTool.getInstance().createDir(FileSystemManager.getParentFile(targetFile));
+            }
             
-            OutputStream fos = FileSystemManager.getFileOutputStream(targetFile);
+            // In some cases, and for some unknown reason, the written file appears to be empty. (behavior reported by a user) 
+            // There was probably an error the user didn't see in the log ... whatever : we want to make the process serialization
+            // transactional : keep the old file, try to write the new one, keep the old one if the serialization fails.
+            
+            // Write the "uncommitted" file
+            File uncommittedFile = new File(FileSystemManager.getParent(targetFile), FileSystemManager.getName(targetFile) + ".tmp");
+            ensureAvailability(uncommittedFile);
+            String content = this.sb.toString().trim();
+            OutputStream fos = FileSystemManager.getFileOutputStream(uncommittedFile);
             OutputStreamWriter fw = new OutputStreamWriter(fos, getEncoding());
-            fw.write(this.sb.toString());
+            fw.write(content);
             fw.close();
+            
+            // Check the written file : try to read it and compare its content to the original one
+            String read = ("" + FileTool.getInstance().getFileContent(uncommittedFile, getEncoding())).trim();
+            if (read.equals(content)) {
+            	// The written file is OK -> "commit" the file
+            	ensureAvailability(targetFile);
+            	return FileSystemManager.renameTo(uncommittedFile, targetFile);
+            } else {
+            	// The written file is not OK -> "rollback" the file and keep the original one
+            	Logger.defaultLogger().warn("An error occured while writing the XML configuration on " + FileSystemManager.getAbsolutePath(uncommittedFile) + " : Original content = [" + content + "], written content = [" + read + "]");
+            	ensureAvailability(uncommittedFile);
+            	return false;
+            }
         } catch (UnsupportedEncodingException e) {
             throw new ApplicationException(e);
         } catch (IOException e) {
             throw new ApplicationException(e);
+        }
+    }
+    
+    private void ensureAvailability(File targetFile) throws ApplicationException {
+        if (FileSystemManager.exists(targetFile)) {
+            if (! FileSystemManager.delete(targetFile)) {
+                throw new ApplicationException("The destination [" + FileSystemManager.getAbsolutePath(targetFile) + "] is a directory or can't be deleted.");
+            }
         }
     }
 }

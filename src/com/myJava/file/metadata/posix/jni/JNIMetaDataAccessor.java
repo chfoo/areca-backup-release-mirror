@@ -209,7 +209,7 @@ public class JNIMetaDataAccessor implements FileMetaDataAccessor {
 				ExtendedAttribute xattr = (ExtendedAttribute)xattrs.next();
 				SetAttributeValueResult result = FileAccessWrapper.setAttributeValue(file, xattr.getName(), xattr.getData(), false);
 				if (result.isError()) {
-					Logger.defaultLogger().warn("Unable to set extended attributes for " + file + " : " + result.getErrorToString());
+					Logger.defaultLogger().warn("Unable to set extended attribute " + xattr.getName() + " / " + xattr.getAsString() + " for " + file + " : " + result.getErrorToString());
 				}
 			}
 		}

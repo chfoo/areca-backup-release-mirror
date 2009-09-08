@@ -187,8 +187,16 @@ public class FileTool {
 		this.createDir(targetDirectory);
 
 		File[] files = FileSystemManager.listFiles(sourceDirectory);
-		for (int i = 0; i < files.length; i++) {
-			this.copy(files[i], targetDirectory, monitor, listener);
+		if (files == null) {
+			if (FileSystemManager.exists(sourceDirectory)) {
+				Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(sourceDirectory) + " : Directory exists but no children.");
+			} else {
+				Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(sourceDirectory) + " : Directory doesn't exist.");
+			}
+		} else {
+			for (int i = 0; i < files.length; i++) {
+				this.copy(files[i], targetDirectory, monitor, listener);
+			}
 		}
 	}
 
@@ -283,14 +291,22 @@ public class FileTool {
 		fw.flush();
 		fw.close();
 	}
-
+	
 	/**
 	 * Return the content of the file as a String.
 	 */
 	public String getFileContent(File sourceFile)
 	throws IOException {
+		return getFileContent(sourceFile, null);
+	}
+
+	/**
+	 * Return the content of the file as a String.
+	 */
+	public String getFileContent(File sourceFile, String encoding)
+	throws IOException {
 		InputStream inStream = FileSystemManager.getFileInputStream(sourceFile);
-		return getInputStreamContent(inStream, true);
+		return getInputStreamContent(inStream, encoding, true);
 	}
 
 	public String getInputStreamContent(InputStream inStream, boolean closeStreamOnExit)
@@ -373,7 +389,7 @@ public class FileTool {
 		BufferedReader reader = null;
 		String line;
 		try {
-			reader = new BufferedReader(new InputStreamReader(stream, encoding), BUFFER_SIZE);
+			reader = new BufferedReader(new InputStreamReader(stream, encoding), 20000);
 			line = reader.readLine();
 		} finally {
 			if (reader != null) {

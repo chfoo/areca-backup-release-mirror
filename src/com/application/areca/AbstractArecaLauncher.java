@@ -7,7 +7,6 @@ import com.application.areca.version.VersionInfos;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.system.AbstractLauncher;
 import com.myJava.system.OSTool;
-import com.myJava.util.log.ConsoleLogProcessor;
 import com.myJava.util.log.Logger;
 import com.myJava.util.log.ThreadLocalLogProcessor;
 
@@ -56,7 +55,6 @@ extends AbstractLauncher {
     
     protected void initialize() {
         ArecaTechnicalConfiguration.initialize();
-    	((ConsoleLogProcessor)Logger.defaultLogger().find(ConsoleLogProcessor.class)).setFullLog(false);
     	Logger.defaultLogger().setTlLogProcessor(new ThreadLocalLogProcessor());
     	
         Map javaargs = FrameworkConfiguration.getInstance().getJavaProperties();

@@ -42,6 +42,7 @@ public class ArecaImages {
     public static Image ICO_SMALL = loadImage("ico_16.png");
     public static Image ICO_BIG = loadImage("ico_72.png");
     public static Image ICO_VOID = loadImage("void.png");
+    public static Image ICO_CHANNEL = loadImage("run.png");
     
     // Arbre
     public static Image ICO_REF_TARGET = loadImage("database.png");

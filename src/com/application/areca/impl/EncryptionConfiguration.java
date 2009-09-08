@@ -98,7 +98,7 @@ public class EncryptionConfiguration {
             }
             return true;
         } catch (Throwable e) {
-            Logger.defaultLogger().info(this.id + " encryption configuration is not supported by your system (" + e.getMessage() + "). It will be removed from the available encryption configurations.");
+            Logger.defaultLogger().warn(this.id + " (" + this.fullName + ") encryption configuration is not supported by your system (" + e.getMessage() + "). It will be removed from the available encryption configurations.");
             return false;
         }
     }

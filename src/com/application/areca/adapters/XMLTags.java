@@ -141,8 +141,12 @@ public interface XMLTags {
     public static final String XML_PP_MERGE_TO_DELAY = "to_delay";     
     public static final String XML_PP_MERGE_KEEP_DELETED = "keep_deleted";
     public static final String XML_PP_ONLY_IF_ERROR = "failure_only"; // deprecated since 7.1.1
-    public static final String XML_PP_RUN_SCHEME = "run_scheme";
-    public static final String XML_PP_RUN_SCHEME_ALWAYS = "always";
-    public static final String XML_PP_RUN_SCHEME_FAILURE = "failure";
-    public static final String XML_PP_RUN_SCHEME_SUCCESS = "success";
+    public static final String XML_PP_RUN_SCHEME = "run_scheme";		// deprecated since 7.1.5
+    public static final String XML_PP_RUN_SCHEME_ALWAYS = "always";		// deprecated since 7.1.5
+    public static final String XML_PP_RUN_SCHEME_FAILURE = "failure";	// deprecated since 7.1.5
+    public static final String XML_PP_RUN_SCHEME_SUCCESS = "success";	// deprecated since 7.1.5
+    
+    public static final String XML_PP_RUN_SUCCESS = "run_if_success";
+    public static final String XML_PP_RUN_ERROR = "run_if_error";
+    public static final String XML_PP_RUN_WARNING = "run_if_warning";
 }

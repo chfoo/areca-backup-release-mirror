@@ -183,14 +183,22 @@ public abstract class Util {
      * Return a base 64 String representation of the byte[] passed as argument
      */
     public static String base64Encode(byte[] data) {
-		return Base64.encode(data).trim();
+    	if (data == null) {
+    		return "<null>";
+    	} else {
+    		return Base64.encode(data).trim();
+    	}
     }
     
     /**
      * Decode the base 64 representation passed as argument and return the corresponding byte[]
      */
     public static byte[] base64Decode(String data) {
-		return Base64.decode(data);
+    	if (data.trim().equals("<null>")) {
+    		return null;
+    	} else {
+    		return Base64.decode(data);    		
+    	}
     }
     
     /**

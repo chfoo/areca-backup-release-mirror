@@ -64,7 +64,7 @@ public class ExtendedAttribute {
 
 	public String getAsString() {
 		if (data == null) {
-			return "";
+			return "<null>";
 		} else {
 			StringBuffer sb = new StringBuffer();
 			for (int i=0; i<data.length; i++) {

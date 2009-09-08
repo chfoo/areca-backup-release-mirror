@@ -27,7 +27,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface ActionConstants {
-    // Commandes de menu
+    // Menu commands
 	public static final String CMD_OPEN = "open";
 	public static final String CMD_PREFERENCES = "preferences";
 	public static final String CMD_BACKUP_WORKSPACE = "backup workspace";    
@@ -74,7 +74,7 @@ public interface ActionConstants {
     public static final String CMD_SEARCH_PHYSICAL = "show physical";    
     public static final String CMD_SEARCH_LOGICAL = "show logical";    
     
-    // Actions g�n�riques
+    // Generic actions
     public static final String ACTION_SAVE = "save";
     public static final String ACTION_TEST = "test";
     public static final String ACTION_SEARCH = "search";

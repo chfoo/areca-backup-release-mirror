@@ -114,7 +114,7 @@ public final class Logger {
 
 	public Logger() {
 		this.setLogLevel(FrameworkConfiguration.getInstance().getLogLevel());
-		this.addProcessor(new ConsoleLogProcessor());
+		this.addProcessor(new ConsoleLogProcessor(true));
 
 		this.consumer = new LogConsumer();
 		consumerThread = new Thread(consumer);

@@ -48,6 +48,7 @@ public class TagHelper {
     public static final String PARAM_DATE = "%DATE%";
     public static final String PARAM_TIME = "%TIME%";
     public static final String PARAM_SUCCESS = "%SUCCESS%";
+    public static final String PARAM_HAS_WARNINGS = "%HAS_WARNINGS%";
     
     public static String replaceTag(String value, String oldTag, String newTag) {
         return Util.replace(value, oldTag, newTag);
@@ -82,7 +83,8 @@ public class TagHelper {
             value = Util.replace(value, PARAM_TIME, CalendarUtils.getTimeToString(now));
             value = Util.replace(value, PARAM_USER_NAME, OSTool.getUserName());
             
-            value = Util.replace(value, PARAM_SUCCESS, (! context.getReport().getStatus().hasError()) ? "1" : "0");
+            value = Util.replace(value, PARAM_SUCCESS, (! context.getReport().hasError()) ? "1" : "0");
+            value = Util.replace(value, PARAM_HAS_WARNINGS, context.getReport().getLogMessagesContainer().hasWarnings() ? "1" : "0");
 
             return value;
         }

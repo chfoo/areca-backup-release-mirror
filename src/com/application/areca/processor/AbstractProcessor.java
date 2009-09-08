@@ -33,29 +33,59 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public abstract class AbstractProcessor implements Processor {
-	private short runScheme;
+	private boolean runIfOK = true;
+	private boolean runIfWarning = true;
+	private boolean runIfError = true;
 
     public AbstractProcessor() {
-    	runScheme = RUN_SCHEME_ALWAYS;
     }
 
-    public short getRunScheme() {
-    	return runScheme;
+    public boolean isRunIfOK() {
+		return runIfOK;
 	}
 
-    public void setRunScheme(short runScheme) {
-		this.runScheme = runScheme;
+	public void setRunIfOK(boolean runIfOK) {
+		this.runIfOK = runIfOK;
+	}
+
+	public boolean isRunIfWarning() {
+		return runIfWarning;
+	}
+
+	public void setRunIfWarning(boolean runIfWarning) {
+		this.runIfWarning = runIfWarning;
+	}
+
+	public boolean isRunIfError() {
+		return runIfError;
+	}
+
+	public void setRunIfError(boolean runIfError) {
+		this.runIfError = runIfError;
+	}
+	
+	public void setRunAlways() {
+		this.runIfError = true;
+		this.runIfWarning = true;
+		this.runIfOK = true;
 	}
     
     public boolean shallRun(ProcessContext context) {
-    	return
-    		runScheme == Processor.RUN_SCHEME_ALWAYS
-    		|| (runScheme == Processor.RUN_SCHEME_FAILURE && context.getReport().getStatus().hasError())
-    		|| (runScheme == Processor.RUN_SCHEME_SUCCESS && (! context.getReport().getStatus().hasError()));
+    	if (context.getReport().hasError() && this.runIfError) {
+    		return true;
+    	} else if (context.getReport().hasWarnings() && this.runIfWarning) {
+    		return true;
+    	} else if (!context.getReport().hasError() && !context.getReport().hasWarnings() && this.runIfOK) {
+    		return true;
+    	} else {
+    		return false;
+    	}
     }
 
 	protected void copyAttributes(AbstractProcessor proc) {
-    	proc.runScheme = runScheme;
+    	proc.runIfOK = runIfOK;
+    	proc.runIfError = runIfError;
+    	proc.runIfWarning = runIfWarning;
     }
 
 	public void run(ProcessContext context) throws ApplicationException {
@@ -65,7 +95,7 @@ public abstract class AbstractProcessor implements Processor {
             if (shallRun(context)) {
             	this.runImpl(context);
             } else {
-            	Logger.defaultLogger().info("The processor will not be run (rule = \"" + getSchemeAsString() + "\" and state = \"" + (context.getReport().getStatus().hasError() ? "Failure":"Success") + "\")");
+            	Logger.defaultLogger().info("The processor will not be run (rule = \"" + getSchemeAsString() + "\" and state = \"" + (context.getReport().hasError() ? "Error":(context.getReport().hasWarnings() ? "Warning":"Success")) + "\")");
             }
         } catch (ProcessorValidationException e) {
             throw new ApplicationException("Error during processor validation : " + e.getMessage(), e);
@@ -78,13 +108,17 @@ public abstract class AbstractProcessor implements Processor {
         } else {
         	AbstractProcessor other = (AbstractProcessor)obj;
             return 
-                EqualsHelper.equals(this.runScheme, other.runScheme);
+                EqualsHelper.equals(this.runIfOK, other.runIfOK)
+            	&& EqualsHelper.equals(this.runIfError, other.runIfError)
+            	&& EqualsHelper.equals(this.runIfWarning, other.runIfWarning);            
         }
     }
     
     public int hashCode() {
         int h = HashHelper.initHash(this);
-        h = HashHelper.hash(h, this.runScheme);
+        h = HashHelper.hash(h, this.runIfOK);
+        h = HashHelper.hash(h, this.runIfError);
+        h = HashHelper.hash(h, this.runIfWarning);
         return h;
     }
     
@@ -104,12 +138,22 @@ public abstract class AbstractProcessor implements Processor {
     }
     
     private String getSchemeAsString() {
-    	if (runScheme == RUN_SCHEME_ALWAYS) {
+    	if (runIfOK && runIfError && runIfWarning) {
     		return "Always";
-    	} else if (runScheme == RUN_SCHEME_FAILURE) {
-    		return "Only in case of failure";
+    	} else if (!runIfOK && !runIfError && !runIfWarning) {
+    		return "Never";
     	} else {
-    		return "Only in case of success";
+    		String ret = "In case of ";
+    		if (runIfOK) {
+    			ret += "success or ";
+    		}
+    		if (runIfError) {
+    			ret += "error or ";
+    		}
+    		if (runIfWarning) {
+    			ret += "warning or ";
+    		}
+    		return ret.substring(0, ret.length() - 4);
     	}
     }
 }

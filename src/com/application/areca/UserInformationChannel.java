@@ -1,5 +1,6 @@
 package com.application.areca;
 
+import com.application.areca.context.ProcessContext;
 import com.myJava.util.taskmonitor.TaskMonitor;
 import com.myJava.util.taskmonitor.TaskMonitorListener;
 
@@ -39,5 +40,6 @@ public interface UserInformationChannel extends TaskMonitorListener {
     public void stopRunning();
     
     public void setTaskMonitor(TaskMonitor tm);
+    public void setContext(ProcessContext context);
     public TaskMonitor getTaskMonitor();
 }

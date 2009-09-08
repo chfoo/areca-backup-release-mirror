@@ -1,6 +1,7 @@
 package com.application.areca.launcher.gui.common;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 
 import com.application.areca.launcher.gui.Application;
 
@@ -33,17 +34,16 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface Colors {
-    public static final org.eclipse.swt.graphics.Color C_ERROR = new org.eclipse.swt.graphics.Color(Application.getInstance().getDisplay(), 180, 0, 0); 
-    public static final org.eclipse.swt.graphics.Color C_WARNING = new org.eclipse.swt.graphics.Color(Application.getInstance().getDisplay(), 0,0,150);   
-    public static final org.eclipse.swt.graphics.Color C_INFO = new org.eclipse.swt.graphics.Color(Application.getInstance().getDisplay(), 0,0,150);    
+    public static final Color C_RED = new Color(Application.getInstance().getDisplay(), 250, 0, 0);
+    public static final Color C_ORANGE = new Color(Application.getInstance().getDisplay(), 250, 120, 0);
+    public static final Color C_BLUE = new Color(Application.getInstance().getDisplay(), 0, 0, 250);
+     
+    public static final Color C_INFO = new Color(Application.getInstance().getDisplay(), 0,0,150);    
+    public static final Color C_GREY = new Color(Application.getInstance().getDisplay(), 150, 150, 150);
     
-    public static final org.eclipse.swt.graphics.Color C_PROGRESS = new org.eclipse.swt.graphics.Color(Application.getInstance().getDisplay(), 220, 85, 65);
-    public static final org.eclipse.swt.graphics.Color C_FINISHED = new org.eclipse.swt.graphics.Color(Application.getInstance().getDisplay(), 170, 208, 253);
+    public static final Color C_FLD_ERROR = new Color(Application.getInstance().getDisplay(), 170, 208, 253);
     
-    public static final org.eclipse.swt.graphics.Color C_FLD_ERROR = new org.eclipse.swt.graphics.Color(Application.getInstance().getDisplay(), 170, 208, 253);
-    //public static final org.eclipse.swt.graphics.Color C_FLD_ERROR = new org.eclipse.swt.graphics.Color(Application.getInstance().getDisplay(), 255, 50, 50);
-    
-    public static final org.eclipse.swt.graphics.Color C_BLACK = Application.getInstance().getDisplay().getSystemColor(SWT.COLOR_BLACK);
-    public static final org.eclipse.swt.graphics.Color C_GRAY = Application.getInstance().getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY);
-    public static final org.eclipse.swt.graphics.Color C_LIGHT_GRAY = Application.getInstance().getDisplay().getSystemColor(SWT.COLOR_GRAY);
+    public static final Color C_BLACK = Application.getInstance().getDisplay().getSystemColor(SWT.COLOR_BLACK);
+    public static final Color C_LIGHT_GRAY = Application.getInstance().getDisplay().getSystemColor(SWT.COLOR_GRAY);
+    public static final Color C_WHITE = Application.getInstance().getDisplay().getSystemColor(SWT.COLOR_WHITE);
 }

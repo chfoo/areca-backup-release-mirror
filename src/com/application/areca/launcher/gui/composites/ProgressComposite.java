@@ -1,8 +1,14 @@
 package com.application.areca.launcher.gui.composites;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
@@ -39,10 +45,44 @@ extends Composite
 implements Refreshable {
     protected final ResourceManager RM = ResourceManager.instance();
     protected Composite mainPane;
+	private Button btnClear;
     
     public ProgressComposite(Composite parent) {
         super(parent, SWT.NONE);
-        this.setLayout(new GridLayout(1, false));
+        
+        GridLayout mainLayout = new GridLayout(1, false);
+        mainLayout.marginHeight = 0;
+        mainLayout.marginWidth = 0;
+        setLayout(mainLayout);
+        ScrolledComposite sc = new ScrolledComposite(this, SWT.H_SCROLL | SWT.V_SCROLL);
+        sc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        mainPane = new Composite(sc, SWT.NONE);
+        sc.setContent(mainPane);
+
+        sc.setExpandHorizontal(true);
+        sc.setExpandVertical(true);
+        
+		GridLayout layout = new GridLayout(1, false);
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.verticalSpacing = 1;
+		mainPane.setLayout(layout);
+		
+        Composite panel = new Composite(this, SWT.NONE);
+        panel.setLayout(new GridLayout(1, false));
+        panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		btnClear = new Button(panel, SWT.PUSH);
+		btnClear.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
+		btnClear.setText(RM.getLabel("progress.removeall.label"));
+		btnClear.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event arg0) {
+				Control[] children = ProgressComposite.this.getMainPane().getChildren();
+				for (int i=0; i<children.length; i++) {
+					((InfoChannel)children[i]).removeIfPossible();
+				}
+			}
+		});
     }
     
     public Composite getMainPane() {
@@ -58,7 +98,16 @@ implements Refreshable {
     }
     
     public void taskFinished() {
-        if (this.getChildren().length == 0) {
+		Control[] children = ProgressComposite.this.getMainPane().getChildren();
+		boolean rn = false;
+		for (int i=0; i<children.length; i++) {
+			if (((InfoChannel)children[i]).isRunning()) {
+				rn = true;
+				break;
+			}
+		}
+    	
+        if (! rn) {
             Application.getInstance().getMainWindow().goBackToLastTab();
         }
     }

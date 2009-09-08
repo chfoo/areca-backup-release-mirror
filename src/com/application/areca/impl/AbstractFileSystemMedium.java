@@ -140,7 +140,7 @@ implements TargetActions, IndicatorTypes {
 	}   
 
 	/**
-	 * Valide diverses regles de gestion, notamment le fait que la gestion du cryptage est activee ou desactivee explicitement.
+	 * Check the medium's business rules before starting the action passed as argument
 	 */
 	public ActionReport checkMediumState(int action) {
 		ActionReport result = new ActionReport();
@@ -165,10 +165,6 @@ implements TargetActions, IndicatorTypes {
 		return result;
 	}
 
-	/**
-	 * On vide les caches lors de la fusion.
-	 * <BR>A optimiser en tenant compte de la date.
-	 */
 	public void commitMerge(ProcessContext context) throws ApplicationException {
 		clearRelatedCaches();
 	}
@@ -432,7 +428,7 @@ implements TargetActions, IndicatorTypes {
 	}
 
 	/**
-	 * Retourne la derniere archive precedant une date donnee
+	 * Return the last archive before the date passed as argument
 	 */
 	public abstract File getLastArchive(String backupScheme, GregorianCalendar date) throws ApplicationException;
 
@@ -597,12 +593,7 @@ implements TargetActions, IndicatorTypes {
 	}
 
 	/**
-	 * Retourne le status de l'entree, dans l'archive specifiee.
-	 * 
-	 * @param entry
-	 * @param archive
-	 * @return
-	 * @throws ApplicationException
+	 * Return the status of the entry passed as argument in the archive
 	 */
 	protected abstract EntryArchiveData getArchiveData(String entry, File archive) throws ApplicationException;
 
@@ -633,14 +624,12 @@ implements TargetActions, IndicatorTypes {
 	protected abstract boolean matchArchiveName(File f);
 
 	/**
-	 * Stocke le fichier passe en argument dans l'archive
-	 * (independemment des filtres, ou politique de stockage; il s'agit la d'une
-	 * methode purement utilitaire; en pratique : zip ou repertoire) 
+	 * Store the file in the archive referenced by the context
 	 */
 	protected abstract void storeFileInArchive(FileSystemRecoveryEntry entry, InputStream in, ProcessContext context) throws IOException, ApplicationException, TaskCancelledException;
 
 	/**
-	 * Creates a copy of the target's XML configuration and stores it in the main backup directory.
+	 * Create a copy of the target's XML configuration and stores it in the main backup directory.
 	 * <BR>This copy can be used later - in case of computer crash. 
 	 */
 	protected void storeTargetConfigBackup(ProcessContext context) throws ApplicationException {
@@ -662,17 +651,15 @@ implements TargetActions, IndicatorTypes {
 					process.setComments("This group contains a backup copy of your target : \"" + this.target.getTargetName() + "\". It can be used if your configuration has been lost (for instance in case of computer crash).\nDo not modify it since it will be automatically updated during backups.");
 
 					ProcessXMLWriter writer = new ProcessXMLWriter(true);
-					writer.serializeProcess(process);
-
-					ok = true;
+					ok = writer.serializeProcess(process, process.getSourceFile());
 				}
 			}
 
 			if (!ok) {
-				Logger.defaultLogger().warn("Improper backup location : " + FileSystemManager.getAbsolutePath(context.getCurrentArchiveFile()) + " - Could not create an XML configuration backup");
+				Logger.defaultLogger().warn("Could not create XML configuration backup for " + FileSystemManager.getAbsolutePath(context.getCurrentArchiveFile()) + ". It is HIGHLY advisable to create a backup copy of your configuration !");
 			}
 		} else {
-			Logger.defaultLogger().warn("Configuration security copy has been disabled for this target. No XML configuration copy will be created !");
+			Logger.defaultLogger().warn("Configuration security copy has been disabled for this target. No XML configuration copy will be created. It is HIGHLY advisable to create a backup copy of your configuration !");
 		}
 	}
 }

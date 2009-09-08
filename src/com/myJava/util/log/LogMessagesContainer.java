@@ -37,8 +37,15 @@ public class LogMessagesContainer {
 	
 	private ArrayList content = new ArrayList();
 	private boolean maxSizeReached = false;
+	private boolean hasWarnings = false;
+	private boolean hasErrors = false;
 	
 	public void addLogMessage(LogMessage message) {
+		if (message.getLevel() <= Logger.LOG_LEVEL_ERROR) {
+			hasErrors = true;
+		} else if (message.getLevel() <= Logger.LOG_LEVEL_WARNING) {
+			hasWarnings = true;
+		}
 		if (! maxSizeReached && content.size() < MAX_SIZE) {
 			content.add(message);
 		} else {
@@ -62,5 +69,13 @@ public class LogMessagesContainer {
 
 	public boolean isMaxSizeReached() {
 		return maxSizeReached;
+	}
+	
+	public boolean hasWarnings() {
+		return hasWarnings;
+	}
+	
+	public boolean hasErrors() {
+		return hasErrors;
 	}
 }

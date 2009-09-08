@@ -17,6 +17,7 @@ import com.application.areca.RecoveryEntry;
 import com.application.areca.SimulationResult;
 import com.application.areca.TargetActions;
 import com.application.areca.context.ProcessContext;
+import com.application.areca.context.StatusList;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
 import com.myJava.file.FileNameUtil;
@@ -309,12 +310,25 @@ implements TargetActions {
     		boolean checkOnlyArchiveContent,
     		GregorianCalendar date,
     		ProcessContext context) throws ApplicationException {
-
     	try {
-    		validateTargetState(ACTION_RECOVER);
-			this.medium.checkArchives(destination, checkOnlyArchiveContent, date, context);
-		} catch (TaskCancelledException e) {
-			throw new ApplicationException(e);
+    		validateTargetState(ACTION_RECOVER, context);
+    		try {
+    			this.medium.checkArchives(destination, checkOnlyArchiveContent, date, context);
+    		} catch (TaskCancelledException e) {
+    			throw new ApplicationException(e);
+    		}
+    		
+			// Set status
+			if (context.hasRecoveryProblem()) {
+				context.getReport().getStatus().addItem(StatusList.KEY_ARCHIVE_CHECK, "The archives were not successfully checked.");
+			} else {
+				context.getReport().getStatus().addItem(StatusList.KEY_ARCHIVE_CHECK);	
+			}
+		} catch (Exception e) {
+			Logger.defaultLogger().error("An error has been caught : ", e);
+			String msg = "The archives were not successfully checked. (" + e.getMessage() + ")";
+			context.getReport().getStatus().addItem(StatusList.KEY_ARCHIVE_CHECK, msg);
+			throw wrapException(e);
 		}
     }
 

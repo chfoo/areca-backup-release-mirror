@@ -2,6 +2,7 @@ package com.application.areca.launcher.tui;
 
 import com.application.areca.UserInformationChannel;
 import com.application.areca.launcher.AbstractInformationChannel;
+import com.myJava.util.log.ConsoleLogProcessor;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskMonitor;
 
@@ -38,30 +39,40 @@ implements UserInformationChannel {
     protected int previousProgress = -1;
     protected boolean displayThreadName = false;
     
+    private Logger logger;  
+    
     public LoggerUserInformationChannel(boolean displayThreadName) {
         this.displayThreadName = displayThreadName;
+        this.logger = new Logger();
+    	((ConsoleLogProcessor)this.logger.find(ConsoleLogProcessor.class)).setFullLog(false);
     }
 
     public void print(String info) {
         if (displayThreadName) {
+            logger.info(info, Thread.currentThread().getName());
             Logger.defaultLogger().info(info, Thread.currentThread().getName());
         } else {
+            logger.info(info);
             Logger.defaultLogger().info(info);
         }
     }
 
     public void warn(String info) {
         if (displayThreadName) {
+            logger.warn(info, Thread.currentThread().getName());
             Logger.defaultLogger().warn(info, Thread.currentThread().getName());
         } else {
+            logger.warn(info);
             Logger.defaultLogger().warn(info);
         }
 	}
     
     public void error(String info) {
         if (displayThreadName) {
+            logger.error(info, Thread.currentThread().getName());
             Logger.defaultLogger().error(info, Thread.currentThread().getName());
         } else {
+            logger.error(info);
             Logger.defaultLogger().error(info);
         }
 	}
@@ -72,8 +83,10 @@ implements UserInformationChannel {
             previousProgress = pc;
             String info = "" + (10*pc) + "%";
             if (displayThreadName) {
+                logger.info(info, Thread.currentThread().getName());
                 Logger.defaultLogger().info(info, Thread.currentThread().getName());
             } else {
+                logger.info(info);
                 Logger.defaultLogger().info(info);
             }
         }
@@ -94,8 +107,10 @@ implements UserInformationChannel {
     public void updateCurrentTask(long taskindex, long taskCount, String taskDescription) {
         if (taskCount != 0) {
             if (displayThreadName) {
+                logger.info(taskDescription, Thread.currentThread().getName());
                 Logger.defaultLogger().info(taskDescription, Thread.currentThread().getName());
             } else {
+                logger.info(taskDescription);
                 Logger.defaultLogger().info(taskDescription);
             }
         }

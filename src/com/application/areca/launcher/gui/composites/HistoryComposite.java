@@ -65,10 +65,9 @@ implements Listener, Refreshable, HistoryEntryTypes {
     
     public HistoryComposite(Composite parent) {
         super(parent, SWT.NONE);
-        GridLayout layout = new GridLayout();
+        GridLayout layout = new GridLayout(1, false);
         layout.marginHeight = 0;
         layout.marginWidth = 0;
-        layout.numColumns = 1;
         setLayout(layout);
 
         viewer = new TableViewer(this, SWT.BORDER| SWT.SINGLE);
@@ -87,32 +86,18 @@ implements Listener, Refreshable, HistoryEntryTypes {
         table.getColumn(1).setWidth(AbstractWindow.computeWidth(300));
         table.getColumn(0).setWidth(AbstractWindow.computeWidth(400));
 
-        GridData dt1 = new GridData();
-        dt1.grabExcessHorizontalSpace = true;
-        dt1.grabExcessVerticalSpace = true;
-        dt1.horizontalAlignment = SWT.FILL;
-        dt1.verticalAlignment = SWT.FILL;
-        table.setLayoutData(dt1);
+        table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         
-        Composite bottom = buildBottomComposite(this);
-        GridData dt2 = new GridData();
-        dt2.grabExcessHorizontalSpace = true;
-        dt2.horizontalAlignment = SWT.FILL;
-        dt2.verticalAlignment = SWT.FILL;
-        bottom.setLayoutData(dt2);
+        buildBottomComposite(this);
     }
     
     private Composite buildBottomComposite(Composite parent) {
         Composite panel = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout();
-        layout.numColumns = 1;
-        panel.setLayout(layout);
+        panel.setLayout(new GridLayout(1, false));
+        panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
-        GridData data = new GridData();
-        data.grabExcessHorizontalSpace = true;
-        data.horizontalAlignment = SWT.RIGHT;
         btnClear = new Button(panel, SWT.PUSH);
-        btnClear.setLayoutData(data);
+        btnClear.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
         btnClear.setText(RM.getLabel("history.clearbutton.label"));
         btnClear.addListener(SWT.Selection, this);
         

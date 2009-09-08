@@ -15,6 +15,7 @@ import com.myJava.util.collections.CollectionTools;
 
 /**
  * Archive's manifest implementation
+ * TODO : refactor : implement XML serializers / deserializers
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

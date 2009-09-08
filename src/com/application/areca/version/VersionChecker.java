@@ -3,6 +3,7 @@ package com.application.areca.version;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.application.areca.ArecaURLs;
 import com.myJava.util.log.Logger;
 import com.myJava.util.version.OnlineVersionDataAdapter;
 import com.myJava.util.version.VersionData;
@@ -36,8 +37,6 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class VersionChecker {
-    
-    private static final String DEFAULT_CHECK_URL = "http://www.areca-backup.org/version.php";
     private static VersionChecker instance = new VersionChecker();
     
     private String chekUrl;
@@ -55,7 +54,7 @@ public class VersionChecker {
      * <BR>- Add the current version ... this allows to adapt the response to Areca's version (warning messages if bugs have been discovered, ...)
      */
     private VersionChecker() {
-    	this.chekUrl = DEFAULT_CHECK_URL + "?currentVersion=" + VersionInfos.getLastVersion().getVersionId() + "&randomArg=";
+    	this.chekUrl = ArecaURLs.VERSION_URL + "?currentVersion=" + VersionInfos.getLastVersion().getVersionId() + "&randomArg=";
     }  
 
     public String getCheckHost() {

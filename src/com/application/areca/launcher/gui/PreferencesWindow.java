@@ -1,7 +1,5 @@
 package com.application.areca.launcher.gui;
 
-import java.util.Arrays;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -218,15 +216,15 @@ extends AbstractWindow {
     private void fillLangCombo() {
         try {
         	String currentLg = ArecaPreferences.resolveLanguage();
-        	
+
         	TranslationData[] lges = Utils.getTranslations();
-            Arrays.sort(lges);
             for (int i=0; i<lges.length; i++) {
             	String lg = lges[i].getLanguage();
             	if (lges[i].isDeprecated()) {
             		lg += " (" + RM.getLabel("common.deprecated.label") + ")";
             	}
                 langCombo.add(lg);
+                langCombo.setData(lg, lges[i]);
                 
                 if (lges[i].getLanguage().equals(currentLg)) {
                     langCombo.select(i);
@@ -253,7 +251,7 @@ extends AbstractWindow {
     protected void saveChanges() {       
         if (langCombo.getSelectionIndex() != -1) {
             String lang = (String)langCombo.getItem(langCombo.getSelectionIndex());
-            ArecaPreferences.setLang(lang);
+            ArecaPreferences.setLang(((TranslationData)langCombo.getData(lang)).getLanguage());
         }
         ArecaPreferences.setStartupMode(openLastWorkspace.getSelection() ? ArecaPreferences.LAST_WORKSPACE_MODE : ArecaPreferences.DEFAULT_WORKSPACE_MODE);
         ArecaPreferences.setDefaultWorkspace(defaultWorkspace.getText());

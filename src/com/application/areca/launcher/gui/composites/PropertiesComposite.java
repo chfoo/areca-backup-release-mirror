@@ -4,7 +4,8 @@ import java.io.File;
 
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -54,13 +55,17 @@ extends Composite {
     
     public PropertiesComposite(Composite parent) {
         super(parent, SWT.NONE);
-        setLayout(new FillLayout());
+        GridLayout lt = new GridLayout(1, false);
+        lt.marginHeight = 0;
+        lt.marginWidth = 0;
+        setLayout(lt);
 
         viewer = new TableViewer(this, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
 
         table = viewer.getTable();
         table.setLinesVisible(false);
         table.setHeaderVisible(true);
+        table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         
         TableColumn col1 = new TableColumn (table, SWT.NONE);
         col1.setWidth(AbstractWindow.computeWidth(100));
@@ -68,7 +73,21 @@ extends Composite {
         TableColumn col2 = new TableColumn (table, SWT.NONE);
         col2.setWidth(AbstractWindow.computeWidth(250));
         col2.setMoveable(true);
-        
+        /*
+        Link lnk = new Link(this, SWT.NONE);
+        lnk.setText("<A>Configure</A>");
+        lnk.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+        lnk.addListener (SWT.Selection, new Listener () {
+			public void handleEvent(Event event) {
+				if (application.isCurrentObjectTargetGroup()) {
+					Application.getInstance().processCommand(AppActionReferenceHolder.CMD_EDIT_PROCESS);
+				} else if (application.isCurrentObjectTarget()) {
+					Application.getInstance().processCommand(AppActionReferenceHolder.CMD_EDIT_TARGET);
+				}
+			}
+		});
+	*/
+		
         // REFRESH DATA
         this.refresh();
     }
@@ -77,7 +96,7 @@ extends Composite {
         table.removeAll();
         if (application.isCurrentObjectTarget()) {
             fillData((FileSystemTarget)application.getCurrentTarget());
-        } else if (application.isCurrentObjectProcess()) {
+        } else if (application.isCurrentObjectTargetGroup()) {
             fillData(application.getCurrentTargetGroup());
         }
     }

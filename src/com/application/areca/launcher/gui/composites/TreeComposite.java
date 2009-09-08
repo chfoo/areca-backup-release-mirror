@@ -81,7 +81,7 @@ implements MouseListener, Listener {
             public void doubleClick(DoubleClickEvent event) {
                 if (application.isCurrentObjectTarget()) {
                     application.showEditTarget(application.getCurrentTarget());
-                } else if (application.isCurrentObjectProcess()) {
+                } else if (application.isCurrentObjectTargetGroup()) {
                     application.showEditGroup(application.getCurrentTargetGroup());
                 }
             }

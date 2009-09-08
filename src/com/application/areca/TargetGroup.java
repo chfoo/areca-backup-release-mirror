@@ -236,7 +236,7 @@ implements Identifiable {
      */
     public IndicatorMap processIndicatorsOnTarget(AbstractTarget target, ProcessContext context) throws ApplicationException {
         this.initProgress(context);
-        return target.computeIndicators();
+        return target.computeIndicators(context);
     }
     
     /**

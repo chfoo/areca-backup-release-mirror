@@ -51,10 +51,7 @@ public class ApplicationException extends Exception {
     public ApplicationException(Throwable cause) {
         super(cause);
     }
-    
-    /**
-     * Construit un message d'erreur � partir du report
-     */
+
     private static String buildErrorMessage(ActionReport report) {
         if (report.isDataValid()) {
             return Errors.ERR_ALL_OK;

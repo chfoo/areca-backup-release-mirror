@@ -17,7 +17,6 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
@@ -612,7 +611,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 	private void showRecoveryResultWindow(final ProcessContext context) {
 		SecuredRunner.execute(new Runnable() {
 			public void run() {
-				if (context.getInvalidRecoveredFiles() != null && context.getInvalidRecoveredFiles().size() != 0) {
+				if (context.hasRecoveryProblem()) {
 					showWarningDialog(
 							RM.getLabel("recover.check.invalid.label"),
 							RM.getLabel("recover.check.result.title"), 
@@ -1231,9 +1230,9 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 		}
 	}
 
-	private void showDialog(AbstractWindow window) {
+	public void showDialog(final AbstractWindow window) {
 		try {
-			window.setModal(this.getMainWindow());
+			window.setModal(getMainWindow());
 			window.setBlockOnOpen(true);
 			window.open();
 		} catch (Exception e) {
@@ -1259,7 +1258,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 				disableWaitCursor();
 
 				if (e != null) {
-					if (! (e instanceof ApplicationException)) {
+					if (!(e instanceof ApplicationException)) {
 						Logger.defaultLogger().error(e); // Unexpected exception ... that may not have been logged.
 					}
 					e.printStackTrace(System.err);
@@ -1302,7 +1301,10 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 	public void saveProcess(TargetGroup process) {
 		try {
 			ProcessXMLWriter writer = new ProcessXMLWriter();
-			writer.serializeProcess(process);
+			boolean ok = writer.serializeProcess(process, process.getSourceFile());
+			if (! ok) {
+				throw new IOException("Error detected while writing configuration on disk");
+			}
 		} catch (Throwable e1) {
 			this.handleException(RM.getLabel("error.groupupdate.message"), e1);
 		}
@@ -1316,7 +1318,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 		return (AbstractTarget)this.currentObject;
 	}
 
-	public boolean isCurrentObjectProcess() {
+	public boolean isCurrentObjectTargetGroup() {
 		return (currentObject != null && TargetGroup.class.isAssignableFrom(currentObject.getClass()));
 	}
 
@@ -1602,13 +1604,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 
 		public ProcessRunner(AbstractTarget target) {
 			this.rTarget = target;
-			channel = new InfoChannel(rTarget, mainWindow.getProgressContainer());
-
-			GridData infoData = new GridData();
-			infoData.grabExcessHorizontalSpace = true;
-			infoData.horizontalAlignment = SWT.FILL;
-			channel.setLayoutData(infoData);
-			mainWindow.getProgressContainer().layout();
+			channel = new InfoChannel(rTarget, mainWindow.getProgressContainer().getMainPane());
 			mainWindow.focusOnProgress();
 		}
 
@@ -1626,6 +1622,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 
 		public void run() {           
 			addChannel(channel);
+			channel.setAction(rName);
 
 			try {
 				String taskName = "Unnamed-Task";

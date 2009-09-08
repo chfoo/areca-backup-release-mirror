@@ -121,14 +121,17 @@ extends AbstractWindow {
         composite.setLayout(new GridLayout(1, false));
         
         // TITLE
-        Group grpTitle = new Group(composite, SWT.NONE);
-        grpTitle.setText(RM.removeDots(RM.getLabel("archivedetail.titlefield.label")));
-        grpTitle.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-        grpTitle.setLayout(new GridLayout());
-        
-        Text txtTitle = new Text(grpTitle, SWT.BORDER);
-        txtTitle.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        txtTitle.setEditable(false);
+        Text txtTitle = null;
+        if (manifest != null && manifest.getTitle() != null && !manifest.getTitle().equals("")) {
+	        Group grpTitle = new Group(composite, SWT.NONE);
+	        grpTitle.setText(RM.removeDots(RM.getLabel("archivedetail.titlefield.label")));
+	        grpTitle.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+	        grpTitle.setLayout(new GridLayout());
+	        
+	        txtTitle = new Text(grpTitle, SWT.BORDER);
+	        txtTitle.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	        txtTitle.setEditable(false);
+        }
         
         // DATE
         Group grpDate = new Group(composite, SWT.NONE);
@@ -141,17 +144,20 @@ extends AbstractWindow {
         txtDate.setEditable(false);
 
         // DESCRIPTION
-        Group grpDescription = new Group(composite, SWT.NONE);
-        grpDescription.setText(RM.removeDots(RM.getLabel("archivedetail.descriptionfield.label")));
-        grpDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-        grpDescription.setLayout(new GridLayout());
-        
-        Text txtDescription = new Text(grpDescription, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-        GridData ldDescription = new GridData(SWT.FILL, SWT.FILL, true, true);
-        ldDescription.heightHint = computeHeight(50);
-        ldDescription.minimumHeight = computeHeight(50);
-        txtDescription.setLayoutData(ldDescription);
-        txtDescription.setEditable(false);
+        Text txtDescription = null;
+        if (manifest != null && manifest.getDescription() != null && !manifest.getDescription().equals("")) {
+	        Group grpDescription = new Group(composite, SWT.NONE);
+	        grpDescription.setText(RM.removeDots(RM.getLabel("archivedetail.descriptionfield.label")));
+	        grpDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+	        grpDescription.setLayout(new GridLayout());
+	        
+	        txtDescription = new Text(grpDescription, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+	        GridData ldDescription = new GridData(SWT.FILL, SWT.FILL, true, true);
+	        ldDescription.heightHint = computeHeight(50);
+	        ldDescription.minimumHeight = computeHeight(50);
+	        txtDescription.setLayoutData(ldDescription);
+	        txtDescription.setEditable(false);
+        }
         
         // PROPERTIES
         Group grpProperties = new Group(composite, SWT.NONE);
@@ -177,9 +183,13 @@ extends AbstractWindow {
         
         // INIT DATA
         if (manifest != null) {
-            txtTitle.setText(manifest.getTitle() == null ? "" : manifest.getTitle());
+        	if (txtTitle != null) {
+        		txtTitle.setText(manifest.getTitle() == null ? "" : manifest.getTitle());
+        	}
             txtDate.setText(manifest.getDate() == null ? "" : Utils.formatDisplayDate(manifest.getDate()));
-            txtDescription.setText(manifest.getDescription() == null ? "" : manifest.getDescription());
+        	if (txtDescription != null) {
+        		txtDescription.setText(manifest.getDescription() == null ? "" : manifest.getDescription());
+        	}
             
             TableItem item0 = new TableItem(table, SWT.NONE);
             item0.setText(0, " ** Type ** ");
@@ -196,7 +206,11 @@ extends AbstractWindow {
             }
         }
         
-        txtTitle.forceFocus();
+        if (txtTitle != null) {
+        	txtTitle.forceFocus();
+        } else {
+        	txtDate.forceFocus();
+        }
         
         composite.pack();
     }

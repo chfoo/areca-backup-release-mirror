@@ -257,36 +257,55 @@ public class TargetXMLReader implements XMLTags {
 
 	protected void readProcessorAttributes(Node node, AbstractProcessor proc) throws AdapterException {
 		Node runSchemeNode = node.getAttributes().getNamedItem(XML_PP_RUN_SCHEME);
-		short runScheme = Processor.RUN_SCHEME_ALWAYS;
-		if (runSchemeNode != null) {
+		Node runIfOKNode = node.getAttributes().getNamedItem(XML_PP_RUN_SUCCESS);
+		Node runIfWarningNode = node.getAttributes().getNamedItem(XML_PP_RUN_WARNING);
+		Node runIfErrorNode = node.getAttributes().getNamedItem(XML_PP_RUN_ERROR);
+		
+		if (runIfErrorNode != null || runIfWarningNode != null || runIfOKNode != null) {
+			proc.setRunIfError(runIfErrorNode != null && Boolean.valueOf(runIfErrorNode.getNodeValue()).booleanValue());
+			proc.setRunIfWarning(runIfWarningNode != null && Boolean.valueOf(runIfWarningNode.getNodeValue()).booleanValue());
+			proc.setRunIfOK(runIfOKNode != null && Boolean.valueOf(runIfOKNode.getNodeValue()).booleanValue());
+		} else if (runSchemeNode != null) {
+			// BACKWARD-COMPATIBILITY : version between than 7.1.1 and 7.1.4 //
 			if (XML_PP_RUN_SCHEME_ALWAYS.equals(runSchemeNode.getNodeValue())) {
-				runScheme = Processor.RUN_SCHEME_ALWAYS;
+				proc.setRunAlways();
 			} else if (XML_PP_RUN_SCHEME_FAILURE.equals(runSchemeNode.getNodeValue())) {
-				runScheme = Processor.RUN_SCHEME_FAILURE;
+				proc.setRunIfError(true);
+				proc.setRunIfWarning(false);
+				proc.setRunIfOK(false);
 			} else if (XML_PP_RUN_SCHEME_SUCCESS.equals(runSchemeNode.getNodeValue())) {
-				runScheme = Processor.RUN_SCHEME_SUCCESS;
+				proc.setRunIfError(false);
+				proc.setRunIfWarning(true);
+				proc.setRunIfOK(true);
 			} else {
 				throw new AdapterException("Run rule not supported for processor " + proc.getName() + " : " + runSchemeNode.getNodeValue());
 			}
+			// EOF BACKWARD-COMPATIBILITY : version between than 7.1.1 and 7.1.4 //
 		} else {
-			// BACKWARD-COMPATIBILITY //
+			// BACKWARD-COMPATIBILITY : version older than 7.1.1 //
 			Node failureOnlyNode = node.getAttributes().getNamedItem(XML_PP_ONLY_IF_ERROR);
 			if (failureOnlyNode != null) {
 				if (Boolean.valueOf(failureOnlyNode.getNodeValue()).booleanValue()) {
-					runScheme = Processor.RUN_SCHEME_FAILURE;
+					proc.setRunIfError(true);
+					proc.setRunIfWarning(false);
+					proc.setRunIfOK(false);
+				} else {
+					proc.setRunAlways();
 				}
 			} else {
 				Node failureOnlyNode_old = node.getAttributes().getNamedItem("smtp_" + XML_PP_ONLY_IF_ERROR);
 				if (failureOnlyNode_old != null) {
 					if (Boolean.valueOf(failureOnlyNode_old.getNodeValue()).booleanValue()) {
-						runScheme = Processor.RUN_SCHEME_FAILURE;
+						proc.setRunIfError(true);
+						proc.setRunIfWarning(false);
+						proc.setRunIfOK(false);
+					} else {
+						proc.setRunAlways();
 					}
 				}
 			}
-			// EOF BACKWARD-COMPATIBILITY //
+			// EOF BACKWARD-COMPATIBILITY : version older than 7.1.1 //
 		}
-
-		proc.setRunScheme(runScheme);
 	}
 
 	protected Processor readDumpProcessor(Node node) throws AdapterException {

@@ -31,9 +31,11 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class StatusList {
-	public static String KEY_ARCHIVE_CHECK = "Archive Check";
+	public static String KEY_ARCHIVE_CHECK = "Check Archive";
 	public static String KEY_BACKUP = "Backup";
-	public static String KEY_MERGE = "Merge";
+	public static String KEY_MERGE = "Merge Archives";
+	public static String KEY_SIMULATE = "Simulate Backup";
+	public static String KEY_DELETE = "Delete Archives";
 	
 	private ArrayList content = new ArrayList();
 	private boolean hasError = false;
@@ -62,6 +64,17 @@ public class StatusList {
 	
 	public void clear() {
 		content.clear();
+	}
+	
+	public boolean hasItem(String key) {
+		Iterator iter = this.iterator();
+		while (iter.hasNext()) {
+			StatusItem itm = (StatusItem)iter.next();
+			if (itm.getKey().equals(key)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public int size() {

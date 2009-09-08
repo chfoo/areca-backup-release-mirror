@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.application.areca.ArecaURLs;
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
@@ -97,7 +98,7 @@ extends AbstractWindow {
             checkNewVersions.setSelection(ArecaPreferences.isCheckNewVersions());
             checkNewVersions.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false)); 
             
-            GridData dt3 = new GridData(SWT.CENTER, SWT.BOTTOM, false, true);
+            GridData dt3 = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
             Link lnk = new Link(ret, SWT.NONE);
             lnk.addListener (SWT.Selection, new Listener() {
                 public void handleEvent(Event event) {
@@ -108,7 +109,7 @@ extends AbstractWindow {
                     }
                 }
             });
-            lnk.setText("<A HREF=\"http://areca.sourceforge.net\">areca.sf.net</A>");
+            lnk.setText("<A HREF=\"" + ArecaURLs.ARECA_URL + "\">areca-backup.org</A>");
             lnk.setLayoutData(dt3);
             
             SavePanel pnlSave;

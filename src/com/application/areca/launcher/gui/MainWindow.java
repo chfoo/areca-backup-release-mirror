@@ -152,7 +152,7 @@ public class MainWindow extends AbstractWindow {
         this.searchView = new SearchComposite(tabs);
         addFolderItem(RM.getLabel("mainpanel.search.label"), ArecaImages.ICO_FIND, searchView);
         addFolderItem(RM.getLabel("mainpanel.log.label"), ArecaImages.ICO_TARGET_NEW, new LogComposite(tabs));
-        addFolderItem(RM.getLabel("mainpanel.progress.label"), ArecaImages.ICO_TARGET_NEW, progressContainer);
+        addFolderItem(RM.getLabel("mainpanel.progress.label"), ArecaImages.ICO_CHANNEL, progressContainer);
 
         tabs.setSelection(TAB_PHYSICAL);
         application.getFolderMonitor().handleSelection(tabs.getItem(TAB_PHYSICAL));

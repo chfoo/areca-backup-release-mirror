@@ -80,7 +80,6 @@ implements CommandConstants {
                 File f = new File(command.getOption(OPTION_CONFIG));
                 if (FileSystemManager.exists(f)) {
                     Logger.defaultLogger().remove(FileLogProcessor.class);
-                    Logger.defaultLogger().remove(ConsoleLogProcessor.class);
                     File configFile = new File(command.getOption(OPTION_CONFIG));
                     
                     String configName = FileSystemManager.getName(configFile);
@@ -96,6 +95,7 @@ implements CommandConstants {
                     	proc = new FileLogProcessor(new File(ArecaTechnicalConfiguration.get().getLogLocationOverride(), configName));
                     }
         	        Logger.defaultLogger().addProcessor(proc);
+                    Logger.defaultLogger().remove(ConsoleLogProcessor.class);
                 }
             }
             
@@ -435,9 +435,9 @@ implements CommandConstants {
                 context
         );
         
-        if (context.getInvalidRecoveredFiles().size() != 0) {
+        if (context.hasRecoveryProblem()) {
         	context.getInfoChannel().warn("Some errors were found (see above).");
-        	setErrorCode(ERR_INVALID_ARCHIVE); // Syntax error
+        	setErrorCode(ERR_INVALID_ARCHIVE); 
         } else if (context.getRecoveryDestination() != null) {
         	String suffix = "";
         	if (checkAll) {

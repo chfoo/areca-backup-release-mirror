@@ -29,6 +29,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface TargetActions {
+    public static final int ACTION_UNKNOWN = -1;
     public static final int ACTION_ALL = 0;
     
     public static final int ACTION_BACKUP = 1;

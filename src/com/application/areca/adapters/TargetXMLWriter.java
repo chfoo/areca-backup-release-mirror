@@ -185,20 +185,18 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("=");
         sb.append(encode(postProcess));  
         sb.append(" "); 
-        sb.append(XML_PP_RUN_SCHEME);
+        sb.append(XML_PP_RUN_SUCCESS);
         sb.append("=");
-        sb.append(encode(transcodeRunScheme(proc)));  
+        sb.append(encode(proc.isRunIfOK()));  
         sb.append(" "); 
-    }
-    
-    protected String transcodeRunScheme(Processor proc) {
-    	if (proc.getRunScheme() == Processor.RUN_SCHEME_ALWAYS) {
-    		return XML_PP_RUN_SCHEME_ALWAYS;
-    	} else if (proc.getRunScheme() == Processor.RUN_SCHEME_FAILURE) {
-    		return XML_PP_RUN_SCHEME_FAILURE;
-    	} else {
-    		return XML_PP_RUN_SCHEME_SUCCESS;
-    	}
+        sb.append(XML_PP_RUN_ERROR);
+        sb.append("=");
+        sb.append(encode(proc.isRunIfError()));  
+        sb.append(" "); 
+        sb.append(XML_PP_RUN_WARNING);
+        sb.append("=");
+        sb.append(encode(proc.isRunIfWarning()));  
+        sb.append(" "); 
     }
 
     protected void serializeProcessor(FileDumpProcessor pp, boolean postProcess) {

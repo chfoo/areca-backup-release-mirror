@@ -6,7 +6,6 @@ import java.util.Set;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -20,6 +19,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.Refreshable;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.system.OSTool;
@@ -57,11 +57,6 @@ This file is part of Areca.
 public class LogComposite 
 extends Composite 
 implements LogProcessor, Refreshable {
-	private static Color RED = new Color(Application.getInstance().getDisplay(), 250, 0, 0);
-	private static Color ORANGE = new Color(Application.getInstance().getDisplay(), 250, 120, 0);
-	private static Color BLUE = new Color(Application.getInstance().getDisplay(), 0, 0, 250);
-	private static Color GREY = new Color(Application.getInstance().getDisplay(), 150, 150, 150);
-
 	private static final long MAX_SIZE = (long)(OSTool.getMaxMemory() * 0.10 * 0.25); // Max memory * 10% / 4
 
 	private final ResourceManager RM = ResourceManager.instance();	
@@ -86,7 +81,7 @@ implements LogProcessor, Refreshable {
 		txtLog = new StyledText(this, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		txtLog.setEditable(false);
 		txtLog.setMenu(Application.getInstance().getLogContextMenu());
-		txtLog.setForeground(GREY);
+		txtLog.setForeground(Colors.C_GREY);
 
 		GridData dt1 = new GridData();
 		dt1.grabExcessHorizontalSpace = true;
@@ -264,11 +259,11 @@ implements LogProcessor, Refreshable {
 
 		StyleRange style = new StyleRange();
 		if (level == 1) {
-			style.foreground = RED;
+			style.foreground = Colors.C_RED;
 		} else if (level <= 3) {
-			style.foreground = ORANGE;
+			style.foreground = Colors.C_ORANGE;
 		} else {
-			style.foreground = BLUE;
+			style.foreground = Colors.C_BLUE;
 		}
 
 		return style;

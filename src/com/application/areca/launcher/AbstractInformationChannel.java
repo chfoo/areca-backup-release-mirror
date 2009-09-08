@@ -1,6 +1,7 @@
 package com.application.areca.launcher;
 
 import com.application.areca.UserInformationChannel;
+import com.application.areca.context.ProcessContext;
 import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
@@ -31,6 +32,7 @@ This file is part of Areca.
  */
 public abstract class AbstractInformationChannel implements UserInformationChannel {
     protected TaskMonitor taskMonitor;
+    protected ProcessContext context;
 
     public TaskMonitor getTaskMonitor() {
         return taskMonitor;
@@ -40,4 +42,8 @@ public abstract class AbstractInformationChannel implements UserInformationChann
         this.taskMonitor = taskMonitor;
         taskMonitor.addListener(this);
     }
+
+	public void setContext(ProcessContext context) {
+		this.context = context;
+	}
 }

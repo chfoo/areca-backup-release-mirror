@@ -1008,7 +1008,7 @@ implements TargetActions {
 						this.closeArchive(context); 
 					} finally {
 						// Delete the archive
-						if (! isCommitted(context.getCurrentArchiveFile())) {
+						if (context.getCurrentArchiveFile() != null && ! isCommitted(context.getCurrentArchiveFile())) {
 							AbstractFileSystemMedium.tool.delete(context.getCurrentArchiveFile(), true);
 							AbstractFileSystemMedium.tool.delete(this.getDataDirectory(context.getCurrentArchiveFile()), true);
 						}
@@ -1179,7 +1179,7 @@ implements TargetActions {
 								}
 								storeFileInArchive(fEntry, in, context);
 							}
-						}, "An error occured while storing " + fEntry.getKey());
+						}, "An error occurred while storing " + fEntry.getKey());
 
 						context.addInputBytes(FileSystemManager.length(fEntry.getFile()));
 						context.getContentAdapter().writeContentEntry(fEntry);
@@ -1726,7 +1726,7 @@ implements TargetActions {
 		// Check the file
 		byte[] storedHash = ArchiveContentParser.interpretAsHash(entry.getKey(), entry.getData());
 		if (storedHash == null) {
-			Logger.defaultLogger().warn(entry.getKey() + " : no reference hash could be found.");
+			context.getInfoChannel().warn(entry.getKey() + " : no reference hash could be found.");
 			context.getUncheckedRecoveredFiles().add(entry.getKey());
 		} else {
 			this.doAndRetry(new CheckHash(context, storedHash, entry, file), "Error while checking " + file.getAbsolutePath());
@@ -1813,8 +1813,9 @@ implements TargetActions {
 				if (filters == null || Util.passFilter(entry.getKey(), filters)) {
 					File target = new File(destination, entry.getKey());
 					if (entry.getType() == MetadataConstants.T_FILE) {
-						if (! FileSystemManager.exists(target)) {
-							Logger.defaultLogger().warn(entry.getKey() + " has not been recovered ... it should have !");
+						boolean toto = false;
+						if (toto || ! FileSystemManager.exists(target)) {
+							context.getInfoChannel().warn(entry.getKey() + " has not been recovered ... it should have !");
 							context.getUnrecoveredFiles().add(entry.getKey());
 						} else {
 							if (CHECK_DEBUG_MODE) {
@@ -1839,7 +1840,7 @@ implements TargetActions {
 								}
 							}
 							if (! found) {
-								Logger.defaultLogger().warn("No reference hash could be found for " + entry.getKey());
+								context.getInfoChannel().warn("No reference hash could be found for " + entry.getKey());
 								context.getUncheckedRecoveredFiles().add(entry.getKey());
 							}
 						}
@@ -2011,6 +2012,11 @@ implements TargetActions {
 							} else if (entry.getType() == MetadataConstants.T_FILE) {
 								String subdirectory = entryKey.substring(0, idx);
 								DirectoryData dt = (DirectoryData)directories.get(subdirectory);
+								
+								if (dt == null) {
+									Logger.defaultLogger().error("No reference data found in archive trace for directory : " + subdirectory + " (entry key = [" + entryKey + "])");
+									Logger.defaultLogger().fine("Directory reference data :\n" + directories.toString());
+								}
 
 								// Update directory data ('exist' flag and size)
 								boolean exists = entry.getData().charAt(0) == '1';

@@ -145,6 +145,11 @@ extends AbstractArchiveHandler {
 	 */
 	private HashSequence lookupSequenceForEntry(FileSystemRecoveryEntry entry, ProcessContext context)
 	throws ApplicationException, IOException, TaskCancelledException {
+		// No sequence used in case of full backup
+		if (context.getBackupScheme().equals(AbstractTarget.BACKUP_SCHEME_FULL)) {
+			return null;
+		}
+		
 		Iterator contents = context.getContentIterators().iterator();
 		ContentFileIterator ctnIter = null;
 
@@ -171,23 +176,36 @@ extends AbstractArchiveHandler {
 		}
 
 		// Not found -> search among older archives
+		boolean ignoreIncrementalAndDifferentialArchives = context.getBackupScheme().equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL);
+		boolean lastPossibleCandidate = false;
 		while (ctnIter == null) {
 			GregorianCalendar toDate = null;
 			if (lastArchive != null) {
 				toDate = (GregorianCalendar)ArchiveManifestCache.getInstance().getManifest(medium, lastArchive).getDate().clone();
 				toDate.add(GregorianCalendar.MILLISECOND, -1);
 			}
-			File[] previousArchives = medium.listArchives(null, toDate);
+			File[] previousArchives = listCandidatesForSequenceLookup(toDate, context.getBackupScheme());
 
 			// Locate a new archive to load
 			lastArchive = null;
 			for (int i=previousArchives.length - 1; i>=0; i--) {
+				
+				// retrieve archive backup scheme
+				String archiveBackupScheme = AbstractTarget.BACKUP_SCHEME_FULL;
+				Manifest mf = ArchiveManifestCache.getInstance().getManifest(medium, previousArchives[i]);
+				if (mf != null) {
+					archiveBackupScheme = mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME);
+				}
+				
+				// Check archive scheme
 				boolean validated = true;
-				if (context.getBackupScheme().equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
-					Manifest mf = ArchiveManifestCache.getInstance().getManifest(medium, previousArchives[i]);
-					validated = 
-						mf != null 
-						&& mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME).equals(AbstractTarget.BACKUP_SCHEME_FULL);
+				if (ignoreIncrementalAndDifferentialArchives) {
+					validated = archiveBackupScheme.equals(AbstractTarget.BACKUP_SCHEME_FULL);
+				}
+				if (archiveBackupScheme.equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+					ignoreIncrementalAndDifferentialArchives = true;
+				} else if (archiveBackupScheme.equals(AbstractTarget.BACKUP_SCHEME_FULL)) {
+					lastPossibleCandidate = true;
 				}
 
 				if (validated) {
@@ -200,6 +218,7 @@ extends AbstractArchiveHandler {
 				if (DEBUG) {
 					Logger.defaultLogger().fine("Entry " + entry.getKey() + " : using <null> as sequence");
 				}
+				// No more archives to explore -> return null : the entry is a new one
 				return null;
 			}
 
@@ -218,7 +237,12 @@ extends AbstractArchiveHandler {
 			// Check whether the entry can be found
 			boolean found = ctnIter.fetchUntil(entry.getKey());
 			if (! found) {
-				ctnIter = null;
+				if (lastPossibleCandidate) {
+					// The last possible candidate has been reached (it was a full backup) -> ignore previous archives and return null (new entry)
+					return null;
+				} else {
+					ctnIter = null;
+				}
 			}
 		}
 
@@ -241,6 +265,11 @@ extends AbstractArchiveHandler {
 			}
 		}
 		return seq;
+	}
+	
+	private File[] listCandidatesForSequenceLookup(GregorianCalendar date, String backupScheme) {
+		File[] files = medium.listArchives(null, date);
+		return files;
 	}
 
 	private int computeBlockSize(File file) {

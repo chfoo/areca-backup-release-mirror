@@ -60,10 +60,10 @@ public class TaskCancelledException extends Exception {
     }
     
     public static boolean isTaskCancellation(Throwable e) {
-        if (e instanceof TaskCancelledException) {
+    	if (e == null) {
+    		return false;
+    	} else if (e instanceof TaskCancelledException) {
             return true;
-        } else if (e.getCause() == null) {
-            return false;
         } else {
             return isTaskCancellation(e.getCause());
         }

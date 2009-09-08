@@ -298,7 +298,7 @@ implements MouseListener, Listener, Refreshable {
             AbstractTarget target = (AbstractTarget)tgIter.next();
             chk.setSelection(
                     (this.application.isCurrentObjectTarget() && this.application.getCurrentTarget().getUid().equals(target.getUid()))
-                    || (this.application.isCurrentObjectProcess() && this.application.getCurrentTargetGroup().getUid().equals(target.getGroup().getUid()))
+                    || (this.application.isCurrentObjectTargetGroup() && this.application.getCurrentTargetGroup().getUid().equals(target.getGroup().getUid()))
             );
         }
     }

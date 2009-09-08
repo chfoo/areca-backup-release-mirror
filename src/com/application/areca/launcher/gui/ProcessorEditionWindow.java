@@ -61,9 +61,9 @@ extends AbstractWindow {
     
     protected boolean preprocess;
     
-    protected Button radAlways;
-    protected Button radFailure;
-    protected Button radSuccess;
+    protected Button chkError;
+    protected Button chkWarning;
+    protected Button chkOK;
     
     protected AbstractProcessor proc;  
     protected FileSystemTarget currentTarget;
@@ -113,31 +113,29 @@ extends AbstractWindow {
             pnlRunContainer.setLayout(new GridLayout(1, false));
             pnlRunContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
         	
-            radAlways = new Button(pnlRunContainer, SWT.RADIO);
-            radAlways.setText(RM.getLabel("procedition.run.always.label"));
-            radAlways.setToolTipText(RM.getLabel("procedition.run.always.tt"));
-            this.monitorControl(radAlways);
+            chkOK = new Button(pnlRunContainer, SWT.CHECK);
+            chkOK.setText(RM.getLabel("procedition.run.ok.label"));
+            chkOK.setToolTipText(RM.getLabel("procedition.run.ok.tt"));
+            this.monitorControl(chkOK);
             
-            radSuccess = new Button(pnlRunContainer, SWT.RADIO);
-            radSuccess.setText(RM.getLabel("procedition.run.success.label"));
-            radSuccess.setToolTipText(RM.getLabel("procedition.run.success.tt"));
-            this.monitorControl(radSuccess);
+            chkWarning = new Button(pnlRunContainer, SWT.CHECK);
+            chkWarning.setText(RM.getLabel("procedition.run.warning.label"));
+            chkWarning.setToolTipText(RM.getLabel("procedition.run.warning.tt"));
+            this.monitorControl(chkWarning);
             
-            radFailure = new Button(pnlRunContainer, SWT.RADIO);
-            radFailure.setText(RM.getLabel("procedition.run.failure.label"));
-            radFailure.setToolTipText(RM.getLabel("procedition.run.failure.tt"));
-            this.monitorControl(radFailure);
+            chkError = new Button(pnlRunContainer, SWT.CHECK);
+            chkError.setText(RM.getLabel("procedition.run.error.label"));
+            chkError.setToolTipText(RM.getLabel("procedition.run.error.tt"));
+            this.monitorControl(chkError);
             
             if (proc != null) {
-            	if (proc.getRunScheme() == Processor.RUN_SCHEME_ALWAYS) {
-            		radAlways.setSelection(true);
-            	} else if (proc.getRunScheme() == Processor.RUN_SCHEME_SUCCESS) {
-            		radSuccess.setSelection(true);
-            	} else {
-            		radFailure.setSelection(true);
-            	}
+            	chkOK.setSelection(proc.isRunIfOK());
+            	chkWarning.setSelection(proc.isRunIfWarning());
+            	chkError.setSelection(proc.isRunIfError());
             } else {
-        		radAlways.setSelection(true);
+            	chkOK.setSelection(true);
+            	chkWarning.setSelection(true);
+            	chkError.setSelection(true);
             }
         }
         
@@ -179,13 +177,9 @@ extends AbstractWindow {
         this.pnlParams.initProcessor(proc);
 
         if (! this.preprocess) {
-        	if (radAlways.getSelection()) {
-        		this.proc.setRunScheme(Processor.RUN_SCHEME_ALWAYS);
-        	} else if (radSuccess.getSelection()) {
-        		this.proc.setRunScheme(Processor.RUN_SCHEME_SUCCESS);
-        	} else if (radFailure.getSelection()) {
-        		this.proc.setRunScheme(Processor.RUN_SCHEME_FAILURE);
-        	}
+        	this.proc.setRunIfError(chkError.getSelection());
+        	this.proc.setRunIfWarning(chkWarning.getSelection());
+        	this.proc.setRunIfOK(chkOK.getSelection());
         }
         
         this.hasBeenUpdated = false;

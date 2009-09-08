@@ -32,4 +32,5 @@ public interface ArecaURLs {
 	public String DONATION_URL = "http://sourceforge.net/project/project_donations.php?group_id=171505";
 	public String ARECA_URL = "http://www.areca-backup.org";
 	public String REGEX_URL = "http://www.areca-backup.org/regex.php";
+    public String VERSION_URL = "http://www.areca-backup.org/version.php";
 }

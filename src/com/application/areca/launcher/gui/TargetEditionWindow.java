@@ -744,15 +744,11 @@ extends AbstractWindow {
         chkEncrypNames.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1)); 
         
         lblEncryptionAlgorithm = new Label(grpEncryption, SWT.NONE);
-        lblEncryptionAlgorithm.setText(RM.getLabel("targetedition.algorithmfield.label"));        
-        try {
-        	lblEncryptionAlgorithm.setToolTipText(RM.getLabel("targetedition.algorithmfield.tooltip", new Object[] {EncryptionConfiguration.getParameters(EncryptionConfiguration.RECOMMENDED_ALGORITHM).getAlgorithm()}));
-        } catch (NullPointerException e) {
-        	Logger.defaultLogger().error(
-        			String.valueOf(EncryptionConfiguration.getParameters(EncryptionConfiguration.RECOMMENDED_ALGORITHM)) + "  " + String.valueOf(EncryptionConfiguration.RECOMMENDED_ALGORITHM)
-        			, e
-        	);
-        	throw e;
+        lblEncryptionAlgorithm.setText(RM.getLabel("targetedition.algorithmfield.label"));    
+        
+        EncryptionConfiguration recConf = EncryptionConfiguration.getParameters(EncryptionConfiguration.RECOMMENDED_ALGORITHM);
+        if (recConf != null) {
+        	lblEncryptionAlgorithm.setToolTipText(RM.getLabel("targetedition.algorithmfield.tooltip", new Object[] {recConf.getAlgorithm()}));
         }
         
         cboEncryptionAlgorithm = new Combo(grpEncryption, SWT.READ_ONLY);
@@ -770,6 +766,10 @@ extends AbstractWindow {
             EncryptionConfiguration conf = EncryptionConfiguration.getParameters(id);
             lstEncryptionAlgorithms.add(conf);
             cboEncryptionAlgorithm.add(conf.getFullName());
+        }
+        if (algs.length == 0) {
+        	chkEncrypted.setEnabled(false);
+        	grpEncryption.setEnabled(false);
         }
 
         lblEncryptionKey = new Label(grpEncryption, SWT.NONE);

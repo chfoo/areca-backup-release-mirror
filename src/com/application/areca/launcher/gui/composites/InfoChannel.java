@@ -1,6 +1,7 @@
 package com.application.areca.launcher.gui.composites;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -8,12 +9,17 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ResourceManager;
 import com.application.areca.UserInformationChannel;
+import com.application.areca.context.ProcessContext;
+import com.application.areca.launcher.gui.Application;
+import com.application.areca.launcher.gui.ReportWindow;
+import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.SecuredRunner;
@@ -49,214 +55,266 @@ This file is part of Areca.
 public class InfoChannel 
 extends Composite
 implements UserInformationChannel, Colors, Listener {
+	private static final ResourceManager RM = ResourceManager.instance();
 
-    private static final ResourceManager RM = ResourceManager.instance();
+	private Composite parent;
+	private Label lblMessage;
+	private ProgressBar pgbProgress;
+	private Button btnCancel;
+	private Button btnPause;
 
-    private Composite parent;
-    private String currentMessage = "";
-    private AbstractTarget target;
-    
-    private Label lblMessage;
-    private ProgressBar pgbProgress;
-    private Button btnCancel;
-    private Button btnPause;
-    
-    protected TaskMonitor taskMonitor;
-    protected boolean running;
-    
-    protected String stateBeforePause = "";
-    
-    protected boolean synthetic = ArecaPreferences.isInformationSynthetic();
+	private AbstractTarget target;
+	private ProcessContext context;
+	private TaskMonitor taskMonitor;
+	private boolean running;
+	private String stateBeforePause = "";
+	private String currentMessage = "";
+	private boolean synthetic = ArecaPreferences.isInformationSynthetic();
+	private String action;
 
-    /**
-     * @param parent
-     * @param style
-     */
-    public InfoChannel(AbstractTarget target, Composite parent) {
-        super(parent, SWT.NONE);
-        this.parent = parent;
-        this.target = target;
-        this.setLayout(new FillLayout());
-        this.setToolTipText(target.getTargetName());
-        Composite grp = this;
-        
-        GridLayout layout = new GridLayout();
-        layout.numColumns = 3;
-        layout.horizontalSpacing = 20;
-        layout.verticalSpacing = 1;
-        layout.marginHeight = 5;
-        layout.marginWidth = 0;
-        grp.setLayout(layout);
+	public InfoChannel(AbstractTarget target, Composite parent) {
+		super(parent, SWT.BORDER);
+		this.parent = parent;
+		this.target = target;
+		this.setLayout(new FillLayout());
+		this.setToolTipText(target.getTargetName());
+		Composite grp = this;
+		this.setBackground(Colors.C_WHITE);
 
-        lblMessage = new Label(grp, SWT.NONE);
-        GridData gdMessage = new GridData();
-        gdMessage.grabExcessHorizontalSpace = true;
-        gdMessage.horizontalAlignment = SWT.FILL;
-        lblMessage.setLayoutData(gdMessage);
-        lblMessage.setForeground(C_INFO);
-        
-        btnPause = new Button(grp, SWT.PUSH);
-        btnPause.setText(RM.getLabel("mainpanel.pause.label"));
-        GridData gdPause = new GridData();
-        gdPause.grabExcessHorizontalSpace = false;
-        gdPause.horizontalAlignment = SWT.CENTER;
-        gdPause.verticalAlignment = SWT.BOTTOM;
-        gdPause.verticalSpan = 2;
-        btnPause.setLayoutData(gdPause);
-        btnPause.addListener(SWT.Selection, this);   
-        btnPause.setForeground(C_INFO);
-        
-        btnCancel = new Button(grp, SWT.PUSH);
-        btnCancel.setText(RM.getLabel("common.cancel.label"));
-        GridData gdCancel = new GridData();
-        gdCancel.grabExcessHorizontalSpace = false;
-        gdCancel.horizontalAlignment = SWT.CENTER;
-        gdCancel.verticalAlignment = SWT.BOTTOM;
-        gdCancel.verticalSpan = 2;
-        btnCancel.setLayoutData(gdCancel);
-        btnCancel.addListener(SWT.Selection, this);   
-        btnCancel.setForeground(C_INFO);
+		GridLayout layout = new GridLayout(4, false);
+		layout.horizontalSpacing = 20;
+		layout.verticalSpacing = 1;
+		layout.marginHeight = 5;
+		layout.marginWidth = 5;
+		grp.setLayout(layout);
 
-        pgbProgress = new ProgressBar(grp, SWT.NONE);
-        pgbProgress.setMinimum(0);
-        pgbProgress.setMaximum(100);
-        GridData gdProgress = new GridData();
-        gdProgress.grabExcessHorizontalSpace = true;
-        gdProgress.horizontalAlignment = SWT.FILL;
-        pgbProgress.setLayoutData(gdProgress);
-    }
+		Label lblIco = new Label(grp, SWT.NONE);
+		lblIco.setImage(ArecaImages.ICO_CHANNEL);
+		lblIco.setBackground(Colors.C_WHITE);
+		
+		lblMessage = new Label(grp, SWT.NONE);
+		lblMessage.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		lblMessage.setForeground(C_INFO);
+		lblMessage.setBackground(Colors.C_WHITE);
 
-    public void setSynthetic(boolean synthetic) {
-        this.synthetic = synthetic;
-    }
+		btnPause = new Button(grp, SWT.PUSH);
+		btnPause.setText(RM.getLabel("mainpanel.pause.label"));
+		btnPause.setLayoutData(new GridData(SWT.CENTER, SWT.BOTTOM, false, true, 1, 2));
+		btnPause.addListener(SWT.Selection, this);   
+		btnPause.setForeground(C_INFO);
+
+		btnCancel = new Button(grp, SWT.PUSH);
+		btnCancel.setText(RM.getLabel("common.cancel.label"));
+		btnCancel.setLayoutData(new GridData(SWT.CENTER, SWT.BOTTOM, false, true, 1, 2));
+		btnCancel.addListener(SWT.Selection, this);   
+		btnCancel.setForeground(C_INFO);
+
+		pgbProgress = new ProgressBar(grp, SWT.NONE);
+		pgbProgress.setMinimum(0);
+		pgbProgress.setMaximum(100);
+		pgbProgress.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		
+		this.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		this.setSize(this.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		
+		recomputeParentMinimumSize(true);
+	}
+
+	public void setAction(String action) {
+		this.action = action;
+	}
+
+	private void recomputeParentMinimumSize(boolean includeThis) {
+		int h = 0;
+		for (int i=0; i<parent.getChildren().length; i++) {
+			h += parent.getChildren()[i].getSize().y;
+		}
+		((ScrolledComposite)parent.getParent()).setMinHeight(h + (includeThis ? this.computeSize(SWT.DEFAULT, SWT.DEFAULT).y : 0));
+		parent.layout(true);
+	}
+
+	public void setSynthetic(boolean synthetic) {
+		this.synthetic = synthetic;
+	}
 
 	public void pauseRequested(TaskMonitor task) {
 		if (task.isPauseRequested()) {
 			this.stateBeforePause = lblMessage.getText();
-	        SecuredRunner.execute(parent, new Runnable() {
-	            public void run() {
-	                lblMessage.setText("Paused.");
-	            }
-	        });
+			SecuredRunner.execute(parent, new Runnable() {
+				public void run() {
+					lblMessage.setText("Paused.");
+				}
+			});
 		} else {
-	        SecuredRunner.execute(parent, new Runnable() {
-	            public void run() {
-	                lblMessage.setText(stateBeforePause);
-	            }
-	        });
+			SecuredRunner.execute(parent, new Runnable() {
+				public void run() {
+					lblMessage.setText(stateBeforePause);
+				}
+			});
 		}
 	}
 
 	public void cancellableChanged(final TaskMonitor task) {
-        SecuredRunner.execute(parent, new Runnable() {
-            public void run() {
-                btnCancel.setEnabled(task.isCancellable());
-            }
-        });
-    }
-
-    public void cancelRequested(final TaskMonitor task) {
-        SecuredRunner.execute(parent, new Runnable() {
-            public void run() {
-                lblMessage.setText(ResourceManager.instance().getLabel("mainpanel.cancelling.label"));
-            }
-        });
-    }
-
-    public void completionChanged(final TaskMonitor task) {
-        SecuredRunner.execute(parent, new Runnable() {
-            public void run() {
-                int pc = (int)(100 * task.getGlobalCompletionRate());
-                pgbProgress.setSelection(pc);
-            }
-        });
-    }
-
-    public void print(final String info) {
-        SecuredRunner.execute(parent, new Runnable() {
-            public void run() {
-                if (synthetic) {
-                    lblMessage.setText(format(target.getTargetName(), info));
-                } else {
-                    lblMessage.setText(info);
-                    currentMessage = info;
-                }
-            }
-        });
-        Logger.defaultLogger().info(info);
-    }
-
-    public void warn(String info) {
-        Logger.defaultLogger().warn(info);
+		SecuredRunner.execute(parent, new Runnable() {
+			public void run() {
+				btnCancel.setEnabled(task.isCancellable());
+			}
+		});
 	}
-    
-    public void error(String info) {
-        Logger.defaultLogger().error(info);
+
+	public void cancelRequested(final TaskMonitor task) {
+		SecuredRunner.execute(parent, new Runnable() {
+			public void run() {
+				lblMessage.setText(ResourceManager.instance().getLabel("mainpanel.cancelling.label"));
+			}
+		});
+	}
+
+	public void completionChanged(final TaskMonitor task) {
+		SecuredRunner.execute(parent, new Runnable() {
+			public void run() {
+				int pc = (int)(100 * task.getGlobalCompletionRate());
+				pgbProgress.setSelection(pc);
+			}
+		});
+	}
+
+	public void print(final String info) {
+		SecuredRunner.execute(parent, new Runnable() {
+			public void run() {
+				if (synthetic) {
+					lblMessage.setText(format(target.getTargetName(), info));
+				} else {
+					lblMessage.setText(info);
+					currentMessage = info;
+				}
+			}
+		});
+		Logger.defaultLogger().info(info);
+	}
+
+	public void warn(String info) {
+		Logger.defaultLogger().warn(info);
+	}
+
+	public void error(String info) {
+		Logger.defaultLogger().error(info);
 	}
 
 	public void startRunning() {
-        SecuredRunner.execute(parent, new Runnable() {
-            public void run() {
-                running = true;
-            }
-        });
-    }
+		SecuredRunner.execute(parent, new Runnable() {
+			public void run() {
+				running = true;
+			}
+		});
+	}
 
-    public void stopRunning() {
-        SecuredRunner.execute(parent, new Runnable() {
-            public void run() {
-                dispose();
-                parent.layout();
-                running = false;
-                
-                // send a message to the progress tab
-                ((ProgressComposite)parent).taskFinished();
-            }
-        });
-    }
+	public void stopRunning() {
+		SecuredRunner.execute(parent, new Runnable() {
+			public void run() {
+				running = false;
+				lblMessage.setText(format(target.getTargetName(), action + " (" + RM.getLabel("progress.finished.label") + ")"));
+				if (context.getReport().hasError()) {
+					lblMessage.setForeground(Colors.C_RED);
+				} else if (context.getReport().getLogMessagesContainer().hasWarnings()) {
+					lblMessage.setForeground(Colors.C_ORANGE);
+				} 
 
-    public void updateCurrentTask(final long taskIndex, final long taskCount, final String taskDescription) {
-        if (taskCount != 0) {
-            Logger.defaultLogger().info(taskDescription);
-        }
-        
-        if (! synthetic) {
-            SecuredRunner.execute(parent, new Runnable() {
-                public void run() {
-                    lblMessage.setText(format(currentMessage, taskDescription));
-                }
-            });
-        }
-    }
+				btnPause.dispose();
+				btnCancel.dispose();
+				pgbProgress.dispose();
 
-    public void handleEvent(Event event) {
-        if (event.widget == this.btnCancel) {
-            taskMonitor.setCancelRequested();
-        } else if (event.widget == this.btnPause) {
-        	taskMonitor.setPauseRequested(! taskMonitor.isPauseRequested());
-        	if (taskMonitor.isPauseRequested()) {
-        		btnPause.setText(ResourceManager.instance().getLabel("mainpanel.resume.label"));
-        	} else {
-        		btnPause.setText(ResourceManager.instance().getLabel("mainpanel.pause.label"));        		
-        	}
-            this.layout();
-        }
-    }
+				Link lnkShowReport = new Link(InfoChannel.this, SWT.NONE);
+				lnkShowReport.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+				lnkShowReport.addListener (SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						SecuredRunner.execute(new Runnable() {
+							public void run() {
+								ReportWindow frm = new ReportWindow(context.getReport());
+								Application.getInstance().showDialog(frm);
+							}
+						});
+					}
+				});
+				lnkShowReport.setText("<A>" + RM.getLabel("progress.report.label") + "</A>");
+				lnkShowReport.setBackground(Colors.C_WHITE);
+				
 
-    public boolean isRunning() {
+				Link lnkRemove = new Link(InfoChannel.this, SWT.NONE);
+				lnkRemove.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+				lnkRemove.addListener (SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						removeIfPossible();
+					}
+				});
+				lnkRemove.setText("<A>" + RM.getLabel("progress.remove.label") + "</A>");
+				lnkRemove.setBackground(Colors.C_WHITE);
+				
+				recomputeParentMinimumSize(true);
+
+				// send a message to the progress tab
+				((ProgressComposite)(parent.getParent().getParent())).taskFinished();
+			}
+		});
+	}
+	
+	public void removeIfPossible() {
+		if (! this.running) {
+			this.dispose();
+			recomputeParentMinimumSize(false);
+		}
+	}
+
+	public void updateCurrentTask(final long taskIndex, final long taskCount, final String taskDescription) {
+		if (taskCount != 0) {
+			Logger.defaultLogger().info(taskDescription);
+		}
+
+		if (! synthetic) {
+			SecuredRunner.execute(parent, new Runnable() {
+				public void run() {
+					lblMessage.setText(format(currentMessage, taskDescription));
+				}
+			});
+		}
+	}
+
+	public void handleEvent(Event event) {
+		if (event.widget == this.btnCancel) {
+			taskMonitor.setCancelRequested();
+		} else if (event.widget == this.btnPause) {
+			taskMonitor.setPauseRequested(! taskMonitor.isPauseRequested());
+			if (taskMonitor.isPauseRequested()) {
+				btnPause.setText(ResourceManager.instance().getLabel("mainpanel.resume.label"));
+			} else {
+				btnPause.setText(ResourceManager.instance().getLabel("mainpanel.pause.label"));        		
+			}
+			this.layout();
+		}
+	}
+
+	public boolean isRunning() {
 		return running;
 	}
 
 	public void setTaskMonitor(TaskMonitor taskMonitor) {
-        this.taskMonitor = taskMonitor;
-        taskMonitor.addListener(this);
-    }
+		this.taskMonitor = taskMonitor;
+		taskMonitor.addListener(this);
+	}
 
-    public TaskMonitor getTaskMonitor() {
-        return taskMonitor;
-    }
-    
-    private String format(String t1, String t2) {
-        return t1 + "\t\t" + t2;
-    }
+	public TaskMonitor getTaskMonitor() {
+		return taskMonitor;
+	}
+
+	private String format(String t1, String t2) {
+		return t1 + "\t\t" + t2;
+	}
+
+	public ProcessContext getContext() {
+		return context;
+	}
+
+	public void setContext(ProcessContext context) {
+		this.context = context;
+	}
 }
