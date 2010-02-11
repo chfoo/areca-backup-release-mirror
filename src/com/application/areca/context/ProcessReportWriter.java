@@ -47,7 +47,7 @@ public class ProcessReportWriter {
 	}
 
 	public void writeReport(ProcessReport report) throws IOException {
-		write("" + report.getTarget().getTargetName() + " (" + report.getTarget().getUid() + ") on " + Utils.formatDisplayDate(report.getStartDate()));
+		write("" + report.getTarget().getName() + " (" + report.getTarget().getUid() + ") on " + Utils.formatDisplayDate(report.getStartDate()));
 
 		writeSeparator();
 		write("Overall Status : " + (report.hasError() ? "Failure":"Success"));
@@ -66,7 +66,7 @@ public class ProcessReportWriter {
 		}
 
 		writeSeparator();
-		long dur = System.currentTimeMillis() - report.getStartMillis();
+		long dur = report.getStopMillis() - report.getStartMillis();
 		write("Duration : " + Utils.formatDuration(dur));
 
 		if (

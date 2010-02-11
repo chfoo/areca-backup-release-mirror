@@ -5,9 +5,12 @@ import java.io.File;
 import org.w3c.dom.Node;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.adapters.read.TargetXMLReader;
 import com.application.areca.impl.policy.DefaultFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.myJava.file.FileSystemManager;
+import com.myJava.util.xml.AdapterException;
+import com.myJava.util.xml.XMLTool;
 
 /**
  * <BR>
@@ -58,15 +61,15 @@ extends AbstractFileSystemPolicyXMLHandler {
         return policy;
     }
 
-    public void write(FileSystemPolicy policy, TargetXMLWriter writer, boolean removeSensitiveData, StringBuffer sb) {
+    public void write(FileSystemPolicy policy, boolean removeSensitiveData, StringBuffer sb) {
         sb.append(" ");
         sb.append(XML_MEDIUM_PATH);
         sb.append("=");
-        sb.append(AbstractXMLWriter.encode(policy.getArchivePath()));   
+        sb.append(XMLTool.encode(policy.getArchivePath()));   
 
         sb.append(" ");
         sb.append(XML_MEDIUM_ARCHIVENAME);
         sb.append("=");
-        sb.append(AbstractXMLWriter.encode(policy.getArchiveName()));
+        sb.append(XMLTool.encode(policy.getArchiveName()));
     }
 }

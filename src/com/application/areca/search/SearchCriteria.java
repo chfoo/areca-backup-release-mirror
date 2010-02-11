@@ -1,5 +1,7 @@
 package com.application.areca.search;
 
+import com.myJava.util.taskmonitor.TaskMonitor;
+
 /**
  * Marker interface for search criteria
  * <BR>
@@ -28,4 +30,5 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface SearchCriteria {
+	public TaskMonitor getMonitor();
 }

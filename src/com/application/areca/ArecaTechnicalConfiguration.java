@@ -30,7 +30,7 @@ This file is part of Areca.
  */
 public class ArecaTechnicalConfiguration 
 extends FrameworkConfiguration {   
-    private static String URI = "fwk.properties";
+    public static String URI = "fwk.properties";
     
     /**
      * Activate SMTP accesses debug log
@@ -157,6 +157,11 @@ extends FrameworkConfiguration {
      */
     public static String KEY_TH_MONITOR_DELAY = "thread.monitor.delay";
     
+    /**
+     * Name of the "commit" file
+     */
+    public static String KEY_COMMIT_FILE_NAME = "commit.file.name";
+    
     public static boolean DEF_SMTP_DEBUG = false;
     public static long DEF_MEMORY_BASE_KB = 4 * 1024;
     public static double DEF_MEMORY_BY_ENTRY_KB = 1.3;
@@ -182,6 +187,7 @@ extends FrameworkConfiguration {
     public static boolean DEF_MDT_DEBUG = false;
     public static boolean DEF_ENABLE_TH_MONITOR = false;
     public static long DEF_TH_MONITOR_DELAY = 1000*60*3;
+    public static String DEF_COMMIT_FILE_NAME = ".committed";
     
     public ArecaTechnicalConfiguration() {
         super();
@@ -206,6 +212,10 @@ extends FrameworkConfiguration {
     
     public String getLogLocationOverride() {
         return getProperty(KEY_FORCED_LOG_LOCATION, DEF_FORCED_LOG_LOCATION);
+    }
+    
+    public String getCommitFileName() {
+        return getProperty(KEY_COMMIT_FILE_NAME, DEF_COMMIT_FILE_NAME);
     }
     
     public String getBinLocationOverride() {

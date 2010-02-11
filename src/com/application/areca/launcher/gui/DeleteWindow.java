@@ -12,10 +12,10 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
+import com.application.areca.AbstractTarget;
 import com.application.areca.ResourceManager;
 import com.application.areca.TargetGroup;
 import com.application.areca.impl.AbstractFileSystemMedium;
-import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.myJava.file.FileSystemManager;
@@ -53,10 +53,10 @@ extends AbstractWindow {
     private boolean deleteContent = false;
     private Button chkDeleteContent;
     private boolean ok = false;
-    private FileSystemTarget target;
+    private AbstractTarget target;
     private TargetGroup process;
     
-    public DeleteWindow(FileSystemTarget target) {
+    public DeleteWindow(AbstractTarget target) {
         super();
         this.target = target;
     }
@@ -77,7 +77,7 @@ extends AbstractWindow {
         
         Label lblAdvise = new Label(composite, SWT.NONE);
         if (target != null) {
-            lblAdvise.setText(RM.getLabel("app.deletetargetaction.confirm.message", new Object[] {target.getTargetName()}));
+            lblAdvise.setText(RM.getLabel("app.deletetargetaction.confirm.message", new Object[] {target.getName()}));
         } else {
             lblAdvise.setText(RM.getLabel("app.deletegroupaction.confirm.message", new Object[] {process.getName()}));
         }

@@ -369,7 +369,7 @@ extends AbstractWindow {
         try {
             Integer.parseInt(txtPort.getText());
         } catch (Throwable e) {
-            this.setInError(txtPort);
+            this.setInError(txtPort, RM.getLabel("error.numeric.value.expected"));
             return false;
         }
 
@@ -390,7 +390,7 @@ extends AbstractWindow {
 
     private boolean check(Text fld) {
         if (fld.getText() == null || fld.getText().trim().length() == 0) {
-            this.setInError(fld);
+            this.setInError(fld, RM.getLabel("error.field.mandatory"));
             return false;
         }
         return true;

@@ -5,7 +5,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Properties;
+import java.util.Stack;
 
 import com.application.areca.ArecaFileConstants;
 import com.application.areca.LogHelper;
@@ -71,6 +75,34 @@ public class LocalPreferences implements ArecaFileConstants {
 
     public String get(String key) {
         return get(key, null);
+    }
+    
+    public Stack getStack(String key) {
+    	Stack s = new Stack();
+    	Iterator iter = preferences.keySet().iterator();
+    	ArrayList list = new ArrayList();
+    	while (iter.hasNext()) {
+    		String k = (String)iter.next();
+    		if (k.startsWith(key + ".")) {
+    			Integer nb = Integer.decode(k.substring(key.length() + 1));
+    			list.add(nb);
+    		}
+    	}
+    	Collections.sort(list);
+    	
+    	Iterator iter2 = list.iterator();
+    	while (iter2.hasNext()) {
+    		String k = key + "." + iter2.next();
+    		s.push(preferences.get(k));
+    	}
+    	
+    	return s;
+    }
+    
+    public void set(String key, Stack s) {
+    	for (int i=0; i<s.size(); i++) {
+    		preferences.setProperty(key + "." + i, s.get(i).toString());
+    	}
     }
 
     public String get(String key, String defaultValue) {

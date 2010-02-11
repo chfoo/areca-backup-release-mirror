@@ -1,7 +1,6 @@
 package com.application.areca.launcher.gui.composites;
 
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
@@ -53,7 +52,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class HistoryComposite 
-extends Composite 
+extends AbstractTabComposite 
 implements Listener, Refreshable, HistoryEntryTypes { 
     protected final ResourceManager RM = ResourceManager.instance();
     
@@ -116,13 +115,12 @@ implements Listener, Refreshable, HistoryEntryTypes {
     }
 
     private void fillTargetData(AbstractTarget target) {
-        History h = target.getHistory();
+        History h = target.getMedium().getHistoryHandler().readHistory();
         if (h != null) {
-            HashMap content = h.getContent();
-            GregorianCalendar[] keys = h.getOrderedKeys();
+            GregorianCalendar[] keys = h.getKeys(true);
 
             for (int i=keys.length - 1; i>=0; i--) {
-                HistoryEntry entry = (HistoryEntry)content.get(keys[i]);
+                HistoryEntry entry = h.getEntry(keys[i]);
                 int type = entry.getType();
 
                 TableItem item = new TableItem(table, SWT.NONE);
@@ -149,7 +147,7 @@ implements Listener, Refreshable, HistoryEntryTypes {
         if (application.isCurrentObjectTarget()) {
             int result = application.showConfirmDialog(RM.getLabel("history.clear.confirm.question"), RM.getLabel("history.clear.confirm.title"));
             if (result == SWT.YES) {
-                this.application.getCurrentTarget().clearHistory();   
+                this.application.getCurrentTarget().getMedium().getHistoryHandler().clearData();
                 this.refresh();
             }
         }

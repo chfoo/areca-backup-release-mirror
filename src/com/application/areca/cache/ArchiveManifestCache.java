@@ -67,7 +67,7 @@ public class ArchiveManifestCache extends AbstractArchiveDataCache {
     }
     
     private long computeApproximateManifestSize(Manifest mf) {
-        return mf.encode().length();
+        return 300 + 2*(mf.getDescription() == null ? 0 : mf.getDescription().length()) + 2*(mf.getTitle() == null ? 0 : mf.getTitle().length());
     }
     
     /**

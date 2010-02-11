@@ -38,6 +38,7 @@ public interface ManifestKeys {
     public static final String MERGE_END = "Merge end date";
     public static final String MERGED_ARCHIVES = "Merged archives";
     public static final String ARCHIVE_NAME = "Archive name";
+    public static final String CURRENT_ARCHIVE_PATH = "Archive path";
     public static final String STORED_FILES = "Stored files";
     public static final String UNMODIFIED_FILES = "Unmodified files (not stored)";
     public static final String ARCHIVE_SIZE = "Archive size";

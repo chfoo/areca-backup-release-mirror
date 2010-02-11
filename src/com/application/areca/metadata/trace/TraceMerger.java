@@ -62,7 +62,7 @@ public class TraceMerger {
 	throws IOException, TaskCancelledException {
 		Logger.defaultLogger().info("Building aggregated archive trace ...");
 
-		File tmpFile = FileTool.getInstance().generateNewWorkingFile("areca", "mtrc", true);
+		File tmpFile = FileTool.getInstance().generateNewWorkingFile(null, "areca", "mtrc", true);
 		ArchiveTraceAdapter writer = new ArchiveTraceAdapter(tmpFile);
 		TraceMerger merger = new TraceMerger(medium, writer, archives, referenceIterator);
 		merger.merge();

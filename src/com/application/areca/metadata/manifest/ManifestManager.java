@@ -2,18 +2,15 @@ package com.application.areca.metadata.manifest;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.impl.AbstractFileSystemMedium;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.log.Logger;
+import com.myJava.util.xml.AdapterException;
+import com.myJava.util.xml.XMLTool;
 
 /**
  * Reads Manifests from the disk.
@@ -44,46 +41,47 @@ This file is part of Areca.
  */
 public class ManifestManager {
     private static FileTool tool = FileTool.getInstance();
-    public static String ENCODING = "UTF-8";
     
     public static Manifest readManifestForArchive(AbstractFileSystemMedium medium, File archive) throws ApplicationException {
         try {
             File dataDir = medium.getDataDirectory(archive);
             File manifestFile = new File(dataDir, medium.getManifestName());
-            if (FileSystemManager.exists(manifestFile)) {
-                InputStream is = new GZIPInputStream(FileSystemManager.getFileInputStream(manifestFile));
-                String content = tool.getInputStreamContent(is, ENCODING, true);
-                return Manifest.decode(content);
-            } else {
-                return null;
-            }
-        } catch (IOException e) {
+            ManifestReader reader = buildReader(manifestFile);
+            return reader.read(manifestFile);
+        } catch (AdapterException e) {
             Logger.defaultLogger().error(e);
             throw new ApplicationException(e);
         }
     }
     
     public static void writeManifest(AbstractFileSystemMedium medium, Manifest mf, File archive) throws ApplicationException {
-        // Creation du manifeste
-        Writer w = null;
         try {
             File metadataDir = medium.getDataDirectory(archive);
             if (! FileSystemManager.exists(metadataDir)) {
                 tool.createDir(metadataDir);
             }
             File manifestFile = new File(metadataDir, medium.getManifestName());
-            OutputStream os = new GZIPOutputStream(FileSystemManager.getFileOutputStream(manifestFile));
-            w = new OutputStreamWriter(os, ENCODING);
-            w.write(mf.encode());
+            XMLManifestAdapter adapter = new XMLManifestAdapter();
+            adapter.write(mf, manifestFile);
+        } catch (AdapterException e) {
+            Logger.defaultLogger().error(e);
+            throw new ApplicationException(e);    
         } catch (IOException e) {
-            throw new ApplicationException(e);            
-        } finally {
-            try {
-                w.flush();
-                w.close();
-            } catch (IOException e) {
-                Logger.defaultLogger().error(e);
-            }
+            Logger.defaultLogger().error(e);
+            throw new ApplicationException(e);               
         }
     }
+    
+	private static ManifestReader buildReader(File file) {
+		try {
+			String r = FileTool.getInstance().getFirstRow(new GZIPInputStream(FileSystemManager.getFileInputStream(file)), XMLManifestAdapter.ENCODING);
+			if (r.equalsIgnoreCase(XMLTool.getHeader(XMLManifestAdapter.ENCODING))) {
+				return new XMLManifestAdapter();
+			} else {
+				return new DeprecatedManifestAdapter();
+			}
+		} catch (IOException e) {
+			return new XMLManifestAdapter();
+		}
+	}
 }

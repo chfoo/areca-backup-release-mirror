@@ -267,7 +267,7 @@ implements MouseListener, Listener {
 		if (this.italic == null) {
 			FontData dt = item.getFont().getFontData()[0];
 			FontData dtItalic = new FontData(dt.getName(), dt.getHeight(), SWT.ITALIC);
-			return new Font(item.getDisplay(), new FontData[] { dtItalic });
+			this.italic = new Font(item.getDisplay(), new FontData[] { dtItalic });
 		}
 		return italic;
 	}

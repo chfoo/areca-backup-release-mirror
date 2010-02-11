@@ -162,6 +162,11 @@ extends AbstractArecaLauncher {
             CmdLineDeCipher deCipher = new CmdLineDeCipher();
 
             if (deCipher.init(args)) {
+            	System.out.println("Source : " + deCipher.source);
+            	System.out.println("Destination : " + deCipher.targetDir);
+            	System.out.println("Algorithm : " + deCipher.algorithm);
+            	System.out.println("Passphrase : " + deCipher.encryption);
+            	System.out.println("Disable Name Decryption : " + deCipher.disableNameDecryption);
             	deCipher.initializeFileSystemManager();
             	deCipher.process();
             }

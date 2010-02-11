@@ -69,7 +69,7 @@ public class TagHelper {
             }
             
             value = Util.replace(value, PARAM_TARGET_UID, context.getReport().getTarget().getUid());
-            value = Util.replace(value, PARAM_TARGET_NAME, context.getReport().getTarget().getTargetName());
+            value = Util.replace(value, PARAM_TARGET_NAME, context.getReport().getTarget().getName());
             
             try {
                 String localHost = InetAddress.getLocalHost().getHostName();

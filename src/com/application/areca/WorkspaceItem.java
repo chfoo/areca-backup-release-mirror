@@ -1,6 +1,10 @@
-package com.application.areca.adapters;
+package com.application.areca;
+
+import java.io.File;
+
 
 /**
+ * <BR>
  * @author Olivier PETRUCCI
  * <BR>
  *
@@ -25,31 +29,20 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class AdapterException extends Exception {
-
-    protected String source;
-    
-    public AdapterException() {
-        super();
-    }
-
-    public AdapterException(String message) {
-        super(message);
-    }
-    
-    public AdapterException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public AdapterException(Throwable cause) {
-        super(cause);
-    }
-    
-    public String getSource() {
-        return source;
-    }
-    
-    public void setSource(String source) {
-        this.source = source;
-    }
+public interface WorkspaceItem {
+    public void doAfterDelete();
+    public void doBeforeDelete();
+    public String getName();
+    public boolean isRunning();
+    public String getDescription();
+    public TargetGroup getParent();
+    public void setParent(TargetGroup group);
+    public String getUid();
+	public SupportedBackupTypes getSupportedBackupSchemes();
+	public void destroyRepository() throws ApplicationException;
+	public File computeConfigurationFile(File root);
+	public File computeConfigurationFile(File root, boolean appendAncestors);
+	public boolean isChildOf(WorkspaceItem ancestor);
+	public ConfigurationSource getLoadedFrom();
+	public void setLoadedFrom(ConfigurationSource loadedFrom);
 }

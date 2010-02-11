@@ -1,7 +1,6 @@
 package com.application.areca.adapters;
 
 /**
- * Interface listant les tags XML des targets.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -32,13 +31,14 @@ public interface XMLTags {
     public static final String POLICY_HD  = "hd";
     public static final String POLICY_FTP  = "ftp";
     
-    public static final String XML_PROCESS = "process";
+    public static final String XML_GROUP = "process";
     public static final String XML_VERSION = "version";
-    public static final String XML_PROCESS_DESCRIPTION = "description";
+    public static final String XML_BACKUP_COPY = "backup_copy";
+    public static final String XML_GROUP_DESCRIPTION = "description";
     
     public static final String XML_TARGET = "target";    
     public static final String XML_TARGET_BASEDIR = "base_directory"; // deprecated
-    public static final String XML_TARGET_ID = "id";
+    public static final String XML_TARGET_ID = "id"; // deprecated
     public static final String XML_TARGET_UID = "uid";    
     public static final String XML_TARGET_NAME = "name";    
     public static final String XML_TARGET_FOLLOW_SYMLINKS = "follow_symlinks";  

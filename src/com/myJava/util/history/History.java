@@ -1,11 +1,11 @@
 package com.myJava.util.history;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 
-
 /**
- * Interface that defines an history on events
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -31,48 +31,56 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public interface History {
-
-	/**
-	 * Tells whether the history is empty or not
-	 */
-    public boolean isEmpty();
+public class History {
+    protected HashMap content = new HashMap();
     
-    /**
-     * Add an entry
-     */
-    public void addEntry(HistoryEntry entry);
+    public synchronized boolean isEmpty() {
+        return content.isEmpty();
+    }
     
-    /**
-     * Return the internal content of the history as a Map
-     * <BR>Key = GregorianCalendar
-     * <BR>Value = HistoryEntry
-     */
-    public HashMap getContent();
+    public synchronized void addEntry(HistoryEntry entry) {      
+        GregorianCalendar date = entry.getDate();       
+        content.put(date, entry); 
+    }
     
-    /**
-     * Return the keys (dates) as an ordered array
-     */
-    public GregorianCalendar[] getOrderedKeys();
+    public synchronized HistoryEntry getEntry(GregorianCalendar key) {
+    	return (HistoryEntry)content.get(key);
+    }
     
-    /**
-     * Write data on disk
-     */
-    public void flush();
+    public synchronized GregorianCalendar[] getKeys(boolean ordered) {
+        GregorianCalendar[] keys = (GregorianCalendar[])this.content.keySet().toArray(new GregorianCalendar[0]);
+        
+        if (ordered) {
+        	Arrays.sort(keys, new GregorianCalendarComparator());
+        }
+        
+        return keys;
+    }
     
-    /**
-     * Removes all entries from the history
-     */
-    public void clear();
+    public synchronized void clear() {
+        this.content.clear();
+    }
     
-    /**
-     * Does not clear the internal data; destroys only the data stored on disk.
-     * <BR>The internal data can be written on disk using the "flush" method.
-     */
-    public void clearData();
-    
-    /**
-     * Imports the content of the source history
-     */
-    public void importHistory(History source);
+    protected static class GregorianCalendarComparator implements Comparator {
+        public int compare(Object o1, Object o2) {
+            GregorianCalendar c1 = (GregorianCalendar)o1;
+            GregorianCalendar c2 = (GregorianCalendar)o2;            
+            
+            if (o1 == null && o2 != null) {
+                return -1;
+            } else if (o1 == null) {
+                return 0;
+            } else if (o2 == null && o1 != null) {
+                return 1;
+            } else {
+                if (c1.before(c2)) {
+                    return -1;
+                } else if (c2.before(c1)) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+        }
+    }
 }

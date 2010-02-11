@@ -44,7 +44,7 @@ public class ArecaImages {
     public static Image ICO_VOID = loadImage("void.png");
     public static Image ICO_CHANNEL = loadImage("run.png");
     
-    // Arbre
+    // Tree
     public static Image ICO_REF_TARGET = loadImage("database.png");
     public static Image ICO_REF_PROCESS = loadImage("folder_blue.png");
     public static Image ICO_REF_WORKSPACE = loadImage("desktop.png");
@@ -93,6 +93,11 @@ public class ArecaImages {
     public static Image ICO_HISTO_FOLDER_NEW = ICO_REF_PROCESS;
     public static Image ICO_HISTO_EDIT = ICO_TARGET_EDIT;
     public static Image ICO_HISTO_DELETE = loadImage("delete.png");
+    
+    // TABS
+    public static Image ICO_TAB_LOG = loadImage("log.png");
+    public static Image ICO_TAB_LOG_WARN = loadImage("log_warn.png");
+    public static Image ICO_TAB_LOG_ERR = loadImage("log_err.png");
     
     
     private static Image loadImage(String strUrl) {

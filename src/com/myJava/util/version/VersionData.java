@@ -41,26 +41,31 @@ public class VersionData {
     private URL downloadUrl;
     private GregorianCalendar versionDate;
     private String description;
+    private String additionalNotes;
+    private String implementationNotes;
     
     public VersionData() {
-        super();
-    }
-    
-    public VersionData(String versionId, GregorianCalendar versionDate, URL downloadUrl, String description) {
-        super();
-        
-        this.versionId = versionId;
-        this.downloadUrl = downloadUrl;
-        this.versionDate = versionDate;
-        this.description = description;
     }
     
     public VersionData(String versionId, GregorianCalendar versionDate, String description) {
-        super();
-        
         this.versionId = versionId;
         this.versionDate = versionDate;
         this.description = description;
+    }
+    
+    public VersionData(String versionId, GregorianCalendar versionDate, URL downloadUrl, String description) {
+    	this(versionId, versionDate, description);
+        this.downloadUrl = downloadUrl;
+    }
+    
+    public VersionData(String versionId, GregorianCalendar versionDate, String description, String additionalNotes) {
+    	this(versionId, versionDate, description);
+        this.additionalNotes = additionalNotes;
+    }
+    
+    public VersionData(String versionId, GregorianCalendar versionDate, String description, String additionalNotes, String implementationNotes) {
+    	this(versionId, versionDate, description, additionalNotes);
+        this.implementationNotes = implementationNotes;
     }
     
     public int getYear() {
@@ -106,13 +111,31 @@ public class VersionData {
     public void setDescription(String description) {
         this.description = description;
     }
-    
-    public String toString() {
+
+    public String getAdditionalNotes() {
+		return additionalNotes;
+	}
+
+	public void setAdditionalNotes(String additionalNotes) {
+		this.additionalNotes = additionalNotes;
+	}
+
+	public String getImplementationNotes() {
+		return implementationNotes;
+	}
+
+	public void setImplementationNodes(String implementationNodes) {
+		this.implementationNotes = implementationNodes;
+	}
+
+	public String toString() {
         StringBuffer sb = ToStringHelper.init(this);
         ToStringHelper.append("Version", versionId, sb);
         ToStringHelper.append("Date", versionDate.get(Calendar.YEAR) + "-" + (versionDate.get(Calendar.MONTH) + 1) + "-" + versionDate.get(Calendar.DAY_OF_MONTH), sb);
         ToStringHelper.append("URL", downloadUrl, sb);
         ToStringHelper.append("Description", description, sb); 	
+        ToStringHelper.append("Additional Notes", additionalNotes, sb); 	
+        ToStringHelper.append("Implementation Notes", implementationNotes, sb); 	
         return ToStringHelper.close(sb);
     }
 

@@ -29,8 +29,10 @@ This file is part of Areca.
  */
 public interface ArecaURLs {
 	public String HELP_ROOT = "http://www.areca-backup.org/documentation.php?fromApplication=1&currentVersion=";
+	public String TUTORIAL_ROOT = "http://www.areca-backup.org/tutorial.php?fromApplication=1&currentVersion=";
 	public String DONATION_URL = "http://sourceforge.net/project/project_donations.php?group_id=171505";
 	public String ARECA_URL = "http://www.areca-backup.org";
 	public String REGEX_URL = "http://www.areca-backup.org/regex.php";
-    public String VERSION_URL = "http://www.areca-backup.org/version.php";
+    public String VERSION_URL = "http://www.areca-backup.org/version_xml.php";
+    public String BACKUP_COPY_URL = "http://www.areca-backup.org/config_backup.php";
 }

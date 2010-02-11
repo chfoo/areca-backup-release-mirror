@@ -11,7 +11,7 @@ import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
 import com.myJava.object.Duplicable;
 import com.myJava.util.errors.ActionReport;
-import com.myJava.util.history.History;
+import com.myJava.util.history.HistoryHandler;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
@@ -61,7 +61,7 @@ public interface ArchiveMedium extends Duplicable {
             GregorianCalendar fromDate, 
             GregorianCalendar toDate, 
             Manifest manifest,
-            boolean keepDeletedEntries,
+            MergeParameters params,
             ProcessContext context
     ) throws ApplicationException, TaskCancelledException;
 
@@ -107,7 +107,7 @@ public interface ArchiveMedium extends Duplicable {
      * <BR>Useful when the target is deleted.
      */
     public void destroyRepository() 
-    throws ApplicationException, TaskCancelledException;
+    throws ApplicationException;
     
     /**
      * Open the medium. This method is called before the backup is performed.
@@ -152,7 +152,7 @@ public interface ArchiveMedium extends Duplicable {
     /**
      * Return the history of all operations performed on the medium (merges, backups, ...)
      */
-    public History getHistory();
+    public HistoryHandler getHistoryHandler();
     
     /**
      * Return the content of the archive matching the date passed as argument
@@ -211,7 +211,7 @@ public interface ArchiveMedium extends Duplicable {
      * Searches entries within the archives 
      */
     public TargetSearchResult search(SearchCriteria criteria) 
-    throws ApplicationException;
+    throws ApplicationException, TaskCancelledException;
     
     /**
      * Set up all necessary objects for the medium (for instance file system drivers)
@@ -228,4 +228,9 @@ public interface ArchiveMedium extends Duplicable {
      * Tells whether the backup scheme passed as argument is supported by the medium or not
      */
     public boolean supportsBackupScheme(String backupScheme);
+    
+    /**
+     * Checks the target's configuration
+     */
+	public boolean checkStupidConfigurations();
 }

@@ -3,10 +3,9 @@ package com.application.areca.plugins;
 import org.w3c.dom.Node;
 
 import com.application.areca.AbstractTarget;
-import com.application.areca.adapters.AdapterException;
-import com.application.areca.adapters.TargetXMLReader;
-import com.application.areca.adapters.TargetXMLWriter;
+import com.application.areca.adapters.read.TargetXMLReader;
 import com.application.areca.impl.policy.FileSystemPolicy;
+import com.myJava.util.xml.AdapterException;
 
 /**
  * <BR>
@@ -36,6 +35,6 @@ This file is part of Areca.
  */
 public interface FileSystemPolicyXMLHandler {
     public FileSystemPolicy read(Node mediumNode, AbstractTarget target, TargetXMLReader reader) throws AdapterException;
-    public void write(FileSystemPolicy policy, TargetXMLWriter writer, boolean removeSensitiveData, StringBuffer sb);
+    public void write(FileSystemPolicy policy, boolean removeSensitiveData, StringBuffer sb);
     public void setVersion(int version);
 }

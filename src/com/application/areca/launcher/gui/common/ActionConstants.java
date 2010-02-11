@@ -31,7 +31,7 @@ public interface ActionConstants {
 	public static final String CMD_OPEN = "open";
 	public static final String CMD_PREFERENCES = "preferences";
 	public static final String CMD_BACKUP_WORKSPACE = "backup workspace";    
-    public static final String CMD_IMPORT_GROUP = "import group";    
+    public static final String CMD_IMPORT_CONF = "import configuration";    
     public static final String CMD_EXIT = "exit";
     public static final String CMD_SIMULATE = "simulate";    
     public static final String CMD_BACKUP = "backup";
@@ -52,6 +52,7 @@ public interface ActionConstants {
     public static final String CMD_SUPPORT = "support";
     public static final String CMD_CHECK_VERSION = "check version";
     public static final String CMD_HELP = "help";    
+    public static final String CMD_TUTORIAL = "tutorial";  
     public static final String CMD_HISTORY = "history";
     public static final String CMD_VIEW_MANIFEST = "view manifest"; 
     public static final String CMD_VIEW_CONTENT = "view content";
@@ -65,11 +66,10 @@ public interface ActionConstants {
     public static final String CMD_EDIT_TARGET = "edit target";    
     public static final String CMD_DEL_TARGET = "del target";
     public static final String CMD_DUPLICATE_TARGET = "duplicate target";
+    public static final String CMD_EDIT_XML = "edit xml";
     
-    public static final String CMD_NEW_PROCESS = "new process";
-    public static final String CMD_EDIT_PROCESS = "edit process"; 
-    public static final String CMD_EDIT_PROCESS_XML = "edit process xml";  
-    public static final String CMD_DEL_PROCESS = "del process";    
+    public static final String CMD_NEW_GROUP = "new group";
+    public static final String CMD_DEL_GROUP = "del group";    
     
     public static final String CMD_SEARCH_PHYSICAL = "show physical";    
     public static final String CMD_SEARCH_LOGICAL = "show logical";    

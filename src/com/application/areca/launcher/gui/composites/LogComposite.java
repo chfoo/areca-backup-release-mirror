@@ -6,6 +6,8 @@ import java.util.Set;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -18,6 +20,7 @@ import org.eclipse.swt.widgets.MessageBox;
 
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
+import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.Refreshable;
@@ -55,20 +58,27 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class LogComposite 
-extends Composite 
+extends AbstractTabComposite 
 implements LogProcessor, Refreshable {
 	private static final long MAX_SIZE = (long)(OSTool.getMaxMemory() * 0.10 * 0.25); // Max memory * 10% / 4
+	private static final int MAX_LEVEL = 1000;
 
 	private final ResourceManager RM = ResourceManager.instance();	
 	private Application application = Application.getInstance();
 	private int position = 0;
 	private Set displayedMessages = new HashSet();
 	private int logLevel = Math.min(ArecaPreferences.getLogLevel(), Logger.defaultLogger().getLogLevel());
-
+	private boolean lockScroll = false;
+	
 	private StyledText txtLog;
 	private Button btnClear;
 	private Button btnThreadDump;
+	private Button btnLock;
 	private Combo cboLogLevel;
+	private Composite panel;
+
+	private Font warningFont;
+	private int currentMinLevel = MAX_LEVEL;
 
 	public LogComposite(Composite parent) {
 		super(parent, SWT.NONE);
@@ -100,10 +110,20 @@ implements LogProcessor, Refreshable {
 		Logger.defaultLogger().remove(this.getClass());
 		Logger.defaultLogger().addProcessor(this);
 	}
+	
+	private void switchLockScroll() {
+		if (lockScroll) {
+			btnLock.setText(RM.getLabel("app.locklog.label"));
+		} else {
+			btnLock.setText(RM.getLabel("app.unlocklog.label"));
+		}
+		lockScroll = ! lockScroll;
+		panel.layout(true);
+	}
 
 	private Composite buildBottomComposite(Composite parent) {
-		Composite panel = new Composite(parent, SWT.NONE);
-		panel.setLayout(new GridLayout(4, false));
+		panel = new Composite(parent, SWT.NONE);
+		panel.setLayout(new GridLayout(5, false));
 
 		Label lblLevel = new Label(panel, SWT.NONE);
 		lblLevel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
@@ -138,6 +158,24 @@ implements LogProcessor, Refreshable {
 			}
 		});
 		
+		btnClear = new Button(panel, SWT.PUSH);
+		btnClear.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+		btnClear.setText(RM.getLabel("app.clearlog.label"));
+		btnClear.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event arg0) {
+				application.clearLog();
+			}
+		});
+		
+		btnLock = new Button(panel, SWT.PUSH);
+		btnLock.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+		btnLock.setText(RM.getLabel("app.locklog.label"));
+		btnLock.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event arg0) {
+				switchLockScroll();
+			}
+		});
+
 		btnThreadDump = new Button(panel, SWT.PUSH);
 		btnThreadDump.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
 		btnThreadDump.setText(RM.getLabel("app.logtd.label"));
@@ -147,16 +185,55 @@ implements LogProcessor, Refreshable {
 			}
 		});
 
-		btnClear = new Button(panel, SWT.PUSH);
-		btnClear.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
-		btnClear.setText(RM.getLabel("app.clearlog.label"));
-		btnClear.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event arg0) {
-				application.clearLog();
-			}
-		});
-
 		return panel;
+	}
+
+	public void getFocus() {
+		super.getFocus();
+		markRead();
+	}
+
+	public void markRead() {
+		SecuredRunner.execute(this, new Runnable() {
+			public void run() {
+				setCurrentLevel(MAX_LEVEL);
+			}});
+	}
+
+	private void setCurrentLevel(final int l) {
+
+		SecuredRunner.execute(this, new Runnable() {
+			public void run() {
+				if (l <= Logger.LOG_LEVEL_WARNING) {
+					if (! hasFocus()) {
+						getTab().setFont(deriveWarningFont());
+
+						if (l < currentMinLevel) {
+							if (l <= Logger.LOG_LEVEL_ERROR) {
+								getTab().setImage(ArecaImages.ICO_TAB_LOG_ERR);
+								//Application.setTabLabel(getTab(), RM.getLabel("mainpanel.log.label") + " (" + RM.getLabel("app.log.error.label") + ")");
+							} else {
+								getTab().setImage(ArecaImages.ICO_TAB_LOG_WARN);
+								//Application.setTabLabel(getTab(), RM.getLabel("mainpanel.log.label") + " (" + RM.getLabel("app.log.warning.label") + ")");
+							}
+						}
+					}
+				} else {
+					getTab().setFont(null);
+					getTab().setImage(ArecaImages.ICO_TAB_LOG);
+					//Application.setTabLabel(getTab(), RM.getLabel("mainpanel.log.label"));
+				}
+			}});
+		currentMinLevel = l;
+	}
+
+	private Font deriveWarningFont() {
+		if (this.warningFont == null) {
+			FontData dt = this.getTab().getFont().getFontData()[0];
+			FontData dt2 = new FontData(dt.getName(), dt.getHeight(), SWT.BOLD);
+			warningFont = new Font(this.getTab().getDisplay(), new FontData[] { dt2 });
+		}
+		return warningFont;
 	}
 
 	private void doClearLog() {
@@ -178,6 +255,10 @@ implements LogProcessor, Refreshable {
 	}
 
 	public void log(final int level, String message, Throwable e, String source) {
+		if (level < currentMinLevel) {
+			setCurrentLevel(level);
+		}
+
 		try {
 			if (level <= logLevel) {			
 				String txt = LogHelper.format(level, message, source, true);
@@ -197,9 +278,11 @@ implements LogProcessor, Refreshable {
 							txtLog.setStyleRange(rg);
 						}
 						position += l;
-						txtLog.setSelection(position, position);
-						txtLog.showSelection();
-						
+						if (! lockScroll) {
+							txtLog.setSelection(position, position);
+							txtLog.showSelection();
+						}
+
 						if (txtLog.getCharCount() > MAX_SIZE) {
 							doClearLog();
 							log(Logger.LOG_LEVEL_WARNING, "Log memory limit reached : the log has been cleared.", null, null);

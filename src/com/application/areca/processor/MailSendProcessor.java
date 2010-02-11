@@ -59,7 +59,6 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class MailSendProcessor extends AbstractProcessor {
-
 	private String smtpServer;
 	private boolean smtps;
 	private String from;

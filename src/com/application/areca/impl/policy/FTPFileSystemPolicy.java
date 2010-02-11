@@ -57,7 +57,7 @@ implements FileSystemPolicy {
         return protocol != null && protocol.length() != 0;
     }
     
-    public String getDisplayableParameters() {
+    public String getDisplayableParameters(boolean fullPath) {
         StringBuffer sb = new StringBuffer();
         if (isSecured()) {
             sb.append("ftps://");            
@@ -69,6 +69,10 @@ implements FileSystemPolicy {
             sb.append("/");
         }
         sb.append(remoteDirectory);
+        
+        if (fullPath) {
+        	sb.append("/").append(STORAGE_DIRECTORY_PREFIX).append(getUid());
+        }
         
         return sb.toString();
     }

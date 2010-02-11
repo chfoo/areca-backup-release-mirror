@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -158,9 +159,9 @@ JNIEXPORT jobject JNICALL Java_com_myJava_file_metadata_posix_jni_wrapper_FileAc
    const char* filename = (*env)->GetStringUTFChars(env, name, &iscopy);
 
    if (followSymLinks) {
-      ret = stat (filename, &myfstat);
+      ret = stat64 (filename, &myfstat);
    } else {
-      ret = lstat (filename, &myfstat);
+      ret = lstat64 (filename, &myfstat);
    }
 
    // Free memory
@@ -192,19 +193,19 @@ JNIEXPORT jobject JNICALL Java_com_myJava_file_metadata_posix_jni_wrapper_FileAc
       jfieldID fst_blocks = (*env)->GetFieldID (env, clazz, "st_blocks", "J");
 
       // Init return object
-      (*env)->SetIntField (env, obj, fst_ctime, myfstat.st_ctime);
-      (*env)->SetIntField (env, obj, fst_mtime, myfstat.st_mtime);
-      (*env)->SetIntField (env, obj, fst_atime, myfstat.st_atime);
-      (*env)->SetIntField (env, obj, fst_mode, myfstat.st_mode);
-      (*env)->SetIntField (env, obj, fst_size, myfstat.st_size);
-      (*env)->SetIntField (env, obj, fst_dev, myfstat.st_dev);
-      (*env)->SetIntField (env, obj, fst_ino, myfstat.st_ino);
-      (*env)->SetIntField (env, obj, fst_nlink, myfstat.st_nlink);
-      (*env)->SetIntField (env, obj, fst_uid, myfstat.st_uid);
-      (*env)->SetIntField (env, obj, fst_gid, myfstat.st_gid);
-      (*env)->SetIntField (env, obj, fst_rdev, myfstat.st_rdev);
-      (*env)->SetIntField (env, obj, fst_blksize, myfstat.st_blksize);
-      (*env)->SetIntField (env, obj, fst_blocks, myfstat.st_blocks);
+      (*env)->SetLongField (env, obj, fst_ctime, myfstat.st_ctime);
+      (*env)->SetLongField (env, obj, fst_mtime, myfstat.st_mtime);
+      (*env)->SetLongField (env, obj, fst_atime, myfstat.st_atime);
+      (*env)->SetLongField (env, obj, fst_mode, myfstat.st_mode);
+      (*env)->SetLongField (env, obj, fst_size, myfstat.st_size);
+      (*env)->SetLongField (env, obj, fst_dev, myfstat.st_dev);
+      (*env)->SetLongField (env, obj, fst_ino, myfstat.st_ino);
+      (*env)->SetLongField (env, obj, fst_nlink, myfstat.st_nlink);
+      (*env)->SetLongField (env, obj, fst_uid, myfstat.st_uid);
+      (*env)->SetLongField (env, obj, fst_gid, myfstat.st_gid);
+      (*env)->SetLongField (env, obj, fst_rdev, myfstat.st_rdev);
+      (*env)->SetLongField (env, obj, fst_blksize, myfstat.st_blksize);
+      (*env)->SetLongField (env, obj, fst_blocks, myfstat.st_blocks);
    }
 
    // Return object

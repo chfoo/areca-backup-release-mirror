@@ -16,9 +16,8 @@ import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.EntryArchiveData;
 import com.application.areca.Errors;
 import com.application.areca.TargetActions;
-import com.application.areca.TargetGroup;
 import com.application.areca.Utils;
-import com.application.areca.adapters.ProcessXMLWriter;
+import com.application.areca.adapters.ConfigurationHandler;
 import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.policy.EncryptionPolicy;
@@ -45,8 +44,7 @@ import com.myJava.file.driver.event.OpenFileMonitorDriverListener;
 import com.myJava.object.ToStringHelper;
 import com.myJava.util.errors.ActionError;
 import com.myJava.util.errors.ActionReport;
-import com.myJava.util.history.DefaultHistory;
-import com.myJava.util.history.History;
+import com.myJava.util.history.HistoryHandler;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -85,23 +83,22 @@ implements TargetActions, IndicatorTypes {
 	private static final boolean FILESTREAMS_DEBUG = ArecaTechnicalConfiguration.get().isFileStreamsDebugMode();
 	private static final String REPOSITORY_ACCESS_DEBUG_ID = "Areca repository access";
 
-	protected static final String COMMIT_MARKER_NAME = ".committed";
+	protected static final String COMMIT_MARKER_NAME = ArecaTechnicalConfiguration.get().getCommitFileName();
 
 	/**
 	 * Suffix added to the archive name to create the data directory (containing the manifest and trace)
 	 */
-	protected static final String DATA_DIRECTORY_SUFFIX = "_data";
+	public static final String DATA_DIRECTORY_SUFFIX = "_data";
 
 	/**
 	 * Manifest name
 	 */
-	protected static final String MANIFEST_FILE = "manifest";   
+	public static final String MANIFEST_FILE = "manifest";   
 
 	/**
 	 * Name used for target configuration backup
 	 */
-	protected static final String TARGET_BACKUP_FILE_PREFIX = "/areca_config_backup/target_backup_";
-	protected static final String TARGET_BACKUP_FILE_SUFFIX = ".xml";
+	protected static final String TARGET_BACKUP_FILE_PREFIX = "/areca_config_backup";
 
 	/**
 	 * File processing tool
@@ -138,6 +135,26 @@ implements TargetActions, IndicatorTypes {
 				&& isCommitted(archive);
 		}
 	}   
+	
+	/**
+	 * Checks "stupid" configurations .... typically, checks that the user didn't use the target's storage
+	 * subdirectory as main storage directory.
+	 */
+	public boolean checkStupidConfigurations() {
+		try {
+			String path = this.fileSystemPolicy.getArchivePath();
+			path = path.replace('\\', ' ').replace('/', ' ').trim();
+			if (path.endsWith(target.getUid() + " " + target.getUid())) {
+				Logger.defaultLogger().warn("The main storage directory of '" + target.getName() + "' seems suspect (" + fileSystemPolicy.getArchivePath() + "). Please check your target configuration.");
+				return false;
+			} else {
+				return true;
+			}
+		} catch (Exception e) {
+			Logger.defaultLogger().error(e);
+			return true;
+		}
+	}
 
 	/**
 	 * Check the medium's business rules before starting the action passed as argument
@@ -380,10 +397,6 @@ implements TargetActions, IndicatorTypes {
 		);
 	}
 
-	public String getDisplayArchivePath() {
-		return this.fileSystemPolicy.getDisplayableParameters();
-	}
-
 	public EncryptionPolicy getEncryptionPolicy() {
 		return encryptionPolicy;
 	}
@@ -392,24 +405,13 @@ implements TargetActions, IndicatorTypes {
 		return fileSystemPolicy;
 	}
 
-	public synchronized History getHistory() {
-		if (this.history == null) {
-			Logger.defaultLogger().info("No history found ... initializing data ...");
-			try {
-				// historique
-				this.history = new DefaultHistory(
-						new File(
-								fileSystemPolicy.getArchiveDirectory(), 
-								this.getHistoryName()
-						)
-				);
-				Logger.defaultLogger().info("History loaded.");
-			} catch (Throwable e) {
-				Logger.defaultLogger().error("Error during history loading", e);
-				this.history = null;
-			}
+	public synchronized HistoryHandler getHistoryHandler() {
+		if (this.historyHandler == null) {
+			File historyFile = new File(fileSystemPolicy.getArchiveDirectory(), this.getHistoryName());
+			this.historyHandler = new HistoryHandler(historyFile);
 		}
-		return this.history;
+
+		return this.historyHandler;
 	}
 
 	public EntryArchiveData[] getHistory(String entry) throws ApplicationException {
@@ -640,18 +642,11 @@ implements TargetActions, IndicatorTypes {
 			if (storageDir != null && FileSystemManager.exists(storageDir)) {
 				File rootDir = FileSystemManager.getParentFile(storageDir);
 				if (rootDir != null && FileSystemManager.exists(rootDir)) {
-					File targetFile = new File(
-							rootDir,
-							TARGET_BACKUP_FILE_PREFIX + this.target.getUid() + TARGET_BACKUP_FILE_SUFFIX
-					);
+					File targetFile = new File(rootDir, TARGET_BACKUP_FILE_PREFIX);
+					Logger.defaultLogger().info("Creating a XML backup copy of target \"" + this.target.getName() + "\" on : " + FileSystemManager.getAbsolutePath(targetFile));
 
-					Logger.defaultLogger().info("Creating a XML backup copy of target \"" + this.target.getTargetName() + "\" on : " + FileSystemManager.getAbsolutePath(targetFile));
-					TargetGroup process = new TargetGroup(targetFile);
-					process.addTarget(this.target);
-					process.setComments("This group contains a backup copy of your target : \"" + this.target.getTargetName() + "\". It can be used if your configuration has been lost (for instance in case of computer crash).\nDo not modify it since it will be automatically updated during backups.");
-
-					ProcessXMLWriter writer = new ProcessXMLWriter(true);
-					ok = writer.serializeProcess(process, process.getSourceFile());
+					//process.setComments("This group contains a backup copy of your target : \"" + this.target.getName() + "\". It can be used if your configuration has been lost (for instance in case of computer crash).\nDo not modify it since it will be automatically updated during backups.");
+					ok = ConfigurationHandler.getInstance().serialize(this.target, targetFile, true, true);
 				}
 			}
 

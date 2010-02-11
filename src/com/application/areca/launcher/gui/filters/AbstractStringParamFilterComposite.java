@@ -60,7 +60,7 @@ public abstract class AbstractStringParamFilterComposite extends AbstractFilterC
         window.resetErrorState(txt);  
         boolean result = FilterRepository.checkParameters(txt.getText(), this.filterIndex);
         if (! result) {
-            window.setInError(txt);
+            window.setInError(txt, RM.getLabel("error.invalid.parameters"));
         }
         return result;
     }

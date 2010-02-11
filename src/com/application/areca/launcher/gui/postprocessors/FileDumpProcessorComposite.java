@@ -106,7 +106,7 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
                 || txtDir.getText().trim().length() == 0
                 || FileSystemManager.isFile(new File(txtDir.getText()))
         ) {
-            window.setInError(txtDir);
+            window.setInError(txtDir, RM.getLabel("error.directory.expected"));
             return false;
         }
         
@@ -115,7 +115,7 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
                 txtName.getText() == null 
                 || txtName.getText().trim().length() == 0
         ) {
-            window.setInError(txtName);
+            window.setInError(txtName, RM.getLabel("error.field.mandatory"));
             return false;
         }
 

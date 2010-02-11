@@ -3,7 +3,6 @@ package com.myJava.util.history;
 import java.util.GregorianCalendar;
 
 /**
- * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -30,7 +29,6 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class HistoryEntry {
-
     public static final int TYPE_UNKNOWN = -1;
     
     protected GregorianCalendar date = new GregorianCalendar();

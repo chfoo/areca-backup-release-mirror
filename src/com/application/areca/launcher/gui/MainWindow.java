@@ -19,8 +19,10 @@ import org.eclipse.swt.widgets.Shell;
 import com.application.areca.AbstractTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
+import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.LocalPreferences;
+import com.application.areca.launcher.gui.composites.AbstractTabComposite;
 import com.application.areca.launcher.gui.composites.HistoryComposite;
 import com.application.areca.launcher.gui.composites.IndicatorsComposite;
 import com.application.areca.launcher.gui.composites.LogComposite;
@@ -29,7 +31,7 @@ import com.application.areca.launcher.gui.composites.PhysicalViewComposite;
 import com.application.areca.launcher.gui.composites.ProgressComposite;
 import com.application.areca.launcher.gui.composites.PropertiesComposite;
 import com.application.areca.launcher.gui.composites.SearchComposite;
-import com.application.areca.launcher.gui.composites.TreeComposite;
+import com.application.areca.launcher.gui.composites.TargetTreeComposite;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.application.areca.launcher.gui.menus.MenuBuilder;
 import com.application.areca.launcher.gui.menus.ToolBarBuilder;
@@ -63,8 +65,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class MainWindow extends AbstractWindow {
-
-    private TreeComposite pnlTree;
+    private TargetTreeComposite pnlTree;
     private PropertiesComposite pnlProperties;
     private CTabFolder tabs;
     private SashForm leftSash;
@@ -118,19 +119,19 @@ public class MainWindow extends AbstractWindow {
         mainLayout.verticalSpacing = 2;
         composite.setLayout(mainLayout);
 
-        ToolBarBuilder.buildMainToolBar(composite);
+        if (ArecaPreferences.isDisplayToolBar()) {
+        	ToolBarBuilder.buildMainToolBar(composite);
+        }
 
         // MAIN SASH
         mainSash = new SashForm(composite, SWT.HORIZONTAL);
         mainSash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        //mainSash.setLayout(new FillLayout());
 
         // LEFT SASH
         leftSash = new SashForm(mainSash, SWT.VERTICAL);
-        //leftSash.setLayout(new FillLayout());
 
         // TREE
-        pnlTree = new TreeComposite(leftSash);
+        pnlTree = new TargetTreeComposite(leftSash);
         
         // PROPERTIES
         pnlProperties = new PropertiesComposite(leftSash);
@@ -140,7 +141,6 @@ public class MainWindow extends AbstractWindow {
         // TABS
         tabs = new CTabFolder(mainSash, SWT.BORDER);
         tabs.setSimple(Application.SIMPLE_MAINTABS);
-        tabs.setUnselectedCloseVisible(true);
 
         progressContainer = new ProgressComposite(tabs);
         
@@ -151,7 +151,7 @@ public class MainWindow extends AbstractWindow {
         addFolderItem(RM.getLabel("mainpanel.indicators.label"), ArecaImages.ICO_TARGET_NEW, new IndicatorsComposite(tabs));
         this.searchView = new SearchComposite(tabs);
         addFolderItem(RM.getLabel("mainpanel.search.label"), ArecaImages.ICO_FIND, searchView);
-        addFolderItem(RM.getLabel("mainpanel.log.label"), ArecaImages.ICO_TARGET_NEW, new LogComposite(tabs));
+        addFolderItem(RM.getLabel("mainpanel.log.label"), ArecaImages.ICO_TAB_LOG, new LogComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.progress.label"), ArecaImages.ICO_CHANNEL, progressContainer);
 
         tabs.setSelection(TAB_PHYSICAL);
@@ -197,12 +197,14 @@ public class MainWindow extends AbstractWindow {
         return progressContainer;
     }
 
-    public void addFolderItem(String title, Image img, Composite content) {
+    public void addFolderItem(String title, Image img, AbstractTabComposite content) {
         CTabItem itm = new CTabItem(tabs, SWT.NONE);
-        Application.setTabLabel(itm, title, img != null);
+        content.setTab(itm);
         if (img != null) {
             itm.setImage(img);
         }
+        Application.setTabLabel(itm, title);
+ 
         itm.setControl(content);
 
         this.application.getFolderMonitor().registerTabItem(itm);
@@ -213,11 +215,16 @@ public class MainWindow extends AbstractWindow {
         application.resetCurrentDates();
         AppActionReferenceHolder.refresh();
 
-        pnlProperties.refresh();
+        refreshProperties();
 
         if (refreshTree) {
             this.pnlTree.refresh();
+            pnlTree.synchronizeHistory();
         }
+    }
+    
+    public void refreshProperties() {
+        pnlProperties.refresh();
     }
 
     public String getTitle() {

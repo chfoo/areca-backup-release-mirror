@@ -3,8 +3,11 @@ package com.application.areca.adapters;
 import org.w3c.dom.Node;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.adapters.read.TargetXMLReader;
 import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
+import com.myJava.util.xml.AdapterException;
+import com.myJava.util.xml.XMLTool;
 
 /**
  * <BR>
@@ -118,7 +121,6 @@ extends AbstractFileSystemPolicyXMLHandler {
 
     public void write(
     		FileSystemPolicy source, 
-    		TargetXMLWriter writer, 
     		boolean removeSensitiveData, 
     		StringBuffer sb) {
     	
@@ -127,55 +129,55 @@ extends AbstractFileSystemPolicyXMLHandler {
         sb.append(" ");
         sb.append(XML_MEDIUM_ARCHIVENAME);
         sb.append("=");
-        sb.append(AbstractXMLWriter.encode(policy.getArchiveName()));
+        sb.append(XMLTool.encode(policy.getArchiveName()));
         
         sb.append(" ");
         sb.append(XML_MEDIUM_FTP_HOST);
         sb.append("=");
-        sb.append(AbstractXMLWriter.encode(policy.getRemoteServer()));
+        sb.append(XMLTool.encode(policy.getRemoteServer()));
         
         sb.append(" ");
         sb.append(XML_MEDIUM_FTP_PORT);
         sb.append("=");
-        sb.append(AbstractXMLWriter.encode("" + policy.getRemotePort()));
+        sb.append(XMLTool.encode("" + policy.getRemotePort()));
         
         sb.append(" ");
         sb.append(XML_MEDIUM_FTP_PASSIV);
         sb.append("=");
-        sb.append(AbstractXMLWriter.encode("" + policy.isPassivMode()));
+        sb.append(XMLTool.encode("" + policy.isPassivMode()));
         
         if (policy.getProtocol() != null)  {
             sb.append(" ");
             sb.append(XML_MEDIUM_FTP_PROTOCOL);
             sb.append("=");
-            sb.append(AbstractXMLWriter.encode("" + policy.getProtocol()));
+            sb.append(XMLTool.encode("" + policy.getProtocol()));
             
             sb.append(" ");
             sb.append(XML_MEDIUM_FTP_IMPLICIT);
             sb.append("=");
-            sb.append(AbstractXMLWriter.encode("" + policy.isImplicit()));
+            sb.append(XMLTool.encode("" + policy.isImplicit()));
             
             sb.append(" ");
             sb.append(XML_MEDIUM_FTP_PROTECTION);
             sb.append("=");
-            sb.append(AbstractXMLWriter.encode("" + policy.getProtection()));
+            sb.append(XMLTool.encode("" + policy.getProtection()));
         }
         
         sb.append(" ");
         sb.append(XML_MEDIUM_FTP_LOGIN);
         sb.append("=");
-        sb.append(AbstractXMLWriter.encode(policy.getLogin()));
+        sb.append(XMLTool.encode(policy.getLogin()));
         
         if (! removeSensitiveData) {
 	        sb.append(" ");
 	        sb.append(XML_MEDIUM_FTP_PASSWORD);
 	        sb.append("=");
-	        sb.append(AbstractXMLWriter.encode(policy.getPassword()));
+	        sb.append(XMLTool.encode(policy.getPassword()));
         }
         
         sb.append(" ");
         sb.append(XML_MEDIUM_FTP_REMOTEDIR);
         sb.append("=");
-        sb.append(AbstractXMLWriter.encode(policy.getRemoteDirectory()));
+        sb.append(XMLTool.encode(policy.getRemoteDirectory()));
     }
 }

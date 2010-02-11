@@ -62,7 +62,7 @@ extends AbstractWindow {
         composite.setLayout(layout);
         
         Label lblIntro = new Label(composite, SWT.WRAP);
-        lblIntro.setText(RM.getLabel("mftpd.intro.label", new Object[] {target.getTargetName()}));
+        lblIntro.setText(RM.getLabel("mftpd.intro.label", new Object[] {target.getName()}));
         GridData mainData0 = new GridData();
         mainData0.grabExcessHorizontalSpace = true;
         mainData0.widthHint = computeWidth(600);
@@ -105,7 +105,7 @@ extends AbstractWindow {
         // PWD
         this.resetErrorState(txtPassword);     
         if (this.txtPassword.getText() == null || this.txtPassword.getText().length() == 0) {
-            this.setInError(txtPassword);
+            this.setInError(txtPassword, RM.getLabel("error.field.mandatory"));
             return false;
         }
         

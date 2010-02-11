@@ -1,18 +1,10 @@
 package com.application.areca;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
-
-import com.application.areca.context.ProcessContext;
-import com.application.areca.indicator.IndicatorMap;
-import com.application.areca.metadata.manifest.Manifest;
-import com.myJava.file.FileSystemManager;
-import com.myJava.util.log.Logger;
 
 /**
  * Target group
@@ -42,303 +34,199 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class TargetGroup 
-implements Identifiable {
+extends AbstractWorkspaceItem {
+    private String name;
+    private HashMap content = new HashMap();
     
-    private File source;
-    private String comments;
-    
-    /**
-     * Group's content
-     */
-    private HashMap targets;
-    
-    public TargetGroup(File source) {
-        this.targets = new HashMap();
-        this.source = source;
+    public TargetGroup(String name) {
+        this.name = name;
     }
 
 	public void doBeforeDelete() {
-    	Iterator iter = this.getTargetIterator();
+    	Iterator iter = this.getIterator();
     	while (iter.hasNext()) {
-    		AbstractTarget tg = (AbstractTarget)iter.next();
-    		tg.doBeforeDelete();
+    		WorkspaceItem item = (WorkspaceItem)iter.next();
+    		item.doBeforeDelete();
     	}
     }
 
     public void doAfterDelete() {
-    	Iterator iter = this.getTargetIterator();
+    	Iterator iter = this.getIterator();
     	while (iter.hasNext()) {
-    		AbstractTarget tg = (AbstractTarget)iter.next();
-    		tg.doAfterDelete();
+    		WorkspaceItem item = (WorkspaceItem)iter.next();
+    		item.doAfterDelete();
     	}
     }
     
-    /**
-     * Returns an iterator on targets, sorted by name
-     */
-    public Iterator getSortedTargetIterator() {
-        AbstractTarget[] tgs = new AbstractTarget[targets.size()];
-        Iterator iter = getTargetIterator();
-        int i = 0;
-        while (iter.hasNext()) {
-            tgs[i++] = (AbstractTarget)iter.next();
-        }
-        Arrays.sort(tgs, new TargetComparator());
-        
-        ArrayList list = new ArrayList();
-        for (i=0; i<tgs.length; i++) {
-            list.add(tgs[i]);
-        }
-        return list.iterator();
-    }
-    
-    private static class TargetComparator implements Comparator {
-        public int compare(Object o1, Object o2) {
-            AbstractTarget tg1 = (AbstractTarget)o1;
-            AbstractTarget tg2 = (AbstractTarget)o2;
-            return tg1.getTargetName().toLowerCase().compareTo(tg2.getTargetName().toLowerCase());
-        }
-    }
-    
-    public String getComments() {
-        return comments;
-    }
-    
-    public void setComments(String comments) {
-        this.comments = comments;
-    }
+	public Iterator getSortedIterator() {
+		Object[] data = new Object[content.size()];
+		Iterator iter = getIterator();
+		int i = 0;
+		while (iter.hasNext()) {
+			data[i++] = iter.next();
+		}
+		Arrays.sort(data, new WorkspaceItemComparator());
+
+		return Arrays.asList(data).iterator();
+	}
+	
+	private static class WorkspaceItemComparator implements Comparator {
+		public int compare(Object arg0, Object arg1) {
+			String id0 = ((WorkspaceItem)arg0).getName();
+			String id1 = ((WorkspaceItem)arg1).getName();
+			
+			return id0.compareTo(id1);
+		}
+	}
+	
+	public boolean contains(WorkspaceItem item) {
+		return content.containsKey(item.getUid());
+	}
+	
+	public void destroyRepository() throws ApplicationException {
+		Iterator iter = this.getIterator();
+		while (iter.hasNext()) {
+			((WorkspaceItem)iter.next()).destroyRepository();
+		}
+	}
     
     public String getName() {
-        String fileName = FileSystemManager.getName(this.source);
-        int index = fileName.indexOf('.');
-        fileName = fileName.substring(0, index);
-        String firstLetter = (""+fileName.charAt(0)).toUpperCase();
-        
-        return (firstLetter + fileName.substring(1)).replace('_', ' ');
+    	return name;
     }
-    
-    public void addTarget(AbstractTarget target) {
-        this.targets.put(new Integer(target.getId()), target);
-    }
-    
-    public AbstractTarget getTargetById(int id) {
-        return (AbstractTarget)targets.get(new Integer(id));
-    }
-    
-    public void removeTarget(AbstractTarget target) {
-        this.removeTarget(target.getId());
-    }
-    
-    public void removeTarget(int id) {
-    	AbstractTarget tg = this.getTargetById(id);
-    	if (tg != null) {
-    		tg.doBeforeDelete();
+
+    public SupportedBackupTypes getSupportedBackupSchemes() {
+    	Iterator iter = getIterator();
+    	SupportedBackupTypes ret = new SupportedBackupTypes();
+    	
+    	while (iter.hasNext()) {
+        	WorkspaceItem item = (WorkspaceItem)iter.next();
+        	SupportedBackupTypes types = item.getSupportedBackupSchemes();
+        	
+            if (types.isSupported(AbstractTarget.BACKUP_SCHEME_INCREMENTAL)) {
+            	ret.setSupported(AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
+            }
+            if (types.isSupported(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+            	ret.setSupported(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL);
+            }
+            if (types.isSupported(AbstractTarget.BACKUP_SCHEME_FULL)) {
+            	ret.setSupported(AbstractTarget.BACKUP_SCHEME_FULL);
+            }
     	}
-        this.targets.remove(new Integer(id));
-    	if (tg != null) {
-    		tg.doAfterDelete();
-    	}
+    	
+    	return ret;
+	}
+
+	public void linkChild(WorkspaceItem item) {
+		if (this != item.getParent()) { // Yeah .... instance check !
+			item.setParent(this);
+		}
+        this.content.put(item.getUid(), item);
     }
+    
+    // Backward compatibility
+    public AbstractTarget getTarget(int id) {
+    	Iterator iter = this.getIterator();
+    	while (iter.hasNext()) {
+    		Object o = iter.next();
+    		if (o instanceof TargetGroup) {
+    			AbstractTarget ret = ((TargetGroup)o).getTarget(id);
+    			if (ret != null) {
+    				return ret;
+    			}
+    		} else {
+    			AbstractTarget target = (AbstractTarget)o;
+    			if (target.getId() == id) {
+    				return target;
+    			}
+    		}
+    	}
+        return null;
+    }
+    
+    public WorkspaceItem getItem(String uid) {
+    	return (WorkspaceItem)content.get(uid);
+    }
+    
+	public void remove(String id) {
+		WorkspaceItem itm = (WorkspaceItem)content.get(id);
+		if (itm != null) {
+			itm.doBeforeDelete();
+			this.content.remove(id);
+			itm.doAfterDelete();
+		}
+	}
     
     public boolean isRunning() {
-        Iterator iter = this.getTargetIterator();            
-        while (iter.hasNext()) {
-            AbstractTarget target = (AbstractTarget)iter.next();
-            if (target.isRunning()) {
-                return true;
-            }
-        }
+    	Iterator iter = this.getIterator();
+    	while (iter.hasNext()) {
+    		WorkspaceItem item = (WorkspaceItem)iter.next();
+			if (item.isRunning()) {
+				return true;
+			}
+    	}
         
         return false;
     }
     
-    public int getNextFreeTargetId() {
-        if (this.targets.size() == 0) {
-            return 1;
-        } else {
-            Iterator iter = this.getTargetIterator();            
-            
-            AbstractTarget target = (AbstractTarget)iter.next();
-            int id = target.getId();
-
-            while (iter.hasNext()) {
-                target = (AbstractTarget)iter.next();
-                id = (int)Math.max(id, target.getId());
-            }
-            
-            if (id == this.targets.size()) {
-                // Cas 1 : all ids are used (no hole)
-                return id + 1;
-            } else {
-                // Cas 2 : there are holes -> return the first free id
-                for (int i = 1; i<id; i++) {
-                    if (this.getTargetById(i) == null) {
-                        return i;
-                    }
-                }
-                
-                // Cas 3 : shall never happen
-                return id+1;
-            }
-        }
+    public int size() {
+        return this.content.size();
     }
     
-    public int getTargetCount() {
-        return this.targets.size();
-    }
-    
-    public Iterator getTargetIterator() {
-        return this.targets.values().iterator();
-    }
-    
-    public String getSource() {
-        return FileSystemManager.getName(this.source);
-    }
-    
-    public File getSourceFile() {
-        return source;
+    public Iterator getIterator() {
+        return this.content.values().iterator();
     }
 
     public String getUid() {
-        return FileSystemManager.getAbsolutePath(getSourceFile());
+        return name;
     }
     
-    /**
-     * Launch a backup on a target
-     */
-    public void processBackupOnTarget(
-    		AbstractTarget target, 
-    		Manifest manifest, 
-    		String backupScheme,
-    		boolean disablePreCheck,
-    		boolean disableArchiveCheck,
-    		ProcessContext context
-    ) throws ApplicationException {
-        initProgress(context);
-        try {
-            Logger.defaultLogger().info("Starting backup on " + target.getTargetName() + " (" + target.getUid() + "). Backup scheme = " + backupScheme);         
-            target.processBackup(manifest, backupScheme, disablePreCheck, disableArchiveCheck, context);
-        } finally {
-            Logger.defaultLogger().info("Backup completed on " + target.getTargetName() + " (" + target.getUid() + ")");
-        }
-    }
-    
-    /**
-     * Launch a simulation on a target
-     */
-    public SimulationResult processSimulateOnTarget(AbstractTarget target, ProcessContext context) throws ApplicationException {
-        this.initProgress(context);
-        return target.processSimulate(context);
-    }
-    
-    /**
-     * Compute indicators for a target
-     */
-    public IndicatorMap processIndicatorsOnTarget(AbstractTarget target, ProcessContext context) throws ApplicationException {
-        this.initProgress(context);
-        return target.computeIndicators(context);
-    }
-    
-    /**
-     * Launch a check on a target
-     */
-    public void processCheckOnTarget(
-    		AbstractTarget target, 
-    		String destination,
-    		boolean checkOnlyArchiveContent, 
-    		GregorianCalendar date, 
-    		ProcessContext context
-    ) throws ApplicationException {
-		this.initProgress(context);
-        target.processArchiveCheck(destination, checkOnlyArchiveContent, date, context);
-    }
-    
-    /**
-     * Launch a recovery on a target
-     */
-    public void processRecoverOnTarget(
-    		AbstractTarget target, 
-    		String[] filters, 
-    		String path, 
-    		GregorianCalendar date, 
-    		boolean keepDeletedEntries,
-    		boolean checkRecoveredEntries, 
-    		ProcessContext context
-    ) throws ApplicationException {
-		this.initProgress(context);
-        target.processRecover(path, filters, date, keepDeletedEntries, checkRecoveredEntries, context);
-    }
-    
-    public void processRecoverOnTarget(
-    		AbstractTarget target, 
-    		String path, 
-    		GregorianCalendar date, 
-    		String entry, 
-    		boolean checkRecoveredEntries, 
-    		ProcessContext context
-    ) throws ApplicationException {
-		this.initProgress(context);
-        target.processRecover(path, date, entry, checkRecoveredEntries, context);
-    }
-    
-    /**
-     * Launch a merge on a target
-     */
-    public void processMergeOnTarget(AbstractTarget target, GregorianCalendar fromDate, GregorianCalendar toDate, Manifest manifest, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {  
-		this.initProgress(context);
-        target.processMerge(fromDate, toDate, manifest, keepDeletedEntries, context);
-    }  
-    
-    public void processMergeOnTarget(AbstractTarget target, int fromDelay, int toDelay, Manifest manifest, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException {
- 		this.initProgress(context);
- 		processMergeOnTargetImpl(target, fromDelay, toDelay, manifest, keepDeletedEntries, context);
-    }  
-    
-    public void processMergeOnTargetImpl(AbstractTarget target, int fromDelay, int toDelay, Manifest manifest, boolean keepDeletedEntries, ProcessContext context) throws ApplicationException { 
-        target.processMerge(fromDelay, toDelay, manifest, keepDeletedEntries, context);
-    }
-    
-    /**
-     * Deletes archives for a target
-     */
-    public void processDeleteOnTarget(AbstractTarget target, int delay, ProcessContext context) throws ApplicationException {
-		this.initProgress(context);
-        processDeleteOnTargetImpl(target, delay, context);
-    }  
-    
-    public void processDeleteOnTargetImpl(AbstractTarget target, int delay, ProcessContext context) throws ApplicationException {  
-        target.processDeleteArchives(delay, context);
-    }  
-    
-    public void processDeleteOnTarget(AbstractTarget target, GregorianCalendar fromDate, ProcessContext context) throws ApplicationException {   
-		this.initProgress(context);
-        target.processDeleteArchives(fromDate, context);
-    }  
     
     public String toString() {
-        return "Group : " + this.source;
+        return "Group : " + this.name;
     }
     
-    /**
-     * Retourne la description du process
-     */
     public String getDescription() {
-
-        StringBuffer buf = new StringBuffer();
-        buf.append("Description file : ").append(FileSystemManager.getAbsolutePath(this.source));
-        buf.append("\nContent :");
-        
-        Iterator iter = this.getTargetIterator();
+        StringBuffer buf = new StringBuffer();        
+        Iterator iter = this.getIterator();
+        boolean first = true;
         while (iter.hasNext()) {
-            AbstractTarget target = (AbstractTarget)iter.next();         
-            buf.append("\n");
-            buf.append(target.getDescription());
+            WorkspaceItem item = (WorkspaceItem)iter.next();  
+            if (! first) {
+            	buf.append("\n\n");
+            }
+            first = false;
+            buf.append(item.getDescription());
         }        
         
         return new String(buf);
     }
-    
-    private void initProgress(ProcessContext pc) {
-    }
+	
+	public File computeConfigurationFile(File root) {
+		return new File(root, getAncestorPath());
+	}
+	
+	public File computeConfigurationFile(File root, boolean appendAncestors) {
+		File f = computeConfigurationFile(root);
+		if (appendAncestors) {
+			return f;
+		} else {
+			return new File(root, f.getName());
+		}
+	}
+	
+	public String getAncestorPath() {
+		String ret = "";
+		
+		if (parent != null) {
+			String prefix = parent.getAncestorPath();
+			if (prefix.length() == 0) {
+				ret = this.name;
+			} else {
+				ret = prefix + "/" + this.name;
+			}
+		}
+		
+		return ret;
+	}
 }
 

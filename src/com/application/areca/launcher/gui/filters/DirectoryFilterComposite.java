@@ -10,6 +10,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.application.areca.Utils;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.launcher.gui.Application;
@@ -92,5 +93,10 @@ public class DirectoryFilterComposite extends AbstractStringParamFilterComposite
         } else {
             return EXAMPLE_DIR_LINUX;
         }
+    }
+    
+    public void initFilter(ArchiveFilter filter) {
+    	txt.setText(Utils.normalizePath(txt.getText()));
+        super.initFilter(filter);
     }
 }

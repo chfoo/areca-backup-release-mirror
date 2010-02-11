@@ -1,6 +1,8 @@
 package com.application.areca.adapters;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.impl.policy.EncryptionPolicy;
+import com.myJava.util.xml.AdapterException;
 
 /**
  * <BR>
@@ -29,6 +31,6 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface MissingDataListener {
-    public Object missingEncryptionDataDetected(AbstractTarget target) throws AdapterException;
+    public EncryptionPolicy missingEncryptionDataDetected(AbstractTarget target, String algorithm, Boolean encryptNames) throws AdapterException;
     public Object missingFTPDataDetected(AbstractTarget target) throws AdapterException;
 }

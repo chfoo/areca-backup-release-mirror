@@ -12,7 +12,7 @@ import java.util.Set;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
-import com.application.areca.Errors;
+import com.application.areca.CheckParameters;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.SimulationResult;
 import com.application.areca.TargetActions;
@@ -27,8 +27,6 @@ import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.object.Duplicable;
 import com.myJava.object.DuplicateHelper;
-import com.myJava.util.errors.ActionError;
-import com.myJava.util.errors.ActionReport;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -62,7 +60,6 @@ This file is part of Areca.
 public class FileSystemTarget
 extends AbstractTarget
 implements TargetActions {
-
     public static final String RECOVERY_LOCATION_SUFFIX = "rcv";
 
     protected String sourcesRoot = "";
@@ -306,14 +303,17 @@ implements TargetActions {
     }
 
     public void processArchiveCheck(
-    		String destination,
-    		boolean checkOnlyArchiveContent,
+    		CheckParameters checkParams,
     		GregorianCalendar date,
     		ProcessContext context) throws ApplicationException {
     	try {
     		validateTargetState(ACTION_RECOVER, context);
     		try {
-    			this.medium.checkArchives(destination, checkOnlyArchiveContent, date, context);
+    			String destination = null;
+    			if (checkParams.isUseSpecificLocation()) {
+    				destination = checkParams.getSpecificLocation();
+    			}
+    			this.medium.checkArchives(destination, checkParams.isCheckLastArchiveOnly(), date, context);
     		} catch (TaskCancelledException e) {
     			throw new ApplicationException(e);
     		}
@@ -405,27 +405,6 @@ implements TargetActions {
 
     protected String getSpecificTargetDescription() {
         return "Root : " + (this.sourcesRoot.length() != 0 ? this.sourcesRoot: "");
-    }
-
-    /**
-     * Check the target's state
-     */
-    public ActionReport checkTargetState(int action) {
-
-        // Validation
-        ActionReport result = super.checkTargetState(action);
-
-        if (action != ACTION_RECOVER && action != ACTION_MERGE_OR_DELETE) {
-            Iterator iter = this.sources.iterator();
-            while (iter.hasNext()) {
-                File src = (File)iter.next();
-                if (! FileSystemManager.exists(src)) {
-                    result.addError(new ActionError(Errors.ERR_C_BASETARGETPATH, Errors.ERR_M_BASETARGETPATH + " (" + FileSystemManager.getAbsolutePath(src) + ")"));
-                }
-            }
-        }
-
-        return result;
     }
 
     public Manifest buildDefaultMergeManifest(GregorianCalendar fromDate, GregorianCalendar toDate) throws ApplicationException {

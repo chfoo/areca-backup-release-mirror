@@ -6,11 +6,16 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.MergeParameters;
 import com.application.areca.launcher.gui.common.AbstractWindow;
+import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.metadata.manifest.Manifest;
 
@@ -49,6 +54,11 @@ extends AbstractWindow {
     protected Text txtTitle;
     protected Text txtDescription;
     protected Button btnKeepDeletedEntries;
+    
+    private Text txtLocation;
+    private Button btnBrowse;
+    private Button radUseDefaultLocation;
+    private Button radUseSpecificLocation;
 
     public MergeWindow(Manifest manifest, AbstractTarget target) {
         super();
@@ -58,37 +68,88 @@ extends AbstractWindow {
 
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout();
-        layout.numColumns = 2;
-        composite.setLayout(layout);
-
-        Label lblTitle = new Label(composite, SWT.NONE);
-        lblTitle.setText(RM.getLabel("archivedetail.titlefield.label"));
-
-        txtTitle = new Text(composite, SWT.BORDER);
-        GridData ldTitle = new GridData();
-        ldTitle.grabExcessHorizontalSpace = true;
-        ldTitle.horizontalAlignment = SWT.FILL;
-        txtTitle.setLayoutData(ldTitle);
-        monitorControl(txtTitle);
-
-        Label lblDescription = new Label(composite, SWT.NONE);
-        lblDescription.setText(RM.getLabel("archivedetail.descriptionfield.label"));
-
-        txtDescription = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
-        GridData ldDescription = new GridData(SWT.FILL, SWT.FILL, true, true);
-        ldDescription.widthHint = computeWidth(400);
-        ldDescription.heightHint = computeHeight(100);
-        txtDescription.setLayoutData(ldDescription);
-        monitorControl(txtDescription);
-
-        new Label(composite, SWT.NONE);
+        composite.setLayout(new GridLayout(1, false));
+        
+        // Keep deleted entries
         btnKeepDeletedEntries = new Button(composite, SWT.CHECK);
         btnKeepDeletedEntries.setSelection(false);
         btnKeepDeletedEntries.setText(RM.getLabel("archivedetail.keepdeletedentries.label"));
         btnKeepDeletedEntries.setToolTipText(RM.getLabel("archivedetail.keepdeletedentries.tt"));
         btnKeepDeletedEntries.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
         monitorControl(btnKeepDeletedEntries);
+        
+		new Label(composite, SWT.NONE);
+        
+        // Manifest
+        Group grpManifest = new Group(composite, SWT.NONE);
+        grpManifest.setText(RM.getLabel("archivedetail.manifest.label"));
+        GridData ldManifest = new GridData(SWT.FILL, SWT.FILL, true, true);
+        grpManifest.setLayoutData(ldManifest);
+		grpManifest.setLayout(new GridLayout(1, false));
+		
+        txtTitle = new Text(grpManifest, SWT.BORDER);
+        txtTitle.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        monitorControl(txtTitle);
+
+        txtDescription = new Text(grpManifest, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		GridData ldDescription = new GridData(SWT.FILL, SWT.FILL, true, true);
+		ldDescription.widthHint = computeWidth(350);
+		ldDescription.heightHint = computeHeight(70);
+		ldDescription.horizontalSpan = 1;
+		txtDescription.setLayoutData(ldDescription);
+        monitorControl(txtDescription);
+        
+		new Label(composite, SWT.NONE);
+        
+        // Location
+        final Group grpLocation = new Group(composite, SWT.NONE);
+        grpLocation.setText(RM.getLabel("check.location.label"));
+        grpLocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        GridLayout grpLayout = new GridLayout(3, false);
+        grpLayout.verticalSpacing = 0;
+        grpLocation.setLayout(grpLayout);
+        
+        radUseDefaultLocation = new Button(grpLocation, SWT.RADIO);
+        radUseDefaultLocation.setText(RM.getLabel("check.default.label"));
+        radUseDefaultLocation.setToolTipText(RM.getLabel("check.default.tt"));
+        radUseDefaultLocation.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
+        monitorControl(SWT.Selection, radUseDefaultLocation);
+        
+        radUseSpecificLocation = new Button(grpLocation, SWT.RADIO);
+        radUseSpecificLocation.setText(RM.getLabel("check.specific.label"));
+        radUseSpecificLocation.setToolTipText(RM.getLabel("check.specific.tt"));
+        radUseSpecificLocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+        monitorControl(SWT.Selection, radUseSpecificLocation);
+
+        txtLocation = new Text(grpLocation, SWT.BORDER);
+        GridData mainData2 = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        mainData2.widthHint = computeWidth(200);
+        txtLocation.setLayoutData(mainData2);       
+        monitorControl(txtLocation);
+        
+        btnBrowse = new Button(grpLocation, SWT.PUSH);
+        btnBrowse.setText(RM.getLabel("common.browseaction.label"));
+        btnBrowse.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+                String path = Application.getInstance().showDirectoryDialog(txtLocation.getText(), MergeWindow.this);
+                if (path != null) {
+                    txtLocation.setText(path);
+                }
+            }
+        });
+        btnBrowse.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+        
+        radUseDefaultLocation.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event) {
+            	switchLocation();
+            }
+        });
+        
+        radUseSpecificLocation.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event) {
+            	switchLocation();
+            }
+        });
         
         String saveLabel = RM.getLabel("archivedetail.startmergeaction.label");
 
@@ -100,13 +161,29 @@ extends AbstractWindow {
         ldPnl.horizontalSpan = 2;
         pnl.setLayoutData(ldPnl);
 
+        // INIT DATA
+        txtLocation.setText(ArecaPreferences.getMergeSpecificLocation(application.getCurrentWorkspaceItem().getUid()));
+        if (ArecaPreferences.getMergeUseSpecificLocation(application.getCurrentWorkspaceItem().getUid())) {
+            radUseSpecificLocation.setSelection(true);
+        } else {
+            radUseDefaultLocation.setSelection(true);
+        }
+        
         if (manifest != null) {
             txtTitle.setText(manifest.getTitle() == null ? "" : manifest.getTitle());
             txtDescription.setText(manifest.getDescription() == null ? "" : manifest.getDescription());
         }
-
+        
+        switchLocation();
         composite.pack();
         return composite;
+    }
+    
+    private void switchLocation() {
+    	boolean defaultLocation = radUseDefaultLocation.getSelection();
+    	txtLocation.setEnabled(! defaultLocation);
+    	btnBrowse.setEnabled(! defaultLocation);
+    	checkBusinessRules();
     }
 
     public String getTitle() {
@@ -118,9 +195,17 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() {
+		ArecaPreferences.setMergeUseSpecificLocation(radUseSpecificLocation.getSelection(), application.getCurrentWorkspaceItem().getUid());
+		ArecaPreferences.setMergeSpecificLocation(txtLocation.getText(), application.getCurrentWorkspaceItem().getUid());
+		
         this.manifest.setDescription(this.txtDescription.getText());
-        this.manifest.setTitle(this.txtTitle.getText());        
-        this.application.launchMergeOnTarget(btnKeepDeletedEntries.getSelection(), this.manifest);
+        this.manifest.setTitle(this.txtTitle.getText());  
+        MergeParameters params = new MergeParameters(
+        		btnKeepDeletedEntries.getSelection(), 
+        		radUseSpecificLocation.getSelection(), 
+        		txtLocation.getText()
+        );
+        this.application.launchMergeOnTarget(params, this.manifest);
         this.hasBeenUpdated = false;
         this.close();
     }

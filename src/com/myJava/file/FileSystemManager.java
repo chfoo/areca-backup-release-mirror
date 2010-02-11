@@ -108,7 +108,10 @@ public class FileSystemManager {
     	FileSystemDriver existing = this.getDriverAtMountPoint(mountPoint);
         if (existing != null && ! existing.equals(driver)) {    // The former instance check was replaced by a more standard call to the "equals" method.
         														// This solves the problems that occured when reopening a target that had already been opened.
-            if (driver.isContentSensitive()) {
+            // The code below has been disabled.
+        	// It lead to unexpected behaviors of Areca
+        	/*
+        	if (driver.isContentSensitive()) {
                 File[] files = null;
                 try {
                     files = FileSystemManager.listFiles(mountPoint);
@@ -120,6 +123,7 @@ public class FileSystemManager {
                     throw new DriverAlreadySetException("Driver already set for mount point : [" + mountPoint.getAbsolutePath() + "] ; existing driver = [" + existing.getClass().getName() + "]. This mountPoint contains " + files.length + " files or directories. It must be cleared before this operation.");
                 } 
             }
+            */
             
             // Si un autre driver existait pour ce point de montage, on tente de le supprimer.
             driver.mount();

@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Text;
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.version.VersionInfos;
+import com.myJava.encryption.EncryptionUtil;
 import com.myJava.system.OSTool;
 
 /**
@@ -47,8 +48,9 @@ This file is part of Areca.
  */
 public abstract class AbstractWindow 
 extends ApplicationWindow {
-
-    protected final ResourceManager RM = ResourceManager.instance();
+	protected static final String KEY_TT = "original.tt";
+	
+    protected static final ResourceManager RM = ResourceManager.instance();
     protected Application application = Application.getInstance(); 
     protected boolean hasBeenUpdated = false;
     protected boolean initialized = false;
@@ -59,6 +61,7 @@ extends ApplicationWindow {
      */
     public AbstractWindow() {
         super(null);
+    	EncryptionUtil.registerRandomSeed();
     }
     
     public static Point computeSize(int linuxW, int linuxH) {
@@ -92,6 +95,7 @@ extends ApplicationWindow {
     }
 
     public boolean close() {
+    	EncryptionUtil.registerRandomSeed();
         boolean close = true;
         
         if (hasBeenUpdated) {
@@ -138,6 +142,7 @@ extends ApplicationWindow {
     public void monitorControl(Text ctrl) {
         ctrl.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent e) {
+            	EncryptionUtil.registerRandomSeed();
                 registerUpdate();
             }
         });
@@ -154,16 +159,30 @@ extends ApplicationWindow {
     protected void monitorControl(int swtEventType, Control ctrl) {
         ctrl.addListener(swtEventType, new Listener() {
             public void handleEvent(Event event) {
+            	EncryptionUtil.registerRandomSeed();
                 registerUpdate();
             }
         });
     }
     
     public void resetErrorState(Control ctrl) {
+    	String tt = (String)ctrl.getData(KEY_TT);
+    	if (tt != null) {
+    		ctrl.setToolTipText(tt);
+    	}
         ctrl.setBackground(null);
     }
     
-    public void setInError(Control ctrl) {
+    public void setInError(Control ctrl, String errorMessage) {
+    	String tt = (String)ctrl.getData(KEY_TT);
+    	if (tt == null) {
+        	tt = ctrl.getToolTipText();
+        	ctrl.setData(KEY_TT, tt);
+    	}
+    	if (errorMessage != null && errorMessage.trim().length() != 0) {
+    		String root = tt == null ? "" : tt + "\n\n";
+    		ctrl.setToolTipText(root + RM.getLabel("error.label.prefix") + errorMessage);
+    	}
         ctrl.setBackground(Colors.C_FLD_ERROR);        
     }
 
@@ -175,11 +194,11 @@ extends ApplicationWindow {
 
     protected void registerUpdate() {
         if (this.initialized) {
-            // On enregistre l'update
+
             hasBeenUpdated = true;
             getShell().setText(getFullWindowTitle());
             
-            // On met � jour l'�tat du bouton "save"
+            // Update the state of the "save" button
             this.updateState(checkBusinessRules());
         }
     }  

@@ -54,4 +54,15 @@ public class SearchResult {
     public void setTargetSearchResult(AbstractTarget target, TargetSearchResult result) {
         this.resultsByTarget.put(target, result);
     }
+    
+    public int resultCount() {
+    	Iterator iter = this.targetIterator();
+    	int count = 0;
+    	while(iter.hasNext()) {
+    		AbstractTarget k = (AbstractTarget)iter.next();
+    		TargetSearchResult res = getTargetSearchResult(k);
+    		count += res.getItems().size();
+    	}
+    	return count;
+    }
 }

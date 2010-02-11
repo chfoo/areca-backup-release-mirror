@@ -40,7 +40,7 @@
             </classpath>
         </javac>
 
-        <jar destfile="${root}/areca.jar">
+        <jar destfile="${root}/lib/areca.jar">
             <fileset dir="${root}/classes"/>
             <fileset dir="${root}">
                 <include name="icons/**"/>
@@ -57,7 +57,7 @@
     <target name="compilejni" unless="isWindows">
         <description>JNI compilation task (builds libarecafs.so ... for unix-like operating systems only)</description>
         <!--Generate the JNI header-->
-        <javah destdir="${root}/jni" force="yes" classpath="${root}/areca.jar">
+        <javah destdir="${root}/jni" force="yes" classpath="${root}/lib/areca.jar">
             <class name="com.myJava.file.metadata.posix.jni.wrapper.FileAccessWrapper"/>
         </javah>
 
@@ -78,7 +78,21 @@
             <arg value="com_myJava_file_metadata_posix_jni_wrapper_FileAccessWrapper.o"/>
         </exec>
         <delete file="${root}/jni/com_myJava_file_metadata_posix_jni_wrapper_FileAccessWrapper.o"/>
-        <move file="${root}/jni/libarecafs.so" todir="${root}"/>
+        <delete file="${root}/jni/com_myJava_file_metadata_posix_jni_wrapper_FileAccessWrapper.h"/>
+        <move file="${root}/jni/libarecafs.so" todir="${root}/lib"/>
+    </target>
+    
+    <target name="setpermissions" unless="isWindows">
+        <description>Set executable permissions</description>
+        
+        <chmod perm="755">
+            <fileset dir="${root}/bin">
+                <include name="**"/>
+            </fileset>
+            <fileset dir="${root}">
+                <include name="*.sh"/>
+            </fileset>
+        </chmod>
     </target>
 
     <target name="compileall">
@@ -86,5 +100,6 @@
         <antcall target="compilejava"/>
         <antcall target="jnicheck"/>
         <antcall target="compilejni"/>
+        <antcall target="setpermissions"/>
     </target>
 </project>

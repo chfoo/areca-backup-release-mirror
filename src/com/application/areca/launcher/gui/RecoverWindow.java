@@ -158,7 +158,7 @@ extends AbstractWindow {
 	protected boolean checkBusinessRules() {
         this.resetErrorState(txtLocation);     
         if (this.txtLocation.getText() == null || this.txtLocation.getText().length() == 0) {
-            this.setInError(txtLocation);
+            this.setInError(txtLocation, RM.getLabel("error.field.mandatory"));
             return false;
         }
         return true;

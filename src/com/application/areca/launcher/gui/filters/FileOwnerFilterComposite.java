@@ -94,8 +94,8 @@ public class FileOwnerFilterComposite extends AbstractFilterComposite  {
         window.resetErrorState(txtGroup);
         window.resetErrorState(txtOwner);  
 		if (txtGroup.getText().trim().length() == 0 && txtOwner.getText().trim().length() == 0) {
-			window.setInError(txtGroup);
-			window.setInError(txtOwner);
+			window.setInError(txtGroup, RM.getLabel("error.owner.or.group.expected"));
+			window.setInError(txtOwner, RM.getLabel("error.owner.or.group.expected"));
 			return false;
 		}
 		return true;

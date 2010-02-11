@@ -61,7 +61,7 @@ public abstract class SerializedCollection implements Collection {
     private Set registeredIterators = new HashSet();
     
     public SerializedCollection() throws IOException {
-    	this.bufferFile = FileTool.getInstance().generateNewWorkingFile("java", "serializedcol", false);
+    	this.bufferFile = FileTool.getInstance().generateNewWorkingFile(null, "java", "serializedcol", false);
     }
     
     public int size() {

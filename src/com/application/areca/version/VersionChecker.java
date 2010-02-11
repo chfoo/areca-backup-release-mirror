@@ -5,9 +5,10 @@ import java.net.URL;
 
 import com.application.areca.ArecaURLs;
 import com.myJava.util.log.Logger;
-import com.myJava.util.version.OnlineVersionDataAdapter;
 import com.myJava.util.version.VersionData;
 import com.myJava.util.version.VersionDataAdapterException;
+import com.myJava.util.version.VersionDataHandler;
+import com.myJava.util.version.XMLVersionDataAdapter;
 
 /**
  * Utility class which checks if new versions of Areca are available.
@@ -73,7 +74,8 @@ public class VersionChecker {
      * <BR>Returns the new version otherwise. 
      */
     public VersionData checkForNewVersion() throws VersionDataAdapterException {
-        OnlineVersionDataAdapter adapter = new OnlineVersionDataAdapter();
+        VersionDataHandler handler = new VersionDataHandler();
+        handler.setAdapter(new XMLVersionDataAdapter());
         
         URL url = null;
         try {
@@ -82,10 +84,10 @@ public class VersionChecker {
             ignored.printStackTrace();  // The default validation URL has been checked -->OK
         }
 
-        adapter.setCheckUrl(url);
+        handler.setCheckUrl(url);
 
         Logger.defaultLogger().info("Opening url : " + url.toExternalForm());
-        VersionData newVersion = adapter.readVersionData();
+        VersionData newVersion = handler.readVersionData();
         if (newVersion == null) {
             Logger.defaultLogger().error("Error : No version information found.");
             throw new VersionDataAdapterException("Unable to retrieve version informations from url : " + url.toExternalForm());

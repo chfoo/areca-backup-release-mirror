@@ -53,9 +53,9 @@ extends AppActionReferenceHolder {
 
         // EDIT
         Menu mnEdit = buildSubMenu("menu.edit", menu);
-        add(AC_NEW_PROCESS, mnEdit);
-        add(AC_EDIT_PROCESS, mnEdit);
-        add(AC_DEL_PROCESS, mnEdit);
+        add(AC_NEW_GROUP, mnEdit);
+        //add(AC_EDIT_GROUP, mnEdit);
+        add(AC_DEL_GROUP, mnEdit);
         addSeparator(mnEdit);
         add(AC_NEW_TARGET, mnEdit);
         add(AC_EDIT_TARGET, mnEdit);
@@ -85,6 +85,7 @@ extends AppActionReferenceHolder {
         // HELP
         Menu mnHelp = buildSubMenu("menu.help", menu);
         add(AC_HELP, mnHelp);
+        add(AC_TUTORIAL, mnHelp);
         addSeparator(mnHelp);
         add(AC_CHECK_VERSION, mnHelp);   
         add(AC_SUPPORT, mnHelp);  
@@ -108,15 +109,14 @@ extends AppActionReferenceHolder {
         return menu;
     }
     
-    public static Menu buildProcessContextMenu(Shell parent) {
+    public static Menu buildGroupContextMenu(Shell parent) {
         Menu menu = new Menu(parent, SWT.POP_UP);
         
         add(AC_BACKUP, menu);
         addSeparator(menu);
-        add(AC_NEW_PROCESS, menu);      
-        add(AC_EDIT_PROCESS, menu);
-        add(AC_EDIT_PROCESS_XML, menu);
-        add(AC_DEL_PROCESS, menu);
+        add(AC_NEW_GROUP, menu);      
+        //add(AC_EDIT_GROUP, menu);
+        add(AC_DEL_GROUP, menu);
         addSeparator(menu);
         add(AC_NEW_TARGET, menu);  
         addSeparator(menu);
@@ -131,8 +131,11 @@ extends AppActionReferenceHolder {
         add(AC_SIMULATE, menu);
         add(AC_BACKUP, menu);     
         addSeparator(menu);
+        add(AC_NEW_GROUP, menu);   
+        addSeparator(menu);
         add(AC_NEW_TARGET, menu);    
         add(AC_EDIT_TARGET, menu);
+        add(AC_EDIT_XML, menu);
         add(AC_DEL_TARGET, menu);
         addSeparator(menu);
         add(AC_DUP_TARGET, menu);   
@@ -149,7 +152,7 @@ extends AppActionReferenceHolder {
     public static Menu buildWorkspaceContextMenu(Shell parent) {
         Menu menu = new Menu(parent, SWT.POP_UP);
         
-        add(AC_NEW_PROCESS, menu);
+        add(AC_NEW_GROUP, menu);
         
         return menu;
     }

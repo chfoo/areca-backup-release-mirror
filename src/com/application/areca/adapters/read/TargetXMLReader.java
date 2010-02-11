@@ -1,4 +1,4 @@
-package com.application.areca.adapters;
+package com.application.areca.adapters.read;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +12,12 @@ import org.w3c.dom.NodeList;
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
-import com.application.areca.TargetGroup;
+import com.application.areca.ConfigurationSource;
+import com.application.areca.MergeParameters;
+import com.application.areca.Utils;
+import com.application.areca.adapters.MissingDataListener;
+import com.application.areca.adapters.XMLTags;
+import com.application.areca.adapters.write.DeprecatedTargetGroupXMLWriter;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.filter.FileDateArchiveFilter;
@@ -46,6 +51,8 @@ import com.application.areca.processor.ShellScriptProcessor;
 import com.application.areca.version.VersionInfos;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.CompressionArguments;
+import com.myJava.util.log.Logger;
+import com.myJava.util.xml.AdapterException;
 
 /**
  * Adapter for target serialization / deserialization
@@ -77,15 +84,19 @@ This file is part of Areca.
 public class TargetXMLReader implements XMLTags {
 	private static final int DEFAULT_ZIP_MV_DIGITS = FrameworkConfiguration.getInstance().getZipMvDigits();
 
-	protected int version;
-	protected TargetGroup group;
+	protected int version = -1;
 	protected Node targetNode;
-	protected MissingDataListener missingDataListener = null;
+	protected MissingDataListener missingDataListener;
 	protected boolean readIDInfosOnly = false;
+	protected boolean installMedium = true;
+	protected ConfigurationSource source;
 
-	public TargetXMLReader(Node targetNode, TargetGroup group, int version) throws AdapterException {
+	public TargetXMLReader(Node targetNode, boolean installMedium) throws AdapterException {
 		this.targetNode = targetNode;
-		this.group = group;
+		this.installMedium = installMedium;
+	}
+
+	public void setVersion(int version) {
 		this.version = version;
 	}
 
@@ -101,27 +112,50 @@ public class TargetXMLReader implements XMLTags {
 		return missingDataListener;
 	}
 
+	public void setSource(ConfigurationSource source) {
+		this.source = source;
+	}
+
 	public FileSystemTarget readTarget() throws IOException, AdapterException, ApplicationException {
-		Node id = targetNode.getAttributes().getNamedItem(XML_TARGET_ID);
-		Node uid = targetNode.getAttributes().getNamedItem(XML_TARGET_UID);        
-		Node name = targetNode.getAttributes().getNamedItem(XML_TARGET_NAME);     
-
-		if (id == null) {
-			throw new AdapterException("Target ID not found : your target must have a '" + XML_TARGET_ID + "' attribute.");
-		}   
-
-		String strUid = null;
-		if (uid != null) {
-			strUid = uid.getNodeValue();
+		if (version < 0) {
+			// Read version
+			Node versionNode = targetNode.getAttributes().getNamedItem(XMLTags.XML_VERSION);
+			version = 1;
+			if (versionNode != null) {
+				version = Integer.parseInt(versionNode.getNodeValue());
+			}  
+		}
+		
+		if (version > DeprecatedTargetGroupXMLWriter.CURRENT_VERSION) {
+			throw new AdapterException("Invalid XML version : This version of Areca can't handle XML versions above " + DeprecatedTargetGroupXMLWriter.CURRENT_VERSION + ". You are trying to read a version " + version);
 		}
 
 		FileSystemTarget target = new FileSystemTarget();
-		target.setId(Integer.parseInt(id.getNodeValue()));
-		target.setUid(strUid);
-		target.setGroup(group);
+		target.setLoadedFrom(source);
+
+		Node id = targetNode.getAttributes().getNamedItem(XML_TARGET_ID);
+		Node uid = targetNode.getAttributes().getNamedItem(XML_TARGET_UID);        
+		Node name = targetNode.getAttributes().getNamedItem(XML_TARGET_NAME); 
+		Node isBackupCopy = targetNode.getAttributes().getNamedItem(XML_BACKUP_COPY); 
+
+		if (id == null && uid == null) {
+			throw new AdapterException("Target UID not found : your target must have a '" + XML_TARGET_UID + "' attribute.");
+		}   
+
+		if (uid != null) {
+			target.setUid(uid.getNodeValue());
+		}
+
+		if (id != null) {
+			target.setId(Integer.parseInt(id.getNodeValue()));
+		}
 
 		if (name != null) {
 			target.setTargetName(name.getNodeValue());
+		}
+		
+		if (isBackupCopy != null) {
+			target.getLoadedFrom().setBackupCopy(Boolean.valueOf(isBackupCopy.getNodeValue()).booleanValue());
 		}
 
 		if (! readIDInfosOnly) {
@@ -180,46 +214,48 @@ public class TargetXMLReader implements XMLTags {
 				String child = children.item(i).getNodeName();
 
 				// ===== BACKWARD COMPATIBILITY =====
-					if (child.equalsIgnoreCase(XML_FILTER_DIRECTORY)) {
-						target.addFilter(this.readDirectoryArchiveFilter( children.item(i)));
-					} else if (child.equalsIgnoreCase(XML_FILTER_FILEEXTENSION)) {
-						target.addFilter(this.readFileExtensionArchiveFilter( children.item(i)));   
-					} else if (child.equalsIgnoreCase(XML_FILTER_REGEX)) {
-						target.addFilter(this.readRegexArchiveFilter( children.item(i)));  
-					} else if (child.equalsIgnoreCase(XML_FILTER_FILESIZE)) {
-						target.addFilter(this.readFileSizeArchiveFilter( children.item(i)));  
-					} else if (child.equalsIgnoreCase(XML_FILTER_OWNER)) {
-						target.addFilter(this.readFileOwnerArchiveFilter( children.item(i)));  
-					} else if (child.equalsIgnoreCase(XML_FILTER_LINK)) {
-						target.addFilter(this.readLinkFilter( children.item(i)));  
-					} else if (child.equalsIgnoreCase(XML_FILTER_TP)) {
-						target.addFilter(this.readSpecFileFilter(children.item(i))); 
-					} else if (child.equalsIgnoreCase(XML_FILTER_LOCKED)) {
-						target.addFilter(this.readLockedFileFilter( children.item(i)));         
-					} else if (child.equalsIgnoreCase(XML_FILTER_OWNER)) {
-						target.addFilter(this.readFileOwnerArchiveFilter( children.item(i)));                        
-					} else if (child.equalsIgnoreCase(XML_FILTER_FILEDATE)) {
-						target.addFilter(this.readFileDateArchiveFilter( children.item(i)));  
-						// ===== EOF BACKWARD COMPATIBILITY =====
+				if (child.equalsIgnoreCase(XML_FILTER_DIRECTORY)) {
+					target.addFilter(this.readDirectoryArchiveFilter( children.item(i)));
+				} else if (child.equalsIgnoreCase(XML_FILTER_FILEEXTENSION)) {
+					target.addFilter(this.readFileExtensionArchiveFilter( children.item(i)));   
+				} else if (child.equalsIgnoreCase(XML_FILTER_REGEX)) {
+					target.addFilter(this.readRegexArchiveFilter( children.item(i)));  
+				} else if (child.equalsIgnoreCase(XML_FILTER_FILESIZE)) {
+					target.addFilter(this.readFileSizeArchiveFilter( children.item(i)));  
+				} else if (child.equalsIgnoreCase(XML_FILTER_OWNER)) {
+					target.addFilter(this.readFileOwnerArchiveFilter( children.item(i)));  
+				} else if (child.equalsIgnoreCase(XML_FILTER_LINK)) {
+					target.addFilter(this.readLinkFilter( children.item(i)));  
+				} else if (child.equalsIgnoreCase(XML_FILTER_TP)) {
+					target.addFilter(this.readSpecFileFilter(children.item(i))); 
+				} else if (child.equalsIgnoreCase(XML_FILTER_LOCKED)) {
+					target.addFilter(this.readLockedFileFilter( children.item(i)));         
+				} else if (child.equalsIgnoreCase(XML_FILTER_OWNER)) {
+					target.addFilter(this.readFileOwnerArchiveFilter( children.item(i)));                        
+				} else if (child.equalsIgnoreCase(XML_FILTER_FILEDATE)) {
+					target.addFilter(this.readFileDateArchiveFilter( children.item(i)));  
+					// ===== EOF BACKWARD COMPATIBILITY =====
 
-					} else if (child.equalsIgnoreCase(XML_FILTER_GROUP)) {
-						target.setFilterGroup(this.readFilterGroup(children.item(i)));  
-					} else if (child.equalsIgnoreCase(XML_MEDIUM)) {
-						target.setMedium(this.readMedium(children.item(i), target), false);      
+				} else if (child.equalsIgnoreCase(XML_FILTER_GROUP)) {
+					target.setFilterGroup(this.readFilterGroup(children.item(i)));  
+				} else if (child.equalsIgnoreCase(XML_MEDIUM)) {
+					target.setMedium(this.readMedium(children.item(i), target), false);      
+					if (installMedium) {
 						target.getMedium().install();
-					} else if (child.equalsIgnoreCase(XML_PROCESSOR_DUMP)) {
-						addProcessor(children.item(i), this.readDumpProcessor(children.item(i)), target);                
-					} else if (child.equalsIgnoreCase(XML_PROCESSOR_EMAIL)) {
-						addProcessor(children.item(i), this.readEmailProcessor(children.item(i)), target);                
-					} else if (child.equalsIgnoreCase(XML_PROCESSOR_SHELL)) {
-						addProcessor(children.item(i), this.readShellProcessor(children.item(i)), target);                
-					} else if (child.equalsIgnoreCase(XML_PROCESSOR_MERGE)) {
-						addProcessor(children.item(i), this.readMergeProcessor(children.item(i)), target);    
-					} else if (child.equalsIgnoreCase(XML_PROCESSOR_DELETE)) {
-						addProcessor(children.item(i), this.readDeleteProcessor(children.item(i)), target);                 
-					} else if (child.equalsIgnoreCase(XML_SOURCE)) {
-						readSource(sources, children.item(i));
 					}
+				} else if (child.equalsIgnoreCase(XML_PROCESSOR_DUMP)) {
+					addProcessor(children.item(i), this.readDumpProcessor(children.item(i)), target);                
+				} else if (child.equalsIgnoreCase(XML_PROCESSOR_EMAIL)) {
+					addProcessor(children.item(i), this.readEmailProcessor(children.item(i)), target);                
+				} else if (child.equalsIgnoreCase(XML_PROCESSOR_SHELL)) {
+					addProcessor(children.item(i), this.readShellProcessor(children.item(i)), target);                
+				} else if (child.equalsIgnoreCase(XML_PROCESSOR_MERGE)) {
+					addProcessor(children.item(i), this.readMergeProcessor(children.item(i)), target);    
+				} else if (child.equalsIgnoreCase(XML_PROCESSOR_DELETE)) {
+					addProcessor(children.item(i), this.readDeleteProcessor(children.item(i)), target);                 
+				} else if (child.equalsIgnoreCase(XML_SOURCE)) {
+					readSource(sources, children.item(i));
+				}
 			}
 
 			if (sources.size() > 0 && baseDir != null) {
@@ -251,7 +287,13 @@ public class TargetXMLReader implements XMLTags {
 		if (pathNode == null) {
 			throw new AdapterException("A '" + XML_SOURCE_PATH + "' attribute must be set.");
 		} else {
-			sources.add(new File(pathNode.getNodeValue()));
+			String path = pathNode.getNodeValue();
+			String normalized = Utils.normalizePath(path);
+			if (! path.equals(normalized)) {
+				// We simply raise a warning because of backward compatibility ... 
+				Logger.defaultLogger().warn("Caution : The following source path : " + path + " does not comply with Window's default naming conventions (this can lead to unexpected behaviors). The following path should be used instead : " +  normalized + ". It is highly advisable to update your target's configuration.");
+			}
+			sources.add(new File(path));
 		}
 	}
 
@@ -260,7 +302,7 @@ public class TargetXMLReader implements XMLTags {
 		Node runIfOKNode = node.getAttributes().getNamedItem(XML_PP_RUN_SUCCESS);
 		Node runIfWarningNode = node.getAttributes().getNamedItem(XML_PP_RUN_WARNING);
 		Node runIfErrorNode = node.getAttributes().getNamedItem(XML_PP_RUN_ERROR);
-		
+
 		if (runIfErrorNode != null || runIfWarningNode != null || runIfOKNode != null) {
 			proc.setRunIfError(runIfErrorNode != null && Boolean.valueOf(runIfErrorNode.getNodeValue()).booleanValue());
 			proc.setRunIfWarning(runIfWarningNode != null && Boolean.valueOf(runIfWarningNode.getNodeValue()).booleanValue());
@@ -364,11 +406,12 @@ public class TargetXMLReader implements XMLTags {
 
 		//KEEP DELETED ENTRIES
 		Node keepNode = node.getAttributes().getNamedItem(XML_PP_MERGE_KEEP_DELETED);
+		boolean keepDeletedEntries = false;
 		if (keepNode != null) {
-			pp.setKeepDeletedEntries(Boolean.valueOf(keepNode.getNodeValue()).booleanValue());
-		} else {
-			pp.setKeepDeletedEntries(false);
+			keepDeletedEntries = Boolean.valueOf(keepNode.getNodeValue()).booleanValue();
 		}
+		pp.setParams(new MergeParameters(keepDeletedEntries, false, null));
+
 		readProcessorAttributes(node, pp);
 		return pp;
 	}
@@ -432,7 +475,7 @@ public class TargetXMLReader implements XMLTags {
 		return pp;
 	}
 
-	protected static boolean isOverwrite(Node mediumNode) {
+	public static boolean isOverwrite(Node mediumNode) {
 		Node overwriteNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_OVERWRITE);
 		return (overwriteNode != null && overwriteNode.getNodeValue().equalsIgnoreCase("true"));   
 	}
@@ -592,21 +635,20 @@ public class TargetXMLReader implements XMLTags {
 		boolean isEncrypted = (encryptedNode != null && encryptedNode.getNodeValue().equalsIgnoreCase("true"));   
 
 		Node encryptionKeyNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTIONKEY);
-		String encryptionKey = encryptionKeyNode != null ? encryptionKeyNode.getNodeValue() : null;   
-
 		Node encryptionAlgoNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTIONALGO);
-		String encryptionAlgo = encryptionAlgoNode != null ? encryptionAlgoNode.getNodeValue() : null;   
-
 		Node encryptNamesNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTNAMES);
-		boolean encryptNames = encryptNamesNode == null ? true : encryptNamesNode.getNodeValue().equalsIgnoreCase("true");  
+		
+		String encryptionKey = encryptionKeyNode != null ? encryptionKeyNode.getNodeValue() : null;   
+		String encryptionAlgo = encryptionAlgoNode != null ? encryptionAlgoNode.getNodeValue() : null;   
+		Boolean encryptNames = encryptNamesNode != null ? Boolean.valueOf(encryptNamesNode.getNodeValue()) : null;  
 
-		if (isEncrypted && encryptionKey == null) { // No check for the encryptionAlgorithm because we use a default one if none is specified.
+		if (isEncrypted && encryptionKey == null) {
 			if (missingDataListener != null) {
-				Object[] encrData = (Object[])missingDataListener.missingEncryptionDataDetected(target);
+				EncryptionPolicy encrData = missingDataListener.missingEncryptionDataDetected(target, encryptionAlgo, encryptNames);
 				if (encrData != null) {
-					encryptionAlgo = (String)encrData[0];
-					encryptionKey = (String)encrData[1];
-					encryptNames = ((Boolean)encrData[2]).booleanValue();
+					encryptionAlgo = encrData.getEncryptionAlgorithm();
+					encryptionKey = encrData.getEncryptionKey();
+					encryptNames = new Boolean(encrData.isEncryptNames());
 				}
 			}
 		}
@@ -618,7 +660,7 @@ public class TargetXMLReader implements XMLTags {
 		EncryptionPolicy encrArgs = new EncryptionPolicy();
 		encrArgs.setEncrypted(isEncrypted);
 		encrArgs.setEncryptionAlgorithm(encryptionAlgo);
-		encrArgs.setEncryptNames(encryptNames);
+		encrArgs.setEncryptNames(encryptNames == null ? true : encryptNames.booleanValue());
 		encrArgs.setEncryptionKey(encryptionKey);
 
 		// Encryption management for version 3 and higher id not compatible 
@@ -629,7 +671,7 @@ public class TargetXMLReader implements XMLTags {
 				&& (! encryptionAlgo.equals(EncryptionConfiguration.AES_RAW))
 				&& (! encryptionAlgo.equals(EncryptionConfiguration.AES256_RAW))
 		) {
-			throw new AdapterException("\nError reading target \"" + target.getTargetName() + "\" in group \"" + target.getGroup().getName() + "\" (" + target.getGroup().getSourceFile().getAbsolutePath() + ") :\nEncryption management has been refactored in version 6.1 of Areca, and your configuration has been generated with a previous version of Areca. As a result, it is not compatible with your current version (" + VersionInfos.getLastVersion().getVersionId() + ").\nYou must either :\n- re-create your target/targetgroup and use one of the available encryption algorithms, or\n- re-install a previous version of Areca (6.0.7 or before).");
+			throw new AdapterException("\nError reading target \"" + target.getName() + "\" in group \"" + target.getParent().getName() + "\" (" + target.getParent().getAncestorPath() + ") :\nEncryption management has been refactored in version 6.1 of Areca, and your configuration has been generated with a previous version of Areca. As a result, it is not compatible with your current version (" + VersionInfos.getLastVersion().getVersionId() + ").\nYou must either :\n- re-create your target/targetgroup and use one of the available encryption algorithms, or\n- re-install a previous version of Areca (6.0.7 or before).");
 		}
 
 		return encrArgs;
@@ -775,6 +817,14 @@ public class TargetXMLReader implements XMLTags {
 		}          
 		DirectoryArchiveFilter filter = new DirectoryArchiveFilter();
 		initFilter(filter, filterNode, directoryNode);
+
+
+		String normalized = Utils.normalizePath(filter.getStringParameters());
+		if (! filter.getStringParameters().equals(normalized)) {
+			// We simply raise a warning because of backward compatibility ... 
+			Logger.defaultLogger().warn("Caution : The following directory filter path : " + filter.getStringParameters() + " does not comply with Window's default naming conventions (this can lead to unexpected behaviors). The following path should be used instead : " +  normalized + ". It is highly advisable to update your target's configuration.");
+		}
+
 		return filter;
 	}
 

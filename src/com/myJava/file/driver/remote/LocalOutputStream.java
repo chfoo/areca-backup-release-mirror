@@ -43,7 +43,7 @@ public class LocalOutputStream extends OutputStream {
 	public LocalOutputStream(File file, AbstractRemoteFileSystemDriver driver) throws IOException {
 		this.file = file;
 		this.driver = driver;
-        this.localFile = FileTool.getInstance().generateNewWorkingFile("java", "ftpout", false);
+        this.localFile = FileTool.getInstance().generateNewWorkingFile(null, "java", "ftpout", false);
         this.out = FileSystemManager.getFileOutputStream(localFile);
 	}
 	

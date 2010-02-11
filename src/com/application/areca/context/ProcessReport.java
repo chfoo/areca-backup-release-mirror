@@ -88,6 +88,11 @@ public class ProcessReport {
      */
     protected long startMillis = System.currentTimeMillis();
 
+    /**
+     * Process stop date (ms)
+     */
+    protected long stopMillis = startMillis;
+    
     protected AbstractTarget target;
     
     /**
@@ -184,8 +189,16 @@ public class ProcessReport {
 	public long getStartMillis() {
         return startMillis;
     }
+
+    public long getStopMillis() {
+		return stopMillis;
+	}
     
-    public int getFilteredEntries() {
+    public void setStopMillis() {
+    	this.stopMillis = System.currentTimeMillis();
+    }
+
+	public int getFilteredEntries() {
         return filteredEntries;
     }
 

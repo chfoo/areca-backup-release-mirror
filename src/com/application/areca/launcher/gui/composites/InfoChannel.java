@@ -77,7 +77,7 @@ implements UserInformationChannel, Colors, Listener {
 		this.parent = parent;
 		this.target = target;
 		this.setLayout(new FillLayout());
-		this.setToolTipText(target.getTargetName());
+		this.setToolTipText(target.getName());
 		Composite grp = this;
 		this.setBackground(Colors.C_WHITE);
 
@@ -183,7 +183,7 @@ implements UserInformationChannel, Colors, Listener {
 		SecuredRunner.execute(parent, new Runnable() {
 			public void run() {
 				if (synthetic) {
-					lblMessage.setText(format(target.getTargetName(), info));
+					lblMessage.setText(format(target.getName(), info));
 				} else {
 					lblMessage.setText(info);
 					currentMessage = info;
@@ -213,7 +213,7 @@ implements UserInformationChannel, Colors, Listener {
 		SecuredRunner.execute(parent, new Runnable() {
 			public void run() {
 				running = false;
-				lblMessage.setText(format(target.getTargetName(), action + " (" + RM.getLabel("progress.finished.label") + ")"));
+				lblMessage.setText(format(target.getName(), action + " (" + RM.getLabel("progress.finished.label") + ")"));
 				if (context.getReport().hasError()) {
 					lblMessage.setForeground(Colors.C_RED);
 				} else if (context.getReport().getLogMessagesContainer().hasWarnings()) {

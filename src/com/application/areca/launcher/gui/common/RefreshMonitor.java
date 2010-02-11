@@ -47,6 +47,7 @@ public class RefreshMonitor {
 
     public void getFocus() {
         this.synchronous = true;
+        this.refreshable.getFocus();
         
         if (! validated) {
             this.refreshable.refresh();
@@ -56,5 +57,6 @@ public class RefreshMonitor {
     
     public void lostFocus() {
         this.synchronous = false;
+        this.refreshable.looseFocus();
     }
 }

@@ -193,10 +193,9 @@ extends AbstractWindow {
     }
 
     protected boolean checkBusinessRules() {
-        // Nom obligatoire
         this.resetErrorState(location);     
         if (this.location.getText() == null || this.location.getText().length() == 0) {
-            this.setInError(location);
+            this.setInError(location, RM.getLabel("error.field.mandatory"));
             return false;
         }
         return true;

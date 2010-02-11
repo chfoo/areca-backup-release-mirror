@@ -1,4 +1,4 @@
-package com.application.areca.adapters;
+package com.application.areca.adapters.write;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +13,7 @@ import com.application.areca.impl.FileSystemTarget;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.log.Logger;
+import com.myJava.util.xml.XMLTool;
 
 /**
  * Process serializer
@@ -41,51 +42,43 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ProcessXMLWriter extends AbstractXMLWriter { 
-	//public static final int CURRENT_VERSION = 2;
-	//public static final int CURRENT_VERSION = 3; // introduced in v6.1
-	//public static final int CURRENT_VERSION = 4; // introduced in v7.1 : Special files filters replace symbolic links filters 
-	//public static final int CURRENT_VERSION = 5; // introduced in v7.1.3 : follow_subdirectories replaced by follow_subdirs, and fix of serialization bug
-	//public static final int CURRENT_VERSION = 6; // introduced in v7.1.4 : filter parameterization change : "exclude" replaced by "logical_not" ... easier to understand
-	public static final int CURRENT_VERSION = 7; // introduced in v7.1.5 : post processor parameterization (success / error / warning)
+public class DeprecatedTargetGroupXMLWriter
+extends AbstractXMLWriter 
+implements XMLVersions {
 	
     private TargetXMLWriter targetWriter;
     
-    public ProcessXMLWriter() {
-        this(false);
-    }
-    
-    public ProcessXMLWriter(boolean removeEncryptionData) {
+    public DeprecatedTargetGroupXMLWriter(boolean removeEncryptionData) {
         super(new StringBuffer());
-        targetWriter = new TargetXMLWriter(this.sb);
+        targetWriter = new TargetXMLWriter(this.sb, false);
         targetWriter.setRemoveSensitiveData(removeEncryptionData);
     }
     
-    public boolean serializeProcess(TargetGroup process, File targetFile) 
+    public boolean serialize(TargetGroup group, File targetFile) 
     throws ApplicationException {
         try {
             writeHeader();
             sb.append("\n<");
-            sb.append(XML_PROCESS);
+            sb.append(XML_GROUP);
             sb.append(" ");
-            sb.append(XML_PROCESS_DESCRIPTION);
+            sb.append(XML_GROUP_DESCRIPTION);
             sb.append("=");
-            sb.append(encode(process.getComments()));      
+            sb.append(XMLTool.encode(group.getDescription()));      
             sb.append(" ");
             sb.append(XML_VERSION);
             sb.append("=");
-            sb.append(encode(CURRENT_VERSION));   
+            sb.append(XMLTool.encode(CURRENT_VERSION));   
             sb.append(">");
             
             // Targets
-            Iterator iter = process.getTargetIterator();
+            Iterator iter = group.getIterator();
             while(iter.hasNext()) {
                 FileSystemTarget tg = (FileSystemTarget)iter.next();
                 this.targetWriter.serializeTarget(tg);
             }
             
             sb.append("\n</");
-            sb.append(XML_PROCESS);
+            sb.append(XML_GROUP);
             sb.append(">");        
             
             // Create parent directory if it does not exist

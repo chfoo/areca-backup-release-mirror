@@ -141,7 +141,7 @@ implements ArecaURLs {
         window.resetErrorState(txtRegex);  
         boolean result = FilterRepository.checkParameters(txtRegex.getText(), this.filterIndex);
         if (! result) {
-            window.setInError(txtRegex);
+            window.setInError(txtRegex, RM.getLabel("error.invalid.parameters"));
         }
         return result;
     }

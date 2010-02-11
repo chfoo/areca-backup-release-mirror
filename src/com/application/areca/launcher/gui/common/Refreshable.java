@@ -28,5 +28,7 @@ This file is part of Areca.
  */
 public interface Refreshable {
     public void refresh();
+    public void getFocus();
+    public void looseFocus();
     public Object getRefreshableKey();
 }

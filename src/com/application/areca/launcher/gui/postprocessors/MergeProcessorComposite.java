@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import com.application.areca.MergeParameters;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
 import com.application.areca.processor.MergeProcessor;
 import com.application.areca.processor.Processor;
@@ -74,17 +75,26 @@ public class MergeProcessorComposite extends AbstractProcessorComposite {
             MergeProcessor fProc = (MergeProcessor)proc;
             txtFromDelay.setText("" + fProc.getFromDelay());
             txtToDelay.setText("" + fProc.getToDelay());
-            btnKeepDeletedEntries.setSelection(fProc.isKeepDeletedEntries());
+            btnKeepDeletedEntries.setSelection(fProc.getParams().isKeepDeletedEntries());
         }
     }
 
     public void initProcessor(Processor proc) {
         MergeProcessor fProc = (MergeProcessor)proc;
+        int from = 0;
         if (txtFromDelay.getText() != null && txtFromDelay.getText().trim().length() > 0) {
-            fProc.setFromDelay(Integer.parseInt(txtFromDelay.getText()));
+        	from = Integer.parseInt(txtFromDelay.getText());
         }
-        fProc.setToDelay(Integer.parseInt(txtToDelay.getText()));
-        fProc.setKeepDeletedEntries(btnKeepDeletedEntries.getSelection());
+        int to = Integer.parseInt(txtToDelay.getText());
+        
+        if (from != 0 && from < to) {
+        	int tmp = to;
+        	to = from;
+        	from = tmp;
+        }
+        fProc.setFromDelay(from);
+        fProc.setToDelay(to);
+        fProc.setParams(new MergeParameters(btnKeepDeletedEntries.getSelection(), false, null));
     }
     
     public boolean validateParams() {       
@@ -95,7 +105,7 @@ public class MergeProcessorComposite extends AbstractProcessorComposite {
                 && txtFromDelay.getText().trim().length() > 0
                 && (! CommonRules.checkInteger(txtFromDelay.getText(), true))
         ) {
-            window.setInError(txtFromDelay);
+            window.setInError(txtFromDelay, RM.getLabel("error.numeric.value.expected"));
             return false;
         }
         
@@ -104,7 +114,7 @@ public class MergeProcessorComposite extends AbstractProcessorComposite {
         if (
                 ! CommonRules.checkInteger(txtToDelay.getText(), true)
         ) {
-            window.setInError(txtToDelay);
+            window.setInError(txtToDelay, RM.getLabel("error.numeric.value.expected"));
             return false;
         }
         
@@ -114,8 +124,8 @@ public class MergeProcessorComposite extends AbstractProcessorComposite {
         try {
             p.validate();
         } catch (ProcessorValidationException e) {
-            window.setInError(txtFromDelay);
-            window.setInError(txtToDelay);
+            window.setInError(txtFromDelay, e.getMessage());
+            window.setInError(txtToDelay, e.getMessage());
             return false;
         }
 

@@ -1,5 +1,6 @@
 package com.application.areca;
 
+
 /**
  * <BR>
  * @author Olivier PETRUCCI
@@ -26,6 +27,37 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public interface Identifiable {
-    public String getUid();
+public abstract class AbstractWorkspaceItem
+implements WorkspaceItem {
+    protected TargetGroup parent;
+    protected ConfigurationSource loadedFrom;
+
+	public TargetGroup getParent() {
+		return parent;
+	}
+
+	public void setParent(TargetGroup parent) {
+		this.parent = parent;
+		if (parent.getItem(this.getUid()) != this) { // Yeah ... instance check again !
+			parent.linkChild(this);
+		}
+	}
+
+	public boolean isChildOf(WorkspaceItem ancestor) {
+		if (this.getParent() == null) {
+			return false;
+		} else if (this.getParent().getUid().equals(ancestor.getUid())) {
+			return true;
+		} else {
+			return this.getParent().isChildOf(ancestor);
+		}
+	}
+
+	public ConfigurationSource getLoadedFrom() {
+		return loadedFrom;
+	}
+
+	public void setLoadedFrom(ConfigurationSource loadedFrom) {
+		this.loadedFrom = loadedFrom;
+	}
 }

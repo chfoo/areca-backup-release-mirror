@@ -49,20 +49,23 @@ public class MissingEncryptionDataWindow
 extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
     
-    private String algo;
-    private String password;
-    private boolean encryptFileNames;
-    private AbstractTarget target;
-    private List encryptionAlgorithms = new ArrayList();    
+    protected boolean saved = false;
+    protected String algo;
+    protected String password;
+    protected Boolean encryptFileNames;
+    protected AbstractTarget target;
+    protected List encryptionAlgorithms = new ArrayList();    
     
-    private Text txtPassword;
-    private Button chkEncrypNames;
+    protected Text txtPassword;
+    protected Button chkEncrypNames;
     protected Combo cboEncryptionAlgorithm;
-    private Button saveButton;
+    protected Button saveButton;
 
-    public MissingEncryptionDataWindow(AbstractTarget target) {
+    public MissingEncryptionDataWindow(AbstractTarget target, String algorithm, Boolean encryptNames) {
         super();
         this.target = target;
+        this.algo = algorithm;
+        this.encryptFileNames = encryptNames;
     }
     
     protected Control createContents(Composite parent) {
@@ -72,7 +75,7 @@ extends AbstractWindow {
         composite.setLayout(layout);
         
         Label lblIntro = new Label(composite, SWT.WRAP);
-        lblIntro.setText(RM.getLabel("med.intro.label", new Object[] {target.getTargetName()}));
+        lblIntro.setText(RM.getLabel("med.intro.label", new Object[] {target.getName()}));
         GridData mainData0 = new GridData();
         mainData0.grabExcessHorizontalSpace = true;
         mainData0.widthHint = computeWidth(600);
@@ -93,12 +96,17 @@ extends AbstractWindow {
         cboEncryptionAlgorithm.setLayoutData(mainData1);
         
         String[] algs = EncryptionConfiguration.getAvailableAlgorithms();
+        int selectedIndex = -1;
         for (int i=0; i<algs.length; i++) {
             String id = algs[i];
+            if (this.algo != null && this.algo.equals(id)) {
+            	selectedIndex = i;
+            }
             EncryptionConfiguration conf = EncryptionConfiguration.getParameters(id);
             encryptionAlgorithms.add(conf);
             cboEncryptionAlgorithm.add(conf.getFullName());
         }
+        cboEncryptionAlgorithm.select(selectedIndex);
         monitorControl(SWT.Selection, cboEncryptionAlgorithm);
         
         Label lblPassword = new Label(composite, SWT.NONE);
@@ -129,6 +137,17 @@ extends AbstractWindow {
         pnlSave.buildComposite(composite).setLayoutData(saveData);        
         saveButton = pnlSave.getBtnSave();
         
+        // init values
+        if (this.algo != null) {
+        	lblAlgo.setEnabled(false);
+        	cboEncryptionAlgorithm.setEnabled(false);
+        }
+        
+        if (this.encryptFileNames != null) {
+        	chkEncrypNames.setSelection(this.encryptFileNames.booleanValue());
+        	chkEncrypNames.setEnabled(false);
+        }
+        
         composite.pack();
         return composite;
     }
@@ -141,14 +160,14 @@ extends AbstractWindow {
         // ALGO
         this.resetErrorState(cboEncryptionAlgorithm);
         if (this.cboEncryptionAlgorithm.getSelectionIndex() == -1) {
-            this.setInError(cboEncryptionAlgorithm);
+            this.setInError(cboEncryptionAlgorithm, RM.getLabel("error.field.mandatory"));
             return false;
         }    
         
         // PWD
         this.resetErrorState(txtPassword);     
         if (this.txtPassword.getText() == null || this.txtPassword.getText().length() == 0) {
-            this.setInError(txtPassword);
+            this.setInError(txtPassword, RM.getLabel("error.field.mandatory"));
             return false;
         }
         
@@ -156,9 +175,10 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() {
+    	this.saved = true;
         this.algo = ((EncryptionConfiguration)encryptionAlgorithms.get(this.cboEncryptionAlgorithm.getSelectionIndex())).getId();
         this.password = this.txtPassword.getText();
-        this.encryptFileNames = this.chkEncrypNames.getSelection();
+        this.encryptFileNames = new Boolean(this.chkEncrypNames.getSelection());
         
         this.hasBeenUpdated = false;
         this.close();
@@ -176,7 +196,15 @@ extends AbstractWindow {
         return password;
     }
 
-	public boolean isEncryptFileNames() {
+	public Boolean isEncryptFileNames() {
 		return encryptFileNames;
+	}
+
+	public boolean isSaved() {
+		return saved;
+	}
+
+	public void setSaved(boolean saved) {
+		this.saved = saved;
 	}
 }

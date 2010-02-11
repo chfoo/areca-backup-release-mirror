@@ -1,7 +1,8 @@
 package com.myJava.util.version;
 
+import java.io.InputStream;
+
 /**
- * <BR>Reads VersionData from a backend
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -28,5 +29,5 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public interface VersionDataAdapter {
-    public VersionData readVersionData() throws VersionDataAdapterException;
+	public VersionData read(InputStream in) throws VersionDataAdapterException;
 }

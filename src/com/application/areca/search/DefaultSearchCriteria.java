@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.application.areca.AbstractTarget;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * <BR>
@@ -38,6 +39,7 @@ public class DefaultSearchCriteria implements SearchCriteria {
     private boolean matchCase;
     private boolean regularExpression;
     private Set targets = new HashSet();
+    private TaskMonitor monitor;
     
     public DefaultSearchCriteria() {
     }
@@ -81,4 +83,12 @@ public class DefaultSearchCriteria implements SearchCriteria {
     public void setRegularExpression(boolean regularExpression) {
         this.regularExpression = regularExpression;
     }
+
+	public TaskMonitor getMonitor() {
+		return monitor;
+	}
+
+	public void setMonitor(TaskMonitor monitor) {
+		this.monitor = monitor;
+	}
 }

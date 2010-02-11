@@ -17,11 +17,13 @@ import java.util.Set;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
+import com.application.areca.ArecaFileConstants;
 import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.EntryArchiveData;
 import com.application.areca.EntryStatus;
 import com.application.areca.LogHelper;
 import com.application.areca.MemoryHelper;
+import com.application.areca.MergeParameters;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.StoreException;
 import com.application.areca.TargetActions;
@@ -30,6 +32,7 @@ import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.context.RecoveryResult;
 import com.application.areca.impl.handler.ArchiveHandler;
+import com.application.areca.impl.handler.DeltaArchiveHandler;
 import com.application.areca.impl.tools.ArchiveComparator;
 import com.application.areca.impl.tools.ArchiveNameFilter;
 import com.application.areca.impl.tools.RecoveryFilterMap;
@@ -117,42 +120,15 @@ implements TargetActions {
 	protected static final boolean CHECK_DEBUG_MODE = ArecaTechnicalConfiguration.get().isCheckDebug();
 	protected static final boolean TH_MON_ENABLED = ArecaTechnicalConfiguration.get().isThreadMonitorEnabled();
 	protected static final long TH_MON_DELAY = ArecaTechnicalConfiguration.get().getThreadMonitorDelay();
-	
-	/**
-	 * Trace filename
-	 */
-	protected static final String TRACE_FILE = "trace";
-
-	/**
-	 * Content filename
-	 */
-	protected static final String CONTENT_FILE = "content";
-
-	/**
-	 * hash filename
-	 */
-	protected static final String HASH_FILE = "hash";
-
-	/**
-	 * Metadata filename
-	 */
-	protected static final String METADATA_FILE = "metadata";
-
-	/**
-	 * Temporary merge location
-	 */
-	protected static final String TMP_MERGE_LOCATION = "merge";
-
-	/**
-	 * Temporary directory used during archive check
-	 */
-	protected static final String CHECK_DESTINATION = "chk";
 
 	/**
 	 * Filenames reserved by Areca
 	 */
-	protected static final String[] RESERVED_NAMES = 
-		new String[] {METADATA_FILE, TMP_MERGE_LOCATION, CHECK_DESTINATION, HISTORY_NAME};
+	protected static final String[] RESERVED_NAMES = new String[] {
+		ArecaFileConstants.TMP_MERGE_LOCATION, 
+		ArecaFileConstants.CHECK_DESTINATION, 
+		ArecaFileConstants.HISTORY_NAME
+	};
 
 	/**
 	 * Tells whether file permissions shall be tracked or not
@@ -169,6 +145,27 @@ implements TargetActions {
 	 */
 	protected ArchiveHandler handler;
 
+	public boolean isOverwrite() {
+		return this.imageBackups;
+	}
+	
+	public void setOverwrite(boolean overwrite) {
+		this.imageBackups = overwrite;
+	} 
+	
+	public void setHandler(ArchiveHandler handler) {
+		this.handler = handler;
+		handler.setMedium(this);
+	}
+
+	public ArchiveHandler getHandler() {
+		return handler;
+	}
+
+	public boolean isTrackPermissions() {
+		return trackPermissions;
+	}
+	
 	public Manifest buildDefaultBackupManifest() throws ApplicationException {
 		Manifest manifest = new Manifest(Manifest.TYPE_BACKUP);
 
@@ -179,6 +176,23 @@ implements TargetActions {
 
 		return manifest;
 	}
+	
+	/**
+	 * Return a description for the medium
+	 */
+	public String getDescription() {
+		String type;
+		if (imageBackups) {
+			type = "image"; 
+		} else if (handler instanceof DeltaArchiveHandler) {
+			type = "delta";
+		} else {
+			type = "standard";
+		}
+		return getSubDescription() + " " + type + " storage (" + fileSystemPolicy.getArchivePath() + ")";        
+	}  
+	
+	protected abstract String getSubDescription();
 
 	public Manifest buildDefaultMergeManifest(File[] recoveredArchives, GregorianCalendar fromDate, GregorianCalendar toDate) throws ApplicationException {
 		if (toDate != null) {
@@ -238,12 +252,13 @@ implements TargetActions {
 		try {
 			// Compute recovery destination
 			File destinationRoot = destination == null ? fileSystemPolicy.getArchiveDirectory() : new File((String)destination);
-			String destinationName = CHECK_DESTINATION;
-			int suffix = 0;
-			while (FileSystemManager.exists(new File(destinationRoot, destinationName))) {
-				destinationName = CHECK_DESTINATION + suffix++;
-			}
-			File destinationFile = new File(destinationRoot, destinationName);
+			File destinationFile = FileTool.getInstance().generateNewWorkingFile(
+					destinationRoot, 
+					null, 
+					ArecaFileConstants.CHECK_DESTINATION, 
+					true
+			);
+			
 			context.getInfoChannel().print("Checking archive (working directory : " + FileSystemManager.getAbsolutePath(destinationFile) + ") ...");
 
 			// Get the trace file
@@ -268,6 +283,7 @@ implements TargetActions {
 			}
 			recover(
 					destinationFile, 
+					null,
 					null, 
 					1, 
 					fromDate, 
@@ -311,6 +327,7 @@ implements TargetActions {
 
 	public void cleanMerge(ProcessContext context) throws IOException {
 		if (context.getCurrentArchiveFile() != null && context.getRecoveryDestination() != null && ! context.getCurrentArchiveFile().equals(context.getRecoveryDestination())) {
+			Logger.defaultLogger().info("Cleaning temporary data in " + FileSystemManager.getAbsolutePath(context.getRecoveryDestination()) + " ...");
 			AbstractFileSystemMedium.tool.delete(context.getRecoveryDestination(), true);
 		}
 	}
@@ -360,7 +377,7 @@ implements TargetActions {
 			context.getManifest().addProperty(ManifestKeys.ARCHIVE_SIZE, context.getOutputStreamListener().getWritten()); 
 			context.getManifest().addProperty(ManifestKeys.STORED_FILES, context.getReport().getSavedFiles());
 			context.getManifest().addProperty(ManifestKeys.ARCHIVE_NAME, FileSystemManager.getName(context.getCurrentArchiveFile()));
-
+			
 			// Store the manifest
 			this.storeManifest(context);     
 
@@ -492,27 +509,30 @@ implements TargetActions {
 		}
 	}
 
+	public List getEntries(AggregatedViewContext context, String root, GregorianCalendar date) throws ApplicationException {
+		return getAggregatedView(context, root, date, false);
+	}
+	
 	/**
 	 * Return the final content file name
 	 */
 	public String getContentFileName() {
-		return CONTENT_FILE;
-	}
-
-	public List getEntries(AggregatedViewContext context, String root, GregorianCalendar date) throws ApplicationException {
-		return getAggregatedView(context, root, date, false);
-	}
-
-	public ArchiveHandler getHandler() {
-		return handler;
+		return ArecaFileConstants.CONTENT_FILE;
 	}
 
 	/**
 	 * Return the final hash file name
 	 */
 	public String getHashFileName() {
-		return HASH_FILE;
+		return ArecaFileConstants.HASH_FILE;
 	}
+
+	/**
+	 * Return the final trace file name
+	 */
+	public String getTraceFileName() {
+		return ArecaFileConstants.TRACE_FILE;            
+	}   
 
 	/**
 	 * Returns the last archive for a given date.
@@ -548,21 +568,7 @@ implements TargetActions {
 
 	public List getLogicalView(AggregatedViewContext context, String root, boolean aggregated) throws ApplicationException {
 		return getAggregatedView(context, root, null, aggregated);
-	}
-
-	/**
-	 * Return the final metadata file name
-	 */
-	public String getMetaDataFileName() {
-		return METADATA_FILE;
 	} 
-
-	/**
-	 * Return the final trace file name
-	 */
-	public String getTraceFileName() {
-		return TRACE_FILE;            
-	}    
 
 	public void initMergeManifest(File[] recoveredArchives, GregorianCalendar fromDate, GregorianCalendar toDate, Manifest manifest) throws ApplicationException {
 		if (toDate != null) {
@@ -610,14 +616,6 @@ implements TargetActions {
 		if ((! handler.supportsImageBackup()) && imageBackups) {
 			throw new ApplicationException("Incoherent configuration : image archives are not compatible with delta backup.");
 		}
-	}
-
-	public boolean isOverwrite() {
-		return this.imageBackups;
-	}
-
-	public boolean isTrackPermissions() {
-		return trackPermissions;
 	}
 
 	/**
@@ -689,7 +687,7 @@ implements TargetActions {
 			GregorianCalendar fromDate, 
 			GregorianCalendar toDate, 
 			Manifest mfToInsert,
-			boolean keepDeletedEntries,
+			MergeParameters params,
 			ProcessContext context        
 	) throws ApplicationException {
 
@@ -719,7 +717,7 @@ implements TargetActions {
 
 				// Resolve trace file
 				File traceFile;
-				if (keepDeletedEntries) {
+				if (params.isKeepDeletedEntries()) {
 					File[] archives = this.listArchives(fromDate, toDate);
 					traceFile = TraceMerger.buildAggregatedTraceFile(this, archives);
 				} else {
@@ -729,13 +727,14 @@ implements TargetActions {
 				// Recover
 				recover(
 						null, 
+						params.isUseSpecificLocation() ? new File(params.getSpecificLocation()) : null,
 						null, 
 						2,
 						fromDate, 
 						toDate, 
 						traceFile, 
 						ArchiveHandler.MODE_MERGE,
-						keepDeletedEntries,
+						params.isKeepDeletedEntries(),
 						false,
 						context
 				);
@@ -765,7 +764,7 @@ implements TargetActions {
 					context.getManifest().addProperty(ManifestKeys.MERGED_ARCHIVES, processedFiles.length);
 					context.getManifest().addProperty(ManifestKeys.ARCHIVE_SIZE, context.getOutputStreamListener().getWritten());					
 					context.getManifest().addProperty(ManifestKeys.ARCHIVE_NAME, FileSystemManager.getName(context.getCurrentArchiveFile()));
-
+					
 					AbstractTarget.addBasicInformationsToManifest(context.getManifest());
 					this.storeManifest(context);
 
@@ -895,7 +894,18 @@ implements TargetActions {
 			}
 
 			// Recover the data
-			recover(destination, filter, 1, null, date, traceFile, ArchiveHandler.MODE_RECOVER, recoverDeletedEntries, checkRecoveredFiles, context);
+			recover(
+					(File)destination, 
+					null,
+					filter, 
+					1, 
+					null, 
+					date, 
+					traceFile, 
+					ArchiveHandler.MODE_RECOVER, 
+					recoverDeletedEntries, 
+					checkRecoveredFiles, 
+					context);
 
 			// Create missing directories and symbolic links
 			this.target.secureUpdateCurrentTask("Creating missing directories and symbolic links ...", context);
@@ -1023,7 +1033,7 @@ implements TargetActions {
 		}
 	}
 
-	public TargetSearchResult search(SearchCriteria criteria) throws ApplicationException {
+	public TargetSearchResult search(SearchCriteria criteria) throws ApplicationException, TaskCancelledException {
 		TargetSearchResult result = new TargetSearchResult();
 		DefaultSearchCriteria dCriteria = (DefaultSearchCriteria)criteria;
 
@@ -1041,15 +1051,6 @@ implements TargetActions {
 
 		return result;
 	}
-
-	public void setHandler(ArchiveHandler handler) {
-		this.handler = handler;
-		handler.setMedium(this);
-	}
-
-	public void setOverwrite(boolean overwrite) {
-		this.imageBackups = overwrite;
-	} 
 
 	public void setTrackPermissions(boolean trackPermissions) {
 		this.trackPermissions = trackPermissions;
@@ -1429,7 +1430,11 @@ implements TargetActions {
 		return computeArchivePath(new GregorianCalendar());
 	}
 
-	protected abstract void computeMergeDirectories(ProcessContext context) throws ApplicationException ;
+	protected void computeMergedArchiveFile(ProcessContext context) throws ApplicationException {
+		File[] recoveredFiles = context.getReport().getRecoveryResult().getRecoveredArchivesAsArray();
+		GregorianCalendar lastArchiveDate = ArchiveManifestCache.getInstance().getManifest(this, recoveredFiles[recoveredFiles.length - 1]).getDate();
+		context.setCurrentArchiveFile(new File(computeArchivePath(lastArchiveDate)));
+	}
 
 	protected void convertArchiveToFinal(ProcessContext context) throws IOException, ApplicationException {
 		markCommitted(context.getCurrentArchiveFile());
@@ -1500,7 +1505,7 @@ implements TargetActions {
 		// We can simply assume that if the file starts with "CHECK_DESTINATION",
 		// it really is a temporary check destination.
 		// This is ensured by the checkFileSystemPolicy() method
-		return name.startsWith(CHECK_DESTINATION); 
+		return name.startsWith(ArecaFileConstants.CHECK_DESTINATION); 
 	}
 
 	protected boolean matchArchiveName(File f) {
@@ -1525,7 +1530,8 @@ implements TargetActions {
 	 * blindly recovering the whole archives)
 	 */
 	protected void recover(
-			Object destination,                         // Where to recover
+			File targetFile,                         	// Where to recover
+			File workingDirectory,						// if no target file is set, working directory that will be used as temporary recovery location
 			String[] argFilter,                         // Filters the recovered entries
 			int minimumArchiveNumber,           		// The recovery is done only if there are at least this number of archives to recover
 			GregorianCalendar fromDate,          		// Recovery from date
@@ -1536,8 +1542,6 @@ implements TargetActions {
 			boolean checkRecoveredFiles,				// Whether areca must check if the recovered files' hash is the same as the reference hash
 			ProcessContext context                		// Execution context
 	) throws ApplicationException, TaskCancelledException {
-		File targetFile = (File)destination;
-
 		// Compute maximum number of entries that allow optimized recovery
 		int maxEntries = (int)MemoryHelper.getMaxManageableEntries();
 
@@ -1556,8 +1560,27 @@ implements TargetActions {
 		context.getReport().setRecoveryResult(result);
 		try {
 			// First stage : list archives to recover
+			Logger.defaultLogger().info("Recovering from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate) + ".");
+			if (recoverDeletedEntries) {
+				Logger.defaultLogger().info("Deleted entries will be recovered.");
+			} else {
+				Logger.defaultLogger().info("Deleted entries won't be recovered.");
+			}
+			String strflt = "Recovery filter : ";
+			if (filters != null) {
+				for (int i=0; i<filters.length; i++) {
+					if (i!= 0) {
+						strflt += ", ";
+					}
+					strflt += filters[i];
+				}
+			} else {
+				strflt += "<null>";
+			}
+			Logger.defaultLogger().info(strflt);
 			buildArchiveListToRecover(result, fromDate, toDate, recoverDeletedEntries);
-
+			Logger.defaultLogger().info("" + result.getRecoveredArchives().size() + " archives will be processed.");
+			
 			// Second stage : recover data
 			if (result.getRecoveredArchives().size() >= minimumArchiveNumber) {
 				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(checkRecoveredFiles ? 0.7 : 0.9, "recover");
@@ -1565,16 +1588,25 @@ implements TargetActions {
 
 				// If no destination was set, compute it from the last archive's date.
 				if (targetFile == null) {
-					GregorianCalendar lastArchiveDate = ArchiveManifestCache.getInstance().getManifest(this, optimizedArchives[optimizedArchives.length - 1]).getDate();
-					targetFile = new File(computeArchivePath(lastArchiveDate));
+					if (workingDirectory == null) {
+						GregorianCalendar lastArchiveDate = ArchiveManifestCache.getInstance().getManifest(this, optimizedArchives[optimizedArchives.length - 1]).getDate();
+						targetFile = new File(computeArchivePath(lastArchiveDate));
+					} else {
+						targetFile = FileTool.getInstance().generateNewWorkingFile(
+								workingDirectory, 
+								null, 
+								ArecaFileConstants.TMP_MERGE_LOCATION, 
+								true
+						);
+					}
 				}
 				FileTool.getInstance().delete(targetFile, true);
 				context.setRecoveryDestination(targetFile);
 				FileTool.getInstance().createDir(targetFile);
 				Logger.defaultLogger().info("Files will be recovered in " + targetFile.getAbsolutePath());
-
+				
 				if (mode == ArchiveHandler.MODE_MERGE) {
-					computeMergeDirectories(context);
+					computeMergedArchiveFile(context);
 				}
 
 				// Process Recovery
@@ -1623,7 +1655,7 @@ implements TargetActions {
 
 				// Fourth stage: check hash
 				if (checkRecoveredFiles) {
-
+					Logger.defaultLogger().info("Checking recovered files ...");
 					AbstractMetaDataFileIterator refIter;
 					if (optimizedArchives.length == 1) {
 						// Build reference content iterator
@@ -1813,8 +1845,7 @@ implements TargetActions {
 				if (filters == null || Util.passFilter(entry.getKey(), filters)) {
 					File target = new File(destination, entry.getKey());
 					if (entry.getType() == MetadataConstants.T_FILE) {
-						boolean toto = false;
-						if (toto || ! FileSystemManager.exists(target)) {
+						if (! FileSystemManager.exists(target)) {
 							context.getInfoChannel().warn(entry.getKey() + " has not been recovered ... it should have !");
 							context.getUnrecoveredFiles().add(entry.getKey());
 						} else {
@@ -1856,7 +1887,7 @@ implements TargetActions {
 				}
 			}
 		} finally {
-			context.getInfoChannel().print("Check completed - " + context.getNbChecked() + " files checked.");
+			context.getInfoChannel().print("Check completed - " + context.getNbChecked() + " files successfully checked.");
 
 			// Close iterators
 			for (int i=0; i<archives.length; i++) {
@@ -2069,9 +2100,11 @@ implements TargetActions {
 		}
 	}
 
-	private void searchWithinArchive(SearchCriteria criteria, File archive, TargetSearchResult result) throws ApplicationException {
+	private void searchWithinArchive(SearchCriteria criteria, File archive, TargetSearchResult result) throws ApplicationException, TaskCancelledException {
+		Logger.defaultLogger().info("Searching in " + FileSystemManager.getAbsolutePath(archive) + " ...");
 		TraceFileIterator iter = null;
-
+		criteria.getMonitor().checkTaskState();
+		
 		try {
 			try {
 				File traceFile = ArchiveTraceManager.resolveTraceFileForArchive(this, archive);
@@ -2081,12 +2114,11 @@ implements TargetActions {
 				SearchMatcher matcher = new SearchMatcher((DefaultSearchCriteria)criteria);
 
 				Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, archive);
-				String root = ((FileSystemTarget)this.getTarget()).getSourceDirectory();
-
 				while (iter.hasNext()) {
+					criteria.getMonitor().checkTaskState();
+
 					TraceEntry trcEntry = iter.next();
 					if (trcEntry.getType() != MetadataConstants.T_DIR && matcher.matches(trcEntry.getKey())) {
-						File path = new File(root, trcEntry.getKey());
 						SearchResultItem item = new SearchResultItem();
 						item.setCalendar(mf.getDate());
 						item.setEntry(trcEntry);
@@ -2115,7 +2147,7 @@ implements TargetActions {
 		if (FileSystemManager.exists(source)) {
 			try {
 				// Copy file in a temporary place
-				target = FileTool.getInstance().generateNewWorkingFile("areca", "mdt", true);
+				target = FileTool.getInstance().generateNewWorkingFile(null, "areca", "mdt", true);
 				FileTool.getInstance().copyFile(source, FileSystemManager.getParentFile(target), FileSystemManager.getName(target), null, null);
 			} catch (IOException e) {
 				Logger.defaultLogger().error(e);

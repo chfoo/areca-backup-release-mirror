@@ -40,7 +40,7 @@ public interface FileSystemPolicy extends Duplicable {
     public String getArchiveName();
     public void setArchiveName(String s);
     public FileSystemDriver initFileSystemDriver() throws ApplicationException;
-    public String getDisplayableParameters();
+    public String getDisplayableParameters(boolean fullPath);
     public void validate(boolean extendedTests) throws ApplicationException;
     public void setMedium(ArchiveMedium medium);
     public void synchronizeConfiguration();

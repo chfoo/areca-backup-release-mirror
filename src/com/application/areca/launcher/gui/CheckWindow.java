@@ -21,12 +21,13 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.CheckParameters;
 import com.application.areca.ResourceManager;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.launcher.gui.common.AbstractWindow;
+import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.common.SecuredRunner;
-import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 
 /**
@@ -69,10 +70,6 @@ extends AbstractWindow {
     private Table table;
     private TableViewer viewer;
     private Application.ProcessRunner runner;
-    
-    private String location;
-    private boolean useDefaultDirectory;
-    private boolean checkSelectedEntries;
 
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
@@ -159,8 +156,12 @@ extends AbstractWindow {
         result.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         
         // INIT DATA
-        txtLocation.setText(OSTool.getTempDirectory());
-        radUseDefaultLocation.setSelection(true);
+        txtLocation.setText(ArecaPreferences.getCheckSpecificLocation(application.getCurrentWorkspaceItem().getUid()));
+        if (ArecaPreferences.getCheckUseSpecificLocation(application.getCurrentWorkspaceItem().getUid())) {
+            radUseSpecificLocation.setSelection(true);
+        } else {
+            radUseDefaultLocation.setSelection(true);
+        }
         
         AbstractTarget target = Application.getInstance().getCurrentTarget();
         AbstractIncrementalFileSystemMedium medium = (AbstractIncrementalFileSystemMedium)target.getMedium();
@@ -220,7 +221,7 @@ extends AbstractWindow {
 					} else if (! uncheckedFiles.isEmpty()) {
 						result.setText(RM.getLabel("check.unchecked.message"));
 					} else {
-						result.setText(RM.getLabel("check.ok.message") + " (" + nbChecked + ")");
+						result.setText(RM.getLabel("check.ok.message") + " (" + RM.getLabel("check.checked.label", new Object[] {"" + nbChecked}) + ")");
 					}
 				} catch (SWTException e) {
 					// Widget disposed
@@ -240,24 +241,12 @@ extends AbstractWindow {
     public String getTitle() {
         return RM.getLabel("check.dialog.title");
     }
-    
-    public String getLocation() {
-        return location;
-    }
-
-	public boolean isCheckSelectedEntries() {
-		return checkSelectedEntries;
-	}
-
-	public boolean isUseDefaultDirectory() {
-		return useDefaultDirectory;
-	}
 
 	protected boolean checkBusinessRules() {
         this.resetErrorState(txtLocation); 
         if (radUseSpecificLocation.getSelection()) {
 	        if (this.txtLocation.getText() == null || this.txtLocation.getText().length() == 0) {
-	            this.setInError(txtLocation);
+	            this.setInError(txtLocation, RM.getLabel("error.field.mandatory"));
 	            return false;
 	        }
         }
@@ -265,21 +254,21 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() { 
+		ArecaPreferences.setCheckUseSpecificLocation(radUseSpecificLocation.getSelection(), application.getCurrentWorkspaceItem().getUid());
+		ArecaPreferences.setCheckSpecificLocation(txtLocation.getText(), application.getCurrentWorkspaceItem().getUid());
+		
     	this.viewer.setItemCount(0);
     	this.result.setText("");
-        this.location = this.txtLocation.getText();
-        this.checkSelectedEntries = this.chkCheckSelectedEntries.getSelection();
-        this.useDefaultDirectory = this.radUseDefaultLocation.getSelection();
         this.hasBeenUpdated = false;
 
-        String path;
-        if (this.isUseDefaultDirectory()) {
-        	path = null;
-        } else {
-        	path = this.getLocation();
-        }
+        CheckParameters checkParams = new CheckParameters(
+        		true,
+        		this.chkCheckSelectedEntries.getSelection(),
+        		this.radUseSpecificLocation.getSelection(),
+        		this.txtLocation.getText()
+        );
 
-        this.runner = application.launchArchiveCheck(path, this.isCheckSelectedEntries(), this);
+        this.runner = application.launchArchiveCheck(checkParams, this);
         if (runner != null) {
         	application.enableWaitCursor(this);
         }

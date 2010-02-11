@@ -61,9 +61,10 @@ extends AbstractWindow {
     private Text dateFormat;
     private Button btnSave;
     private Button checkNewVersions;
+    private Button showWSPath;
+    private Button showToolBar;
 
     protected Control createContents(Composite parent) {
-        
         Composite composite = new Composite(parent, SWT.NONE);
         composite.setLayout(new GridLayout(1, false));
         
@@ -76,24 +77,17 @@ extends AbstractWindow {
         Composite grpStart = pane.addElement("startup", RM.getLabel("preferences.startup.title"));
         Composite grpArchives = pane.addElement("workspace", RM.getLabel("preferences.workspace.title"));
 
-        GridLayout layDisp = new GridLayout();
-        layDisp.numColumns = 2;
-        grpDisp.setLayout(layDisp);
+        grpDisp.setLayout(new GridLayout(2, false));
         buildAppearenceComposite(grpDisp);
              
-        GridLayout layStart = new GridLayout();
-        layStart.numColumns = 3;
-        grpStart.setLayout(layStart);
+        grpStart.setLayout(new GridLayout(3, false));
         buildStartupComposite(grpStart);
        
-        GridLayout layArchives = new GridLayout();
-        layArchives.numColumns = 3;
-        grpArchives.setLayout(layArchives);
+        grpArchives.setLayout(new GridLayout(3, false));
         buildArchivesComposite(grpArchives);
         
-        GridData saveData = new GridData(SWT.FILL, SWT.FILL, true, false);
         SavePanel pnlSave = new SavePanel(this);
-        pnlSave.buildComposite(composite).setLayoutData(saveData);
+        pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
         btnSave = pnlSave.getBtnSave();
         
         pane.setSelection(0);
@@ -112,20 +106,31 @@ extends AbstractWindow {
         lblDate.setText(RM.getLabel("preferences.dateformat.label"));
         lblDate.setToolTipText(RM.getLabel("preferences.dateformat.tt"));
         dateFormat = new Text(parent, SWT.BORDER);
-        GridData ldWs = new GridData();
-        ldWs.grabExcessHorizontalSpace = true;
-        ldWs.horizontalAlignment = SWT.FILL;
-        dateFormat.setLayoutData(ldWs);
+        dateFormat.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         dateFormat.setText(ArecaPreferences.getDateFormat() == null ? "" : ArecaPreferences.getDateFormat());
         dateFormat.setToolTipText(RM.getLabel("preferences.dateformat.tt"));
         monitorControl(dateFormat);
         
+        new Label(parent, SWT.NONE).setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+        
         informationSynthetic = new Button(parent, SWT.CHECK);
         informationSynthetic.setText(RM.getLabel("preferences.synthetic.label"));
-        GridData dtSynthetic = new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1);
-        informationSynthetic.setLayoutData(dtSynthetic);
+        informationSynthetic.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
         informationSynthetic.setSelection(ArecaPreferences.isInformationSynthetic());
         monitorControl(informationSynthetic);
+        
+        showToolBar = new Button(parent, SWT.CHECK);
+        showToolBar.setText(RM.getLabel("preferences.show.tb.label"));
+        showToolBar.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+        showToolBar.setSelection(ArecaPreferences.isDisplayToolBar());
+        monitorControl(showToolBar);
+        
+        showWSPath = new Button(parent, SWT.CHECK);
+        showWSPath.setText(RM.getLabel("preferences.show.ws.path.label"));
+        showWSPath.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+        showWSPath.setSelection(ArecaPreferences.isDisplayWSAddress());
+        monitorControl(showWSPath);
+        
     }
     
     private void buildStartupComposite(Composite parent) {
@@ -146,10 +151,7 @@ extends AbstractWindow {
         monitorControl(openDefaultWorkspace);
         
         defaultWorkspace = new Text(parent, SWT.BORDER);
-        GridData ldWs = new GridData();
-        ldWs.grabExcessHorizontalSpace = true;
-        ldWs.horizontalAlignment = SWT.FILL;
-        defaultWorkspace.setLayoutData(ldWs);
+        defaultWorkspace.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         defaultWorkspace.setText(ArecaPreferences.getDefaultWorkspace());
         monitorControl(defaultWorkspace);
         
@@ -177,10 +179,7 @@ extends AbstractWindow {
         lblDefaultStorage.setText(RM.getLabel("preferences.defaultstorage.label"));
         
         defaultArchiveStorage = new Text(parent, SWT.BORDER);
-        GridData ldWs = new GridData();
-        ldWs.grabExcessHorizontalSpace = true;
-        ldWs.horizontalAlignment = SWT.FILL;
-        defaultArchiveStorage.setLayoutData(ldWs);
+        defaultArchiveStorage.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         defaultArchiveStorage.setText(ArecaPreferences.getDefaultArchiveStorage());
         monitorControl(defaultArchiveStorage);
         
@@ -198,11 +197,7 @@ extends AbstractWindow {
         Label lblEditor = new Label(parent, SWT.NONE);
         lblEditor.setText(RM.getLabel("preferences.editor.label"));
         editor = new Text(parent, SWT.BORDER);
-        GridData ldEd = new GridData();
-        ldEd.grabExcessHorizontalSpace = true;
-        ldEd.horizontalAlignment = SWT.FILL;
-        ldEd.horizontalSpan = 2;
-        editor.setLayoutData(ldEd);
+        editor.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         editor.setText(ArecaPreferences.getEditionCommand());
         monitorControl(editor);
         
@@ -242,7 +237,7 @@ extends AbstractWindow {
     protected boolean checkBusinessRules() {
         resetErrorState(langCombo);
         if (langCombo.getSelectionIndex() == -1) {
-            setInError(langCombo);
+            setInError(langCombo, RM.getLabel("error.field.mandatory"));
             return false;
         }
         return true;
@@ -261,6 +256,8 @@ extends AbstractWindow {
         ArecaPreferences.setInformationSynthetic(informationSynthetic.getSelection());
         ArecaPreferences.setDateFormat(dateFormat.getText());
         ArecaPreferences.setCheckNewVersion(checkNewVersions.getSelection());
+        ArecaPreferences.setDisplayToolBar(showToolBar.getSelection());
+        ArecaPreferences.setDisplayWSAddress(showWSPath.getSelection());
         
         this.hasBeenUpdated = false;
         this.close();

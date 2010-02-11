@@ -60,7 +60,6 @@ This file is part of Areca.
 public class SimulationWindow 
 extends AbstractWindow
 implements Listener {
-
 	protected SimulationResult entries;
 
 	protected Table table;
@@ -102,17 +101,47 @@ implements Listener {
 
 	private Table createTopComposite(Composite parent) {
 		table = new Table(parent, SWT.BORDER);   
-		TableColumn col1 = new TableColumn(table, SWT.NONE);
+		final TableColumn col1 = new TableColumn(table, SWT.NONE);
 		col1.setWidth(AbstractWindow.computeWidth(400));
 		col1.setMoveable(true);
 		col1.setText(RM.getLabel("simulation.filecolumn.label"));
-		TableColumn col2 = new TableColumn(table, SWT.NONE);
+		final TableColumn col2 = new TableColumn(table, SWT.NONE);
 		col2.setWidth(AbstractWindow.computeWidth(150));
 		col2.setMoveable(true);
 		col2.setText(RM.getLabel("simulation.sizecolumn.label"));
 
 		table.setHeaderVisible(true);
 		table.setLinesVisible(AbstractWindow.getTableLinesVisible());
+		table.setSortDirection(SWT.UP);
+		table.setSortColumn(col1);
+
+		Listener sortListener = new Listener() {
+			public void handleEvent(Event e) {
+				// Compute sorting parameters
+				TableColumn currentColumn = (TableColumn)e.widget;
+				int dir = table.getSortDirection();
+				if (table.getSortColumn() == currentColumn) {
+					dir = dir == SWT.UP ? SWT.DOWN : SWT.UP;
+				} else {
+					table.setSortColumn(currentColumn);
+					dir = SWT.UP;
+				}
+				table.setSortDirection(dir);
+				
+				// Sort data
+				boolean asc = (table.getSortDirection() == SWT.UP);
+				if (table.getSortColumn() == col1) {
+					entries.sortByPath(asc);
+				} else {
+					entries.sortBySize(asc);
+				}
+				
+				// Refresh content
+				initContent();
+			}
+		};
+		col1.addListener(SWT.Selection, sortListener);
+		col2.addListener(SWT.Selection, sortListener);
 
 		GridData dt1 = new GridData();
 		dt1.grabExcessHorizontalSpace = true;
@@ -174,7 +203,8 @@ implements Listener {
 		return composite;
 	}
 
-	private void initContent() {        
+	private void initContent() {  
+		table.removeAll();
 		Iterator iter = entries.iterator();
 		while (iter.hasNext()) {
 			FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)iter.next();
@@ -188,7 +218,7 @@ implements Listener {
 			} else {
 				item.setText(1, Utils.formatFileSize(entry.getSize()));
 			}
-			
+
 			if (entry.getStatus() == EntryStatus.STATUS_CREATED) {
 				File f = ((FileSystemRecoveryEntry)entry).getFile();
 
@@ -225,7 +255,7 @@ implements Listener {
 	}
 
 	public String getTitle() {
-		return RM.getLabel("simulation.dialog.title", new Object[] {target.getTargetName()});
+		return RM.getLabel("simulation.dialog.title", new Object[] {target.getName()});
 	}
 
 	protected boolean checkBusinessRules() {

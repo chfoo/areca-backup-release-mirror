@@ -1,5 +1,11 @@
 package com.myJava.file.metadata.posix.jni.wrapper;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import com.myJava.object.ToStringHelper;
 
 /**
@@ -89,5 +95,36 @@ public class GetDataResult extends AbstractMethodResult {
 		ToStringHelper.append("transcodedErrorNumber", transcodedErrorNumber, sb);
 		
 		return ToStringHelper.close(sb);
+	}
+	
+	public static void main(String[] args) {
+		GetDataResult res = FileAccessWrapper.getData("/home/olivier/test3G", true);
+		System.out.println(res.toString());
+	}
+	
+	public static void createFile(String[] args) {
+		try {
+			File f = new File("/home/olivier/test3G");
+			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(f), 200000);
+			String s = "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+			s = s+s;
+			s = s+s;
+			s = s+s;
+			s = s+s;
+			s = s+s;
+			long tg = 1000*1000*1000*3L;
+			long n = (long)( tg / (long)s.length());
+			for (long i=0; i<n; i++) {
+				System.out.println(100*i/n);
+				out.write(s.getBytes());
+			}
+			out.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

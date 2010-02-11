@@ -190,18 +190,18 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         this.window.resetErrorState(txtTitle);
         
         if (txtTitle.getText() == null || txtTitle.getText().trim().length() == 0) {
-            this.window.setInError(txtTitle);
+            this.window.setInError(txtTitle, RM.getLabel("error.field.mandatory"));
             return false;
         }
         
         if (txtRecipients.getText() == null || txtRecipients.getText().trim().length() == 0) {
-            this.window.setInError(txtRecipients);
+            this.window.setInError(txtRecipients, RM.getLabel("error.field.mandatory"));
             this.btnTest.setEnabled(false);
             return false;
         }
         
         if (txtSmtp.getText() == null || txtSmtp.getText().trim().length() == 0) {
-            this.window.setInError(txtSmtp);
+            this.window.setInError(txtSmtp, RM.getLabel("error.field.mandatory"));
             this.btnTest.setEnabled(false);
             return false;
         }

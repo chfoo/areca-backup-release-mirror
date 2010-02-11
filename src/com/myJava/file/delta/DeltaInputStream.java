@@ -41,24 +41,14 @@ This file is part of Areca.
 public class DeltaInputStream 
 extends InputStream
 implements Constants, LayerHandler {    
-    private InputStream in;
     private List layers = new ArrayList();
     private long position = 0;
-    private long baseStreamPosition = 0;
-
-    public void setMainInputStream(InputStream in) {
-        this.in = in;
-    }
 
     public void addInputStream(InputStream stream, String name) {	
         layers.add(new DeltaLayer(stream, name));
     }
 
     public void close() throws IOException {
-        if (in != null) {
-            in.close();
-        }
-
         Iterator iter = layers.iterator();
         while (iter.hasNext()) {
             DeltaLayer layer = (DeltaLayer)iter.next();
@@ -173,31 +163,7 @@ implements Constants, LayerHandler {
             tmp = new ArrayList();
         }
 
-        // Process the base stream
-        for (int b = 0; b<instructionsToProcess.size(); b++) {
-            DeltaReadInstruction instruction = (DeltaReadInstruction)instructionsToProcess.get(b);
-            long from = instruction.getReadFrom();
-            long to = instruction.getReadTo();
-            int writeOffset = instruction.getWriteOffset();
-
-            // Skip unnecessary bytes
-            long toSkip = from - baseStreamPosition;
-            IOHelper.skipFully(in, toSkip);
-            baseStreamPosition += toSkip;
-
-            // Read the required bytes
-            int toWrite = (int)(to - from + 1);
-            int readBytes = IOHelper.readFully(in, buffer, writeOffset, toWrite);
-            if (readBytes != toWrite) {
-                Logger.defaultLogger().error("Error processing instruction : " + instruction.toString() + ". Current base stream position is : " + baseStreamPosition + ". Current position is : " + position);
-                throw new DeltaException("Incoherent read length : expected " + toWrite + ", got " + readBytes + " for base stream.");
-            }
-            read += toWrite;
-            baseStreamPosition += toWrite;
-        }
-
         position += read;
-
         return (read == 0 && len != 0) ? -1 : read;
     }    
 

@@ -293,7 +293,7 @@ extends AbstractFileSystemDriver {
     	synchronized (localInputFiles) {
         	File localFile = (File)localInputFiles.get(file);
         	if (localFile == null) {
-        		localFile = FileTool.getInstance().generateNewWorkingFile("java", "ftpin", true);
+        		localFile = FileTool.getInstance().generateNewWorkingFile(null, "java", "ftpin", true);
                 this.localInputFiles.put(file, localFile);
                 FileTool.getInstance().copy(getFileInputStream(file), FileSystemManager.getFileOutputStream(localFile), true, true);
                 FileSystemManager.deleteOnExit(localFile);

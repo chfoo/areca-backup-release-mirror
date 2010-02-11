@@ -2,6 +2,7 @@ package com.application.areca;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.text.DateFormat;
@@ -172,7 +173,7 @@ public class Utils implements ArecaFileConstants {
         int index = sBaseDir.length();
 
         if (
-        		OSTool.isSystemWindows()		// Windows dedicated code : transform c:\toto into c/toto
+        		OSTool.isSystemWindows()		
                 && index == 0
                 && sFileDir.length() > 2
                 && sFileDir.charAt(0) != '/'
@@ -180,6 +181,7 @@ public class Utils implements ArecaFileConstants {
                 && sFileDir.charAt(1) == ':'
                 && (sFileDir.charAt(2) == '/' || sFileDir.charAt(2) == '\\')
         ) {
+        	// Windows dedicated code : transform c:\toto into c/toto
             return sFileDir.charAt(0) + (sFileDir.length() > 3 ? sFileDir.substring(2) : "");
         } else if (index < sFileDir.length()) {
             while(sFileDir.charAt(index) == '/' || sFileDir.charAt(index) == '\\') {
@@ -290,4 +292,22 @@ public class Utils implements ArecaFileConstants {
 
         return sb.toString().trim();
     }
+    
+	/**
+	 * Windows file paths are not case sensitive, but Areca IS.
+	 * <BR>In some cases, this can lead to errors -> we need to normalize file paths
+	 */
+	public static String normalizePath(String path) {
+		if (path == null || path.length() == 0) {
+			return path;
+		} else if (OSTool.isSystemWindows()) {
+			try {
+				return FileSystemManager.getCanonicalPath(new File(path));
+			} catch (IOException e) {
+				throw new IllegalArgumentException("Error caught while normalizing path : " + path, e);
+			}
+		} else {
+			return path;
+		}
+	}
 }

@@ -43,6 +43,7 @@ public interface CommandConstants {
     public static UserOption OPTION_TO = new UserOption("-to", 2);
     public static UserOption OPTION_DATE = new UserOption("-date", 2);    
     public static UserOption OPTION_CHECK_FILES = new UserOption("-c", 1);  
+    public static UserOption OPTION_SPEC_LOCATION = new UserOption("-wdir", 2);  
     public static UserOption OPTION_SYNC = new UserOption("-s", 1);  
     public static UserOption OPTION_CHECK_ALL = new UserOption("-a", 1); 
     public static UserOption OPTION_FULL_BACKUP = new UserOption("-f", 1);

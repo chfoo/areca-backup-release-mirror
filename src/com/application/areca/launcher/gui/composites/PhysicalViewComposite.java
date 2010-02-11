@@ -12,7 +12,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -33,6 +32,7 @@ import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.Refreshable;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
+import com.myJava.util.log.Logger;
 
 /**
  * <BR>
@@ -61,12 +61,12 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class PhysicalViewComposite 
-extends Composite 
+extends AbstractTabComposite 
 implements SelectionListener, Refreshable {    
     private Table table;
     private TableViewer viewer;
     private Application application = Application.getInstance();
-    
+
     public PhysicalViewComposite(final CTabFolder parent) {
         super(parent, SWT.NONE);
         GridLayout lyt = new GridLayout(6, false);
@@ -154,6 +154,7 @@ implements SelectionListener, Refreshable {
         AbstractIncrementalFileSystemMedium medium = (AbstractIncrementalFileSystemMedium)target.getMedium();
         File[] archives = new File[0];
         try {
+        	Logger.defaultLogger().info("Looking for archives in " + medium.getFileSystemPolicy().getDisplayableParameters(true), "Physical View");
             archives = medium.listArchives(null, null);
         } catch (Throwable e) {
             this.application.handleException(e);

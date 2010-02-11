@@ -5,6 +5,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
+import com.application.areca.launcher.gui.common.ArecaPreferences;
+
 /**
  * <BR>
  * @author Olivier PETRUCCI
@@ -49,7 +51,9 @@ extends AppActionReferenceHolder {
     }
     
     public static void addOpenItems(ToolBar bar) {
-        buildToolItem(AC_OPEN, bar);
+        if (! ArecaPreferences.isDisplayWSAddress()) {
+        	buildToolItem(AC_OPEN, bar);
+        }
         buildToolItem(AC_PREFERENCES, bar);       
     }
     

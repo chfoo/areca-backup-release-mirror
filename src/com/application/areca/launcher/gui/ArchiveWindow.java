@@ -167,7 +167,7 @@ extends AbstractWindow {
         
         TableViewer viewer = new TableViewer(grpProperties, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL);
         Table table = viewer.getTable();
-        table.setLinesVisible(false);
+        table.setLinesVisible(AbstractWindow.getTableLinesVisible());
         table.setHeaderVisible(true);
         GridData ldProperties = new GridData(SWT.FILL, SWT.FILL, true, true);
         ldProperties.minimumHeight = computeHeight(100);

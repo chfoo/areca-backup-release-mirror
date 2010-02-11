@@ -34,6 +34,7 @@ import com.myJava.file.FileTool;
 import com.myJava.file.driver.AbstractFileSystemDriver;
 import com.myJava.system.OSTool;
 import com.myJava.system.viewer.ViewerHandlerHelper;
+import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
 import com.myJava.util.version.VersionData;
 
@@ -158,7 +159,11 @@ implements ArecaURLs {
             if (data.getVersionId().length() <= 3) {
                 sb.append("   ");
             }
-            sb.append("\t\t\t").append(data.getDescription()).append("\n");
+            sb.append("\t\t\t").append(data.getDescription());
+            if (data.getAdditionalNotes() != null) {
+            	sb.append(" - ").append(data.getAdditionalNotes());
+            }
+            sb.append("\n");
         }
         
         content.setText(sb.toString());
@@ -194,6 +199,11 @@ implements ArecaURLs {
         prps.put("areca-backup.version", VersionInfos.getLastVersion().getVersionId());
         prps.put("areca-backup.build.id", "" + VersionInfos.getBuildId());
         prps.put("areca-backup.path.length.limited", Boolean.toString(AbstractFileSystemDriver.CHECK_PATH));
+        
+        FileLogProcessor proc = (FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class);
+        if (proc != null) {
+        	prps.put("log.file", proc.getCurrentLogFile());
+        }
         
         prps.putAll(ArecaTechnicalConfiguration.get().getAll());
         

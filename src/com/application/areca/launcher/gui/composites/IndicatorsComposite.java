@@ -7,14 +7,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
-import com.application.areca.HistoryEntryTypes;
 import com.application.areca.ResourceManager;
 import com.application.areca.indicator.Indicator;
 import com.application.areca.indicator.IndicatorMap;
@@ -51,8 +48,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class IndicatorsComposite 
-extends Composite 
-implements Listener, Refreshable, HistoryEntryTypes { 
+extends AbstractTabComposite 
+implements Refreshable { 
     protected final ResourceManager RM = ResourceManager.instance();
     
     private Table table;
@@ -129,16 +126,6 @@ implements Listener, Refreshable, HistoryEntryTypes {
             application.handleException(e);
         } catch (TaskCancelledException e) {
             application.handleException(e);
-        }
-    }
-
-    public void handleEvent(Event event) {
-        if (application.isCurrentObjectTarget()) {
-            int result = application.showConfirmDialog(RM.getLabel("history.clear.confirm.question"), RM.getLabel("history.clear.confirm.title"));
-            if (result == SWT.YES) {
-                this.application.getCurrentTarget().clearHistory();   
-                this.refresh();
-            }
         }
     }
     

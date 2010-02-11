@@ -1,4 +1,4 @@
-package com.application.areca.adapters;
+package com.application.areca.adapters.read;
 
 import java.io.File;
 
@@ -10,11 +10,17 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.application.areca.AbstractTarget;
+import com.application.areca.ConfigurationSource;
 import com.application.areca.TargetGroup;
+import com.application.areca.adapters.MissingDataListener;
+import com.application.areca.adapters.XMLTags;
+import com.application.areca.adapters.write.DeprecatedTargetGroupXMLWriter;
 import com.myJava.file.FileSystemManager;
+import com.myJava.util.xml.AdapterException;
 
 /**
- * Adapter for process serialization / deserialization
+ * Adapter for target group serialization / deserialization (old format)
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -40,14 +46,18 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class ProcessXMLReader implements XMLTags {
+public class DeprecatedTargetGroupXMLReader 
+implements XMLTags, TargetGroupXMLReader {
+	
     protected Document xmlConfig;
     protected File configurationFile;
     protected MissingDataListener missingDataListener = null;
 	protected boolean readIDInfosOnly = false;
+	protected boolean installMedium = true;
     
-    public ProcessXMLReader(File configurationFile) throws AdapterException {
+    public DeprecatedTargetGroupXMLReader(File configurationFile, boolean installMedium) throws AdapterException {
         try {
+    		this.installMedium = installMedium;
             this.configurationFile = configurationFile;
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -72,40 +82,39 @@ public class ProcessXMLReader implements XMLTags {
         try {
             Element root = this.xmlConfig.getDocumentElement();
             
-            if (! root.getNodeName().equalsIgnoreCase(XML_PROCESS)) {
-                throw new AdapterException("Group not found : your configuration file must have a group root : '" + XML_PROCESS + "'.");
+            if (! root.getNodeName().equalsIgnoreCase(XML_GROUP)) {
+                throw new AdapterException("Group not found : your configuration file must have a group root : '" + XML_GROUP + "'.");
             }
             
-            TargetGroup process = new TargetGroup(this.configurationFile);        
-            
-            Node commentsNode = root.getAttributes().getNamedItem(XML_PROCESS_DESCRIPTION);
-            if (commentsNode != null) {
-                process.setComments(commentsNode.getNodeValue());
-            }     
-            
+            TargetGroup group = new TargetGroup(computeName(this.configurationFile));        
+
             Node versionNode = root.getAttributes().getNamedItem(XML_VERSION);
             int version = 1;
             if (versionNode != null) {
                 version = Integer.parseInt(versionNode.getNodeValue());
             }  
-            if (version > ProcessXMLWriter.CURRENT_VERSION) {
-            	throw new AdapterException("Invalid XML version : This version of Areca can't handle XML versions above " + ProcessXMLWriter.CURRENT_VERSION + ". You are trying to read a version " + version);
+            if (version > DeprecatedTargetGroupXMLWriter.CURRENT_VERSION) {
+            	throw new AdapterException("Invalid XML version : This version of Areca can't handle XML versions above " + DeprecatedTargetGroupXMLWriter.CURRENT_VERSION + ". You are trying to read a version " + version);
             }
             
             NodeList targets = root.getElementsByTagName(XML_TARGET);
             for (int i=0; i<targets.getLength(); i++) {
-                TargetXMLReader targetAdapter = new TargetXMLReader(targets.item(i), process, version);
+                TargetXMLReader targetAdapter = new TargetXMLReader(targets.item(i), installMedium);
+                targetAdapter.setVersion(version);
                 targetAdapter.setReadIDInfosOnly(this.readIDInfosOnly);
                 targetAdapter.setMissingDataListener(missingDataListener);
-                process.addTarget(targetAdapter.readTarget());
+                targetAdapter.setSource(new ConfigurationSource(true, configurationFile));
+                
+                AbstractTarget target = targetAdapter.readTarget();
+                group.linkChild(target);
             }
             
-            return process;
+            group.setLoadedFrom(new ConfigurationSource(true, configurationFile));
+            return group;
         } catch (AdapterException e) {
             setSource(e);
             throw e;            
         } catch (Exception e) {
-            // On convertit toutes les exceptions en AdapterException
             AdapterException ex = new AdapterException(e);
             setSource(ex);
             throw ex;
@@ -114,5 +123,30 @@ public class ProcessXMLReader implements XMLTags {
     
     private void setSource(AdapterException e) {
         e.setSource(FileSystemManager.getAbsolutePath(configurationFile));
+    }
+    
+	public boolean readable() throws AdapterException {
+        try {
+            Element root = xmlConfig.getDocumentElement();
+            
+            if (root.getNodeName().equalsIgnoreCase(XMLTags.XML_GROUP)) {
+            	return true;
+            } else {
+            	return false;
+            }
+        } catch (Exception e) {
+        	throw new AdapterException(e);
+        }
+	}
+    
+    private String computeName(File source) {
+        String fileName = FileSystemManager.getName(source);
+        int index = fileName.indexOf('.');
+        if (index != -1) {
+        	fileName = fileName.substring(0, index);
+        }
+        String firstLetter = (""+fileName.charAt(0)).toUpperCase();
+        
+        return (firstLetter + fileName.substring(1)).replace('_', ' ');
     }
 }

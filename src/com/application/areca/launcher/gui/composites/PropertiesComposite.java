@@ -1,7 +1,5 @@
 package com.application.areca.launcher.gui.composites;
 
-import java.io.File;
-
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -13,11 +11,13 @@ import org.eclipse.swt.widgets.TableItem;
 
 import com.application.areca.ResourceManager;
 import com.application.areca.TargetGroup;
+import com.application.areca.WorkspaceItem;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.impl.handler.DefaultArchiveHandler;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
+import com.myJava.file.FileSystemManager;
 
 /**
  * <BR>
@@ -63,7 +63,7 @@ extends Composite {
         viewer = new TableViewer(this, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
 
         table = viewer.getTable();
-        table.setLinesVisible(false);
+        table.setLinesVisible(AbstractWindow.getTableLinesVisible());
         table.setHeaderVisible(true);
         table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         
@@ -101,30 +101,40 @@ extends Composite {
         }
     }
     
-    private void fillData(TargetGroup process) {
-        this.addProperty(RM.getLabel("property.element.label"), process.getName());
-        if (process.getComments() != null) {
-            this.addProperty(RM.getLabel("property.description.label"), process.getComments());
+    private void fillGenericData(WorkspaceItem item) {
+    	String conf = 
+    		item.getLoadedFrom() == null ? 
+    		FileSystemManager.getAbsolutePath(item.computeConfigurationFile(application.getWorkspace().getPathFile())) : 
+    		item.getLoadedFrom().toString();
+        this.addProperty(RM.getLabel("property.conf.label"), conf);
+
+        if (item.getLoadedFrom().isBackupCopy()) {
+        	this.addProperty(RM.getLabel("property.backup.label"), "true");
         }
-        
-        this.addProperty(RM.getLabel("property.source.label"), application.getWorkspace().getPath() + File.separator + process.getSource());
-        this.addProperty(RM.getLabel("property.targets.label"), String.valueOf(process.getTargetCount()));
+    }
+    
+    private void fillData(TargetGroup group) {
+        this.addProperty(RM.getLabel("property.element.label"), group.getName());
+        fillGenericData(group);
+        this.addProperty(RM.getLabel("property.targets.label"), String.valueOf(group.size()));
     }
     
     private void fillData(FileSystemTarget tg) {
         try {
             String tgName = null;
-            if (tg.getTargetName() == null) {
+            if (tg.getName() == null) {
                 tgName = RM.getLabel("property.targetwithid.label") + tg.getId();
             } else {
-                tgName = tg.getTargetName();
+                tgName = tg.getName();
             }
             
             this.addProperty(RM.getLabel("property.element.label"), tgName);
-            this.addProperty(RM.getLabel("property.id.label"), String.valueOf(tg.getId()));
+            if (tg.getId() >= 0) {
+            	this.addProperty(RM.getLabel("property.id.label"), String.valueOf(tg.getId()));
+            }
             this.addProperty(RM.getLabel("property.uid.label"), String.valueOf(tg.getUid()));
-
-            if (tg.getComments() != null) {
+            fillGenericData(tg);
+            if (tg.getComments() != null && tg.getComments().length() != 0) {
                 this.addProperty(RM.getLabel("property.description.label"), tg.getComments());
             }  
             this.addProperty(RM.getLabel("property.source.label"), tg.getSourcesRoot());
@@ -132,7 +142,7 @@ extends Composite {
             if (tg.getMedium() != null && tg.getMedium() instanceof AbstractIncrementalFileSystemMedium) {
                 AbstractIncrementalFileSystemMedium medium = (AbstractIncrementalFileSystemMedium)tg.getMedium();
                 
-                this.addProperty(RM.getLabel("property.directory.label"), medium.getDisplayArchivePath());
+                this.addProperty(RM.getLabel("property.directory.label"), medium.getFileSystemPolicy().getDisplayableParameters(false));
                 
                 if (medium.isOverwrite()) {
                     this.addProperty(RM.getLabel("property.type.label"), RM.getLabel("targetedition.storagetype.image"));

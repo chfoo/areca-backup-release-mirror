@@ -25,6 +25,7 @@ import com.application.areca.ApplicationException;
 import com.application.areca.EntryArchiveData;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
+import com.application.areca.impl.AbstractFileSystemMedium;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
@@ -61,7 +62,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class LogicalViewComposite 
-extends Composite 
+extends AbstractTabComposite 
 implements MouseListener, Refreshable, Listener { 
 
 	private ArchiveExplorer explorer;
@@ -216,7 +217,10 @@ implements MouseListener, Refreshable, Listener {
 	public void refresh() {
 		if (explorer != null) {
 			if (Application.getInstance().isCurrentObjectTarget()) {
-				explorer.setMedium(Application.getInstance().getCurrentTarget().getMedium());
+			    AbstractFileSystemMedium medium = (AbstractFileSystemMedium)Application.getInstance().getCurrentTarget().getMedium();
+	        	Logger.defaultLogger().info("Looking for archives in " + medium.getFileSystemPolicy().getDisplayableParameters(true), "Logical View");
+
+				explorer.setMedium(medium);
 			} else {
 				explorer.setMedium(null);
 			}
@@ -264,13 +268,14 @@ implements MouseListener, Refreshable, Listener {
 	}
 
 	private void refreshManifest(EntryArchiveData data) {
-		// Affichage manifeste et enregistrement date courante
 		this.application.setCurrentEntryData(data);
 
 		Manifest mf = data.getManifest();
 		String txt = "";
 		if (mf != null) {
-			txt = mf.getTitle() + "\n\n" + mf.getDescription();
+			String title = mf.getTitle() == null ? "" : mf.getTitle();
+			String content = mf.getDescription() == null ? "" : mf.getDescription();
+			txt = title + "\n\n" + content;
 		}
 		this.manifest.setText(txt);
 		this.manifest.setSelection(0);

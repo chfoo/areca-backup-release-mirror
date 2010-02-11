@@ -7,7 +7,7 @@ import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.metadata.trace.ArchiveTraceParser;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
-import com.myJava.util.history.History;
+import com.myJava.util.history.HistoryHandler;
 import com.myJava.util.log.Logger;
 
 /**
@@ -39,11 +39,8 @@ This file is part of Areca.
 public abstract class AbstractMedium implements ArchiveMedium {
 
     protected FileSystemTarget target;
-    
-    /**
-     * Historique
-     */
-    protected History history;     
+    protected boolean installed = false;
+    protected HistoryHandler historyHandler;     
     
     /**
      * Nom du fichier d'historique
@@ -52,6 +49,7 @@ public abstract class AbstractMedium implements ArchiveMedium {
     
     public void install() throws ApplicationException {
         Logger.defaultLogger().info("Installing medium : " + this.toString());
+        this.installed = true;
     }
     
     protected void copyAttributes(Object clone) {
@@ -64,6 +62,10 @@ public abstract class AbstractMedium implements ArchiveMedium {
     public String getHistoryName() {
         return HISTORY_NAME;
     } 
+    
+    public boolean isInstalled() {
+    	return installed;
+    }
     
     /**
      * Construit une liste de EAD ordonnee et dont les status sont a jour

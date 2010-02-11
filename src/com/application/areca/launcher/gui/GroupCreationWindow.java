@@ -1,7 +1,5 @@
 package com.application.areca.launcher.gui;
 
-import java.io.File;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
@@ -15,10 +13,10 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.TargetGroup;
 import com.application.areca.Utils;
+import com.application.areca.impl.AbstractFileSystemMedium;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
-import com.myJava.file.FileNameUtil;
-import com.myJava.file.FileSystemManager;
 
 /**
  * <BR>
@@ -46,21 +44,13 @@ This file is part of Areca.
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-public class GroupEditionWindow 
+public class GroupCreationWindow 
 extends AbstractWindow 
-implements FocusListener
-{
-    
+implements FocusListener {
     protected Text txtName;
-    protected Text txtDescription;
     protected Button btnSave;
-    
+   
     protected TargetGroup group;
-    
-    public GroupEditionWindow(TargetGroup group) {
-        super();
-        this.group = group;
-    }
 
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
@@ -74,22 +64,7 @@ implements FocusListener
         txtName = new Text(grpName, SWT.BORDER);
         txtName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
         txtName.addFocusListener(this);
-        if (this.group != null) {
-            this.txtName.setEnabled(false);           
-        }
         monitorControl(txtName);
-        
-        Group grpDescription = new Group(composite, SWT.NONE);
-        grpDescription.setText(RM.removeDots(RM.getLabel("archivedetail.descriptionfield.label")));
-        grpDescription.setLayout(new GridLayout(1, false));
-        grpDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));   
-        
-        txtDescription = new Text(grpDescription, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
-        GridData ldDescription = new GridData(SWT.FILL, SWT.FILL, true, true);
-        ldDescription.widthHint = computeWidth(400);
-        ldDescription.heightHint = computeHeight(100);
-        txtDescription.setLayoutData(ldDescription);
-        monitorControl(txtDescription);
         
         SavePanel pnlSave = new SavePanel(this);
         Composite pnl = pnlSave.buildComposite(composite);
@@ -100,11 +75,6 @@ implements FocusListener
         ldPnl.horizontalSpan = 2;
         pnl.setLayoutData(ldPnl);
         
-        if (group != null) {
-            this.txtDescription.setText(group.getComments() == null ? "" : group.getComments());
-            this.txtName.setText(FileSystemManager.getName(group.getSourceFile()).substring(0, FileSystemManager.getName(group.getSourceFile()).length() - 4));
-        }
-        
         composite.pack();
         return composite;
     }
@@ -114,31 +84,29 @@ implements FocusListener
     }
 
     protected boolean checkBusinessRules() {
-        // Nom obligatoire
-        this.resetErrorState(txtName);     
-        if (this.txtName.getText() == null || this.txtName.getText().length() == 0) {
-            this.setInError(txtName);
+        this.resetErrorState(txtName);   
+        String name = Utils.normalizeFileName(this.txtName.getText());
+        // This rules are a little too conservative ... but there is no harm
+        if (
+        		this.txtName.getText() == null 
+        		|| this.txtName.getText().length() == 0 
+        		|| this.txtName.getText().startsWith(".")
+        		|| this.txtName.getText().endsWith(FileSystemTarget.CONFIG_FILE_EXT)
+        		|| this.txtName.getText().endsWith(FileSystemTarget.CONFIG_FILE_EXT_DEPRECATED)
+        		|| this.txtName.getText().endsWith(".properties")  
+        		|| this.txtName.getText().endsWith(AbstractFileSystemMedium.DATA_DIRECTORY_SUFFIX)  
+        		|| this.txtName.getText().endsWith(AbstractFileSystemMedium.MANIFEST_FILE)  
+        		|| application.getCurrentTargetGroup().getItem(name) != null
+        ) {
+            this.setInError(txtName, RM.getLabel("error.reserved.words"));
             return false;
         }
         return true;
     }
 
     protected void saveChanges() {
-        String suffix = this.txtName.getText();
-        if (suffix.toLowerCase().endsWith(".xml")) {
-            suffix = suffix.substring(0, suffix.length() - 4);
-        }
-        if (FileNameUtil.startsWithSeparator(suffix)) {
-            suffix = suffix.substring(1);
-        }
-        suffix = Utils.normalizeFileName(suffix);
-        
-        if (this.group == null) {
-            this.group = new TargetGroup(
-                    new File(application.getWorkspace().getPath(), suffix + ".xml")
-            );
-        }
-        this.group.setComments(this.txtDescription.getText());
+        String name = Utils.normalizeFileName(this.txtName.getText());
+        this.group = new TargetGroup(name);
         
         this.hasBeenUpdated = false;
         this.close();
@@ -157,7 +125,7 @@ implements FocusListener
         ));
     }
 
-    public TargetGroup getProcess() {
+    public TargetGroup getGroup() {
         return group;
     }
 }

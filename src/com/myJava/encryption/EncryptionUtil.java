@@ -45,6 +45,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public class EncryptionUtil {
+	private static final String RND_ALGORITHM = "SHA1PRNG";
+	
 	/**
 	 * Nr of iterations used during encyption key generation phase.
 	 */
@@ -66,6 +68,11 @@ public class EncryptionUtil {
     private static final String KEY_ALG = FrameworkConfiguration.getInstance().getEncryptionKGAlg();
     private static final String REF_ENC = FrameworkConfiguration.getInstance().getEncryptionKGSaltEncoding();
 	
+    private static final int MAX_SEEDS = 20;
+    private static int SEED_WATERMARK = 0;
+    private static final long[] SEEDS = new long[MAX_SEEDS];
+    private static int CURRENT_SEED_INDEX = -1;
+    
     public static boolean equals(Cipher c1, Cipher c2) {
         if (c1 == null && c2 == null) {
             return true;
@@ -115,10 +122,26 @@ public class EncryptionUtil {
 			throw new IllegalArgumentException("Unsupported parameters", e);
 		}
     }
+    
+    /**
+     * Register a new seed with a probability of 5%
+     */
+    public static synchronized void registerRandomSeed() {
+    	if (Math.random() < 0.05) {
+        	CURRENT_SEED_INDEX++;
+        	SEED_WATERMARK = Math.min(++SEED_WATERMARK, MAX_SEEDS);
+        	SEEDS[CURRENT_SEED_INDEX % MAX_SEEDS] = System.currentTimeMillis();
+    	}
+    }
 
-    public static byte[] generateRandomKey(int keySize) {
+    public static synchronized byte[] generateRandomKey(int keySize) {
     	try {
-			SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
+    		Logger.defaultLogger().info("Generating new random key. Algorithm = " + RND_ALGORITHM + ". Seed count = " + (SEED_WATERMARK + 1) + " ...");
+			SecureRandom sr = SecureRandom.getInstance(RND_ALGORITHM);
+			sr.setSeed(System.currentTimeMillis());
+			for (int i=0; i<SEED_WATERMARK; i++) {
+				sr.setSeed(SEEDS[i]);
+			}
 			byte[] b = new byte[keySize];
 			sr.nextBytes(b);
 			return b;

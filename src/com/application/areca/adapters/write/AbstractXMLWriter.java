@@ -1,6 +1,8 @@
-package com.application.areca.adapters;
+package com.application.areca.adapters.write;
 
-import com.myJava.util.Util;
+import com.application.areca.adapters.XMLTags;
+import com.myJava.util.xml.XMLTool;
+
 
 /**
  * <BR>
@@ -29,47 +31,21 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 public abstract class AbstractXMLWriter implements XMLTags {
-    private static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"" + getEncoding() + "\"?>";
     protected StringBuffer sb;
     
     public AbstractXMLWriter(StringBuffer sb) {
         this.sb = sb;
     }
     
-    protected static String encode(long orig) {
-    	return encode("" + orig);
-    }
-    
-    protected static String encode(int orig) {
-    	return encode("" + orig);
-    }
-    
-    protected static String encode(boolean orig) {
-    	return encode("" + orig);
-    }
-
-    protected static String encode(String orig) {
-        String ret = orig;
-
-        ret = Util.replace(ret, "&", "&amp;");
-        ret = Util.replace(ret, "\n", "&#xA;");
-        ret = Util.replace(ret, "<", "&lt;");
-        ret = Util.replace(ret, ">", "&gt;");  
-        ret = Util.replace(ret, "\"", "&quot;");
-        ret = Util.replace(ret, "'", "&apos;");            
-        
-        return "\"" + ret + "\"";
-    }
-    
     public void writeHeader() {
-        sb.append(XML_HEADER);
+        sb.append(XMLTool.getHeader(getEncoding()));
     }
     
     public String getXML() {
         return sb.toString();
     }
     
-    protected static String getEncoding() {
+    public static String getEncoding() {
         return "UTF-8";
     }
 }

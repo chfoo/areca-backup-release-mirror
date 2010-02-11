@@ -223,7 +223,10 @@ public class FileTool {
 		if (waitForAvailability) {
 			long retry = 0;
 			try {
-				while (!FileSystemManager.delete(fileOrDirectory)) {
+				while (
+						(! FileSystemManager.delete(fileOrDirectory)) 
+						&& (FileSystemManager.exists(fileOrDirectory))
+				) {
 					retry++;
 					if (retry == 10 || retry == 100 || retry == 1000) {
 						Logger
@@ -516,13 +519,19 @@ public class FileTool {
 	 * However, it is strongly advised to handle the created file's destruction
 	 * explicitly as soon as it is not needed anymore and avoid using hooks
 	 */
-	public File generateNewWorkingFile(String subdir, String prefix, boolean registerDeleteHook)
+	public File generateNewWorkingFile(File rootFile, String subdir, String prefix, boolean registerDeleteHook)
 	throws IOException {
 		File tmp = null;
 		int i = 0;
+		File root = rootFile;
+		if (root == null) {
+			root = new File(OSTool.getTempDirectory());
+		}
+		if (subdir != null) {
+			root = new File(root, subdir);
+		}
 		while (tmp == null || FileSystemManager.exists(tmp)) {
-			tmp = new File(OSTool.getTempDirectory() + "/" + subdir, prefix
-					+ (i++));
+			tmp = new File(root, prefix + (i++));
 		}
 
 		File parent = FileSystemManager.getParentFile(tmp);
@@ -544,8 +553,7 @@ public class FileTool {
 			};
 			Thread th = new Thread(rn);
 			th.setDaemon(false);
-			th.setName("Remove temporary file or directory : "
-					+ toRemove.getAbsolutePath());
+			th.setName("Remove temporary file or directory : "+ toRemove.getAbsolutePath());
 			Runtime.getRuntime().addShutdownHook(th);
 		}
 		return tmp;

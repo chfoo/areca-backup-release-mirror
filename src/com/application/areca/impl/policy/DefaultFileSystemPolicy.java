@@ -91,14 +91,18 @@ implements FileSystemPolicy {
         return policy;
     }
 
-    public String getDisplayableParameters() {
+    public String getDisplayableParameters(boolean fullPath) {
         File tmpF = getArchiveDirectory();
         File mainStorageDirectory = FileSystemManager.getParentFile(tmpF);
-        if (mainStorageDirectory == null) {
-            return FileSystemManager.getAbsolutePath(tmpF);
+        
+        File ret;
+        if (mainStorageDirectory == null || fullPath) {
+            ret = tmpF;
         } else {
-            return FileSystemManager.getAbsolutePath(mainStorageDirectory);                    
+            ret = mainStorageDirectory;                    
         }
+
+        return FileSystemManager.getAbsolutePath(ret);
     }
     
     public String toString() {

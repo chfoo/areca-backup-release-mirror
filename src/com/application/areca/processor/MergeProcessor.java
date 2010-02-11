@@ -1,7 +1,9 @@
 package com.application.areca.processor;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.ActionProxy;
 import com.application.areca.ApplicationException;
+import com.application.areca.MergeParameters;
 import com.application.areca.context.ProcessContext;
 import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
@@ -38,7 +40,7 @@ public class MergeProcessor extends AbstractProcessor {
 
     private int fromDelay = 0; // 0 = -infinity
     private int toDelay = 0; // 0 = now
-    private boolean keepDeletedEntries = false;
+    private MergeParameters params;
     
     /**
      * @param target
@@ -62,27 +64,27 @@ public class MergeProcessor extends AbstractProcessor {
     public int getFromDelay() {
         return fromDelay;
     }
-    
-    public boolean isKeepDeletedEntries() {
-        return keepDeletedEntries;
-    }
-    
-    public void setKeepDeletedEntries(boolean keepDeletedEntries) {
-        this.keepDeletedEntries = keepDeletedEntries;
-    }
 
-    public void setFromDelay(int delay) {
+    public MergeParameters getParams() {
+		return params;
+	}
+
+	public void setParams(MergeParameters params) {
+		this.params = params;
+	}
+
+	public void setFromDelay(int delay) {
         this.fromDelay = delay;
     }
     
     public void runImpl(ProcessContext context) throws ApplicationException {
         AbstractTarget target = context.getReport().getTarget();
-        target.getGroup().processMergeOnTargetImpl(
+        ActionProxy.processMergeOnTargetImpl(
         		target, 
         		fromDelay, 
         		toDelay, 
         		null, 
-                keepDeletedEntries,
+                params,
         		new ProcessContext(target, context.getInfoChannel())
        );
     }
@@ -108,7 +110,7 @@ public class MergeProcessor extends AbstractProcessor {
         copyAttributes(pro);
         pro.fromDelay = this.fromDelay;
         pro.toDelay = this.toDelay;
-        pro.keepDeletedEntries = this.keepDeletedEntries;
+        pro.params = (MergeParameters)this.params.duplicate();
         return pro;
     }
 
@@ -135,7 +137,7 @@ public class MergeProcessor extends AbstractProcessor {
             	super.equals(other)
             	&& EqualsHelper.equals(this.fromDelay, other.fromDelay)
                 && EqualsHelper.equals(this.toDelay, other.toDelay)
-                && EqualsHelper.equals(this.keepDeletedEntries, other.keepDeletedEntries);
+                && EqualsHelper.equals(this.params, other.params);
         }
     }
     
@@ -144,7 +146,7 @@ public class MergeProcessor extends AbstractProcessor {
         h = HashHelper.hash(h, super.hashCode());
         h = HashHelper.hash(h, this.fromDelay);
         h = HashHelper.hash(h, this.toDelay);
-        h = HashHelper.hash(h, this.keepDeletedEntries);
+        h = HashHelper.hash(h, this.params);
         return h;
     }
 }

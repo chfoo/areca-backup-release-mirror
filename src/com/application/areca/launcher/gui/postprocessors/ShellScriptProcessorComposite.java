@@ -101,13 +101,13 @@ public class ShellScriptProcessorComposite extends AbstractProcessorComposite {
                 txtScript.getText() == null 
                 || txtScript.getText().trim().length() == 0 
         ) {
-            window.setInError(txtScript);
+            window.setInError(txtScript, RM.getLabel("error.field.mandatory"));
             return false;
         }
         
         if (txtParams.getText() != null) {
             if (txtParams.getText().indexOf('\"') != -1) {
-                window.setInError(txtParams);
+                window.setInError(txtParams, RM.getLabel("error.quotes.forbidden"));
                 return false;
             }
         }

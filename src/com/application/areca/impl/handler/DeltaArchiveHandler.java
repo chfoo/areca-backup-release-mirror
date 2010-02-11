@@ -451,12 +451,15 @@ extends AbstractArchiveHandler {
 
 			for (int j=i + 1; j<localFiles.length; j++) {
 				File posteriorArchive = localFiles[j];
-				File f2 = new File(posteriorArchive, localPath);
-				if (FileSystemManager.exists(f2)) {
-					localCopies.add(f2);
-					in.addInputStream(FileSystemManager.getCachedFileInputStream(f2), localPath);
-					if (DEBUG) {
-						Logger.defaultLogger().fine("   Adding diff file : " + f2.getAbsolutePath());
+				if (posteriorArchive != null) {
+					File f2 = new File(posteriorArchive, localPath);
+					if (FileSystemManager.exists(f2)) {
+						localCopies.add(f2);
+						in.addInputStream(FileSystemManager.getCachedFileInputStream(f2), localPath);
+						if (DEBUG) {
+							Logger.defaultLogger().fine("   Adding diff file : " + f2.getAbsolutePath());
+						
+						}
 					}
 				}
 			}

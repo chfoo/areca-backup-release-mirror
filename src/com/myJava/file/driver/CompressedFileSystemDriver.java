@@ -18,6 +18,7 @@ import com.myJava.file.multivolumes.VolumeInputStream;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
+import com.myJava.util.log.Logger;
 
 /**
  * "Linkable" driver with compression capabilities
@@ -486,9 +487,14 @@ extends AbstractLinkableFileSystemDriver {
         }
 
         public boolean accept(File dir, String name) {
-            File targetDirectory = driver.decode(dir);
-            String targetName = driver.decode(name);
-            return filter.accept(targetDirectory, targetName);
+            try {
+				File targetDirectory = driver.decode(dir);
+				String targetName = driver.decode(name);
+				return filter.accept(targetDirectory, targetName);
+			} catch (Exception e) {
+				Logger.defaultLogger().error(e);
+				return false;
+			}
         }
         
         public boolean equals(Object obj) {

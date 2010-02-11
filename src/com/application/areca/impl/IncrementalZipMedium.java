@@ -6,12 +6,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
-import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.manifest.Manifest;
@@ -61,13 +59,9 @@ This file is part of Areca.
 public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 	private static String MV_ARCHIVE_NAME = "archive";
 
-	public String getDescription() {
-		String type = "incremental";
-		if (imageBackups) {
-			type = "image"; 
-		}
-		return "Compressed " + type + " medium. (" + fileSystemPolicy.getArchivePath() + ")";        
-	}    
+	protected String getSubDescription() {
+		return "Compressed";
+	}  
 
 	/**
 	 * Buid the archive
@@ -276,12 +270,6 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 	}
 
 	protected void registerUnstoredFile(FileSystemRecoveryEntry entry, ProcessContext context) {
-	}
-
-	protected void computeMergeDirectories(ProcessContext context) throws ApplicationException {
-		File[] recoveredFiles = context.getReport().getRecoveryResult().getRecoveredArchivesAsArray();
-		GregorianCalendar lastArchiveDate = ArchiveManifestCache.getInstance().getManifest(this, recoveredFiles[recoveredFiles.length - 1]).getDate();
-		context.setCurrentArchiveFile(new File(computeArchivePath(lastArchiveDate)));
 	}
 
 	protected void buildMergedArchiveFromDirectory(ProcessContext context) 
