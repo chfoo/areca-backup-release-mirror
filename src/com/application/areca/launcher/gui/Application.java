@@ -88,7 +88,7 @@ import com.myJava.util.xml.AdapterException;
  */
 
  /*
- Copyright 2005-2009, Olivier PETRUCCI.
+ Copyright 2005-2010, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -105,6 +105,7 @@ This file is part of Areca.
     You should have received a copy of the GNU General Public License
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
  */
 public class Application 
 implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
@@ -444,7 +445,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			}  
 		} else if (command.equals(CMD_CHECK_ARCHIVES)) {
 			// CHECK ARCHIVES
-			CheckWindow window = new CheckWindow();
+			CheckWindow window = new CheckWindow(this.getCurrentTarget());
 			this.showDialog(window);
 		} else if (command.equals(CMD_BUILD_BATCH)) {
 			// BUILD BATCH
@@ -569,42 +570,38 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 	}
 
 	public ProcessRunner launchArchiveCheck(
-			final CheckParameters checkParams, 
+			final CheckParameters checkParams,
+			final AbstractTarget target,
 			final CheckWindow window
 	) {
-		if (FileSystemTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
-			FileSystemTarget target = (FileSystemTarget)this.getCurrentObject();
-			TargetGroup process = target.getParent();
-			ProcessRunner rn = new ProcessRunner(target) {
-				public void runCommand() throws ApplicationException {
-					ActionProxy.processCheckOnTarget(
-							rTarget, 
-							checkParams,
-							rFromDate, 
-							context);
-				}
+		TargetGroup process = target.getParent();
+		ProcessRunner rn = new ProcessRunner(target) {
+			public void runCommand() throws ApplicationException {
+				ActionProxy.processCheckOnTarget(
+						rTarget, 
+						checkParams,
+						rFromDate, 
+						context);
+			}
 
-				protected void finishCommand() {
-					window.setResult(
-							context.getInvalidRecoveredFiles(), 
-							context.getUncheckedRecoveredFiles(), 
-							context.getUnrecoveredFiles(),
-							context.getNbChecked());
-				}
+			protected void finishCommand() {
+				window.setResult(
+						context.getInvalidRecoveredFiles(), 
+						context.getUncheckedRecoveredFiles(), 
+						context.getUnrecoveredFiles(),
+						context.getNbChecked());
+			}
 
-				protected void finishCommandInError(Exception e) {
-					window.closeInError(e);
-				}
-			};
-			rn.rProcess = process;
-			rn.refreshAfterProcess = false;
-			rn.rName = RM.getLabel("app.checkfilesaction.process.message");
-			rn.rFromDate = getCurrentDate();
-			rn.launch(); 
-			return rn;
-		} else {
-			return null;
-		}
+			protected void finishCommandInError(Exception e) {
+				window.closeInError(e);
+			}
+		};
+		rn.rProcess = process;
+		rn.refreshAfterProcess = false;
+		rn.rName = RM.getLabel("app.checkfilesaction.process.message");
+		rn.rFromDate = getCurrentDate();
+		rn.launch(); 
+		return rn;
 	}
 
 	/**
@@ -702,7 +699,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			try {
 				enableWaitCursor();
 				Workspace w = Workspace.open(FileSystemManager.getAbsolutePath(new File(path)), this, true);
-				
+
 				Stack s = ArecaPreferences.getWorkspaceHistory();
 				String normalizedPath = FileNameUtil.normalizePath(path);
 				if (! s.contains(normalizedPath)) {
@@ -957,17 +954,17 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 						break;
 					}
 				}
-				
+
 				if (! alreadyIncluded) {
 					list.add(items[i]);
 				}
 			}
-			
+
 			// import items
 			Iterator iter = list.iterator();
 			while (iter.hasNext()) {
 				WorkspaceItem item = (WorkspaceItem)iter.next();
-				
+
 				if (item instanceof TargetGroup) {
 					TargetGroup group = (TargetGroup)item;
 					File file = new File(workspace.getPath(), group.getName());
@@ -977,7 +974,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 					ConfigurationHandler.getInstance().serialize(target, new File(workspace.getPath()), false, false);
 				}
 			}
-			
+
 			this.openWorkspace(this.workspace.getPath());
 		} catch (Throwable e) {
 			handleException(RM.getLabel("error.importgrp.message"), e);
@@ -1050,7 +1047,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			AbstractTarget clone = (AbstractTarget)target.duplicate();
 			this.getCurrentTargetGroup().linkChild(clone);
 			clone.getMedium().install();
-			
+
 			ConfigurationListener.getInstance().targetCreated(clone, workspace.getPathFile());
 			this.setCurrentObject(clone, true);
 			this.mainWindow.refresh(true, true);
@@ -1330,7 +1327,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			return defaultGroup;
 		}
 	}
-	
+
 	public WorkspaceItem getCurrentWorkspaceItem() {
 		return (WorkspaceItem)this.currentObject;
 	}
@@ -1544,7 +1541,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			return false;
 		}
 	}
-	
+
 	public String showDirectoryDialog(AbstractWindow parent) {
 		return showDirectoryDialog(OSTool.getUserDir(), parent);
 	}

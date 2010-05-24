@@ -19,7 +19,7 @@ import com.myJava.util.version.VersionData;
  */
 
  /*
- Copyright 2005-2009, Olivier PETRUCCI.
+ Copyright 2005-2010, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -36,6 +36,7 @@ This file is part of Areca.
     You should have received a copy of the GNU General Public License
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
  */
 public class VersionInfos {
 	protected static ArrayList VERSIONS = new ArrayList();  
@@ -57,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 2272253101714274105L;
+		BUILD_ID = 6434898851448381478L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.1.7", new GregorianCalendar(2010, 4, 19), "Minor GUI enhancements & bugfixes"));
 		VERSIONS.add(new VersionData("7.1.6", new GregorianCalendar(2009, 11, 07), "Big files (over 2 GB) metadata are now properly handled; More control has been added to file path naming conventions on Windows; A bug that could occur when recovering single files in 'delta' mode has been fixed; Configuration storage has been refactored and simplified; 'Check' and 'Merge' features have been improved; Better 'Configuration import' window; 'Search' feature enhancements; Minor user interface enhancements.", "CAUTION : This version includes major modifications of Areca's backup configuration format."));
 		VERSIONS.add(new VersionData("7.1.5", new GregorianCalendar(2009, 7, 24), "More secured configuration backup (Areca makes sure that the XML backup file is correctly written on the backup location); Command-line output in console has been reactivated; Bugfix when forcing 'full backup' mode on delta targets; Areca can now handle <null> extended attribute values; Progress bars enhancements; Post-processors enhancements."));
 		VERSIONS.add(new VersionData("7.1.4", new GregorianCalendar(2009, 7, 2), "Drag and Drop in sources configuration window; Bugfix when recovering a specific version of a file (the latest version was always recovered); Minor enhancements."));

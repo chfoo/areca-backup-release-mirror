@@ -31,9 +31,11 @@ CLASSPATH="${CLASSPATH}:${LIB_PATH}org.eclipse.core.commands_3.2.0.I20060605-140
 CLASSPATH="${CLASSPATH}:${LIB_PATH}org.eclipse.equinox.common_3.2.0.v20060603.jar"
 CLASSPATH="${CLASSPATH}:${LIB_PATH}org.eclipse.jface_3.2.0.I20060605-1400.jar"
 CLASSPATH="${CLASSPATH}:/usr/lib/java/swt.jar"
+CLASSPATH="${CLASSPATH}:/usr/lib64/java/swt.jar"
+CLASSPATH="${CLASSPATH}:/usr/share/java/swt.jar"
 CLASSPATH="${CLASSPATH}:${LIB_PATH}swt.jar"
 
-LIBRARY_PATH="${LIB_PATH}:/lib64:/lib:/usr/lib64:/usr/lib:/usr/lib64/java:/usr/lib/java:/usr/lib64/jni:/usr/lib/jni"
+LIBRARY_PATH="${LIB_PATH}:/lib64:/lib:/usr/lib64:/usr/lib:/usr/lib64/java:/usr/lib/java:/usr/lib64/jni:/usr/lib/jni:/usr/share/java"
 
 #See https://bugs.launchpad.net/gtk/+bug/442078
 export GDK_NATIVE_WINDOWS=true

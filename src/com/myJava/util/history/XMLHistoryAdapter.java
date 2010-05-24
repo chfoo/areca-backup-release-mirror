@@ -29,7 +29,7 @@ import com.myJava.util.xml.XMLTool;
  */
 
  /*
- Copyright 2005-2009, Olivier PETRUCCI.
+ Copyright 2005-2010, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -46,6 +46,7 @@ This file is part of Areca.
     You should have received a copy of the GNU General Public License
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
  */
 public class XMLHistoryAdapter implements HistoryReader {
 	public static final int CURRENT_VERSION = 1;

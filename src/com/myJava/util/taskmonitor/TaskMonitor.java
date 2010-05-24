@@ -16,7 +16,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2009, Olivier PETRUCCI.
+ Copyright 2005-2010, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -33,6 +33,7 @@ This file is part of Areca.
     You should have received a copy of the GNU General Public License
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
  */
 public class TaskMonitor {
 	public static final long PAUSE_CHECK_DELAY_MS = 500;
@@ -119,8 +120,8 @@ public class TaskMonitor {
         if (currentSubTask == null) {
             return this.currentCompletionRate;
         } else {
-            return this.currentCompletionRate 
-                    + this.currentSubTaskShare * this.currentSubTask.getGlobalCompletionRate();
+            return Math.min(1., this.currentCompletionRate 
+                    + this.currentSubTaskShare * this.currentSubTask.getGlobalCompletionRate());
         }
     }
     
@@ -131,7 +132,7 @@ public class TaskMonitor {
      */
     public void setCurrentSubTask(TaskMonitor subTask, double subTaskShare) {
         if (subTask.getGlobalCompletionRate() > 0) {
-            throw new IllegalArgumentException("Illegal attempt to add a subTask which has already been started.");
+            //throw new IllegalArgumentException("Illegal attempt to add a subTask which has already been started.");
         }
         
         this.currentSubTask = subTask;
@@ -157,16 +158,16 @@ public class TaskMonitor {
         }
         
         if (this.currentSubTask != null) {
-            throw new IllegalArgumentException("Illegal attempt to enforce the current task's completion while a subtask is pending");
+        	this.currentSubTask.setCurrentCompletion(1);
+            //throw new IllegalArgumentException("Illegal attempt to enforce the current task's completion while a subtask is pending");
         }
         
         if (completion < this.currentCompletionRate) {
-            throw new IllegalArgumentException("Illegal Argument : the current completion rate is above the completion rate passed in argument");
+            //throw new IllegalArgumentException("Illegal Argument : the current completion rate is above the completion rate passed in argument");
+        } else {
+        	// Update completion rate
+        	this.currentCompletionRate = completion;
         }
-        
-        // Update completion rate
-        this.currentCompletionRate = completion;
-        
         // Raise event
         this.completionChanged();
     }

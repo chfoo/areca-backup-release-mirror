@@ -38,7 +38,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2009, Olivier PETRUCCI.
+ Copyright 2005-2010, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -55,11 +55,13 @@ This file is part of Areca.
     You should have received a copy of the GNU General Public License
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
  */
 public class CheckWindow 
 extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
     
+    private AbstractTarget target;
     private Text txtLocation;
     private Button btnBrowse;
     private Button chkCheckSelectedEntries;
@@ -71,6 +73,11 @@ extends AbstractWindow {
     private TableViewer viewer;
     private Application.ProcessRunner runner;
 
+    public CheckWindow(AbstractTarget target) {
+    	super();
+    	this.target = target;
+    }
+    
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(1, false);
@@ -163,7 +170,6 @@ extends AbstractWindow {
             radUseDefaultLocation.setSelection(true);
         }
         
-        AbstractTarget target = Application.getInstance().getCurrentTarget();
         AbstractIncrementalFileSystemMedium medium = (AbstractIncrementalFileSystemMedium)target.getMedium();
         chkCheckSelectedEntries.setEnabled(medium.getHandler().autonomousArchives());
         chkCheckSelectedEntries.setSelection(medium.getHandler().autonomousArchives());
@@ -239,7 +245,7 @@ extends AbstractWindow {
     }
     
     public String getTitle() {
-        return RM.getLabel("check.dialog.title");
+        return RM.getLabel("check.dialog.title") + " (" + target.getName() + ")";
     }
 
 	protected boolean checkBusinessRules() {
@@ -268,7 +274,7 @@ extends AbstractWindow {
         		this.txtLocation.getText()
         );
 
-        this.runner = application.launchArchiveCheck(checkParams, this);
+        this.runner = application.launchArchiveCheck(checkParams, target, this);
         if (runner != null) {
         	application.enableWaitCursor(this);
         }

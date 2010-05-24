@@ -46,7 +46,7 @@ import com.myJava.util.version.VersionData;
  */
 
  /*
- Copyright 2005-2009, Olivier PETRUCCI.
+ Copyright 2005-2010, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -63,11 +63,12 @@ This file is part of Areca.
     You should have received a copy of the GNU General Public License
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
  */
 public class AboutWindow
 extends AbstractWindow
 implements ArecaURLs {
-	private static final String CURRENT_YEAR = "2009";
+	private static final int CURRENT_YEAR = VersionInfos.getLastVersion().getYear();
     private static final int widthHint = computeWidth(400);
     private static final int heightHint = computeHeight(250);
     
@@ -126,7 +127,7 @@ implements ArecaURLs {
         String txt =
                 VersionInfos.APP_NAME +
                 "\n" + RM.getLabel("about.version.label") + " " + VersionInfos.getLastVersion().getVersionId() + " - " + VersionInfos.formatVersionDate(VersionInfos.getLastVersion().getVersionDate()) +
-                "\n\n" + RM.getLabel("about.copyright.label", new Object[] {CURRENT_YEAR});
+                "\n\n" + RM.getLabel("about.copyright.label", new Object[] {""+CURRENT_YEAR});
         
         content.setText(txt);
     }

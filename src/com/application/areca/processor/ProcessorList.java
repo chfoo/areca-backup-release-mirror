@@ -20,7 +20,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  */
 
  /*
- Copyright 2005-2009, Olivier PETRUCCI.
+ Copyright 2005-2010, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -37,10 +37,12 @@ This file is part of Areca.
     You should have received a copy of the GNU General Public License
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
  */
 public class ProcessorList implements Duplicable {
 
     protected List processors = new ArrayList();
+    protected boolean forwardErrors = true;
 
     public Duplicable duplicate() {
         ProcessorList other = new ProcessorList();
@@ -52,8 +54,16 @@ public class ProcessorList implements Duplicable {
         this.processors.add(processor);
     }
 
-    /**
-     * Calls the post processors 
+    public boolean isForwardErrors() {
+		return forwardErrors;
+	}
+
+	public void setForwardErrors(boolean forwardErrors) {
+		this.forwardErrors = forwardErrors;
+	}
+
+	/**
+     * Calls the processors 
      */
     public void run(ProcessContext context) throws ApplicationException {
         if (! this.isEmpty()) {
@@ -72,7 +82,7 @@ public class ProcessorList implements Duplicable {
                     processor.run(context);
 	                context.getReport().getStatus().addItem(key);
 	            } catch (Throwable e) {
-	                Logger.defaultLogger().error("Error during processor.", e);
+	                Logger.defaultLogger().error("Error while executing " + key, e);
 	                exceptions.append("\n").append(e.getMessage());
 	                context.getReport().getStatus().addItem(key, e.getMessage());
 	            } finally {
@@ -81,8 +91,8 @@ public class ProcessorList implements Duplicable {
 	        }
 	        
 	        String errorMsg = exceptions.toString();
-	        if (errorMsg.length() != 0) {
-	            throw new ApplicationException("The following errors occurred during processor : " + errorMsg);
+	        if (errorMsg.length() != 0 && forwardErrors) {
+	            throw new ApplicationException("The following errors occurred while runnings processors : " + errorMsg);
 	        }
         }
     }

@@ -63,7 +63,7 @@ import com.myJava.util.xml.AdapterException;
  */
 
  /*
- Copyright 2005-2009, Olivier PETRUCCI.
+ Copyright 2005-2010, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -80,6 +80,7 @@ This file is part of Areca.
     You should have received a copy of the GNU General Public License
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
  */
 public class TargetXMLReader implements XMLTags {
 	private static final int DEFAULT_ZIP_MV_DIGITS = FrameworkConfiguration.getInstance().getZipMvDigits();
@@ -205,6 +206,13 @@ public class TargetXMLReader implements XMLTags {
 				target.setCreateSecurityCopyOnBackup(Boolean.valueOf(createSecurityCopyNode.getNodeValue()).booleanValue());
 			} else {
 				target.setCreateSecurityCopyOnBackup(true);
+			}
+
+			Node fwdErrorsNode = targetNode.getAttributes().getNamedItem(XML_TARGET_FWD_PREPROC_ERRORS);  
+			if (fwdErrorsNode != null) {
+				target.getPreProcessors().setForwardErrors(Boolean.valueOf(fwdErrorsNode.getNodeValue()).booleanValue());
+			} else {
+				target.getPreProcessors().setForwardErrors(true);
 			}
 
 			HashSet sources = new HashSet();

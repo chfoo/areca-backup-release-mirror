@@ -38,7 +38,7 @@ import com.application.areca.processor.ProcessorList;
  */
 
  /*
- Copyright 2005-2009, Olivier PETRUCCI.
+ Copyright 2005-2010, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -55,6 +55,7 @@ This file is part of Areca.
     You should have received a copy of the GNU General Public License
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
  */
 public class ProcessorsTable {
 
@@ -64,6 +65,7 @@ public class ProcessorsTable {
     protected Button btnAddProc;
     protected Button btnRemoveProc;
     protected Button btnModifyProc;
+    protected Button chkForwardErrors;
     
     protected Button btnUp;
     protected Button btnDown;
@@ -104,7 +106,6 @@ public class ProcessorsTable {
         
         
         btnUp = new Button(parent, SWT.PUSH);
-        //btnUp.setText("" + (char)9651);
         btnUp.setText(RM.getLabel("common.up.label"));
         btnUp.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false));
         btnUp.addListener(SWT.Selection, new Listener(){
@@ -115,7 +116,6 @@ public class ProcessorsTable {
         
         
         btnDown = new Button(parent, SWT.PUSH);
-        //btnDown.setText("" + (char)9661);
         btnDown.setText(RM.getLabel("common.down.label"));
         btnDown.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
         btnDown.addListener(SWT.Selection, new Listener(){
@@ -170,6 +170,13 @@ public class ProcessorsTable {
 			public void keyReleased(KeyEvent evt) {
 			}
         });
+        
+        if (preprocess) {
+	        chkForwardErrors = new Button(parent, SWT.CHECK);
+	        chkForwardErrors.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
+	        chkForwardErrors.setText(RM.getLabel("targetedition.fwderrors.label"));
+	        chkForwardErrors.setSelection(true);
+        }
     }
     
     private void up() {
@@ -295,11 +302,19 @@ public class ProcessorsTable {
         if (index != -1) {
             tblProc.setSelection(index);
         }  
+        
+        if (preprocess) {
+        	chkForwardErrors.setSelection(list.isForwardErrors());
+        }
     }
     
     private void configure(TableItem item, Processor proc) {
         item.setText(0, ProcessorRepository.getName(proc));
         item.setText(1, proc.getParametersSummary());
         item.setData(proc);
+    }
+    
+    public boolean isForwardErrors() {
+    	return chkForwardErrors.getSelection();
     }
 }

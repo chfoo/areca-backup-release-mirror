@@ -31,7 +31,7 @@ import com.application.areca.processor.Processor;
  */
 
  /*
- Copyright 2005-2009, Olivier PETRUCCI.
+ Copyright 2005-2010, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -48,6 +48,7 @@ This file is part of Areca.
     You should have received a copy of the GNU General Public License
     along with Areca; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
  */
 public class ProcessorEditionWindow 
 extends AbstractWindow {
@@ -107,36 +108,34 @@ extends AbstractWindow {
             this.cboProcessorType.setEnabled(false);
         }
         
-        if (! preprocess) {
-            Group pnlRunContainer = new Group(composite, SWT.NONE);
-            pnlRunContainer.setText(RM.getLabel("procedition.run.label"));
-            pnlRunContainer.setLayout(new GridLayout(1, false));
-            pnlRunContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
-        	
-            chkOK = new Button(pnlRunContainer, SWT.CHECK);
-            chkOK.setText(RM.getLabel("procedition.run.ok.label"));
-            chkOK.setToolTipText(RM.getLabel("procedition.run.ok.tt"));
-            this.monitorControl(chkOK);
-            
-            chkWarning = new Button(pnlRunContainer, SWT.CHECK);
-            chkWarning.setText(RM.getLabel("procedition.run.warning.label"));
-            chkWarning.setToolTipText(RM.getLabel("procedition.run.warning.tt"));
-            this.monitorControl(chkWarning);
-            
-            chkError = new Button(pnlRunContainer, SWT.CHECK);
-            chkError.setText(RM.getLabel("procedition.run.error.label"));
-            chkError.setToolTipText(RM.getLabel("procedition.run.error.tt"));
-            this.monitorControl(chkError);
-            
-            if (proc != null) {
-            	chkOK.setSelection(proc.isRunIfOK());
-            	chkWarning.setSelection(proc.isRunIfWarning());
-            	chkError.setSelection(proc.isRunIfError());
-            } else {
-            	chkOK.setSelection(true);
-            	chkWarning.setSelection(true);
-            	chkError.setSelection(true);
-            }
+        Group pnlRunContainer = new Group(composite, SWT.NONE);
+        pnlRunContainer.setText(RM.getLabel("procedition.run.label"));
+        pnlRunContainer.setLayout(new GridLayout(1, false));
+        pnlRunContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+    	
+        chkOK = new Button(pnlRunContainer, SWT.CHECK);
+        chkOK.setText(RM.getLabel("procedition.run.ok.label"));
+        chkOK.setToolTipText(RM.getLabel("procedition.run.ok.tt"));
+        this.monitorControl(chkOK);
+        
+        chkWarning = new Button(pnlRunContainer, SWT.CHECK);
+        chkWarning.setText(RM.getLabel("procedition.run.warning.label"));
+        chkWarning.setToolTipText(RM.getLabel("procedition.run.warning.tt"));
+        this.monitorControl(chkWarning);
+        
+        chkError = new Button(pnlRunContainer, SWT.CHECK);
+        chkError.setText(RM.getLabel("procedition.run.error.label"));
+        chkError.setToolTipText(RM.getLabel("procedition.run.error.tt"));
+        this.monitorControl(chkError);
+        
+        if (proc != null) {
+        	chkOK.setSelection(proc.isRunIfOK());
+        	chkWarning.setSelection(proc.isRunIfWarning());
+        	chkError.setSelection(proc.isRunIfError());
+        } else {
+        	chkOK.setSelection(true);
+        	chkWarning.setSelection(true);
+        	chkError.setSelection(true);
         }
         
         // CONTAINER
@@ -176,11 +175,9 @@ extends AbstractWindow {
         }
         this.pnlParams.initProcessor(proc);
 
-        if (! this.preprocess) {
-        	this.proc.setRunIfError(chkError.getSelection());
-        	this.proc.setRunIfWarning(chkWarning.getSelection());
-        	this.proc.setRunIfOK(chkOK.getSelection());
-        }
+    	this.proc.setRunIfError(chkError.getSelection());
+    	this.proc.setRunIfWarning(chkWarning.getSelection());
+    	this.proc.setRunIfOK(chkOK.getSelection());
         
         this.hasBeenUpdated = false;
         this.close();
