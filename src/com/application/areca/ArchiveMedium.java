@@ -99,6 +99,7 @@ public interface ArchiveMedium extends Duplicable {
 	public void checkArchives(
 			Object destination, 
 			boolean checkOnlyArchiveContent, 
+			boolean simulateRecovery,
 			GregorianCalendar date, 
 			ProcessContext context) 
 	throws ApplicationException, TaskCancelledException;

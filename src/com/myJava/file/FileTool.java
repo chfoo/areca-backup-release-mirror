@@ -229,7 +229,7 @@ public class FileTool {
 						&& (FileSystemManager.exists(fileOrDirectory))
 				) {
 					retry++;
-					if (retry == 10 || retry == 100 || retry == 1000) {
+					if (retry == 10 || retry == 100 || retry == DELETION_MAX_ATTEMPTS) {
 						Logger
 						.defaultLogger()
 						.warn(
@@ -239,8 +239,9 @@ public class FileTool {
 								+ ") during "
 								+ (retry * deletionDelay)
 								+ " ms but it seems to be locked !");
-					}
-					if (retry >= DELETION_MAX_ATTEMPTS) {
+					} else if (retry == DELETION_MAX_ATTEMPTS - 1) {
+						FileSystemManager.getInstance().clearCachedData(fileOrDirectory);
+					} else if (retry > DELETION_MAX_ATTEMPTS) {
 						String[] files = FileSystemManager
 						.list(fileOrDirectory);
 						throw new IOException("Unable to delete file : "
@@ -295,13 +296,38 @@ public class FileTool {
 		fw.flush();
 		fw.close();
 	}
-	
+
 	/**
 	 * Return the content of the file as a String.
 	 */
 	public String getFileContent(File sourceFile)
 	throws IOException {
 		return getFileContent(sourceFile, null);
+	}
+
+	public byte[] getFileBytes(File sourceFile) throws IOException {
+		byte[] buffer = new byte[100000];
+		InputStream in = null;
+		try {
+			in = FileSystemManager.getFileInputStream(sourceFile);
+			int read = 0;
+			byte[] ret = new byte[0];
+			while ((read = in.read(buffer)) != -1) {
+				byte[] newRet = new byte[ret.length + read];
+				for (int i=0; i<ret.length; i++) {
+					newRet[i] = ret[i];
+				}
+				for (int i=0; i<read; i++) {
+					newRet[ret.length + i] = buffer[i];
+				}
+				ret = newRet;
+			}
+			return ret;
+		} finally {
+			if (in != null) {
+				in.close();
+			}
+		}
 	}
 
 	/**

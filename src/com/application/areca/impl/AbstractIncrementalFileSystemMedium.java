@@ -68,6 +68,7 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.HashInputStreamListener;
 import com.myJava.file.driver.FileSystemDriver;
+import com.myJava.file.driver.contenthash.ContentHashFileSystemDriver;
 import com.myJava.file.iterator.FilePathComparator;
 import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.file.metadata.FileMetaDataAccessor;
@@ -149,11 +150,11 @@ implements TargetActions {
 	public boolean isOverwrite() {
 		return this.imageBackups;
 	}
-	
+
 	public void setOverwrite(boolean overwrite) {
 		this.imageBackups = overwrite;
 	} 
-	
+
 	public void setHandler(ArchiveHandler handler) {
 		this.handler = handler;
 		handler.setMedium(this);
@@ -166,7 +167,7 @@ implements TargetActions {
 	public boolean isTrackPermissions() {
 		return trackPermissions;
 	}
-	
+
 	public Manifest buildDefaultBackupManifest() throws ApplicationException {
 		Manifest manifest = new Manifest(Manifest.TYPE_BACKUP);
 
@@ -177,7 +178,7 @@ implements TargetActions {
 
 		return manifest;
 	}
-	
+
 	/**
 	 * Return a description for the medium
 	 */
@@ -192,7 +193,7 @@ implements TargetActions {
 		}
 		return getSubDescription() + " " + type + " storage (" + fileSystemPolicy.getArchivePath() + ")";        
 	}  
-	
+
 	protected abstract String getSubDescription();
 
 	public Manifest buildDefaultMergeManifest(File[] recoveredArchives, GregorianCalendar fromDate, GregorianCalendar toDate) throws ApplicationException {
@@ -247,6 +248,7 @@ implements TargetActions {
 	public void checkArchives(
 			Object destination, 
 			boolean checkOnlyArchiveContent, 
+			boolean simulateRecovery,
 			GregorianCalendar date, 
 			ProcessContext context) 
 	throws ApplicationException, TaskCancelledException {
@@ -259,7 +261,7 @@ implements TargetActions {
 					ArecaFileConstants.CHECK_DESTINATION, 
 					true
 			);
-			
+
 			context.getInfoChannel().print("Checking archive (working directory : " + FileSystemManager.getAbsolutePath(destinationFile) + ") ...");
 
 			// Get the trace file
@@ -293,6 +295,7 @@ implements TargetActions {
 					ArchiveHandler.MODE_RECOVER,
 					false,
 					true, 
+					simulateRecovery,
 					context
 			);
 		} catch (IOException e) {
@@ -352,7 +355,7 @@ implements TargetActions {
 		if (TH_MON_ENABLED) {
 			ThreadMonitor.getInstance().remove(this.getTarget().getUid());
 		}
-		
+
 		this.target.secureUpdateCurrentTask("Committing backup ...", context);
 		try {  
 			// Close the trace file
@@ -378,7 +381,7 @@ implements TargetActions {
 			context.getManifest().addProperty(ManifestKeys.ARCHIVE_SIZE, context.getOutputStreamListener().getWritten()); 
 			context.getManifest().addProperty(ManifestKeys.STORED_FILES, context.getReport().getSavedFiles());
 			context.getManifest().addProperty(ManifestKeys.ARCHIVE_NAME, FileSystemManager.getName(context.getCurrentArchiveFile()));
-			
+
 			// Store the manifest
 			this.storeManifest(context);     
 
@@ -513,7 +516,7 @@ implements TargetActions {
 	public List getEntries(AggregatedViewContext context, String root, GregorianCalendar date) throws ApplicationException {
 		return getAggregatedView(context, root, date, false);
 	}
-	
+
 	/**
 	 * Return the final content file name
 	 */
@@ -729,15 +732,16 @@ implements TargetActions {
 				recover(
 						null, 
 						params.isUseSpecificLocation() ? new File(params.getSpecificLocation()) : null,
-						null, 
-						2,
-						fromDate, 
-						toDate, 
-						traceFile, 
-						ArchiveHandler.MODE_MERGE,
-						params.isKeepDeletedEntries(),
-						false,
-						context
+								null, 
+								2,
+								fromDate, 
+								toDate, 
+								traceFile, 
+								ArchiveHandler.MODE_MERGE,
+								params.isKeepDeletedEntries(),
+								false,
+								false,
+								context
 				);
 
 				context.getInfoChannel().print("Recovery completed - Merged archive creation ...");     
@@ -765,7 +769,7 @@ implements TargetActions {
 					context.getManifest().addProperty(ManifestKeys.MERGED_ARCHIVES, processedFiles.length);
 					context.getManifest().addProperty(ManifestKeys.ARCHIVE_SIZE, context.getOutputStreamListener().getWritten());					
 					context.getManifest().addProperty(ManifestKeys.ARCHIVE_NAME, FileSystemManager.getName(context.getCurrentArchiveFile()));
-					
+
 					AbstractTarget.addBasicInformationsToManifest(context.getManifest());
 					this.storeManifest(context);
 
@@ -862,7 +866,7 @@ implements TargetActions {
 
 			// medium-specific initializations
 			prepareContext(context);
-			
+
 			// Enable thread monitor if requested
 			if (TH_MON_ENABLED) {
 				ThreadMonitorItem item = new ThreadMonitorItem(this.getTarget().getUid(), TH_MON_DELAY);
@@ -906,6 +910,7 @@ implements TargetActions {
 					ArchiveHandler.MODE_RECOVER, 
 					recoverDeletedEntries, 
 					checkRecoveredFiles, 
+					false,
 					context);
 
 			// Create missing directories and symbolic links
@@ -931,7 +936,7 @@ implements TargetActions {
 		if (TH_MON_ENABLED) {
 			ThreadMonitor.getInstance().remove(this.getTarget().getUid());
 		}
-		
+
 		this.target.secureUpdateCurrentTask("Rollbacking backup ...", context);
 		try {
 			try {
@@ -1148,7 +1153,7 @@ implements TargetActions {
 		if (TH_MON_ENABLED) {
 			ThreadMonitor.getInstance().notify(this.getTarget().getUid());
 		}
-		
+
 		if (entry == null) {
 			return;
 		} else {
@@ -1541,8 +1546,12 @@ implements TargetActions {
 			short mode,                                 // Recovery mode : see ArchiveHandler.MODE_MERGE / MODE_RECOVER
 			boolean recoverDeletedEntries,				// Also recover deleted entries
 			boolean checkRecoveredFiles,				// Whether areca must check if the recovered files' hash is the same as the reference hash
+			boolean simulateRecovery,					// If the "checkRecoveredFiles" flag has been enabled, this flag controls whether a full recovery will be performed or not
 			ProcessContext context                		// Execution context
 	) throws ApplicationException, TaskCancelledException {
+		FileSystemDriver initialDriver = null;
+		boolean resetDriver = false;
+
 		// Compute maximum number of entries that allow optimized recovery
 		int maxEntries = (int)MemoryHelper.getMaxManageableEntries();
 
@@ -1560,116 +1569,138 @@ implements TargetActions {
 		RecoveryResult result = new RecoveryResult();
 		context.getReport().setRecoveryResult(result);
 		try {
-			// First stage : list archives to recover
-			Logger.defaultLogger().info("Recovering from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate) + ".");
-			if (recoverDeletedEntries) {
-				Logger.defaultLogger().info("Deleted entries will be recovered.");
-			} else {
-				Logger.defaultLogger().info("Deleted entries won't be recovered.");
-			}
-			String strflt = "Recovery filter : ";
-			if (filters != null) {
-				for (int i=0; i<filters.length; i++) {
-					if (i!= 0) {
-						strflt += ", ";
-					}
-					strflt += filters[i];
+			try {
+				// First stage : list archives to recover
+				Logger.defaultLogger().info("Recovering from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate) + ".");
+				if (recoverDeletedEntries) {
+					Logger.defaultLogger().info("Deleted entries will be recovered.");
+				} else {
+					Logger.defaultLogger().info("Deleted entries won't be recovered.");
 				}
-			} else {
-				strflt += "<null>";
-			}
-			Logger.defaultLogger().info(strflt);
-			buildArchiveListToRecover(result, fromDate, toDate, recoverDeletedEntries);
-			Logger.defaultLogger().info("" + result.getRecoveredArchives().size() + " archives will be processed.");
-			
-			// Second stage : recover data
-			if (result.getRecoveredArchives().size() >= minimumArchiveNumber) {
-				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(checkRecoveredFiles ? 0.7 : 0.9, "recover");
-				File[] optimizedArchives = result.getRecoveredArchivesAsArray();
-
-				// If no destination was set, compute it from the last archive's date.
-				if (targetFile == null) {
-					if (workingDirectory == null) {
-						GregorianCalendar lastArchiveDate = ArchiveManifestCache.getInstance().getManifest(this, optimizedArchives[optimizedArchives.length - 1]).getDate();
-						targetFile = new File(computeArchivePath(lastArchiveDate));
-					} else {
-						targetFile = FileTool.getInstance().generateNewWorkingFile(
-								workingDirectory, 
-								null, 
-								ArecaFileConstants.TMP_MERGE_LOCATION, 
-								true
-						);
-					}
-				}
-				FileTool.getInstance().delete(targetFile, true);
-				context.setRecoveryDestination(targetFile);
-				FileTool.getInstance().createDir(targetFile);
-				Logger.defaultLogger().info("Files will be recovered in " + targetFile.getAbsolutePath());
-				
-				if (mode == ArchiveHandler.MODE_MERGE) {
-					computeMergedArchiveFile(context);
-				}
-
-				// Process Recovery
-				RecoveryFilterMap entriesByArchive = null;
-				String[] entriesToDispatch = buildAtomicEntrySet(filters, traceFile, maxEntries, context);
-				if (entriesToDispatch == null) {
-					// Dummy mode : recover all entries / archives
-					Logger.defaultLogger().info("Too many entries (over " + maxEntries + " entries) to use optimized mode ... recovering in standard mode.");
-
-					// Build a default filter map (which will be applied to all archives, regardless to their real content)
-					if (filters != null && filters.length != 0) {
-						entriesByArchive = new RecoveryFilterMap(false);
-						FileFilterList defaultFilter = new FileFilterList();
-						for (int i=0; i<filters.length; i++) {
-							defaultFilter.add(filters[i]);
+				String strflt = "Recovery filter : ";
+				if (filters != null) {
+					for (int i=0; i<filters.length; i++) {
+						if (i!= 0) {
+							strflt += ", ";
 						}
-						for (int i=0; i<optimizedArchives.length; i++) {
-							entriesByArchive.put(optimizedArchives[i], defaultFilter);
-						}
+						strflt += filters[i];
 					}
 				} else {
-					// Smart mode : iterate on each entry and recover its latest version only
-					Logger.defaultLogger().info("Recovering in optimized mode.");
-					Logger.defaultLogger().info("" + entriesToDispatch.length + " files will be recovered.");
-
-					// Build an optimized filter map
-					entriesByArchive = handler.dispatchEntries(optimizedArchives, entriesToDispatch);
+					strflt += "<null>";
 				}
+				Logger.defaultLogger().info(strflt);
+				buildArchiveListToRecover(result, fromDate, toDate, recoverDeletedEntries);
+				Logger.defaultLogger().info("" + result.getRecoveredArchives().size() + " archives will be processed.");
 
-				// Recover the data
-				handler.recoverRawData(optimizedArchives, entriesByArchive, mode, context);
+				// Second stage : recover data
+				if (result.getRecoveredArchives().size() >= minimumArchiveNumber) {
+					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(checkRecoveredFiles ? 0.7 : 0.9, "recover");
+					File[] optimizedArchives = result.getRecoveredArchivesAsArray();
 
-				context.getTaskMonitor().checkTaskState();
+					// If no destination was set, compute it from the last archive's date.
+					if (targetFile == null) {
+						if (workingDirectory == null) {
+							GregorianCalendar lastArchiveDate = ArchiveManifestCache.getInstance().getManifest(this, optimizedArchives[optimizedArchives.length - 1]).getDate();
+							targetFile = new File(computeArchivePath(lastArchiveDate));
+						} else {
+							targetFile = FileTool.getInstance().generateNewWorkingFile(
+									workingDirectory, 
+									null, 
+									ArecaFileConstants.TMP_MERGE_LOCATION, 
+									true
+							);
+						}
+					}
+					FileTool.getInstance().delete(targetFile, true);
+					context.setRecoveryDestination(targetFile);
+					FileTool.getInstance().createDir(targetFile);
+					Logger.defaultLogger().info("Files will be recovered in " + targetFile.getAbsolutePath());
 
-				// Third stage: clean recovery directory ... necessary if the "dummy" mode has been used
-				boolean dummyMode = (entriesToDispatch == null);
-				if (traceFile != null && dummyMode) {
-					Logger.defaultLogger().info("Cleaning recovery directory ...");
-					this.cleanUnwantedFiles(
-							targetFile, 
-							traceFile,
-							true,
-							context);
-					Logger.defaultLogger().info("Recovery directory cleaned.");
-				}
-
-				// Fourth stage: check hash
-				if (checkRecoveredFiles) {
-					Logger.defaultLogger().info("Checking recovered files ...");
-					AbstractMetaDataFileIterator refIter;
-					if (optimizedArchives.length == 1) {
-						// Build reference content iterator
-						Logger.defaultLogger().info("Using content of archive " + optimizedArchives[0].getAbsolutePath() + " as reference.");
-						refIter = ArchiveContentManager.buildIteratorForArchive(this, optimizedArchives[0]);
-					} else {
-						// Build reference trace iterator
-						Logger.defaultLogger().info("Using trace of archive " + optimizedArchives[optimizedArchives.length - 1].getAbsolutePath() + " as reference.");
-						refIter = ArchiveTraceManager.buildIteratorForArchive(this, optimizedArchives[optimizedArchives.length - 1]);
+					if (mode == ArchiveHandler.MODE_MERGE) {
+						computeMergedArchiveFile(context);
 					}
 
-					checkHash(targetFile, optimizedArchives, filters, refIter, context);
-				} 
+					// Set specific driver if 'simulate recovery' has been requested
+					// (which will compute files' content hashcode on-the-fly)
+					if (checkRecoveredFiles && simulateRecovery) {
+						resetDriver = true;
+						initialDriver = FileSystemManager.getInstance().getDriverAtMountPoint(targetFile);
+						if (initialDriver instanceof ContentHashFileSystemDriver) {
+							Logger.defaultLogger().warn("Driver registered at " + targetFile + " is already an instance of 'ContentHashFileSystemDriver'.");
+						} else {
+							FileSystemManager.getInstance().registerDriver(targetFile, new ContentHashFileSystemDriver(FileSystemManager.getInstance().getDriver(targetFile)));
+						}
+					}
+
+					// Process Recovery
+					RecoveryFilterMap entriesByArchive = null;
+					String[] entriesToDispatch = buildAtomicEntrySet(filters, traceFile, maxEntries, context);
+					if (entriesToDispatch == null) {
+						// Dummy mode : recover all entries / archives
+						Logger.defaultLogger().info("Too many entries (over " + maxEntries + " entries) to use optimized mode ... recovering in standard mode.");
+
+						// Build a default filter map (which will be applied to all archives, regardless to their real content)
+						if (filters != null && filters.length != 0) {
+							entriesByArchive = new RecoveryFilterMap(false);
+							FileFilterList defaultFilter = new FileFilterList();
+							for (int i=0; i<filters.length; i++) {
+								defaultFilter.add(filters[i]);
+							}
+							for (int i=0; i<optimizedArchives.length; i++) {
+								entriesByArchive.put(optimizedArchives[i], defaultFilter);
+							}
+						}
+					} else {
+						// Smart mode : iterate on each entry and recover its latest version only
+						Logger.defaultLogger().info("Recovering in optimized mode.");
+
+						// Build an optimized filter map
+						entriesByArchive = handler.dispatchEntries(optimizedArchives, entriesToDispatch);
+						Logger.defaultLogger().info("" + entriesByArchive.getFilterCount() + " files will be recovered.");
+					}
+
+					// Recover the data
+					handler.recoverRawData(optimizedArchives, entriesByArchive, mode, context);
+
+					context.getTaskMonitor().checkTaskState();
+
+					// Third stage: clean recovery directory ... necessary if the "dummy" mode has been used
+					boolean dummyMode = (entriesToDispatch == null);
+					if (traceFile != null && dummyMode) {
+						Logger.defaultLogger().info("Cleaning recovery directory ...");
+						this.cleanUnwantedFiles(
+								targetFile, 
+								traceFile,
+								true,
+								context);
+						Logger.defaultLogger().info("Recovery directory cleaned.");
+					}
+
+					// Fourth stage: check hash
+					if (checkRecoveredFiles) {
+						Logger.defaultLogger().info("Checking recovered files ...");
+						AbstractMetaDataFileIterator refIter;
+						if (optimizedArchives.length == 1) {
+							// Build reference content iterator
+							Logger.defaultLogger().info("Using content of archive " + optimizedArchives[0].getAbsolutePath() + " as reference.");
+							refIter = ArchiveContentManager.buildIteratorForArchive(this, optimizedArchives[0]);
+						} else {
+							// Build reference trace iterator
+							Logger.defaultLogger().info("Using trace of archive " + optimizedArchives[optimizedArchives.length - 1].getAbsolutePath() + " as reference.");
+							refIter = ArchiveTraceManager.buildIteratorForArchive(this, optimizedArchives[optimizedArchives.length - 1]);
+						}
+
+						checkHash(targetFile, optimizedArchives, filters, refIter, simulateRecovery, context);
+					} 
+				}
+			} finally {
+				if (resetDriver) {
+					if (initialDriver == null) {
+						FileSystemManager.getInstance().unregisterDriver(targetFile);
+					} else {
+						FileSystemManager.getInstance().registerDriver(targetFile, initialDriver);
+					}
+				}
 			}
 		} catch (TaskCancelledException e) {
 			throw e;
@@ -1677,7 +1708,7 @@ implements TargetActions {
 			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
 		} finally {
-			context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);            
+			context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);  
 		}
 	}
 
@@ -1754,7 +1785,7 @@ implements TargetActions {
 	/**
 	 * Check that the file passed as argument matches the hashcode contained in the "entry" argument.
 	 */
-	private void checkHash(File file, ContentEntry entry, ProcessContext context) 
+	private void checkHash(File file, ContentEntry entry, boolean simulatedRecovery, ProcessContext context) 
 	throws IOException, TaskCancelledException, ApplicationException {
 		// Check the file
 		byte[] storedHash = ArchiveContentParser.interpretAsHash(entry.getKey(), entry.getData());
@@ -1762,7 +1793,7 @@ implements TargetActions {
 			context.getInfoChannel().warn(entry.getKey() + " : no reference hash could be found.");
 			context.getUncheckedRecoveredFiles().add(entry.getKey());
 		} else {
-			this.doAndRetry(new CheckHash(context, storedHash, entry, file), "Error while checking " + file.getAbsolutePath());
+			this.doAndRetry(new CheckHash(context, storedHash, entry, file, simulatedRecovery), "Error while checking " + file.getAbsolutePath());
 		}
 	}
 
@@ -1770,20 +1801,28 @@ implements TargetActions {
 		private ProcessContext context;
 		private byte[] storedHash;
 		private ContentEntry entry;
+		private boolean simulatedRecovery;
 		private File file;
 
-		public CheckHash(ProcessContext context, byte[] storedHash, ContentEntry entry, File file) {
+		public CheckHash(ProcessContext context, byte[] storedHash, ContentEntry entry, File file, boolean simulatedRecovery) {
 			this.context = context;
 			this.storedHash = storedHash;
 			this.entry = entry;
+			this.simulatedRecovery = simulatedRecovery;
 			this.file = file;
 		}
 
 		public void run() throws IOException, TaskCancelledException, ApplicationException {
 			byte[] computedHash;
 			try {
-				computedHash = FileTool.getInstance().hashFileContent(file, context.getTaskMonitor());
+				if (simulatedRecovery) {
+					computedHash = FileTool.getInstance().getFileBytes(file);
+				} else {
+					computedHash = FileTool.getInstance().hashFileContent(file, context.getTaskMonitor());
+				}
 			} catch (NoSuchAlgorithmException e) {
+				throw new ApplicationException(e);
+			} catch (IOException e) {
 				throw new ApplicationException(e);
 			}
 
@@ -1811,6 +1850,7 @@ implements TargetActions {
 			File[] archives, 
 			String[] filters,
 			AbstractMetaDataFileIterator referenceIterator,
+			boolean simulatedRecovery,
 			ProcessContext context) 
 	throws IOException, TaskCancelledException, ApplicationException {
 		context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2, "check");
@@ -1825,7 +1865,7 @@ implements TargetActions {
 				}
 			}
 		}
-		
+
 		ContentFileIterator[] iters = new ContentFileIterator[archives.length];
 		try {
 			// Build hashIterators
@@ -1837,7 +1877,7 @@ implements TargetActions {
 
 			while (referenceIterator.hasNext()) {
 				AbstractMetaDataEntry entry = referenceIterator.nextEntry();
-				
+
 				if (CHECK_DEBUG_MODE) {
 					Logger.defaultLogger().fine("Entry : " + entry.getKey());
 				}
@@ -1853,7 +1893,7 @@ implements TargetActions {
 							if (CHECK_DEBUG_MODE) {
 								Logger.defaultLogger().fine(entry.getKey() + " is a file ... checking its hash ...");
 							}
-							
+
 							// Iterate among the hash files
 							boolean found = false;
 							for (int i=archives.length-1; i>=0; i--) {
@@ -1866,7 +1906,7 @@ implements TargetActions {
 										Logger.defaultLogger().fine("Hash found ! Verifying ...");
 									}
 									// The entry has been found --> check the hash
-									checkHash(target, iters[i].current(), context);
+									checkHash(target, iters[i].current(), simulatedRecovery, context);
 									context.addChecked();
 									break;
 								}
@@ -2044,7 +2084,7 @@ implements TargetActions {
 							} else if (entry.getType() == MetadataConstants.T_FILE) {
 								String subdirectory = entryKey.substring(0, idx);
 								DirectoryData dt = (DirectoryData)directories.get(subdirectory);
-								
+
 								if (dt == null) {
 									Logger.defaultLogger().error("No reference data found in archive trace for directory : " + subdirectory + " (entry key = [" + entryKey + "])");
 									Logger.defaultLogger().fine("Directory reference data :\n" + directories.toString());
@@ -2105,7 +2145,7 @@ implements TargetActions {
 		Logger.defaultLogger().info("Searching in " + FileSystemManager.getAbsolutePath(archive) + " ...");
 		TraceFileIterator iter = null;
 		criteria.getMonitor().checkTaskState();
-		
+
 		try {
 			try {
 				File traceFile = ArchiveTraceManager.resolveTraceFileForArchive(this, archive);

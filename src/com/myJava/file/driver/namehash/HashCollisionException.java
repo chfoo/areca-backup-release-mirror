@@ -1,4 +1,4 @@
-package com.myJava.file.driver.hash;
+package com.myJava.file.driver.namehash;
 
 import java.io.IOException;
 

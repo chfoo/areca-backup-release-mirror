@@ -57,4 +57,6 @@ extends Duplicable {
      * Tells whether the filter needs to be parameterized or not 
      */
     public boolean requiresParameters();
+    
+    public boolean checkParameters();
 }

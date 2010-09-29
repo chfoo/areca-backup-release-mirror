@@ -284,11 +284,7 @@ implements LinkableFileSystemDriver {
     public OutputStream getFileOutputStream(File file) throws IOException {
         return getFileOutputStream(file, false);
     }
-
-    public boolean isContentSensitive() {
-        return predecessor.isContentSensitive();
-    }
-
+    
     public boolean isDirectory(File file) {
         try {
             DataEntry entry = getOrCreateDataEntry(file, true, false);
@@ -566,7 +562,19 @@ implements LinkableFileSystemDriver {
         predecessor.unmount();
     }
 
-    public FileCacheableInformations getInformations(File file) {
+    public void clearCachedData(File file) throws IOException {
+    	predecessor.clearCachedData(file);
+        try {
+			DataEntry d = getOrCreateDataEntry(file, false, false);
+			if (d != null) {
+				d.reset();
+			}
+		} catch (MaxDepthReachedException e) {
+			// No entry - do nothing
+		}
+	}
+
+	public FileCacheableInformations getInformations(File file) {
         return new FileCacheableInformations(this, file);
     }
 

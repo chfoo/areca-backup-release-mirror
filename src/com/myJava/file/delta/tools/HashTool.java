@@ -2,6 +2,7 @@ package com.myJava.file.delta.tools;
 
 import com.myJava.configuration.FrameworkConfiguration;
 
+
 /**
  * <BR>
  * @author Olivier PETRUCCI
@@ -35,6 +36,16 @@ public class HashTool {
     
     public static int hash(int currentHash, byte value) {
         return (currentHash + MULTIPLIER * Math.abs(value)) % MODULUS;
+    }
+    
+    public static int hash(int currentHash, byte[] values, int start, int len) {
+    	long hash = currentHash;
+    	for (int i=start; i<start + len; i++) {
+    		hash += Math.abs(values[i]);
+    	}
+    	hash *= MULTIPLIER;
+    	hash %= MODULUS;
+    	return (int)hash;
     }
     
     public static int update(int currentHash, byte newValue, byte oldValue) {

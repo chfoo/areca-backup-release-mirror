@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<jsmoothproject>
+<JVMSearchPath>registry</JVMSearchPath>
+<JVMSearchPath>javahome</JVMSearchPath>
+<JVMSearchPath>jrepath</JVMSearchPath>
+<JVMSearchPath>jdkpath</JVMSearchPath>
+<JVMSearchPath>exepath</JVMSearchPath>
+<JVMSearchPath>jview</JVMSearchPath>
+<arguments></arguments>
+<classPath>..\Source Areca\lib\areca.jar</classPath>
+<classPath>..\Source Areca\lib\activation.jar</classPath>
+<classPath>..\Source Areca\lib\mail.jar</classPath>
+<classPath>..\Source Areca\lib\commons-net-1.4.1.jar</classPath>
+<classPath>..\Source Areca\lib\jakarta-oro-2.0.8.jar</classPath>
+<classPath>..\Source Areca\config</classPath>
+<classPath>..\Source Areca\translations</classPath>
+<classPath>..\Source Areca\lib\org.eclipse.core.commands_3.2.0.I20060605-1400.jar</classPath>
+<classPath>..\Source Areca\lib\org.eclipse.equinox.common_3.2.0.v20060603.jar</classPath>
+<classPath>..\Source Areca\lib\org.eclipse.jface_3.2.0.I20060605-1400.jar</classPath>
+<classPath>..\Source Areca\lib\org.eclipse.swt.win32.win32.x86_3.2.0.v3232m.jar</classPath>
+<classPath>..\Source Areca</classPath>
+<embeddedJar>false</embeddedJar>
+<executableName>..\Source Areca\areca.exe</executableName>
+<iconLocation>..\Source Areca\icons\ico_72.ico</iconLocation>
+<initialMemoryHeap>67108864</initialMemoryHeap>
+<mainClassName>com.application.areca.launcher.gui.Launcher</mainClassName>
+<maximumMemoryHeap>268435456</maximumMemoryHeap>
+<maximumVersion></maximumVersion>
+<minimumVersion>1.4.2</minimumVersion>
+<skeletonName>Windowed Wrapper</skeletonName>
+<skeletonProperties>
+<key>Message</key>
+<value>Java has not been found on your computer. Do you want to download it?</value>
+</skeletonProperties>
+<skeletonProperties>
+<key>URL</key>
+<value>http://java.sun.com/javase/downloads/</value>
+</skeletonProperties>
+<skeletonProperties>
+<key>SingleProcess</key>
+<value>1</value>
+</skeletonProperties>
+<skeletonProperties>
+<key>Debug</key>
+<value>0</value>
+</skeletonProperties>
+</jsmoothproject>

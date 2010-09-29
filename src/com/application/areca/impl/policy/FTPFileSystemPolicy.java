@@ -53,6 +53,7 @@ implements FileSystemPolicy {
     private String protocol = null;
     private String protection = null;
     private boolean implicit = false;
+	private String controlEncoding = null;
     
     public boolean isSecured() {
         return protocol != null && protocol.length() != 0;
@@ -85,6 +86,7 @@ implements FileSystemPolicy {
         proxy.setImpliciteSec(implicit);
         proxy.setProtocol(protocol);
         proxy.setProtection(protection);
+        proxy.setControlEncoding(controlEncoding);
         proxy.setPassword(password);
         proxy.setRemotePort(remotePort);
         proxy.setRemoteServer(remoteServer);
@@ -110,6 +112,7 @@ implements FileSystemPolicy {
         policy.setPassword(this.password);
         policy.setPassivMode(this.passivMode);
         policy.setImplicit(this.implicit);
+        policy.setControlEncoding(this.controlEncoding);
         policy.setProtocol(this.protocol);
         policy.setProtection(this.protection);
     }
@@ -127,8 +130,16 @@ implements FileSystemPolicy {
     public void setLogin(String login) {
         this.login = login;
     }
-    
-    public boolean isPassivMode() {
+
+    public String getControlEncoding() {
+		return controlEncoding;
+	}
+
+	public void setControlEncoding(String controlEncoding) {
+		this.controlEncoding = controlEncoding;
+	}
+
+	public boolean isPassivMode() {
         return passivMode;
     }
     
@@ -206,7 +217,8 @@ implements FileSystemPolicy {
         ToStringHelper.append("Login", this.login, sb);
         ToStringHelper.append("Passiv", this.passivMode, sb);
         ToStringHelper.append("Protocol", this.protocol, sb);
-        ToStringHelper.append("Protection", this.protection, sb);        
+        ToStringHelper.append("Protection", this.protection, sb);  
+        ToStringHelper.append("Control Encoding", this.controlEncoding, sb);
         ToStringHelper.append("Implicit", this.implicit, sb);
         ToStringHelper.append("Directory", this.remoteDirectory, sb);
         ToStringHelper.append("Name", this.archiveName, sb);

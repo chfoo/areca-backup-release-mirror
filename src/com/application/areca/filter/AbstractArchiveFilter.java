@@ -46,4 +46,8 @@ public abstract class AbstractArchiveFilter implements ArchiveFilter {
     public boolean requiresParameters() {
         return true;
     }
+    
+    public boolean checkParameters() {
+    	return true;
+	}
 }

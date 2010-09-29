@@ -64,7 +64,11 @@ implements ArchiveFilter, FileSystemIteratorFilter {
         this.isAnd = isAnd;
     }
 
-    /**
+    public boolean checkParameters() {
+		return true;
+	}
+
+	/**
      * Accepts (or refuses) an entry
      */         
     public boolean acceptIteration(File entry) {

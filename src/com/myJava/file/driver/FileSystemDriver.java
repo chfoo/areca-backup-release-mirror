@@ -145,13 +145,12 @@ public interface FileSystemDriver {
     public short getAccessEfficiency();
     
     /**
-     * Returns true if the driver is sensitive to the content.
-     * <BR>In other words, if the driver has a chance to fail during initialization if files pre-exist on its storage location
-     */
-    public boolean isContentSensitive();
-    
-    /**
      * Returns a global set of file informations (length, lastmodified, ...)
      */
     public FileCacheableInformations getInformations(File file);
+    
+    /**
+     * Clears cached file informations, if applicable.
+     */
+    public void clearCachedData(File file) throws IOException;
 }

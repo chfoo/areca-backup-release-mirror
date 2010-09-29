@@ -49,8 +49,12 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
             Logger.defaultLogger().warn("The filtered directory does not exist. (" + FileSystemManager.getAbsolutePath(directory) + ")");
         }
     }
-    
-    public boolean acceptIteration(File entry) {
+
+    public boolean checkParameters() {
+    	return FileSystemManager.exists(directory);
+	}
+
+	public boolean acceptIteration(File entry) {
         return acceptStorage(entry);
     }
     

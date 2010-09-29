@@ -31,12 +31,14 @@ This file is part of Areca.
 public class CheckParameters {
 	private boolean check = true;
 	private boolean useSpecificLocation = false;
+	private boolean simulateRecovery = false;
 	private String specificLocation = null;
 	private boolean checkLastArchiveOnly = true;
 
 	public CheckParameters(
 			boolean check, 
 			boolean checkLastArchiveOnly, 
+			boolean simulateRecovery,
 			boolean useSpecificLocation,
 			String specificLocation) {
 		
@@ -44,6 +46,7 @@ public class CheckParameters {
 		this.check = check;
 		this.useSpecificLocation = useSpecificLocation;
 		this.specificLocation = specificLocation;
+		this.simulateRecovery = simulateRecovery;
 		this.checkLastArchiveOnly = checkLastArchiveOnly;
 	}
 	public boolean isCheck() {
@@ -69,5 +72,11 @@ public class CheckParameters {
 	}
 	public void setCheckLastArchiveOnly(boolean checkLastArchiveOnly) {
 		this.checkLastArchiveOnly = checkLastArchiveOnly;
+	}
+	public boolean isSimulateRecovery() {
+		return simulateRecovery;
+	}
+	public void setSimulateRecovery(boolean simulateRecovery) {
+		this.simulateRecovery = simulateRecovery;
 	}
 }

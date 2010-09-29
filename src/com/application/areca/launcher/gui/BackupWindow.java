@@ -292,6 +292,7 @@ extends AbstractWindow {
 		CheckParameters checkParams = new CheckParameters(
 				chkCheckArchive.getSelection(),
 				true,
+				true,
 				radUseSpecificLocation.getSelection(),
 				txtLocation.getText()
 		);

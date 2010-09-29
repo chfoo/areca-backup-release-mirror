@@ -394,12 +394,12 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 		return ACCESS_EFFICIENCY_GOOD;
 	}
 
-	public boolean isContentSensitive() {
-		return false;
-	}
-
 	public FileCacheableInformations getInformations(File file) {
 		return new FileCacheableInformations(this, file);
+	}
+	
+	public void clearCachedData(File file) throws IOException {
+		// Nothing to do
 	}
 
 	private static void checkWriteAccess(File file) {

@@ -57,12 +57,12 @@ public class WindowsMetaDataAccessor implements FileMetaDataAccessor {
 
 	public void setMetaData(File f, FileMetaData attr) throws IOException {
         WindowsMetaData wmdt = (WindowsMetaData)attr;
-        if (! wmdt.isCanWrite()) {
-            f.setReadOnly();
-        }
-        
         if (wmdt.getLastmodified() != FileMetaData.UNDEF_DATE) {
         	f.setLastModified(wmdt.getLastmodified());
+        }
+        
+        if (! wmdt.isCanWrite()) {
+            f.setReadOnly();
         }
 	}
 

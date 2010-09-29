@@ -56,6 +56,10 @@ implements LinkableFileSystemDriver {
         predecessor.flush();
     }
     
+    public boolean exists(File file) {
+        return predecessor.exists(file);
+    }
+    
     public void mount() throws IOException {
         predecessor.mount();
     }
@@ -76,6 +80,30 @@ implements LinkableFileSystemDriver {
     
     public File getAbsoluteFile(File file) {
         return this.predecessor.getAbsoluteFile(file);
+    }
+    
+    public boolean isDirectory(File file) {
+    	return this.predecessor.isDirectory(file);
+    }
+    
+    public boolean isFile(File file) {
+    	return this.predecessor.isFile(file);
+    }
+    
+    public boolean mkdir(File file) {
+    	return this.predecessor.mkdir(file);
+    }
+    
+    public boolean mkdirs(File file) {
+    	return this.predecessor.mkdirs(file);
+    }
+    
+    public boolean renameTo(File source, File dest) {
+    	return this.predecessor.renameTo(source, dest);
+    }
+    
+    public boolean setLastModified(File file, long time) {
+    	return this.predecessor.setLastModified(file, time);
     }
 
 	public String getAbsolutePath(File file) {
@@ -105,5 +133,27 @@ implements LinkableFileSystemDriver {
     public String getPath(File file) {
         return this.predecessor.getPath(file);
     }
+    
+
+	public boolean canRead(File file) {
+		return predecessor.canRead(file);
+	}
+
+	public boolean canWrite(File file) {
+		return predecessor.canWrite(file);
+	}
+	
+
+	public FileCacheableInformations getInformations(File file) {
+		return predecessor.getInformations(file);
+	}
+
+	public short getType(File file) throws IOException {
+		return predecessor.getType(file);
+	}
+
+	public void clearCachedData(File file) throws IOException {
+		predecessor.clearCachedData(file);
+	}
 }
 

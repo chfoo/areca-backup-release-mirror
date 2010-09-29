@@ -31,6 +31,7 @@ import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileTool;
+import com.myJava.file.delta.DeltaReader;
 import com.myJava.file.driver.AbstractFileSystemDriver;
 import com.myJava.system.OSTool;
 import com.myJava.system.viewer.ViewerHandlerHelper;
@@ -200,6 +201,8 @@ implements ArecaURLs {
         prps.put("areca-backup.version", VersionInfos.getLastVersion().getVersionId());
         prps.put("areca-backup.build.id", "" + VersionInfos.getBuildId());
         prps.put("areca-backup.path.length.limited", Boolean.toString(AbstractFileSystemDriver.CHECK_PATH));
+        prps.put("delta.lookup.success", "" + DeltaReader.SUCCESS_COUNTER);
+        prps.put("delta.lookup.failures", "" + DeltaReader.FAILURE_COUNTER);
         
         FileLogProcessor proc = (FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class);
         if (proc != null) {

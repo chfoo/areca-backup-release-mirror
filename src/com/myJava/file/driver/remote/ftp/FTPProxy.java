@@ -69,6 +69,7 @@ public class FTPProxy extends AbstractProxy {
 	private String protocol = null;
 	private String protection = null;
 	private boolean impliciteSec = false;
+	private String controlEncoding = null;
 
 	// CLIENT
 	private FTPClient client;
@@ -126,6 +127,18 @@ public class FTPProxy extends AbstractProxy {
 		this.impliciteSec = impliciteSec;
 	}
 
+	public String getControlEncoding() {
+		return controlEncoding;
+	}
+
+	public void setControlEncoding(String controlEncoding) {
+		if (controlEncoding != null && controlEncoding.trim().length() == 0) {
+			this.controlEncoding = null;
+		} else {
+			this.controlEncoding = controlEncoding;
+		}
+	}
+
 	public void setProtocol(String protocol) {
 		if (protocol != null && protocol.trim().length() == 0) {
 			this.protocol = null;
@@ -159,6 +172,7 @@ public class FTPProxy extends AbstractProxy {
 			&& EqualsHelper.equals(this.remotePort, o.remotePort)
 			&& EqualsHelper.equals(this.login, o.login)
 			&& EqualsHelper.equals(this.password, o.password)
+			&& EqualsHelper.equals(this.controlEncoding, o.controlEncoding)
 			&& EqualsHelper.equals(this.remoteServer, o.remoteServer);
 		} else {
 			return false;
@@ -174,6 +188,7 @@ public class FTPProxy extends AbstractProxy {
 		h = HashHelper.hash(h, this.remotePort);
 		h = HashHelper.hash(h, this.login);
 		h = HashHelper.hash(h, this.password);
+		h = HashHelper.hash(h, this.controlEncoding);
 		h = HashHelper.hash(h, this.remoteServer);
 		return h;
 	}    
@@ -228,6 +243,10 @@ public class FTPProxy extends AbstractProxy {
 				);
 			} else {
 				this.client = new FTPClient();
+			}
+			if (this.controlEncoding != null) {
+				this.client.setControlEncoding(this.controlEncoding); 
+				debug("control encoding : ", controlEncoding);
 			}
 			
 			//InetAddress adr = InetAddress.getByName(this.remoteServer);
@@ -650,6 +669,7 @@ public class FTPProxy extends AbstractProxy {
 		proxy.setPassword(password);
 		proxy.setRemotePort(remotePort);
 		proxy.setRemoteServer(remoteServer);
+		proxy.setControlEncoding(controlEncoding);
 		proxy.setFileInfoCache(fileInfoCache);
 
 		return proxy;

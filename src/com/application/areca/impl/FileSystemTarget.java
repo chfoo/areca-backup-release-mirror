@@ -314,7 +314,7 @@ implements TargetActions {
     			if (checkParams.isUseSpecificLocation()) {
     				destination = checkParams.getSpecificLocation();
     			}
-    			this.medium.checkArchives(destination, checkParams.isCheckLastArchiveOnly(), date, context);
+    			this.medium.checkArchives(destination, checkParams.isCheckLastArchiveOnly(),checkParams.isSimulateRecovery(), date, context);
     		} catch (TaskCancelledException e) {
     			throw new ApplicationException(e);
     		}

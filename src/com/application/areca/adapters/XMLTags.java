@@ -117,6 +117,7 @@ public interface XMLTags {
     public static final String XML_MEDIUM_FTP_PASSIV = "ftp_passiv";
     public static final String XML_MEDIUM_FTP_PROTOCOL = "ftp_protocol";
     public static final String XML_MEDIUM_FTP_PROTECTION = "ftp_protection";
+    public static final String XML_MEDIUM_FTP_CTRL_ENCODING = "ftp_ctrl_encoding";
     public static final String XML_MEDIUM_FTP_IMPLICIT = "ftp_implicit";
     public static final String XML_MEDIUM_FTP_REMOTEDIR= "ftp_remotedir";
     

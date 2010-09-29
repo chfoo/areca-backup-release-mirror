@@ -55,6 +55,7 @@ extends AbstractFileSystemPolicyXMLHandler {
         Node passwordNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PASSWORD);
         Node dirNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_REMOTEDIR);
         Node nameNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVENAME);
+        Node ctrlEncodingNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_CTRL_ENCODING);
         
         // No storage policy found
         if (serverNode == null && portNode == null && passivNode == null && loginNode == null && passwordNode == null && dirNode == null) {
@@ -117,6 +118,10 @@ extends AbstractFileSystemPolicyXMLHandler {
         	policy.setArchiveName(nameNode.getNodeValue());
         }
         
+        if (ctrlEncodingNode != null && ! "null".equals(ctrlEncodingNode.getNodeValue())) {
+        	policy.setControlEncoding(ctrlEncodingNode.getNodeValue());
+        }
+        
         return policy;
     }
 
@@ -174,6 +179,13 @@ extends AbstractFileSystemPolicyXMLHandler {
 	        sb.append(XML_MEDIUM_FTP_PASSWORD);
 	        sb.append("=");
 	        sb.append(XMLTool.encode(policy.getPassword()));
+        }
+        
+        if (policy.getControlEncoding() != null) {
+	        sb.append(" ");
+	        sb.append(XML_MEDIUM_FTP_CTRL_ENCODING);
+	        sb.append("=");
+	        sb.append(XMLTool.encode(policy.getControlEncoding()));
         }
         
         sb.append(" ");

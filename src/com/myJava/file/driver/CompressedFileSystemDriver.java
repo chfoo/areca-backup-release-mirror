@@ -414,10 +414,6 @@ extends AbstractLinkableFileSystemDriver {
         return false;
     }
     
-    public boolean isContentSensitive() {
-        return true;
-    }
-    
     protected File encode(File file) {
         File orig = file.getAbsoluteFile();
         if (orig.equals(this.root)) {

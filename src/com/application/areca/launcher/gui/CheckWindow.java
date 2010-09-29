@@ -270,6 +270,7 @@ extends AbstractWindow {
         CheckParameters checkParams = new CheckParameters(
         		true,
         		this.chkCheckSelectedEntries.getSelection(),
+        		true,
         		this.radUseSpecificLocation.getSelection(),
         		this.txtLocation.getText()
         );

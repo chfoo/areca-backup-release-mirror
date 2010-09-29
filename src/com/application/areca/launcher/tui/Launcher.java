@@ -332,6 +332,7 @@ implements CommandConstants {
         final CheckParameters checkParams = new CheckParameters(
                 command.getOption(OPTION_CHECK_FILES) != null && command.getOption(OPTION_CHECK_FILES).trim().length() != 0,
                 true,
+                true,
                 destination != null,
                 destination
         );
@@ -530,6 +531,7 @@ implements CommandConstants {
         ProcessContext context = buildContext(item);
         
         final CheckParameters checkParams = new CheckParameters(
+                true,
                 true,
                 ! checkAll,
                 destination != null,

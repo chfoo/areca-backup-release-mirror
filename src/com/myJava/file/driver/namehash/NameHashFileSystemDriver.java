@@ -1,4 +1,4 @@
-package com.myJava.file.driver.hash;
+package com.myJava.file.driver.namehash;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
@@ -55,7 +55,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class HashFileSystemDriver 
+public class NameHashFileSystemDriver 
 extends AbstractLinkableFileSystemDriver {
 
 	/**
@@ -69,7 +69,7 @@ extends AbstractLinkableFileSystemDriver {
 	/**
 	 * Constructor
 	 */
-	public HashFileSystemDriver(File directoryRoot) {
+	public NameHashFileSystemDriver(File directoryRoot) {
 		this.directoryRoot = directoryRoot.getAbsoluteFile();
 	}
 
@@ -485,8 +485,8 @@ extends AbstractLinkableFileSystemDriver {
 	public boolean equals(Object o) {
 		if (o == null) {
 			return false;
-		} else if (o instanceof HashFileSystemDriver) {
-			HashFileSystemDriver other = (HashFileSystemDriver)o;
+		} else if (o instanceof NameHashFileSystemDriver) {
+			NameHashFileSystemDriver other = (NameHashFileSystemDriver)o;
 
 			return (
 					EqualsHelper.equals(other.directoryRoot, this.directoryRoot) 
@@ -499,11 +499,11 @@ extends AbstractLinkableFileSystemDriver {
 
 	protected static class FilenameFilterAdapter implements FilenameFilter {
 		protected FilenameFilter filter;
-		protected HashFileSystemDriver driver;
+		protected NameHashFileSystemDriver driver;
 
 		public FilenameFilterAdapter(
 				FilenameFilter wrappedFilter,
-				HashFileSystemDriver driver) {
+				NameHashFileSystemDriver driver) {
 
 			this.filter = wrappedFilter;
 			this.driver = driver;
@@ -555,18 +555,18 @@ extends AbstractLinkableFileSystemDriver {
 
 	protected static class FileFilterAdapter implements FileFilter {
 		protected FileFilter filter;
-		protected HashFileSystemDriver driver;
+		protected NameHashFileSystemDriver driver;
 
 		public FileFilterAdapter(
 				FileFilter wrappedFilter,
-				HashFileSystemDriver driver) {
+				NameHashFileSystemDriver driver) {
 
 			this.filter = wrappedFilter;
 			this.driver = driver;
 		}
 
 		public FileFilterAdapter(
-				HashFileSystemDriver driver) {
+				NameHashFileSystemDriver driver) {
 
 			this.filter = null;
 			this.driver = driver;
@@ -623,9 +623,5 @@ extends AbstractLinkableFileSystemDriver {
 		ToStringHelper.append("ROOT", this.directoryRoot, sb);
 		ToStringHelper.append("PREDECESSOR", this.predecessor, sb);
 		return ToStringHelper.close(sb);
-	}
-
-	public boolean isContentSensitive() {
-		return true;
 	}
 }

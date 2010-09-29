@@ -1,5 +1,7 @@
 package com.application.areca.launcher.gui;
 
+import java.nio.charset.Charset;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -21,6 +23,7 @@ import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.driver.remote.ftp.SecuredSocketFactory;
+import com.myJava.system.OSTool;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 
@@ -74,6 +77,7 @@ extends AbstractWindow {
     protected Text txtPort;
     protected Button chkPassiv;
     protected Combo cboProtocol;
+    protected Combo cboCtrlEncoding;
     protected Text txtLogin;
     protected Text txtPassword;
     protected Text txtRemoteDir;
@@ -126,6 +130,16 @@ extends AbstractWindow {
                 }
             }
             this.cboProtocol.select(index);
+            
+            index = -1;
+            Charset[] encs = OSTool.getCharsets();
+            for (int i=0; i<encs.length; i++) {
+                if (encs[i].name().equals(currentPolicy.getControlEncoding())) {
+                    index = i;
+                    break;
+                }
+            }
+            this.cboCtrlEncoding.select(index);
             
             index = 0;
             for (int i=0; i<SecuredSocketFactory.PROTECTIONS.length; i++) {
@@ -188,8 +202,15 @@ extends AbstractWindow {
         Label lblRemoteDir = new Label(grpServer, SWT.NONE);
         lblRemoteDir.setText(RM.getLabel("ftpedition.dir.label"));
         txtRemoteDir = new Text(grpServer, SWT.BORDER);
-        txtRemoteDir.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        txtRemoteDir.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         monitorControl(txtRemoteDir);
+
+        cboCtrlEncoding = new Combo(grpServer, SWT.READ_ONLY);
+        cboCtrlEncoding.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+		for (int i=0; i<OSTool.getCharsets().length; i++) {
+			cboCtrlEncoding.add(OSTool.getCharsets()[i].name());
+		}
+        monitorControl(cboCtrlEncoding);
         
         new Label(composite, SWT.NONE);
         
@@ -422,6 +443,13 @@ extends AbstractWindow {
             policy.setProtocol(protocol);
         } else {
             policy.setProtocol(null);
+        }
+        
+        if (cboCtrlEncoding.getSelectionIndex() != -1) {
+            String enc = (String)cboCtrlEncoding.getItem(cboCtrlEncoding.getSelectionIndex());
+            policy.setControlEncoding(enc);
+        } else {
+            policy.setControlEncoding(null);
         }
         
         if (cboProtection.getSelectionIndex() != -1) {

@@ -50,8 +50,8 @@ public class ManifestManager {
             ManifestReader reader = buildReader(manifestFile);
             return reader.read(manifestFile);
         } catch (AdapterException e) {
-            Logger.defaultLogger().error(e);
-            throw new ApplicationException(e);
+            Logger.defaultLogger().error("An error occurred while reading the manifest file for the following archive : " + FileSystemManager.getAbsolutePath(archive), e);
+            throw new ApplicationException("An error occurred while reading the manifest file for the following archive : " + FileSystemManager.getAbsolutePath(archive), e);
         }
     }
     
@@ -65,11 +65,11 @@ public class ManifestManager {
             XMLManifestAdapter adapter = new XMLManifestAdapter();
             adapter.write(mf, manifestFile);
         } catch (AdapterException e) {
-            Logger.defaultLogger().error(e);
-            throw new ApplicationException(e);    
+            Logger.defaultLogger().error("An error occurred while writing the manifest file for the following archive : " + FileSystemManager.getAbsolutePath(archive), e);
+            throw new ApplicationException("An error occurred while writing the manifest file for the following archive : " + FileSystemManager.getAbsolutePath(archive), e);    
         } catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            throw new ApplicationException(e);               
+            Logger.defaultLogger().error("An error occurred while writing the manifest file for the following archive : " + FileSystemManager.getAbsolutePath(archive), e);
+            throw new ApplicationException("An error occurred while writing the manifest file for the following archive : " + FileSystemManager.getAbsolutePath(archive), e);               
         }
     }
     

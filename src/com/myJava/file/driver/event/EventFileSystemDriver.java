@@ -352,10 +352,6 @@ implements LinkableFileSystemDriver {
         return res;
     }
 
-    public boolean isContentSensitive() {
-        return predecessor.isContentSensitive();
-    }
-
     public boolean isDirectory(File file) {
         FileSystemDriverEvent event = buildEvent("isDirectory", file);
         throwStartEvent(event);

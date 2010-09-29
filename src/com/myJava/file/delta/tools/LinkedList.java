@@ -54,16 +54,24 @@ public class LinkedList {
     	currentIndex++;
     	if (currentIndex == maxSize) {
     		currentIndex = 0;
+    		firstIndex = 0;
     		eof = true;
-    	}
-    	
-    	if (eof) {
+    	} else if (eof) {
     		firstIndex = currentIndex;
     	}
     }
     
     public int getFirst() {
     	return buffer[firstIndex];
+    }
+    
+    public int computeQuickHash() {
+        if (eof) {
+            int hash = HashTool.hash(0, buffer, firstIndex, maxSize - firstIndex);
+            return HashTool.hash(hash, buffer, 0, firstIndex);
+        } else {
+        	return HashTool.hash(0, buffer, 0, currentIndex);
+        }
     }
 
     public byte[] computeHash(String algorithm) {

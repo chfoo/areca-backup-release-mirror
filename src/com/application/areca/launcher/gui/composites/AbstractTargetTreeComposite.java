@@ -117,12 +117,14 @@ implements MouseListener, Listener {
     }
     
     public void synchronizeHistory() {
-    	txtPath.removeAll();
-        Stack h = ArecaPreferences.getWorkspaceHistory();
-        for (int i=0; i<h.size(); i++) {
-        	txtPath.add((String)h.get(i));
-        }
-        txtPath.setText(Application.getInstance().getWorkspace().getPath());
+    	if (txtPath != null){
+	    	txtPath.removeAll();
+	        Stack h = ArecaPreferences.getWorkspaceHistory();
+	        for (int i=0; i<h.size(); i++) {
+	        	txtPath.add((String)h.get(i));
+	        }
+	        txtPath.setText(Application.getInstance().getWorkspace().getPath());
+    	}
     }
     
     protected abstract Workspace getWorkspace();

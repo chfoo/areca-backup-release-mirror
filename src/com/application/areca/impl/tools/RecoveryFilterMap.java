@@ -45,8 +45,18 @@ public class RecoveryFilterMap {
 	public void put(File archive, FileFilterList filters) {
     	content.put(archive, filters);
     }
-    
-    public FileFilterList get(File archive) {
+
+    public int getFilterCount() {
+    	int filterCount = 0;
+    	Iterator iter = content.values().iterator();
+    	while (iter.hasNext()) {
+    		FileFilterList list = (FileFilterList)iter.next();
+        	filterCount += list.size();
+    	}
+    	return filterCount;
+	}
+
+	public FileFilterList get(File archive) {
     	return (FileFilterList)content.get(archive);
     }
 

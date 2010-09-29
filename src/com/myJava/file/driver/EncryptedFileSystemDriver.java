@@ -21,7 +21,7 @@ import javax.crypto.NoSuchPaddingException;
 
 import com.myJava.encryption.EncryptionUtil;
 import com.myJava.file.OutputStreamListener;
-import com.myJava.file.driver.hash.HashFileSystemDriver;
+import com.myJava.file.driver.namehash.NameHashFileSystemDriver;
 import com.myJava.file.metadata.FileMetaData;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
@@ -94,7 +94,7 @@ extends AbstractLinkableFileSystemDriver {
 	 */
 	public void setPredecessor(FileSystemDriver predecessor) {
 		if (shallWrappPredecessor(predecessor)) {
-			HashFileSystemDriver hashPredecessor = new HashFileSystemDriver(this.directoryRoot);
+			NameHashFileSystemDriver hashPredecessor = new NameHashFileSystemDriver(this.directoryRoot);
 			hashPredecessor.setPredecessor(predecessor);
 			super.setPredecessor(hashPredecessor);
 		} else {
@@ -110,7 +110,7 @@ extends AbstractLinkableFileSystemDriver {
 	 */
 	public FileSystemDriver getPredecessor() {
 		if (shallWrappPredecessor(this.predecessor)) {
-			HashFileSystemDriver hashPredecessor = (HashFileSystemDriver)this.predecessor;
+			NameHashFileSystemDriver hashPredecessor = (NameHashFileSystemDriver)this.predecessor;
 			return hashPredecessor.getPredecessor();
 		} else {
 			return super.getPredecessor();
@@ -571,9 +571,5 @@ extends AbstractLinkableFileSystemDriver {
 
 	 public boolean directFileAccessSupported() {
 		 return false;
-	 }
-
-	 public boolean isContentSensitive() {
-		 return true;
 	 }
 }

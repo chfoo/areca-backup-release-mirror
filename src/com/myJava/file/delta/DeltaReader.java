@@ -1,5 +1,6 @@
 package com.myJava.file.delta;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -42,147 +43,206 @@ This file is part of Areca.
 
  */
 public class DeltaReader implements Constants {   
-    private int blockSize;
-    private HashSequence seq;
-    private InputStream in;
-    private String hashAlgorithm = HASH_ALG;
-    private DeltaProcessor[] processors;
-    private ByteProcessor bproc;
+	public static long SUCCESS_COUNTER = 0;
+	public static long FAILURE_COUNTER = 0;
 
-    public DeltaReader(int blockSize, InputStream in, DeltaProcessor[] processors, ByteProcessor bproc) {
-        this.blockSize = blockSize;
-        this.in = in;
-        this.processors = processors;
-        this.bproc = bproc;
-    }
-    
-    public DeltaReader(HashSequence seq, InputStream in, DeltaProcessor[] processors, ByteProcessor bproc) {
-        if (seq == null) {
-            throw new IllegalArgumentException("The hash sequence can't be null.");
-        }
-        this.seq = seq;
-        this.blockSize = seq.getBlockSize();
-        this.in = in;
-        this.processors = processors;
-        this.bproc = bproc;
-    }
-    
-    private long computeSig(long totalRead) {
-    	return totalRead%blockSize;
-    }
-    
-    public void read(TaskMonitor monitor) throws IOException, DeltaException, DeltaProcessorException, ByteProcessorException, TaskCancelledException {
-        LinkedList currentBlock = new LinkedList(blockSize);
-        long totalRead = 0;
-        long position = 0;
-        int currentQuickHash = 0;
-        long breakSize = -1;
-        long lastBlockIndex = -1;
-        long significant = blockSize;
-        
-        for (int x=0; x<processors.length; x++) {
-            processors[x].begin();
-        }
-        
-        if (bproc != null) {
-            bproc.open();
-        }
-        
-        while (true) {
-        	monitor.checkTaskState();
-        	
-            int read = in.read();
-            byte bRead;
-            if (read == -1) {
-                if (totalRead == 0 || totalRead == breakSize) {
-                	bRead = (byte)read;
-                    break;
-                } else {
-                    if (breakSize == -1) {
-                        breakSize = totalRead + blockSize -1 ;
-                        significant = computeSig(totalRead);
-                    }
-                    bRead = HashSequenceEntry.DEFAULT_BYTE;
-                }
-            } else {
-            	bRead = (byte)read;
-            	if (bproc != null) {
-            		bproc.processByte(bRead);
-            	}
-            }
-            
-            // Read data
-            totalRead++;
-            if (totalRead <= blockSize) {
-                currentQuickHash = HashTool.hash(currentQuickHash, bRead);
-            } else {
-                currentQuickHash = HashTool.update(currentQuickHash, bRead, (byte)currentBlock.getFirst());
-            }
-            currentBlock.add(bRead);
+	private int blockSize;
+	private HashSequence seq;
+	private InputStream in;
+	private String hashAlgorithm = HASH_ALG;
+	private DeltaProcessor[] processors;
+	private ByteProcessor bproc;
 
-            // Look for
-            boolean found = false;
-            if (totalRead >= blockSize) {
-                if (seq != null && seq.contains(currentQuickHash)) {
-                    byte[] fh = currentBlock.computeHash(hashAlgorithm);
-                    List entries = seq.get(currentQuickHash, fh);
-                    if (entries != null) {
-                        Iterator iter = entries.iterator();
-                        HashSequenceEntry candidate = null;
-                        while (iter.hasNext()) {
-                            HashSequenceEntry entry = (HashSequenceEntry)iter.next();
-                            if (entry.getIndex() > lastBlockIndex && (candidate == null || entry.getIndex() < candidate.getIndex())) {
-                                candidate = entry;
-                            }
-                        }
-                        if (candidate != null && candidate.getSize() == significant) {
-                            // Found !
-                            if (candidate.getIndex() <= lastBlockIndex) {
-                                throw new DeltaException("Incompatible indexes : current = " + candidate.getIndex() + ", last = " + lastBlockIndex);
-                            } else if (candidate.getIndex() > lastBlockIndex + 1) {
-                                // Block lost !
-                                for (int x=0; x<processors.length; x++) {
-                                    processors[x].bytesLost((lastBlockIndex + 1) * blockSize, candidate.getIndex() * blockSize - 1);
-                                }
-                            }
-                            lastBlockIndex = candidate.getIndex();
-                            for (int x=0; x<processors.length; x++) {
-                                processors[x].blockFound(candidate, currentBlock);
-                            }
-                            
-                            // go ahead (and reset all)
-                            currentQuickHash = 0;
-                            totalRead = 0;
-                            found = true;
-                        }
-                    } else {
-                    	//Logger.defaultLogger().info("No entries found.");
-                    }
-                }
+	public DeltaReader(int blockSize, InputStream in, DeltaProcessor[] processors, ByteProcessor bproc) {
+		this.blockSize = blockSize;
+		this.in = new BufferedInputStream(in, 10000);
+		this.processors = processors;
+		this.bproc = bproc;
+	}
 
-                if (! found) {
-                    for (int x=0; x<processors.length; x++) {
-                        processors[x].newByte((byte)currentBlock.getFirst());   
-                    }
-                }
-            }
+	public DeltaReader(HashSequence seq, InputStream in, DeltaProcessor[] processors, ByteProcessor bproc) {
+		if (seq == null) {
+			throw new IllegalArgumentException("The hash sequence can't be null.");
+		}
+		this.seq = seq;
+		this.blockSize = seq.getBlockSize();
+		this.in = new BufferedInputStream(in, 10000);
+		this.processors = processors;
+		this.bproc = bproc;
+	}
 
-            position++;
-        }
-        
-        if (seq != null && lastBlockIndex < seq.getSize() - 1) {
-            // Block lost !
-            for (int x=0; x<processors.length; x++) {
-                processors[x].bytesLost((lastBlockIndex + 1) * blockSize, seq.getSize() * blockSize - 1);
-            }
-        }
-        
-        for (int x=0; x<processors.length; x++) {
-            processors[x].end();
-        }
-        
-        if (bproc != null) {
-            bproc.close();
-        }
-    }
+	private long computeSig(long totalRead) {
+		return totalRead%blockSize;
+	}
+	
+	public void read(TaskMonitor monitor) throws IOException, DeltaException, DeltaProcessorException, ByteProcessorException, TaskCancelledException {
+		if (seq == null) {
+			readNoSeq(monitor);
+		} else {
+			readSeq(monitor);
+		}
+	}
+
+	public void readNoSeq(TaskMonitor monitor) throws IOException, DeltaException, DeltaProcessorException, ByteProcessorException, TaskCancelledException {
+		LinkedList currentBlock = new LinkedList(blockSize);
+		long totalRead = 0;
+		long position = 0;
+		long breakSize = -1;
+
+		for (int x=0; x<processors.length; x++) {
+			processors[x].begin();
+		}
+
+		bproc.open();
+
+		while (true) {
+			monitor.checkTaskState();
+
+			int read = in.read();
+			byte bRead;
+			if (read == -1) {
+				if (totalRead == 0 || totalRead == breakSize) {
+					bRead = (byte)read;
+					break;
+				} else {
+					if (breakSize == -1) {
+						breakSize = totalRead + blockSize -1 ;
+					}
+					bRead = HashSequenceEntry.DEFAULT_BYTE;
+				}
+			} else {
+				bRead = (byte)read;
+				bproc.processByte(bRead);
+			}
+
+			totalRead++;
+			currentBlock.add(bRead);
+
+			// Look for
+			if (totalRead >= blockSize) {
+				for (int x=0; x<processors.length; x++) {
+					processors[x].newByte((byte)currentBlock.getFirst());   
+				}
+			}
+
+			position++;
+		}
+
+		for (int x=0; x<processors.length; x++) {
+			processors[x].end();
+		}
+		bproc.close();
+	}
+
+	public void readSeq(TaskMonitor monitor) throws IOException, DeltaException, DeltaProcessorException, ByteProcessorException, TaskCancelledException {
+		LinkedList currentBlock = new LinkedList(blockSize);
+		long totalRead = 0;
+		long position = 0;
+		int currentQuickHash = 0;
+		long breakSize = -1;
+		long lastBlockIndex = -1;
+		long significant = blockSize;
+
+		for (int x=0; x<processors.length; x++) {
+			processors[x].begin();
+		}
+
+		bproc.open();
+
+		while (true) {
+			monitor.checkTaskState();
+
+			int read = in.read();
+			byte bRead;
+			if (read == -1) {
+				if (totalRead == 0 || totalRead == breakSize) {
+					bRead = (byte)read;
+					break;
+				} else {
+					if (breakSize == -1) {
+						breakSize = totalRead + blockSize -1 ;
+						significant = computeSig(totalRead);
+					}
+					bRead = HashSequenceEntry.DEFAULT_BYTE;
+				}
+			} else {
+				bRead = (byte)read;
+				bproc.processByte(bRead);
+			}
+
+			totalRead++;
+			// Compute hash
+			if (totalRead > blockSize) {
+				currentQuickHash = HashTool.update(currentQuickHash, bRead, (byte)currentBlock.getFirst());
+			} else {
+				currentQuickHash = HashTool.hash(currentQuickHash, bRead);
+			}
+			currentBlock.add(bRead);
+
+			// Look for
+			boolean found = false;
+			if (totalRead >= blockSize) {
+				if (seq.contains(currentQuickHash)) {
+					byte[] fh = currentBlock.computeHash(hashAlgorithm);
+					List entries = seq.get(currentQuickHash, fh);
+					if (entries != null) {
+						Iterator iter = entries.iterator();
+						HashSequenceEntry candidate = null;
+						while (iter.hasNext()) {
+							HashSequenceEntry entry = (HashSequenceEntry)iter.next();
+							if (entry.getIndex() > lastBlockIndex && (candidate == null || entry.getIndex() < candidate.getIndex())) {
+								candidate = entry;
+							}
+						}
+						if (candidate != null && candidate.getSize() == significant) {
+							// Found !
+							if (candidate.getIndex() <= lastBlockIndex) {
+								throw new DeltaException("Incompatible indexes : current = " + candidate.getIndex() + ", last = " + lastBlockIndex);
+							} else if (candidate.getIndex() > lastBlockIndex + 1) {
+								// Block lost !
+								for (int x=0; x<processors.length; x++) {
+									processors[x].bytesLost((lastBlockIndex + 1) * blockSize, candidate.getIndex() * blockSize - 1);
+								}
+							}
+							lastBlockIndex = candidate.getIndex();
+							for (int x=0; x<processors.length; x++) {
+								processors[x].blockFound(candidate, currentBlock);
+							}
+
+							// go ahead (and reset all)
+							currentQuickHash = 0;
+							totalRead = 0;
+							found = true;
+							SUCCESS_COUNTER++;
+						} else {
+							//Logger.defaultLogger().fine("Full hash computed but no entry found.");
+							FAILURE_COUNTER++;
+						}
+					} else {
+						//Logger.defaultLogger().info("No entries found.");
+					}
+				}
+
+				if (! found) {
+					for (int x=0; x<processors.length; x++) {
+						processors[x].newByte((byte)currentBlock.getFirst());   
+					}
+				}
+			}
+
+			position++;
+		}
+
+		if (lastBlockIndex < seq.getSize() - 1) {
+			// Block lost !
+			for (int x=0; x<processors.length; x++) {
+				processors[x].bytesLost((lastBlockIndex + 1) * blockSize, seq.getSize() * blockSize - 1);
+			}
+		}
+
+		for (int x=0; x<processors.length; x++) {
+			processors[x].end();
+		}
+		bproc.close();
+	}
 }

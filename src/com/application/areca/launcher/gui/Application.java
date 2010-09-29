@@ -1110,7 +1110,7 @@ implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
 			frm.setCurrentEntry(entry);
 
 			showDialog(frm);
-		} catch (ApplicationException e1) {
+		} catch (Exception e1) {
 			this.handleException(
 					RM.getLabel("error.archiveloading.message", new Object[] {e1.getMessage()}),
 					e1
