@@ -21,6 +21,7 @@ import com.myJava.file.FileTool;
 import com.myJava.file.OutputStreamListener;
 import com.myJava.file.driver.AbstractFileSystemDriver;
 import com.myJava.file.driver.FileCacheableInformations;
+import com.myJava.file.metadata.FileMetaData;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 
@@ -103,7 +104,43 @@ extends AbstractFileSystemDriver {
         return getFictiveLocalFile(file).isDirectory();
     }
 
-    public boolean exists(File file) {
+    public void applyMetaData(FileMetaData p, File f) throws IOException {
+    	throw new UnsupportedOperationException("This method is not supported by this implementation.");
+	}
+    
+	public void deleteOnExit(File f) {
+    	throw new UnsupportedOperationException("This method is not supported by this implementation.");
+	}
+    
+	public boolean createNamedPipe(File pipe) throws IOException {
+    	throw new UnsupportedOperationException("This method is not supported by this implementation.");
+	}
+    
+	public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
+    	throw new UnsupportedOperationException("This method is not supported by this implementation.");
+	}
+	
+	public boolean isHidden(File file) {
+    	throw new UnsupportedOperationException("This method is not supported by this implementation.");
+	}
+
+	public boolean setLastModified(File file, long time) {
+    	throw new UnsupportedOperationException("This method is not supported by this implementation.");
+	}
+	
+	public boolean mkdirs(File file) {
+    	throw new UnsupportedOperationException("This method is not supported by this implementation.");
+	}
+	
+	public boolean setReadOnly(File file) {
+    	throw new UnsupportedOperationException("This method is not supported by this implementation.");
+	}
+
+	public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
+    	throw new UnsupportedOperationException("This method is not supported by this implementation.");
+	}
+	
+	public boolean exists(File file) {
         return getFictiveLocalFile(file).exists();
     } 
     

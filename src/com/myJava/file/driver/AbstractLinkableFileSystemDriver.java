@@ -1,8 +1,11 @@
 package com.myJava.file.driver;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 
+import com.myJava.file.metadata.FileMetaData;
 import com.myJava.object.ToStringHelper;
 
 
@@ -48,11 +51,31 @@ implements LinkableFileSystemDriver {
         this.predecessor = predecessor;
     }
 
-    public boolean supportsLongFileNames() {
+    public boolean delete(File file) {
+        return predecessor.delete(file);
+	}
+
+	public boolean setReadOnly(File file) {
+        return predecessor.setReadOnly(file);
+	}
+
+	public void applyMetaData(FileMetaData p, File f) throws IOException {
+		predecessor.applyMetaData(p, f);
+	}
+
+	public boolean createNewFile(File file) throws IOException {
+        return predecessor.createNewFile(file);
+	}
+
+	public boolean supportsLongFileNames() {
         return predecessor.supportsLongFileNames();
     }
 
-    public void flush() throws IOException {
+    public void deleteOnExit(File f) {
+    	predecessor.deleteOnExit(f);
+	}
+
+	public void flush() throws IOException {
         predecessor.flush();
     }
     
@@ -67,8 +90,20 @@ implements LinkableFileSystemDriver {
     public void unmount() throws IOException {
         predecessor.unmount();
     }
-    
-    public String toString() {
+
+    public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
+    	return predecessor.getMetaData(f, onlyBasicAttributes);
+	}
+
+	public boolean createNamedPipe(File pipe) throws IOException {
+		return predecessor.createNamedPipe(pipe);
+	}
+
+	public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
+		return predecessor.createSymbolicLink(symlink, realPath);
+	}
+
+	public String toString() {
         StringBuffer sb = ToStringHelper.init(this);
         ToStringHelper.append("Predecessor", this.predecessor, sb);
         return ToStringHelper.close(sb);
@@ -133,7 +168,26 @@ implements LinkableFileSystemDriver {
     public String getPath(File file) {
         return this.predecessor.getPath(file);
     }
-    
+
+	public File[] listFiles(File file, FileFilter filter) {
+		return predecessor.listFiles(file, filter);
+	}
+
+	public File[] listFiles(File file, FilenameFilter filter) {
+		return predecessor.listFiles(file, filter);
+	}
+
+	public String[] list(File file, FilenameFilter filter) {
+		return predecessor.list(file, filter);
+	}
+
+	public String[] list(File file) {
+		return predecessor.list(file);
+	}
+
+	public File[] listFiles(File file) {
+		return predecessor.listFiles(file);
+	}
 
 	public boolean canRead(File file) {
 		return predecessor.canRead(file);
@@ -142,7 +196,22 @@ implements LinkableFileSystemDriver {
 	public boolean canWrite(File file) {
 		return predecessor.canWrite(file);
 	}
-	
+
+	public boolean isAbsolute(File file) {
+		return predecessor.isAbsolute(file);
+	}
+
+	public long length(File file) {
+		return predecessor.length(file);
+	}
+
+	public boolean isHidden(File file) {
+		return predecessor.isHidden(file);
+	}
+
+	public long lastModified(File file) {
+		return predecessor.lastModified(file);
+	}
 
 	public FileCacheableInformations getInformations(File file) {
 		return predecessor.getInformations(file);

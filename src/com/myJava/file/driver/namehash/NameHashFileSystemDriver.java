@@ -103,6 +103,28 @@ extends AbstractLinkableFileSystemDriver {
 		}
 	}
 
+	public boolean createNamedPipe(File pipe) throws IOException {
+		File encoded = this.encodeFileName(pipe);
+		boolean ok = this.predecessor.createNamedPipe(encoded);
+		if (ok) {
+			createDecodingFile(encoded, predecessor.getName(pipe));
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
+		File encoded = this.encodeFileName(symlink);
+		boolean ok = this.predecessor.createSymbolicLink(encoded, realPath);
+		if (ok) {
+			createDecodingFile(encoded, predecessor.getName(symlink));
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public boolean delete(File file) {
 		if (file == null) {
 			return true;

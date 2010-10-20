@@ -1234,7 +1234,7 @@ extends AbstractWindow {
 			// Default settings
 			rdZip64.setSelection(true);
 			rdFile.setSelection(true);
-            cboZipLevel.select(9);
+            cboZipLevel.select(4);
 			rdMultiple.setSelection(true);
 			chkFollowSubDirectories.setSelection(true);
 			rdSingle.setSelection(true);
