@@ -296,6 +296,7 @@ implements MouseListener, Listener {
 				}
 				try {
 					refreshNode(parent, (TraceEntry) parent.getData(), null);
+					parent.setExpanded(true);
 				} catch (ApplicationException e) {
 					Logger.defaultLogger().error(e);
 				}

@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 8466938897520224741L;
+		BUILD_ID = 416074940963221133L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.1.10", new GregorianCalendar(2010, 10, 01), "Fixed a bug on search window."));
 		VERSIONS.add(new VersionData("7.1.9", new GregorianCalendar(2010, 9, 17), "Fixed a bug that could occur when checking recovered files; Default zip compression level set to 4."));
 		VERSIONS.add(new VersionData("7.1.8", new GregorianCalendar(2010, 8, 29), "Added control encoding option to FTP window; Fixed a problem that prevented last modification time to be recovered on read-only files (windows specific); Faster and storage efficient 'archive check' feature; Faster delta storage mode; Added control on zip compression level; Minor other bugfixes & enhancements."));
 		VERSIONS.add(new VersionData("7.1.7", new GregorianCalendar(2010, 4, 19), "Minor GUI enhancements & bugfixes."));
