@@ -12,6 +12,7 @@ import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.content.ArchiveContentManager;
 import com.application.areca.metadata.content.ContentFileIterator;
+import com.application.areca.metadata.transaction.TransactionPoint;
 import com.myJava.file.FileFilterList;
 import com.myJava.file.FileTool;
 import com.myJava.object.Duplicable;
@@ -77,7 +78,7 @@ extends AbstractArchiveHandler {
 	throws IOException {
 	}
 
-	public void init(ProcessContext context) 
+	public void init(ProcessContext context, TransactionPoint transactionPoint) 
 	throws IOException {
 	}
 
@@ -94,8 +95,9 @@ extends AbstractArchiveHandler {
 
 		try {
 			for (int i=0; i<archives.length; i++) {
-				ArchiveContentAdapter adapter = new ArchiveContentAdapter(ArchiveContentManager.resolveContentFileForArchive(this.medium, archives[i]));
-				iters[i] = adapter.buildIterator();
+				iters[i] = ArchiveContentAdapter.buildIterator(
+						ArchiveContentManager.resolveContentFileForArchive(this.medium, archives[i])
+				);
 			}
 
 			// Build a list of entries to recover indexed by archive

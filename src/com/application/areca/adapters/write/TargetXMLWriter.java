@@ -417,7 +417,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         sb.append(XML_MEDIUM_OVERWRITE);
         sb.append("=");
-        sb.append(XMLTool.encode(medium.isOverwrite())); 
+        sb.append(XMLTool.encode(medium.isImage())); 
         
         if (medium.getCompressionArguments().isCompressed()) {
             if (medium.getCompressionArguments().isMultiVolumes()) {
@@ -506,6 +506,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         	// This to avoid newbies to forget these important parameters ...
             sb.append(XMLTool.encodeProperty(XML_MEDIUM_ENCRYPTIONALGO, policy.getEncryptionAlgorithm()));
             sb.append(XMLTool.encodeProperty(XML_MEDIUM_ENCRYPTNAMES, policy.isEncryptNames()));
+            sb.append(XMLTool.encodeProperty(XML_MEDIUM_WRAPNAMES, policy.getNameWrappingMode()));
         }
     }
     

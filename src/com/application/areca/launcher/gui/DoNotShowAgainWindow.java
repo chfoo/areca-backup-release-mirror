@@ -10,9 +10,8 @@ import org.eclipse.swt.widgets.Label;
 
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
-import com.myJava.system.OSTool;
 
 /**
  * <BR>
@@ -41,28 +40,42 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class JavaVendorWindow 
+public class DoNotShowAgainWindow 
 extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
     
     private Button chkDoNotShowAgain;
+    private String title;
+    private String message;
+    private String key;
 
-    protected Control createContents(Composite parent) {
+    public DoNotShowAgainWindow(String title, String message, String key) {
+		super();
+		this.title = title;
+		this.message = message;
+		this.key = key;
+	}
+
+	protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
         GridLayout layout = new GridLayout(2, false);
         layout.verticalSpacing = 20;
+        layout.horizontalSpacing = 20;
+        layout.marginWidth = 20;
         composite.setLayout(layout);
 
         Label lblImage = new Label(composite, SWT.NONE);
         lblImage.setImage(this.getShell().getDisplay().getSystemImage(SWT.ICON_WARNING));
         
         Label lblMessage = new Label(composite, SWT.NONE);
-        lblMessage.setText(RM.getLabel("common.java.vendor.message", new Object[] {OSTool.getJavaVendor()}));
+        lblMessage.setText(message);
         lblMessage.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
+        new Label(composite, SWT.NONE);
+        
         chkDoNotShowAgain = new Button(composite, SWT.CHECK);
         chkDoNotShowAgain.setText(RM.getLabel("common.message.donotshow"));
-        chkDoNotShowAgain.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+        chkDoNotShowAgain.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
         SavePanel pnlSave = new SavePanel(RM.getLabel("common.close.label"), this);
         pnlSave.setShowCancel(false);
@@ -73,7 +86,7 @@ extends AbstractWindow {
     }
     
     public String getTitle() {
-        return RM.getLabel("common.java.vendor.title");
+        return title;
     }
 
     protected boolean checkBusinessRules() {
@@ -81,7 +94,7 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() {    
-        ArecaPreferences.setDisplayJavaVendorMessage(! this.chkDoNotShowAgain.getSelection());
+        ApplicationPreferences.setDisplayMessage(key, ! this.chkDoNotShowAgain.getSelection());
         this.close();
     }
 

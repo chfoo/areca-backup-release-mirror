@@ -21,9 +21,12 @@ import com.myJava.file.FileTool;
 import com.myJava.file.OutputStreamListener;
 import com.myJava.file.driver.AbstractFileSystemDriver;
 import com.myJava.file.driver.FileCacheableInformations;
+import com.myJava.file.driver.FileSystemDriverUtils;
 import com.myJava.file.metadata.FileMetaData;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * <BR>
@@ -153,6 +156,10 @@ extends AbstractFileSystemDriver {
         }
     } 
     
+	public String getPhysicalPath(File file) {
+		return null;
+	}
+    
     protected void initFictiveLocalFile(FictiveFile file) {
         String owner = this.buildNewOwnerId("initFictiveLocalFile");
         AbstractProxy proxy = this.getAvailableProxy(owner);
@@ -185,7 +192,7 @@ extends AbstractFileSystemDriver {
                 }
                 return null;
             } else {
-                Logger.defaultLogger().info("Creating an alternate proxy on " + this.proxy.toString() + " : " + + (this.alternateProxies.size()+1) + " th.");
+                Logger.defaultLogger().info("Creating a new proxy on " + this.proxy.toString() + " : " + + (this.alternateProxies.size()+1) + " th.");
                 AbstractProxy newProxy = this.proxy.cloneProxy();             
                 newProxy.acquireLock(owner);
                 this.alternateProxies.add(newProxy);
@@ -495,6 +502,11 @@ extends AbstractFileSystemDriver {
 
         return returned;
     }
+    
+	public void forceDelete(File file, TaskMonitor monitor) 
+	throws IOException, TaskCancelledException {
+		FileSystemDriverUtils.forceDelete(file, this, monitor);
+	}
     
     public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
     	removeLocalInputFile(file);

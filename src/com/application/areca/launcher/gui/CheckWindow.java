@@ -25,7 +25,7 @@ import com.application.areca.CheckParameters;
 import com.application.areca.ResourceManager;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.util.log.Logger;
@@ -121,12 +121,18 @@ extends AbstractWindow {
         });
         btnBrowse.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 
-        chkCheckSelectedEntries = new Button(composite, SWT.CHECK);
-        chkCheckSelectedEntries.setText(RM.getLabel("check.checkselected.label"));
-        chkCheckSelectedEntries.setToolTipText(RM.getLabel("check.checkselected.tt"));
-        chkCheckSelectedEntries.setLayoutData(new GridData());       
-        monitorControl(SWT.Selection, chkCheckSelectedEntries);
-        
+        AbstractIncrementalFileSystemMedium medium = (AbstractIncrementalFileSystemMedium)target.getMedium();
+        if (! medium.isImage()) {
+            chkCheckSelectedEntries = new Button(composite, SWT.CHECK);
+            chkCheckSelectedEntries.setText(RM.getLabel("check.checkselected.label"));
+            chkCheckSelectedEntries.setToolTipText(RM.getLabel("check.checkselected.tt"));
+            chkCheckSelectedEntries.setLayoutData(new GridData());       
+            monitorControl(SWT.Selection, chkCheckSelectedEntries);
+            
+            chkCheckSelectedEntries.setEnabled(medium.getHandler().autonomousArchives());
+            chkCheckSelectedEntries.setSelection(medium.getHandler().autonomousArchives());
+        }
+
         radUseDefaultLocation.addListener(SWT.Selection, new Listener(){
             public void handleEvent(Event event) {
             	switchLocation();
@@ -163,17 +169,13 @@ extends AbstractWindow {
         result.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         
         // INIT DATA
-        txtLocation.setText(ArecaPreferences.getCheckSpecificLocation(application.getCurrentWorkspaceItem().getUid()));
-        if (ArecaPreferences.getCheckUseSpecificLocation(application.getCurrentWorkspaceItem().getUid())) {
+        txtLocation.setText(ApplicationPreferences.getCheckSpecificLocation(application.getCurrentWorkspaceItem().getUid()));
+        if (ApplicationPreferences.getCheckUseSpecificLocation(application.getCurrentWorkspaceItem().getUid())) {
             radUseSpecificLocation.setSelection(true);
         } else {
             radUseDefaultLocation.setSelection(true);
         }
-        
-        AbstractIncrementalFileSystemMedium medium = (AbstractIncrementalFileSystemMedium)target.getMedium();
-        chkCheckSelectedEntries.setEnabled(medium.getHandler().autonomousArchives());
-        chkCheckSelectedEntries.setSelection(medium.getHandler().autonomousArchives());
-        
+
         switchLocation();
         composite.pack();
         return composite;
@@ -260,8 +262,8 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() { 
-		ArecaPreferences.setCheckUseSpecificLocation(radUseSpecificLocation.getSelection(), application.getCurrentWorkspaceItem().getUid());
-		ArecaPreferences.setCheckSpecificLocation(txtLocation.getText(), application.getCurrentWorkspaceItem().getUid());
+		ApplicationPreferences.setCheckUseSpecificLocation(radUseSpecificLocation.getSelection(), application.getCurrentWorkspaceItem().getUid());
+		ApplicationPreferences.setCheckSpecificLocation(txtLocation.getText(), application.getCurrentWorkspaceItem().getUid());
 		
     	this.viewer.setItemCount(0);
     	this.result.setText("");
@@ -269,7 +271,7 @@ extends AbstractWindow {
 
         CheckParameters checkParams = new CheckParameters(
         		true,
-        		this.chkCheckSelectedEntries.getSelection(),
+        		this.chkCheckSelectedEntries != null && this.chkCheckSelectedEntries.getSelection(),
         		true,
         		this.radUseSpecificLocation.getSelection(),
         		this.txtLocation.getText()

@@ -1,6 +1,7 @@
 package com.application.areca.filter;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -38,9 +39,10 @@ This file is part of Areca.
 
  */
 public class FilterGroup 
-implements ArchiveFilter, FileSystemIteratorFilter {
-
-    private boolean isAnd = true;
+implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
+	private static final long serialVersionUID = 7093482082393943951L;
+	
+	private boolean isAnd = true;
     private List filters = new ArrayList();
     private boolean isExclude = false;
     

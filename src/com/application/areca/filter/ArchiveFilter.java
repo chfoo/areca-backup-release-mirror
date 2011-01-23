@@ -1,6 +1,7 @@
 package com.application.areca.filter;
 
 import java.io.File;
+import java.io.Serializable;
 
 import com.myJava.object.Duplicable;
 
@@ -33,7 +34,7 @@ This file is part of Areca.
 
  */
 public interface ArchiveFilter 
-extends Duplicable {
+extends Duplicable, Serializable {
 	
     public boolean acceptIteration(File f);
     

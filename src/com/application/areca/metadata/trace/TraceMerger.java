@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.metadata.AbstractMetaDataFileIterator;
 import com.application.areca.metadata.MetadataConstants;
 import com.myJava.file.FileTool;
@@ -64,7 +65,7 @@ public class TraceMerger {
 		Logger.defaultLogger().info("Building aggregated archive trace ...");
 
 		File tmpFile = FileTool.getInstance().generateNewWorkingFile(null, "areca", "mtrc", true);
-		ArchiveTraceAdapter writer = new ArchiveTraceAdapter(tmpFile);
+		ArchiveTraceAdapter writer = new ArchiveTraceAdapter(tmpFile, ((FileSystemTarget)medium.getTarget()).getSourceDirectory(), false);
 		TraceMerger merger = new TraceMerger(medium, writer, archives, referenceIterator);
 		merger.merge();
 
@@ -97,8 +98,7 @@ public class TraceMerger {
 			// Build iterators
 			for (int i=0; i<iters.length; i++) {
 				File traceFile = ArchiveTraceManager.resolveTraceFileForArchive(medium, archives[i]);
-				ArchiveTraceAdapter reader = new ArchiveTraceAdapter(traceFile);
-				iters[i] = reader.buildIterator();
+				iters[i] = ArchiveTraceAdapter.buildIterator(traceFile);
 			}
 
 			String previousKey = null;

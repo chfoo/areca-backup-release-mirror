@@ -4,12 +4,12 @@ import java.util.Vector;
 
 
 /**
- * Classe reprï¿½sentant un rapport d'erreur sur des donnï¿½es.
+ * Classe représentant un rapport d'erreur sur des données.
  *
- * Elle rï¿½fï¿½rence :
+ * Elle référence :
  * - une collection d'erreurs
- * - un boolï¿½en indiquant si tout est OK ou non
- * - Une information complï¿½mentaire, sous la forme d'une instance "Object"
+ * - un booléen indiquant si tout est OK ou non
+ * - Une information complémentaire, sous la forme d'une instance "Object"
   * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -40,16 +40,16 @@ This file is part of Areca.
 public class ActionReport {
 
     /**
-     * Liste des erreurs rï¿½fï¿½rencï¿½es par le QueryReport
+     * Liste des erreurs référencées par le QueryReport
      */
     private Vector errors;
 
     /**
-     * Liste des informations retournï¿½es par l'action
-     * Objet utile pour complï¿½ter les informations du rapprot d'erreur.
-     * Il peut par exemple servir ï¿½ stocker le rï¿½sultat d'une exï¿½cution de requï¿½te
-     * (identifiant de l'enregistrement insï¿½rï¿½, nombre d'enregistrements modifiï¿½s
-     * ou supprimï¿½s, etc.)
+     * Liste des informations retournées par l'action
+     * Objet utile pour compléter les informations du rapprot d'erreur.
+     * Il peut par exemple servir à stocker le résultat d'une exécution de requête
+     * (identifiant de l'enregistrement inséré, nombre d'enregistrements modifiés
+     * ou supprimés, etc.)
      */
     private Vector informations;
 
@@ -62,7 +62,7 @@ public class ActionReport {
     }
 
     /**
-     * Indique le rï¿½sultat de la vï¿½rification
+     * Indique le résultat de la vérification
      */
     public boolean isDataValid() {
         return (this.errors.size() == 0);
@@ -83,29 +83,29 @@ public class ActionReport {
     }
 
     /**
-     * Retourne le nombre d'informations du type spï¿½cifiï¿½
+     * Retourne le nombre d'informations du type spécifié
      */
     public int getInformationCount(String type) {
         return this.getInformationsByType(type).size();
     }
 
     /**
-     * Retourne l'erreur ï¿½ l'index spï¿½cifiï¿½
+     * Retourne l'erreur à l'index spécifié
      */
     public ActionError getErrorAt(int i) {
         return (ActionError)this.errors.elementAt(i);
     }
 
     /**
-     * Retourne l'information ï¿½ l'index spï¿½cifiï¿½
+     * Retourne l'information à l'index spécifié
      */
     public ActionInformation getInformationAt(int i) {
         return (ActionInformation)this.informations.elementAt(i);
     }
 
     /**
-     * Retourne l'information ï¿½ l'index spï¿½cifiï¿½. Seules les informations
-     * du type demandï¿½ sont prises en compte.
+     * Retourne l'information à l'index spécifié. Seules les informations
+     * du type demandé sont prises en compte.
      */
     public ActionInformation getInformationAt(String type, int i) {
         return (ActionInformation)this.getInformationsByType(type).elementAt(i);
@@ -150,7 +150,7 @@ public class ActionReport {
     }
 
     /**
-     * Retourne un vecteur contenant les informations d'un type donnï¿½
+     * Retourne un vecteur contenant les informations d'un type donné
      */
     private Vector getInformationsByType(String type) {
         Vector infos = new Vector();
@@ -166,7 +166,7 @@ public class ActionReport {
 
     /**
      * Fusionne les deux resultats.
-     * Les listes d'erreur et d'informations sont concatï¿½nï¿½es.
+     * Les listes d'erreur et d'informations sont concaténées.
      */
     public void merge(ActionReport res) {
         if (res != null) {
@@ -181,7 +181,7 @@ public class ActionReport {
     }
 
     /**
-     * Redï¿½finition toString
+     * Redéfinition toString
      */
     public String toString() {
         String str = "Nombre d'erreurs = [" + this.getErrorCount() + "], Nombre d'informations = [" + this.getInformationCount() + "]";

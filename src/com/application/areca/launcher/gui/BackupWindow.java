@@ -18,7 +18,7 @@ import com.application.areca.SupportedBackupTypes;
 import com.application.areca.TargetGroup;
 import com.application.areca.WorkspaceItem;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.metadata.manifest.Manifest;
 
@@ -221,8 +221,8 @@ extends AbstractWindow {
 
 		// Default parameters
 		chkCheckArchive.setSelection(true);
-        txtLocation.setText(ArecaPreferences.getCheckSpecificLocation(scope.getUid()));
-        if (ArecaPreferences.getCheckUseSpecificLocation(scope.getUid())) {
+        txtLocation.setText(ApplicationPreferences.getCheckSpecificLocation(scope.getUid()));
+        if (ApplicationPreferences.getCheckUseSpecificLocation(scope.getUid())) {
             radUseSpecificLocation.setSelection(true);
         } else {
             radUseDefaultLocation.setSelection(true);
@@ -267,8 +267,8 @@ extends AbstractWindow {
 	}
 
 	protected void saveChanges() {
-		ArecaPreferences.setCheckUseSpecificLocation(radUseSpecificLocation.getSelection(), scope.getUid());
-		ArecaPreferences.setCheckSpecificLocation(txtLocation.getText(), scope.getUid());
+		ApplicationPreferences.setCheckUseSpecificLocation(radUseSpecificLocation.getSelection(), scope.getUid());
+		ApplicationPreferences.setCheckSpecificLocation(txtLocation.getText(), scope.getUid());
 		
 		if (chkManifest != null && chkManifest.getSelection()) {
 			if (this.manifest == null) {

@@ -17,7 +17,7 @@ import com.application.areca.MergeParameters;
 import com.application.areca.Utils;
 import com.application.areca.adapters.MissingDataListener;
 import com.application.areca.adapters.XMLTags;
-import com.application.areca.adapters.write.DeprecatedTargetGroupXMLWriter;
+import com.application.areca.adapters.write.XMLVersions;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.filter.FileDateArchiveFilter;
@@ -51,6 +51,7 @@ import com.application.areca.processor.ShellScriptProcessor;
 import com.application.areca.version.VersionInfos;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.CompressionArguments;
+import com.myJava.file.driver.EncryptedFileSystemDriver;
 import com.myJava.util.log.Logger;
 import com.myJava.util.xml.AdapterException;
 
@@ -127,8 +128,8 @@ public class TargetXMLReader implements XMLTags {
 			}  
 		}
 		
-		if (version > DeprecatedTargetGroupXMLWriter.CURRENT_VERSION) {
-			throw new AdapterException("Invalid XML version : This version of Areca can't handle XML versions above " + DeprecatedTargetGroupXMLWriter.CURRENT_VERSION + ". You are trying to read a version " + version);
+		if (version > XMLVersions.CURRENT_VERSION) {
+			throw new AdapterException("Invalid XML version : This version of " + VersionInfos.APP_SHORT_NAME + " can't handle XML versions above " + XMLVersions.CURRENT_VERSION + ". You are trying to read a version " + version);
 		}
 
 		FileSystemTarget target = new FileSystemTarget();
@@ -589,10 +590,10 @@ public class TargetXMLReader implements XMLTags {
 		medium.setCompressionArguments(compression);
 		medium.setFileSystemPolicy(storage);
 		medium.setEncryptionPolicy(encrArgs);
-		medium.setOverwrite(isOverwrite(mediumNode));
+		medium.setImage(isOverwrite(mediumNode));
 		medium.setTrackPermissions(trackPerms); 
 
-		if (medium.isOverwrite() && medium.getHandler() instanceof DeltaArchiveHandler) {
+		if (medium.isImage() && medium.getHandler() instanceof DeltaArchiveHandler) {
 			throw new AdapterException("Illegal state : 'Delta' archive mode is incompatible with 'image' targets.");
 		}
 
@@ -645,14 +646,19 @@ public class TargetXMLReader implements XMLTags {
 		Node encryptionKeyNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTIONKEY);
 		Node encryptionAlgoNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTIONALGO);
 		Node encryptNamesNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTNAMES);
+		Node wrapNamesNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_WRAPNAMES);
 		
 		String encryptionKey = encryptionKeyNode != null ? encryptionKeyNode.getNodeValue() : null;   
 		String encryptionAlgo = encryptionAlgoNode != null ? encryptionAlgoNode.getNodeValue() : null;   
 		Boolean encryptNames = encryptNamesNode != null ? Boolean.valueOf(encryptNamesNode.getNodeValue()) : null;  
-
+		String nameWrappingMode = EncryptedFileSystemDriver.WRAP_DEFAULT;
+		if (wrapNamesNode != null) {
+			nameWrappingMode = wrapNamesNode.getNodeValue();
+		}
+		
 		if (isEncrypted && encryptionKey == null) {
 			if (missingDataListener != null) {
-				EncryptionPolicy encrData = missingDataListener.missingEncryptionDataDetected(target, encryptionAlgo, encryptNames);
+				EncryptionPolicy encrData = missingDataListener.missingEncryptionDataDetected(target, encryptionAlgo, encryptNames, nameWrappingMode);
 				if (encrData != null) {
 					encryptionAlgo = encrData.getEncryptionAlgorithm();
 					encryptionKey = encrData.getEncryptionKey();
@@ -670,6 +676,8 @@ public class TargetXMLReader implements XMLTags {
 		encrArgs.setEncryptionAlgorithm(encryptionAlgo);
 		encrArgs.setEncryptNames(encryptNames == null ? true : encryptNames.booleanValue());
 		encrArgs.setEncryptionKey(encryptionKey);
+		encrArgs.setNameWrappingMode(nameWrappingMode);
+
 
 		// Encryption management for version 3 and higher id not compatible 
 		// with previous versions. (except for the AES "RAW" key scheme)
@@ -679,7 +687,7 @@ public class TargetXMLReader implements XMLTags {
 				&& (! encryptionAlgo.equals(EncryptionConfiguration.AES_RAW))
 				&& (! encryptionAlgo.equals(EncryptionConfiguration.AES256_RAW))
 		) {
-			throw new AdapterException("\nError reading target \"" + target.getName() + "\" in group \"" + target.getParent().getName() + "\" (" + target.getParent().getAncestorPath() + ") :\nEncryption management has been refactored in version 6.1 of Areca, and your configuration has been generated with a previous version of Areca. As a result, it is not compatible with your current version (" + VersionInfos.getLastVersion().getVersionId() + ").\nYou must either :\n- re-create your target/targetgroup and use one of the available encryption algorithms, or\n- re-install a previous version of Areca (6.0.7 or before).");
+			throw new AdapterException("\nError reading target \"" + target.getName() + "\" in group \"" + target.getParent().getName() + "\" (" + target.getParent().getAncestorPath() + ") :\nEncryption management has been refactored in version 6.1 of " + VersionInfos.APP_SHORT_NAME + ", and your configuration has been generated with a previous version of " + VersionInfos.APP_SHORT_NAME + ". As a result, it is not compatible with your current version (" + VersionInfos.getLastVersion().getVersionId() + ").\nYou must either :\n- re-create your target/targetgroup and use one of the available encryption algorithms, or\n- re-install a previous version of " + VersionInfos.APP_SHORT_NAME + " (6.0.7 or before).");
 		}
 
 		return encrArgs;

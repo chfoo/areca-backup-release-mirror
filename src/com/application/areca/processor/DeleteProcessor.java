@@ -57,7 +57,7 @@ public class DeleteProcessor extends AbstractProcessor {
     
     public void runImpl(ProcessContext context) throws ApplicationException {
         AbstractTarget target = context.getReport().getTarget();
-        ActionProxy.processDeleteOnTargetImpl(target, delay, new ProcessContext(target, context.getInfoChannel()));
+        ActionProxy.processDeleteOnTarget(target, delay, new ProcessContext(target, context.getInfoChannel()));
     }
     
     public String getParametersSummary() {

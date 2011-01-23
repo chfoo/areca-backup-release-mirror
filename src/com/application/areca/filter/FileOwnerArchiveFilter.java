@@ -39,6 +39,7 @@ This file is part of Areca.
 
  */
 public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
+	private static final long serialVersionUID = 6961712009168838158L;
 
 	private static final char SEPARATOR = ':';
 

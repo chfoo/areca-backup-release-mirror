@@ -1,5 +1,6 @@
 package com.application.areca.context;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -31,7 +32,9 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class StatusList {
+public class StatusList implements Serializable {
+	private static final long serialVersionUID = -8243222132827394017L;
+	
 	public static String KEY_ARCHIVE_CHECK = "Check Archive";
 	public static String KEY_BACKUP = "Backup";
 	public static String KEY_MERGE = "Merge Archives";
@@ -61,10 +64,6 @@ public class StatusList {
 		itm.setKey(key);
 		itm.setErrorMessage(errorMessage);
 		addItem(itm);
-	}
-	
-	public void clear() {
-		content.clear();
 	}
 	
 	public boolean hasItem(String key) {

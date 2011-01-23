@@ -40,6 +40,7 @@ extends OutputStream {
 
     private OutputStream out;
     private MessageDigest dg;
+    private boolean closed = false;
 
     public ContentHashOutputStream(OutputStream out) throws NoSuchAlgorithmException {
         super();
@@ -48,6 +49,11 @@ extends OutputStream {
     }
 
     public void close() throws IOException {
+    	if (closed) {
+    		return;
+    	}
+    	closed = true;
+    	
         out.write(dg.digest());
     	this.flush();
         out.close();

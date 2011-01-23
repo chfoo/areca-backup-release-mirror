@@ -95,7 +95,7 @@ public class RebuildOtherFilesTraceHandler implements TraceHandler {
 
 	public void setVersion(long version) {		
 	}
-	
+
 	// To refactor / clean
 	private boolean matchFilters(File dir, String[] normalizedFilters) {
 		if (normalizedFilters == null) {

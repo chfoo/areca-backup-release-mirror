@@ -19,6 +19,8 @@ import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * "Linkable" driver with compression capabilities
@@ -72,6 +74,10 @@ extends AbstractLinkableFileSystemDriver {
         return this.predecessor.canRead(encode(file));
     }
 
+    public String getPhysicalPath(File file) {
+    	return predecessor.getPhysicalPath(encode(file));
+	}
+
     public short getType(File file) throws IOException {
         return this.predecessor.getType(encode(file));
 	}
@@ -79,10 +85,14 @@ extends AbstractLinkableFileSystemDriver {
 	public boolean canWrite(File file) {
         return this.predecessor.canWrite(encode(file));
     }
-    
-    public boolean createNewFile(File file) throws IOException {
-        return this.predecessor.createNewFile(encode(file));
-    }
+	
+    public void forceDelete(File file, TaskMonitor monitor)
+    throws IOException, TaskCancelledException {
+        File[] f = resolveFiles(file);
+        for (int i=0; i<f.length; i++) {
+        	predecessor.forceDelete(f[i], monitor);
+        }
+	}
     
     public boolean delete(File file) {
         File[] f = resolveFiles(file);
@@ -94,6 +104,10 @@ extends AbstractLinkableFileSystemDriver {
             }
         }
         return bool;
+    }
+    
+    public boolean createNewFile(File file) throws IOException {
+        return this.predecessor.createNewFile(encode(file));
     }
     
     public boolean exists(File file) {

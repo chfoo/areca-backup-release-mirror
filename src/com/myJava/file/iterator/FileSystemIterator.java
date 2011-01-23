@@ -2,6 +2,7 @@ package com.myJava.file.iterator;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -46,7 +47,9 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class FileSystemIterator implements Iterator {
+public class FileSystemIterator implements Iterator, Serializable {
+	private static final long serialVersionUID = -1722528311566343624L;
+	
 	protected FileSystemIteratorFilter filter;
 	protected File root;
 	protected File baseDirectory;
@@ -62,7 +65,8 @@ public class FileSystemIterator implements Iterator {
 	protected Stack fileSystemLevels;
 	protected Stack priorFiles;
 	protected File nextCachedFile;
-	protected Iterator sourceIterator;
+	protected ArrayList sourceFiles;
+	protected int sourceIndex;
 	protected FileSystemIterator currentFileSystemSubIterator;
 	protected long filtered;
 	protected long files;
@@ -93,9 +97,9 @@ public class FileSystemIterator implements Iterator {
 
 		this.baseDirectory = baseDirectory;
 		FileSystemLevel level = new FileSystemLevel(baseDirectory, null, sorted);
-		if (FileSystemManager.isFile(baseDirectory)) {
-			//level.setHasBeenReturned(true);
-		}
+		//if (FileSystemManager.isFile(baseDirectory)) {
+		//	  level.setHasBeenReturned(true);
+		//}
 		setCurrentLevel(level);
 	}
 
@@ -116,12 +120,12 @@ public class FileSystemIterator implements Iterator {
 		}
 
 		// 2 : Set data
-		ArrayList sourceFiles = new ArrayList();
+		sourceFiles = new ArrayList();
 		for (int i=0; i<sources.length; i++) {
 			File f = new File(root, sources[i]);
 			sourceFiles.add(f);
 		}
-		this.sourceIterator = sourceFiles.iterator();
+		this.sourceIndex = 0;
 	}
 
 	private void init(
@@ -155,6 +159,10 @@ public class FileSystemIterator implements Iterator {
 
 	public void setMonitor(TaskMonitor monitor) {
 		this.monitor = monitor;
+	}
+
+	public TaskMonitor getMonitor() {
+		return monitor;
 	}
 
 	public void setFilter(FileSystemIteratorFilter filter) {
@@ -247,9 +255,9 @@ public class FileSystemIterator implements Iterator {
 				this.currentFileSystemSubIterator = null;
 				return nextFileOrDirectory();
 			}
-		} else if (sourceIterator != null && sourceIterator.hasNext()) {
+		} else if (sourceFiles != null && sourceIndex < sourceFiles.size()) {
 			// The current source file has been completed ... handle the next source
-			File nextSource = (File)sourceIterator.next();
+			File nextSource = (File)sourceFiles.get(sourceIndex++);
 			if (monitor != null) {
 				this.monitor.addNewSubTask(0.99/sourceCount, FileSystemManager.getAbsolutePath(nextSource));
 			}

@@ -87,7 +87,7 @@ public class XMLHistoryAdapter implements HistoryReader {
             version = Integer.parseInt(versionNode.getNodeValue());
         }  
         if (version > CURRENT_VERSION) {
-        	throw new AdapterException("Invalid history XML version : This version of Areca can't handle XML versions above " + CURRENT_VERSION + ". You are trying to read a version " + version);
+        	throw new AdapterException("Invalid history XML version : XML versions above " + CURRENT_VERSION + " are not supported. You are trying to read a version " + version);
         }
         
         NodeList entries = root.getElementsByTagName(XML_ENTRY);

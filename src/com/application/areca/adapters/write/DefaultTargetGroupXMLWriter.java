@@ -13,7 +13,7 @@ import com.myJava.file.FileTool;
 import com.myJava.util.log.Logger;
 
 /**
- * Process serializer
+ * Default Target group serializer - Calls target serializers
  * 
  * @author Olivier PETRUCCI
  * <BR>

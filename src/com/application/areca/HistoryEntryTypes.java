@@ -36,4 +36,5 @@ public interface HistoryEntryTypes {
     public static int HISTO_BACKUP_CANCEL = 4;
     public static int HISTO_MERGE_CANCEL = 5;
     public static int HISTO_DELETE = 6;    
+    public static int HISTO_RESUME = 7;  
 }

@@ -48,7 +48,6 @@ public class ArchiveTraceManager {
     
     public static TraceFileIterator buildIteratorForArchive(AbstractIncrementalFileSystemMedium medium, File archive) throws IOException {
     	File traceFile = resolveTraceFileForArchive(medium, archive);
-    	ArchiveTraceAdapter adp = new ArchiveTraceAdapter(traceFile);
-    	return adp.buildIterator();
+    	return ArchiveTraceAdapter.buildIterator(traceFile);
     }
 }

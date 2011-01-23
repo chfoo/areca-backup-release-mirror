@@ -127,8 +127,10 @@ public abstract class AbstractProxy {
     }
     
     protected void clearCache() {
-        debug("Clearing the cache - cache size = " + this.fileInfoCache.size());
-        this.fileInfoCache.clearCache();
+    	if (fileInfoCache != null) {
+	        debug("Clearing the cache - cache size = " + this.fileInfoCache.size());
+	        this.fileInfoCache.clearCache();
+    	}
     }
     
     protected void registerFileInfo(String remoteFileName, FictiveFile info) {

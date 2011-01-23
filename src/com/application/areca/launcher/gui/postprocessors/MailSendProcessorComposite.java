@@ -19,6 +19,7 @@ import com.application.areca.launcher.gui.ProcessorEditionWindow;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.processor.MailSendProcessor;
 import com.application.areca.processor.Processor;
+import com.application.areca.version.VersionInfos;
 
 /**
  * <BR>
@@ -147,7 +148,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
                 try {
                     MailSendProcessor testProc = new MailSendProcessor();
                     initProcessor(testProc);
-                    testProc.sendMail("Areca mail report test", "Areca mail report test successfull !", ps, null);
+                    testProc.sendMail("" + VersionInfos.APP_SHORT_NAME + " mail report test", "" + VersionInfos.APP_SHORT_NAME + " mail report test successfull !", ps, null);
                     
                     Application.getInstance().showInformationDialog(baos.toString(), RM.getLabel("procedition.ok.label"), true);                
                 } catch (ApplicationException e1) {

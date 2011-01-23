@@ -109,7 +109,7 @@ public class Workspace {
 			Logger.defaultLogger().remove(FileLogProcessor.class);
 			Logger.defaultLogger().remove(ConsoleLogProcessor.class); // we don't want the default console processor that is set in the Logger class.
 			FileLogProcessor proc;
-			if (ArecaTechnicalConfiguration.get().getLogLocationOverride() == null) {
+			if (ArecaConfiguration.get().getLogLocationOverride() == null) {
 				File directoryLog = new File(FileSystemManager.getAbsolutePath(f) + "/" + ArecaFileConstants.LOG_SUBDIRECTORY_NAME + "/");
 				
 				// Backward compatibility
@@ -117,7 +117,7 @@ public class Workspace {
 				if (FileSystemManager.exists(deprecatedDirectoryLog)) {
 					if (FileSystemManager.exists(directoryLog)) {
 						try {
-							FileTool.getInstance().delete(deprecatedDirectoryLog, true);
+							FileTool.getInstance().delete(deprecatedDirectoryLog);
 						} catch (IOException e) {
 							Logger.defaultLogger().warn("Error while trying to move " + FileSystemManager.getAbsolutePath(deprecatedDirectoryLog) + " to " + FileSystemManager.getAbsolutePath(directoryLog) + " : " + e.getMessage());
 						}
@@ -130,7 +130,7 @@ public class Workspace {
 
 				proc = new FileLogProcessor(new File(directoryLog, VersionInfos.APP_SHORT_NAME.toLowerCase()));
 			} else {
-				proc = new FileLogProcessor(new File(ArecaTechnicalConfiguration.get().getLogLocationOverride(), VersionInfos.APP_SHORT_NAME.toLowerCase()));
+				proc = new FileLogProcessor(new File(ArecaConfiguration.get().getLogLocationOverride(), VersionInfos.APP_SHORT_NAME.toLowerCase()));
 			}
 			Logger.defaultLogger().addProcessor(proc);
 

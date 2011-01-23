@@ -24,6 +24,8 @@ import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * <BR>
@@ -79,7 +81,41 @@ implements LinkableFileSystemDriver {
         predecessor.applyMetaData(p, f);
     }
 
-    public boolean canRead(File file) {
+    public String getPhysicalPath(File file) {
+    	return predecessor.getPhysicalPath(file);
+	}
+
+    public void forceDelete(File file, TaskMonitor monitor)
+    throws IOException, TaskCancelledException {
+    	predecessor.forceDelete(file, monitor);
+    	
+        try {
+            DataEntry entry = getDataEntry(file);
+            if (entry != null) {
+                entry.reset();
+                entry.setExists(false);
+            }
+        } catch (MaxDepthReachedException ignored) {
+        }
+	}
+    
+    public boolean delete(File file) {
+        if (predecessor.delete(file)) {
+            try {
+                DataEntry entry = getDataEntry(file);
+                if (entry != null) {
+                    entry.reset();
+                    entry.setExists(false);
+                }
+            } catch (MaxDepthReachedException ignored) {
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+	public boolean canRead(File file) {
         try {
             DataEntry entry = getOrCreateDataEntry(file, true, false);
             if (entry == null) {
@@ -165,23 +201,6 @@ implements LinkableFileSystemDriver {
                 DataEntry entry = getOrCreateDataEntry(pipe, false, true);
                 entry.reset();
                 entry.setExists(true);
-            } catch (MaxDepthReachedException ignored) {
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public boolean delete(File file) {
-        if (predecessor.delete(file)) {
-            try {
-                DataEntry entry = getDataEntry(file);
-                if (entry != null) {
-                    entry.reset();
-                    entry.setDirectory(false);
-                    entry.setExists(false);
-                }
             } catch (MaxDepthReachedException ignored) {
             }
             return true;

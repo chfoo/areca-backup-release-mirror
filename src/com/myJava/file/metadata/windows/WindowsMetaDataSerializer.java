@@ -34,12 +34,16 @@ This file is part of Areca.
 public class WindowsMetaDataSerializer implements FileMetaDataSerializer {
 
 	public FileMetaData deserialize(String s, long version) throws FileMetaDataSerializationException {
-        int nb = Integer.parseInt("" + s.charAt(1));
-        WindowsMetaData p = new WindowsMetaData();
-        p.setCanRead(nb % 2 == 1);
-        p.setCanWrite(nb >= 2);
-        
-        return p;
+        if (s.charAt(0) != 'w') {
+        	return null;
+        } else {
+			int nb = Integer.parseInt("" + s.charAt(1));
+	        WindowsMetaData p = new WindowsMetaData();
+	        p.setCanRead(nb % 2 == 1);
+	        p.setCanWrite(nb >= 2);
+	        
+	        return p;
+        }
 	}
 
 	public void serialize(FileMetaData attr, StringBuffer sb) throws FileMetaDataSerializationException {

@@ -54,6 +54,7 @@ implements FileSystemPolicy {
     private String protection = null;
     private boolean implicit = false;
 	private String controlEncoding = null;
+	private boolean ignorePsvErrors = false;
     
     public boolean isSecured() {
         return protocol != null && protocol.length() != 0;
@@ -82,6 +83,7 @@ implements FileSystemPolicy {
     protected AbstractProxy buildProxy() {
         FTPProxy proxy = new FTPProxy();
         proxy.setLogin(login);
+        proxy.setIgnorePsvErrors(ignorePsvErrors);
         proxy.setPassivMode(passivMode);
         proxy.setImpliciteSec(implicit);
         proxy.setProtocol(protocol);
@@ -108,9 +110,10 @@ implements FileSystemPolicy {
     	super.copyAttributes(policy);
         policy.setRemoteServer(this.remoteServer);
         policy.setRemotePort(this.remotePort);
+        policy.setIgnorePsvErrors(this.ignorePsvErrors);
         policy.setLogin(this.login);
         policy.setPassword(this.password);
-        policy.setPassivMode(this.passivMode);
+        policy.setPassiveMode(this.passivMode);
         policy.setImplicit(this.implicit);
         policy.setControlEncoding(this.controlEncoding);
         policy.setProtocol(this.protocol);
@@ -143,7 +146,7 @@ implements FileSystemPolicy {
         return passivMode;
     }
     
-    public void setPassivMode(boolean passivMode) {
+    public void setPassiveMode(boolean passivMode) {
         this.passivMode = passivMode;
     }
     
@@ -158,8 +161,16 @@ implements FileSystemPolicy {
     public int getRemotePort() {
         return remotePort;
     }
-    
-    public void setRemotePort(int remotePort) {
+
+    public boolean isIgnorePsvErrors() {
+		return ignorePsvErrors;
+	}
+
+	public void setIgnorePsvErrors(boolean ignorePsvErrors) {
+		this.ignorePsvErrors = ignorePsvErrors;
+	}
+
+	public void setRemotePort(int remotePort) {
         if (remotePort == 0) {
             remotePort = DEFAULT_PORT;
         }
@@ -172,14 +183,6 @@ implements FileSystemPolicy {
     
     public void setRemoteServer(String remoteServer) {
         this.remoteServer = remoteServer;
-    }
-    
-    public String getRemoteDirectory() {
-        return remoteDirectory;
-    }
-    
-    public void setRemoteDirectory(String remoteDirectory) {
-        this.remoteDirectory = remoteDirectory;
     }
     
     public String getUid() {
@@ -217,6 +220,7 @@ implements FileSystemPolicy {
         ToStringHelper.append("Login", this.login, sb);
         ToStringHelper.append("Passiv", this.passivMode, sb);
         ToStringHelper.append("Protocol", this.protocol, sb);
+        ToStringHelper.append("Ignore Pasv Errors", this.ignorePsvErrors, sb);
         ToStringHelper.append("Protection", this.protection, sb);  
         ToStringHelper.append("Control Encoding", this.controlEncoding, sb);
         ToStringHelper.append("Implicit", this.implicit, sb);

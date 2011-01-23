@@ -16,7 +16,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 
 /**
@@ -73,7 +73,7 @@ extends AbstractWindow {
         
         location = new Text(grpLocation, SWT.BORDER);
         location.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        location.setText(ArecaPreferences.getLastWorkspaceCopyLocation());
+        location.setText(ApplicationPreferences.getLastWorkspaceCopyLocation());
         monitorControl(location);
         
         Button btnBrowse = new Button(grpLocation, SWT.PUSH);
@@ -90,7 +90,7 @@ extends AbstractWindow {
 
         removeEncryption = new Button(composite, SWT.CHECK);
         removeEncryption.setText(RM.getLabel("cpws.removeencryption.label"));
-        removeEncryption.setSelection(ArecaPreferences.getLastWorkspaceCopyMask());
+        removeEncryption.setSelection(ApplicationPreferences.getLastWorkspaceCopyMask());
         monitorControl(SWT.Selection, removeEncryption);
 
         SavePanel pnlSave = new SavePanel(this);
@@ -115,8 +115,8 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() {       
-        ArecaPreferences.setLastWorkspaceCopyLocation(location.getText());
-        ArecaPreferences.setLastWorkspaceCopyMask(removeEncryption.getSelection());
+        ApplicationPreferences.setLastWorkspaceCopyLocation(location.getText());
+        ApplicationPreferences.setLastWorkspaceCopyMask(removeEncryption.getSelection());
         
         application.createWorkspaceCopy(new File(location.getText()), removeEncryption.getSelection());
         

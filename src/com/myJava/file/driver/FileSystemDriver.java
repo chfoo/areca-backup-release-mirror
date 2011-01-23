@@ -8,6 +8,8 @@ import java.io.OutputStream;
 
 import com.myJava.file.OutputStreamListener;
 import com.myJava.file.metadata.FileMetaData;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * This interface defines a file access layer.
@@ -62,6 +64,7 @@ public interface FileSystemDriver {
     public boolean canWrite(File file);
     public boolean createNewFile(File file) throws IOException;
     public boolean delete(File file);
+    public void forceDelete(File file, TaskMonitor monitor) throws IOException, TaskCancelledException;
     public boolean exists(File file);
     public File getAbsoluteFile(File file);
     public String getAbsolutePath(File file);
@@ -153,4 +156,10 @@ public interface FileSystemDriver {
      * Clears cached file informations, if applicable.
      */
     public void clearCachedData(File file) throws IOException;
+    
+    /**
+     * Returns the real path used to store the file (ie the path that can be used to access the file directly).
+     * <BR>This method may return a null value if irrelevant.
+     */
+    public String getPhysicalPath(File file);
 }

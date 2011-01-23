@@ -10,6 +10,7 @@ import com.myJava.util.xml.AdapterException;
 import com.myJava.util.xml.XMLTool;
 
 /**
+ * Serializer/Deserializer for FTPFileSystemPolicy instances.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -56,7 +57,8 @@ extends AbstractFileSystemPolicyXMLHandler {
         Node dirNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_REMOTEDIR);
         Node nameNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVENAME);
         Node ctrlEncodingNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_CTRL_ENCODING);
-        
+        Node ignorePsvErrorsNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_IGNORE_PSV_ERR);
+
         // No storage policy found
         if (serverNode == null && portNode == null && passivNode == null && loginNode == null && passwordNode == null && dirNode == null) {
             throw new AdapterException("Medium storage policy not found : your medium must have either a '" + XML_MEDIUM_PATH + "' attribute or FTP attributes (" + XML_MEDIUM_FTP_HOST + ", " + XML_MEDIUM_FTP_LOGIN + ", " + XML_MEDIUM_FTP_PASSWORD + " ...)");            
@@ -79,7 +81,8 @@ extends AbstractFileSystemPolicyXMLHandler {
         FTPFileSystemPolicy policy = new FTPFileSystemPolicy();
         policy.setRemoteServer(serverNode.getNodeValue());
         policy.setRemotePort(Integer.parseInt(portNode.getNodeValue()));
-        policy.setPassivMode(passivNode != null && passivNode.getNodeValue().equalsIgnoreCase("true"));
+        policy.setPassiveMode(passivNode != null && passivNode.getNodeValue().equalsIgnoreCase("true"));
+        policy.setIgnorePsvErrors(ignorePsvErrorsNode != null && ignorePsvErrorsNode.getNodeValue().equalsIgnoreCase("true"));
         
         if (protocolNode != null) {
             policy.setProtocol(protocolNode.getNodeValue());
@@ -131,66 +134,28 @@ extends AbstractFileSystemPolicyXMLHandler {
     		StringBuffer sb) {
     	
         FTPFileSystemPolicy policy = (FTPFileSystemPolicy)source;
-        
-        sb.append(" ");
-        sb.append(XML_MEDIUM_ARCHIVENAME);
-        sb.append("=");
-        sb.append(XMLTool.encode(policy.getArchiveName()));
-        
-        sb.append(" ");
-        sb.append(XML_MEDIUM_FTP_HOST);
-        sb.append("=");
-        sb.append(XMLTool.encode(policy.getRemoteServer()));
-        
-        sb.append(" ");
-        sb.append(XML_MEDIUM_FTP_PORT);
-        sb.append("=");
-        sb.append(XMLTool.encode("" + policy.getRemotePort()));
-        
-        sb.append(" ");
-        sb.append(XML_MEDIUM_FTP_PASSIV);
-        sb.append("=");
-        sb.append(XMLTool.encode("" + policy.isPassivMode()));
-        
+
+        sb.append(XMLTool.encodeProperty(XML_MEDIUM_ARCHIVENAME, policy.getArchiveName()));
+        sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_HOST, policy.getRemoteServer()));
+        sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_PORT, policy.getRemotePort()));
+        sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_PASSIV, policy.isPassivMode()));
+        sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_IGNORE_PSV_ERR, policy.isIgnorePsvErrors()));
+
         if (policy.getProtocol() != null)  {
-            sb.append(" ");
-            sb.append(XML_MEDIUM_FTP_PROTOCOL);
-            sb.append("=");
-            sb.append(XMLTool.encode("" + policy.getProtocol()));
-            
-            sb.append(" ");
-            sb.append(XML_MEDIUM_FTP_IMPLICIT);
-            sb.append("=");
-            sb.append(XMLTool.encode("" + policy.isImplicit()));
-            
-            sb.append(" ");
-            sb.append(XML_MEDIUM_FTP_PROTECTION);
-            sb.append("=");
-            sb.append(XMLTool.encode("" + policy.getProtection()));
+            sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_PROTOCOL, policy.getProtocol()));
+            sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_IMPLICIT, policy.isImplicit()));
+            sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_PROTECTION, policy.getProtection()));
         }
         
-        sb.append(" ");
-        sb.append(XML_MEDIUM_FTP_LOGIN);
-        sb.append("=");
-        sb.append(XMLTool.encode(policy.getLogin()));
+        sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_LOGIN, policy.getLogin()));
         
         if (! removeSensitiveData) {
-	        sb.append(" ");
-	        sb.append(XML_MEDIUM_FTP_PASSWORD);
-	        sb.append("=");
-	        sb.append(XMLTool.encode(policy.getPassword()));
+            sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_PASSWORD, policy.getPassword()));
         }
         
         if (policy.getControlEncoding() != null) {
-	        sb.append(" ");
-	        sb.append(XML_MEDIUM_FTP_CTRL_ENCODING);
-	        sb.append("=");
-	        sb.append(XMLTool.encode(policy.getControlEncoding()));
+            sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_CTRL_ENCODING, policy.getControlEncoding()));
         }
-        
-        sb.append(" ");
-        sb.append(XML_MEDIUM_FTP_REMOTEDIR);
-        sb.append("=");
-        sb.append(XMLTool.encode(policy.getRemoteDirectory()));
+        sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_REMOTEDIR, policy.getRemoteDirectory()));
     }
 }

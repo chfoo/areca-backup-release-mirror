@@ -49,8 +49,8 @@ public class Utils implements ArecaFileConstants {
     private static DateFormat DF;
     public static final String FILE_DATE_SEPARATOR = ".";
     private static final NumberFormat NF = new DecimalFormat();
-    private static final String LN_DIRECTORY = ArecaTechnicalConfiguration.get().getLanguageLocationOverride();
-    private static final String EXEC_DIRECTORY = ArecaTechnicalConfiguration.get().getBinLocationOverride();
+    private static final String LN_DIRECTORY = ArecaConfiguration.get().getLanguageLocationOverride();
+    private static final String EXEC_DIRECTORY = ArecaConfiguration.get().getBinLocationOverride();
 
     static {
         NF.setGroupingUsed(true);

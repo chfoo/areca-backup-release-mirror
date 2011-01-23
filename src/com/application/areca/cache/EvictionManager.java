@@ -11,6 +11,7 @@ import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 
 /**
+ * Eviction manager for ArchiveDataCache class
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

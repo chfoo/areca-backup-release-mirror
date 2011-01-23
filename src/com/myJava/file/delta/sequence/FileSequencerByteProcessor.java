@@ -41,6 +41,7 @@ implements ByteProcessor, Constants {
     private int currentQuickHash = 0;
     private HashSequence ret;
     private LinkedList block;
+    private boolean closed = false;
     
     private long totalReadMod = 0;
 
@@ -49,6 +50,11 @@ implements ByteProcessor, Constants {
     }
 
     public void close() throws ByteProcessorException {
+    	if (closed) {
+    		return;
+    	}
+    	closed = true;
+    	
         if (totalReadMod != 0) {
             int d;
             for (d = 0; d<blockSize; d++) {

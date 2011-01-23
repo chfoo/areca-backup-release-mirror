@@ -7,7 +7,7 @@ import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.ActionConstants;
 import com.application.areca.launcher.gui.common.ArecaImages;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.system.viewer.ViewerHandlerHelper;
 
@@ -93,7 +93,7 @@ public class AppActionReferenceHolder implements ActionConstants{
         SecuredRunner.execute(Application.getInstance().getDisplay(), new Runnable() {
             public void run() {
                 Application application = Application.getInstance();
-                String cmd = ArecaPreferences.getEditionCommand();
+                String cmd = ApplicationPreferences.getEditionCommand();
 
                 if (application.getCurrentObject() == null || Workspace.class.isAssignableFrom(application.getCurrentObject().getClass())) {
                     enableCommands(false);

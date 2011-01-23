@@ -128,7 +128,7 @@ implements Listener, Refreshable, HistoryEntryTypes {
 
                 if (type == HISTO_BACKUP_CANCEL) {
                     item.setImage(0, ArecaImages.ICO_ACT_CANCEL);
-                } else if (type == HISTO_BACKUP) {
+                } else if (type == HISTO_BACKUP || type == HISTO_RESUME) {
                     item.setImage(0, ArecaImages.ICO_ACT_ARCHIVE);
                 } else if (type == HISTO_DELETE) {
                     item.setImage(0, ArecaImages.ICO_ACT_DELETE);

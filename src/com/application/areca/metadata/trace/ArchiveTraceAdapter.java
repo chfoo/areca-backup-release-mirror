@@ -46,89 +46,93 @@ This file is part of Areca.
 
  */
 public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
-    /**
-     * Boolean that sets whether directories must be read or not
-     */
-    protected boolean trackSymlinks;
-    protected boolean trackMetaData;
-    
-    protected String previousKey = null;
-    
-    public ArchiveTraceAdapter(File traceFile) throws IOException {
-        this(traceFile, false);
-    }
-    
-    public ArchiveTraceAdapter(File traceFile, boolean trackSymlinks) {
-        this.trackSymlinks = trackSymlinks;
-        this.file = traceFile;
-    }
-   
-    public void setTrackPermissions(boolean trackMetaData) {
-        this.trackMetaData = trackMetaData;
-    }
-    
-    public void writeEntry(FileSystemRecoveryEntry entry) 
-    throws IOException, FileMetaDataSerializationException {
-    	if (previousKey != null) {
-	    	if (FilePathComparator.instance().compare(entry.getKey(), previousKey) <= 0) {
-	    		throw new IllegalStateException(entry.getKey() + " <= " + previousKey);
-	    	}
-    	}
-    	writeEntry(ArchiveTraceParser.serialize(entry, trackMetaData, trackSymlinks));
-    }
-    
-    public void writeEntry(char type, String key, String data) throws IOException {
-        writeEntry(type + MetadataEncoder.encode(key) + MetadataConstants.SEPARATOR + data);
-    }
-    
-    public void writeEntry(String serializedEntry) throws IOException {
-        initWriter();
-        this.writer.write("\r\n" + serializedEntry);
-        this.written++;
-    }
-    
-    /**
-     * Read the archive trace file line by line and call the TraceHandler provided as argument
-     * for each line.
-     */
-    public void traverseTraceFile(TraceHandler handler, ProcessContext context) 
-    throws IOException, FileMetaDataSerializationException, TaskCancelledException {
-        long version = getVersion();
-        String encoding = resolveEncoding(version);
-        handler.setVersion(version);
-        InputStream in = this.getInputStream();
-        
-        try {
-            BufferedReader reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding));            
-            String line = null;
-            boolean header = true;
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (line.length() != 0 && !header) {
-                	TraceEntry entry = (TraceEntry)decodeEntry(line);
-                	
-            		// It is VERY important that the key / hash are compliant with the current serialization
-            		// format. Each line can indeed be written as part of a new trace (case of archive merge)
-            		// and will be assumed to match the current serialization format.
-                	handler.newRow(entry.getType(), entry.getKey(), entry.getData(), context);
-                }
-            	header = false;
-            }
-        	handler.close();
-        } finally {
-            try {
-            	in.close();
-            } catch (Exception ignored) {
-            }
-        }
-    }
-    
-    public AbstractMetaDataEntry decodeEntry(String serialized) {
-    	if (DEBUG) {
-    		Logger.defaultLogger().fine("Parsing trace : [" + serialized + "]");
-    	}
-    	TraceEntry entry = new TraceEntry();
-    	
+	protected boolean trackSymlinks;
+	protected boolean trackMetaData;
+	protected String previousKey = null;
+
+	private ArchiveTraceAdapter(File traceFile) throws IOException {
+		this(traceFile, null, false);
+	}
+
+	public ArchiveTraceAdapter(File traceFile, String prefix, boolean trackSymlinks) {
+		super(traceFile, prefix);
+		this.trackSymlinks = trackSymlinks;
+	}
+
+	public void setTrackPermissions(boolean trackMetaData) {
+		this.trackMetaData = trackMetaData;
+	}
+
+	public void writeEntry(FileSystemRecoveryEntry entry) 
+	throws IOException, FileMetaDataSerializationException {
+		if (previousKey != null) {
+			if (FilePathComparator.instance().compare(entry.getKey(), previousKey) <= 0) {
+				throw new IllegalStateException(entry.getKey() + " <= " + previousKey);
+			}
+		}
+		write(ArchiveTraceParser.serialize(entry, trackMetaData, trackSymlinks));
+	}
+
+	public void writeEntry(char type, String key, String data) throws IOException {
+		write(type + MetadataEncoder.encode(key) + MetadataConstants.SEPARATOR + data);
+	}
+
+	/**
+	 * Read the archive trace file line by line and call the TraceHandler provided as argument
+	 * for each line.
+	 */
+	private void traverse(TraceHandler handler, ProcessContext context) 
+	throws IOException, FileMetaDataSerializationException, TaskCancelledException {
+		MetadataHeader hdr = getMetaData();
+		String encoding = hdr.getEncoding();
+		handler.setVersion(hdr.getVersion());
+
+		InputStream in = this.getInputStream();
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding));            
+			String line = null;
+
+			// Skip the header
+			skipHeader(reader);
+			
+			while ((line = reader.readLine()) != null) {
+				line = line.trim();
+				if (line.length() != 0) {
+					TraceEntry entry = (TraceEntry)decodeEntry(line);
+
+					// It is VERY important that the key / hash are compliant with the current serialization
+					// format. Each line can indeed be written as part of a new trace (case of archive merge)
+					// and will be assumed to match the current serialization format.
+					handler.newRow(entry.getType(), entry.getKey(), entry.getData(), context);
+				}
+			}
+			handler.close();
+		} finally {
+			try {
+				if (reader != null) {
+					reader.close();
+				}
+				in.close();
+			} catch (Exception ignored) {
+			}
+		}
+	}
+
+	public boolean isTrackSymlinks() {
+		return trackSymlinks;
+	}
+
+	public boolean isTrackMetaData() {
+		return trackMetaData;
+	}
+
+	public AbstractMetaDataEntry decodeEntry(String serialized) {
+		if (DEBUG) {
+			Logger.defaultLogger().fine("Parsing trace : [" + serialized + "]");
+		}
+		TraceEntry entry = new TraceEntry();
+
 		int index = serialized.indexOf(MetadataConstants.SEPARATOR);
 		String key;
 		String hash;
@@ -141,22 +145,41 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
 		}
 		//handle current directory
 		entry.setType(key.charAt(0));  	// register the type marker
-		entry.setKey( key.substring(1)); 		// remove the type marker
-    	entry.setData(hash);
-		
-		return entry;
-    }
-    
-    /**
-     * Build a TraceFileIterator
-     */
-    public TraceFileIterator buildIterator() throws IOException {
-		 long version = getVersion();
-	     String encoding = resolveEncoding(version);
-	     InputStream in = this.getInputStream();
-         BufferedReader reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding)); 
+		entry.setKey(key.substring(1)); 		// remove the type marker
+		entry.setData(hash);
 
-         TraceFileIterator iter = new TraceFileIterator(reader, this);
-         return iter;
-    }
+		return entry;
+	}
+
+	/**
+	 * Build a TraceFileIterator
+	 */
+	private TraceFileIterator getIterator() throws IOException {
+		String encoding = getMetaData().getEncoding();
+		
+		InputStream in = this.getInputStream();
+		BufferedReader reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding)); 
+
+		// Skip the header
+		skipHeader(reader);
+		
+		// Build the iterator
+		TraceFileIterator iter = new TraceFileIterator(reader, this);
+		return iter;
+	}
+
+	public static TraceFileIterator buildIterator(File traceFile) throws IOException {
+		ArchiveTraceAdapter adapter = new ArchiveTraceAdapter(traceFile);
+		return adapter.getIterator();
+	}
+	
+	public static void traverseTraceFile(TraceHandler handler, File traceFile, ProcessContext context) 
+	throws IOException, FileMetaDataSerializationException, TaskCancelledException {
+		ArchiveTraceAdapter adapter = new ArchiveTraceAdapter(traceFile);
+		adapter.traverse(handler, context);
+	}
+	
+	protected AbstractMetadataAdapter buildReader(File sourceFile) throws IOException {
+		return new ArchiveTraceAdapter(sourceFile);
+	}
 }

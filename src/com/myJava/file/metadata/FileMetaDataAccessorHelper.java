@@ -54,7 +54,7 @@ public class FileMetaDataAccessorHelper {
 					if (INSTANCE.test()) {
 						Logger.defaultLogger().info("[" + configuredAccessor + "] validated.");
 					} else {
-						Logger.defaultLogger().warn("[" + configuredAccessor + "] not validated. The default metadata accessor will be used instead. See Areca's FAQ for more informations about file metadata management. (ACL & extended attributes)");
+						Logger.defaultLogger().warn("[" + configuredAccessor + "] not validated. The default metadata accessor will be used instead. See FAQ for more informations about file metadata management. (ACL & extended attributes)");
 						INSTANCE = null;
 					}
 				} catch (Exception e) {

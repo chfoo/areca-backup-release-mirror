@@ -1,6 +1,7 @@
 package com.application.areca.adapters;
 
 /**
+ * List of XML tags used for configuration serialization
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -98,6 +99,7 @@ public interface XMLTags {
     public static final String XML_MEDIUM_ENCRYPTED = "encrypted";
     public static final String XML_MEDIUM_ENCRYPTIONKEY = "encryption_key";
     public static final String XML_MEDIUM_ENCRYPTIONALGO = "encryption_algo";
+    public static final String XML_MEDIUM_WRAPNAMES = "encrypted_names_policy";
     public static final String XML_MEDIUM_ENCRYPTNAMES = "encrypt_names";
     public static final String XML_MEDIUM_TRACK_DIRS = "track_directories";		// DEPRECATED
     public static final String XML_MEDIUM_TRACK_PERMS = "track_permissions";    
@@ -114,6 +116,7 @@ public interface XMLTags {
     public static final String XML_MEDIUM_FTP_PASSWORD = "ftp_password";
     public static final String XML_MEDIUM_FTP_HOST = "ftp_host";
     public static final String XML_MEDIUM_FTP_PORT = "ftp_port";
+    public static final String XML_MEDIUM_FTP_IGNORE_PSV_ERR = "ftp_ignore_psv_errors";
     public static final String XML_MEDIUM_FTP_PASSIV = "ftp_passiv";
     public static final String XML_MEDIUM_FTP_PROTOCOL = "ftp_protocol";
     public static final String XML_MEDIUM_FTP_PROTECTION = "ftp_protection";

@@ -20,6 +20,7 @@ import com.application.areca.context.ProcessContext;
 import com.application.areca.context.StatusList;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
+import com.application.areca.metadata.transaction.TransactionPoint;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -92,7 +93,7 @@ implements TargetActions {
     public void setSources(Set sources) {
         this.sources = sources;
         deduplicate(this.sources);
-        this.computeSourceRoot();
+    	this.sourcesRoot = computeSourceRoot(this.sources);
     }
 
     public boolean isFollowSubdirectories() {
@@ -140,12 +141,12 @@ implements TargetActions {
     public Set getSources() {
         return sources;
     }
-
-    private void computeSourceRoot() {
+    
+    public static String computeSourceRoot(Set sourceDirectories) {
         List paths = new ArrayList();
         int min = Integer.MAX_VALUE;
-        if (sources.size() > 0) {
-            Iterator iter = this.sources.iterator();
+        if (sourceDirectories.size() > 0) {
+            Iterator iter = sourceDirectories.iterator();
             while (iter.hasNext()) {
                 File source = (File)iter.next();
                 ArrayList path = new ArrayList();
@@ -160,7 +161,7 @@ implements TargetActions {
             for (int token=0; token<min && divergenceIndex == -1; token++) {
                 File current = (File)((List)paths.get(0)).get(token);
                 String currentStr = FileSystemManager.getAbsolutePath(current);
-                for (int s=1; s<this.sources.size() && divergenceIndex == -1; s++) {
+                for (int s=1; s<sourceDirectories.size() && divergenceIndex == -1; s++) {
                     File other = (File)((List)paths.get(s)).get(token);
                     if (! currentStr.equals(FileSystemManager.getAbsolutePath(other))) {
                         divergenceIndex = token;
@@ -169,14 +170,14 @@ implements TargetActions {
             }
 
             if (divergenceIndex == 0) {
-                sourcesRoot = "";
+            	return "";
             } else if (divergenceIndex == -1) {
-                sourcesRoot = FileSystemManager.getAbsolutePath((File)this.sources.iterator().next());
+            	return FileSystemManager.getAbsolutePath((File)sourceDirectories.iterator().next());
             } else {
-                sourcesRoot = FileSystemManager.getAbsolutePath((File)((List)paths.get(0)).get(divergenceIndex - 1));
+            	return FileSystemManager.getAbsolutePath((File)((List)paths.get(0)).get(divergenceIndex - 1));
             }
         } else {
-            sourcesRoot = "";
+        	return "";
         }
     }
 
@@ -256,6 +257,12 @@ implements TargetActions {
     	}
     }
 
+	protected void open(TransactionPoint transactionPoint, ProcessContext context) throws ApplicationException {
+        Logger.defaultLogger().info("Reading backup context ...");
+		super.open(transactionPoint, context);
+        Logger.defaultLogger().info("Backup context initialized.");
+	}
+
 	public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
         Logger.defaultLogger().info("Initializing backup context ...");
         Logger.defaultLogger().info("Global source root : " + this.sourcesRoot);
@@ -274,7 +281,6 @@ implements TargetActions {
             Logger.defaultLogger().info("Registering source directory : " + FileSystemManager.getAbsolutePath(source));
             sourceArray[i] = FileSystemManager.getAbsolutePath(source).substring(root.length());
         }
-        context.setRootCount(this.sources.size());
         File fRoot = null;
         if (root != null && root.length() != 0) {
         	fRoot = new File(root);
@@ -318,7 +324,7 @@ implements TargetActions {
     		} catch (TaskCancelledException e) {
     			throw new ApplicationException(e);
     		}
-    		
+
 			// Set status
 			if (context.hasRecoveryProblem()) {
 				context.getReport().getStatus().addItem(StatusList.KEY_ARCHIVE_CHECK, "The archives were not successfully checked.");
@@ -387,7 +393,7 @@ implements TargetActions {
         Logger.defaultLogger().info("Moving " + FileSystemManager.getAbsolutePath(recoveredFile) + " to " + FileSystemManager.getAbsolutePath(targetFile));
         FileSystemManager.renameTo(recoveredFile, targetFile);
         try {
-            FileTool.getInstance().delete(dest, true);
+            FileTool.getInstance().delete(dest);
         } catch (IOException e) {
             Logger.defaultLogger().error(e);
             throw new ApplicationException(e);

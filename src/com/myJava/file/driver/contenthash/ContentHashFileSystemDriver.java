@@ -9,6 +9,8 @@ import com.myJava.file.OutputStreamListener;
 import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * This class behaves like a standard "FileSystemDriver", except that it doesn't store the content of the files 
@@ -62,6 +64,10 @@ public class ContentHashFileSystemDriver extends AbstractLinkableFileSystemDrive
 			throw new IOException(e);
 		}
 	}
+
+    public String getPhysicalPath(File file) {
+    	return predecessor.getPhysicalPath(file);
+	}
 	
 	public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException {
 		try {
@@ -88,6 +94,11 @@ public class ContentHashFileSystemDriver extends AbstractLinkableFileSystemDrive
 			Logger.defaultLogger().error(e);
 			throw new IOException(e);
 		}
+	}
+	
+    public void forceDelete(File file, TaskMonitor monitor)
+    throws IOException, TaskCancelledException {
+    	predecessor.forceDelete(file, monitor);
 	}
 }
 

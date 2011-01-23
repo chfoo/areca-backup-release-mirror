@@ -47,4 +47,5 @@ public interface FileSystemPolicy extends Duplicable {
     public void synchronizeConfiguration();
     public boolean retrySupported();
     public int getMaxRetries();
+    public boolean canHandle(File source);
 }

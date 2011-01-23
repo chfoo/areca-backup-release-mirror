@@ -5,6 +5,7 @@ import com.myJava.util.xml.XMLTool;
 
 
 /**
+ * Base implementation for XML writers (used to serialize Targets and Target Groups)
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

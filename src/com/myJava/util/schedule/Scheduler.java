@@ -3,7 +3,7 @@ package com.myJava.util.schedule;
 import java.util.Vector;
 
 /**
- * Classe permettant de gï¿½rer des tï¿½ches planifiï¿½es.
+ * Classe permettant de gérer des tâches planifiées.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -34,12 +34,12 @@ This file is part of Areca.
 public class Scheduler {
 
     /**
-     * Scheduler par dï¿½faut
+     * Scheduler par défaut
      */
     protected static Scheduler defaultScheduler = new Scheduler();
 
     /**
-     * Liste des tï¿½ches
+     * Liste des tâches
      */
     protected Vector scdTasks;
 
@@ -51,7 +51,7 @@ public class Scheduler {
     }
 
     /**
-     * Ajout d'une tï¿½che
+     * Ajout d'une tâche
      */
     public void addTask(ScheduledTask task) {
         this.scdTasks.add(task);
@@ -59,21 +59,21 @@ public class Scheduler {
     }
 
     /**
-     * Retourne le nombre de tï¿½ches
+     * Retourne le nombre de tâches
      */
     public int getTaskCount() {
         return this.scdTasks.size();
     }
 
     /**
-     * Retourne la tï¿½che demandï¿½e
+     * Retourne la tâche demandée
      */
     public ScheduledTask getTask(int i) {
         return (ScheduledTask)this.scdTasks.elementAt(i);
     }
 
     /**
-     * Arrï¿½te les tï¿½ches
+     * Arrête les tâches
      */
     public void stopAllTasks() {
         for (int i=0; i<this.getTaskCount(); i++) {
@@ -82,7 +82,7 @@ public class Scheduler {
     }
 
     /**
-     * Retourne le scheduler par dï¿½faut.
+     * Retourne le scheduler par défaut.
      */
     public static Scheduler getDefaultScheduler() {
         return Scheduler.defaultScheduler;

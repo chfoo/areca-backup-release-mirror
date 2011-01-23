@@ -7,6 +7,7 @@ import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.AggregatedViewContext;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.metadata.manifest.Manifest;
+import com.application.areca.metadata.transaction.TransactionPoint;
 import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
 import com.myJava.object.Duplicable;
@@ -114,13 +115,19 @@ public interface ArchiveMedium extends Duplicable {
     /**
      * Open the medium. This method is called before the backup is performed.
      */
-    public void open(Manifest manifest, ProcessContext context, String backupScheme) 
+    public void open(Manifest manifest, TransactionPoint transactionPoint,ProcessContext context) 
     throws ApplicationException;
     
     /**
      * Validate the backup
      */
     public void commitBackup(ProcessContext context) 
+    throws ApplicationException;
+    
+    /**
+     * Save a temporary transaction point
+     */
+    public void initTransactionPoint(ProcessContext context)
     throws ApplicationException;
     
     /**
@@ -235,4 +242,9 @@ public interface ArchiveMedium extends Duplicable {
      * Checks the target's configuration
      */
 	public boolean checkStupidConfigurations();
+	
+	/**
+	 * Tells whether the medium supports resuming backups
+	 */
+	public String checkResumeSupported();
 }

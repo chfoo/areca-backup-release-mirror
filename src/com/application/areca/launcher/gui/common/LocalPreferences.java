@@ -13,6 +13,7 @@ import java.util.Stack;
 
 import com.application.areca.ArecaFileConstants;
 import com.application.areca.LogHelper;
+import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.log.Logger;
@@ -49,7 +50,7 @@ This file is part of Areca.
 
 public class LocalPreferences implements ArecaFileConstants {
 
-    private static final String HEADER = "Areca user preferences";
+    private static final String HEADER = "" + VersionInfos.APP_SHORT_NAME + " user preferences";
     private static LocalPreferences instance = new LocalPreferences();
 
     private final Properties preferences = new Properties();
@@ -180,7 +181,7 @@ public class LocalPreferences implements ArecaFileConstants {
 	            fis.close();
 	            
 	            if (deprecatedFile) {
-	            	FileTool.getInstance().delete(prefFile, true);
+	            	FileTool.getInstance().delete(prefFile);
 	            	save();
 	            }
             }

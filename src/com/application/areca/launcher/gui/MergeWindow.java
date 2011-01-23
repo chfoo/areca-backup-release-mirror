@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.Text;
 import com.application.areca.AbstractTarget;
 import com.application.areca.MergeParameters;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.metadata.manifest.Manifest;
 
@@ -163,8 +163,8 @@ extends AbstractWindow {
         pnl.setLayoutData(ldPnl);
 
         // INIT DATA
-        txtLocation.setText(ArecaPreferences.getMergeSpecificLocation(application.getCurrentWorkspaceItem().getUid()));
-        if (ArecaPreferences.getMergeUseSpecificLocation(application.getCurrentWorkspaceItem().getUid())) {
+        txtLocation.setText(ApplicationPreferences.getMergeSpecificLocation(application.getCurrentWorkspaceItem().getUid()));
+        if (ApplicationPreferences.getMergeUseSpecificLocation(application.getCurrentWorkspaceItem().getUid())) {
             radUseSpecificLocation.setSelection(true);
         } else {
             radUseDefaultLocation.setSelection(true);
@@ -196,8 +196,8 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() {
-		ArecaPreferences.setMergeUseSpecificLocation(radUseSpecificLocation.getSelection(), application.getCurrentWorkspaceItem().getUid());
-		ArecaPreferences.setMergeSpecificLocation(txtLocation.getText(), application.getCurrentWorkspaceItem().getUid());
+		ApplicationPreferences.setMergeUseSpecificLocation(radUseSpecificLocation.getSelection(), application.getCurrentWorkspaceItem().getUid());
+		ApplicationPreferences.setMergeSpecificLocation(txtLocation.getText(), application.getCurrentWorkspaceItem().getUid());
 		
         this.manifest.setDescription(this.txtDescription.getText());
         this.manifest.setTitle(this.txtTitle.getText());  

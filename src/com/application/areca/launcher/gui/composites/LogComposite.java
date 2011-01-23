@@ -21,7 +21,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.ArecaImages;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.Refreshable;
 import com.application.areca.launcher.gui.common.SecuredRunner;
@@ -68,7 +68,7 @@ implements LogProcessor, Refreshable {
 	private Application application = Application.getInstance();
 	private int position = 0;
 	private Set displayedMessages = new HashSet();
-	private int logLevel = Math.min(ArecaPreferences.getLogLevel(), Logger.defaultLogger().getLogLevel());
+	private int logLevel = Math.min(ApplicationPreferences.getLogLevel(), Logger.defaultLogger().getLogLevel());
 	private boolean lockScroll = false;
 	
 	private StyledText txtLog;
@@ -155,7 +155,7 @@ implements LogProcessor, Refreshable {
 		cboLogLevel.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				LogComposite.this.logLevel = Logger.LEVELS[cboLogLevel.getSelectionIndex()];
-				ArecaPreferences.setLogLevel(LogComposite.this.logLevel);
+				ApplicationPreferences.setLogLevel(LogComposite.this.logLevel);
 			}
 		});
 		

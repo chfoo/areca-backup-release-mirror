@@ -35,7 +35,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public final class ArecaPreferences {
+public final class ApplicationPreferences {
     private static final String STARTUP_MODE = "startup.mode";
 	private static final String STARTUP_WORKSPACE = "startup.workspace";
 	private static final String LAST_WORKSPACE = "lastworkspace";
@@ -48,7 +48,8 @@ public final class ArecaPreferences {
     private static final String TEXT_EDITOR = "editor.text";
     private static final String INFO_SYNTHETIC = "info.channel.synthetic";
     private static final String DATE_FORMAT = "date.format";
-    private static final String DISPLAY_JAVA_VENDOR_MESSAGE = "display.java.vendor.message";
+    public static final String DISPLAY_JAVA_VENDOR_MESSAGE = "display.java.vendor.message";
+    public static final String DISPLAY_DEPRECATED_IMAGE_MESSAGE = "display.deprecated.image.message";
 	private static final String CHECK_NEW_VERSIONS = "check.new.versions";
 	private static final String GUI_LOG_LEVEL = "gui.log.level";
 	private static final String CHECK_USE_SPECIFIC_LOCATION = "check.use.specific.location";
@@ -122,9 +123,13 @@ public final class ArecaPreferences {
         synchronizeClientConfigurations();
     }
     
-    public static void setDisplayJavaVendorMessage(boolean b) {
-        LocalPreferences.instance().set(DISPLAY_JAVA_VENDOR_MESSAGE, b);
+    public static void setDisplayMessage(String key, boolean b) {
+        LocalPreferences.instance().set(key, b);
         synchronizeClientConfigurations();
+    }
+    
+    public static boolean isDisplayMessage(String key) {
+        return LocalPreferences.instance().getBoolean(key, true);
     }
 	
 	public static void setLastWorkspaceCopyLocation(String dir) {
@@ -214,10 +219,6 @@ public final class ArecaPreferences {
     
     public static boolean isCheckNewVersions() {
         return LocalPreferences.instance().getBoolean(CHECK_NEW_VERSIONS, false);
-    }
-    
-    public static boolean isDisplayJavaVendorMessage() {
-        return LocalPreferences.instance().getBoolean(DISPLAY_JAVA_VENDOR_MESSAGE, true);
     }
 	
 	public static void setLastWorkspace(String lw) {

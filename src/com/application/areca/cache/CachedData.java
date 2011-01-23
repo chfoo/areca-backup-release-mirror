@@ -1,6 +1,7 @@
 package com.application.areca.cache;
 
 /**
+ * Cache entry implementation for ArchiveDataMap class
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

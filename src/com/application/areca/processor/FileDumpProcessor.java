@@ -77,7 +77,7 @@ public class FileDumpProcessor extends AbstractProcessor {
 		File destination = new File(
 				destinationFolder, 
 				TagHelper.replaceParamValues(
-						TagHelper.replaceTag(reportName, TagHelper.PARAM_ARCHIVE, TagHelper.PARAM_ARCHIVE_NAME), // The %ARCHIVE% tag cannot be used here !
+						TagHelper.replaceTag(reportName, TagHelper.PARAM_ARCHIVE_PATH, TagHelper.PARAM_ARCHIVE_NAME), // The %ARCHIVE% tag cannot be used here !
 						context
 				)
 		);
@@ -85,9 +85,10 @@ public class FileDumpProcessor extends AbstractProcessor {
 
 		try {
 			ProcessReport report = context.getReport();
-			if (! FileSystemManager.exists(destinationFolder)) {
+			File parent = FileSystemManager.getParentFile(destination);
+			if (! FileSystemManager.exists(parent)) {
 				FileTool tool = FileTool.getInstance();
-				tool.createDir(destinationFolder);
+				tool.createDir(parent);
 			}
 			writer = new ProcessReportWriter(FileSystemManager.getWriter(destination));
 			writer.writeReport(report);

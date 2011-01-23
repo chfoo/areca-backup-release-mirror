@@ -47,6 +47,8 @@ public class UserCommandLine implements CommandConstants {
         Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_CHECK_FILES);
         Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_SPEC_LOCATION);
         Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_SYNC);
+        Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_RESUME);
+        Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_RESUME_CONDITIONAL);
         Launcher.COMMAND_BACKUP.addOptionalArgument(Launcher.OPTION_TITLE);
    
         Launcher.COMMAND_MERGE.addMandatoryArgument(Launcher.OPTION_CONFIG);

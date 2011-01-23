@@ -40,6 +40,8 @@ This file is part of Areca.
 
  */
 public class SpecialFileFilter extends AbstractArchiveFilter {
+	private static final long serialVersionUID = 1292446243312786589L;
+	
 	private boolean link;
 	private boolean pipe;
 	private boolean socket;

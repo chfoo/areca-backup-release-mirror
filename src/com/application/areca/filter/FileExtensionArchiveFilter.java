@@ -40,8 +40,9 @@ This file is part of Areca.
 
  */
 public class FileExtensionArchiveFilter extends AbstractArchiveFilter {
-
-    private static final String SEPARATOR = ", ";
+	private static final long serialVersionUID = -4526135026464366338L;
+	
+	private static final String SEPARATOR = ", ";
     protected ArrayList extensions = new ArrayList();
 
 	public void addExtension(String ext) {

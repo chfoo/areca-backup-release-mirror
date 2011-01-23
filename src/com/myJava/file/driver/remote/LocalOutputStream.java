@@ -40,6 +40,7 @@ public class LocalOutputStream extends OutputStream {
     private File file;
     private File localFile;
     private AbstractRemoteFileSystemDriver driver;
+    private boolean closed = false;
 
 	public LocalOutputStream(File file, AbstractRemoteFileSystemDriver driver) throws IOException {
 		this.file = file;
@@ -49,6 +50,11 @@ public class LocalOutputStream extends OutputStream {
 	}
 	
 	public void close() throws IOException {
+    	if (closed) {
+    		return;
+    	}
+    	closed = true;
+    	
 		try {
 			try {
 				flush();
@@ -72,7 +78,7 @@ public class LocalOutputStream extends OutputStream {
                 );
             } finally {
             	try {
-            		FileTool.getInstance().delete(localFile, true);
+            		FileTool.getInstance().delete(localFile);
             	} finally {
                     driver.releaseProxy(proxy, owner);	
             	}

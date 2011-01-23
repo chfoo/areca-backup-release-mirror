@@ -64,7 +64,6 @@ public class ArchiveContentManager {
     
     public static ContentFileIterator buildIteratorForArchive(AbstractIncrementalFileSystemMedium medium, File archive) throws IOException {
     	File file = resolveContentFileForArchive(medium, archive);
-    	ArchiveContentAdapter adp = new ArchiveContentAdapter(file);
-    	return adp.buildIterator();
+    	return ArchiveContentAdapter.buildIterator(file);
     }
 }

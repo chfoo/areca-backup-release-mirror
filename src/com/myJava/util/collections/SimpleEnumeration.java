@@ -1,7 +1,7 @@
 package com.myJava.util.collections;
 
 /**
- * Interface dï¿½crivant une ï¿½numï¿½ration simple. Elle ne comporte qu'une mï¿½thode "GetString".
+ * Interface décrivant une énumération simple. Elle ne comporte qu'une méthode "GetString".
  * Utile notamment pour le ContextData.
  * <BR>
  * @author Olivier PETRUCCI

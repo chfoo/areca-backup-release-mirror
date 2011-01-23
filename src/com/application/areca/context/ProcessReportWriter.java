@@ -68,7 +68,7 @@ public class ProcessReportWriter {
 
 		writeSeparator();
 		long dur = report.getStopMillis() - report.getStartMillis();
-		write("Duration : " + Utils.formatDuration(dur));
+		write("Duration (without post-processing) : " + Utils.formatDuration(dur));
 
 		if (
 				(report.getStatus().hasItem(StatusList.KEY_BACKUP) || report.getStatus().hasItem(StatusList.KEY_SIMULATE) ) 

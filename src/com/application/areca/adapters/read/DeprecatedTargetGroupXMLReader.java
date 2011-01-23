@@ -15,12 +15,13 @@ import com.application.areca.ConfigurationSource;
 import com.application.areca.TargetGroup;
 import com.application.areca.adapters.MissingDataListener;
 import com.application.areca.adapters.XMLTags;
-import com.application.areca.adapters.write.DeprecatedTargetGroupXMLWriter;
+import com.application.areca.adapters.write.XMLVersions;
+import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.xml.AdapterException;
 
 /**
- * Adapter for target group serialization / deserialization (old format)
+ * Adapter for target group serialization / deserialization (old - deprecated - format)
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -94,8 +95,8 @@ implements XMLTags, TargetGroupXMLReader {
             if (versionNode != null) {
                 version = Integer.parseInt(versionNode.getNodeValue());
             }  
-            if (version > DeprecatedTargetGroupXMLWriter.CURRENT_VERSION) {
-            	throw new AdapterException("Invalid XML version : This version of Areca can't handle XML versions above " + DeprecatedTargetGroupXMLWriter.CURRENT_VERSION + ". You are trying to read a version " + version);
+            if (version > XMLVersions.CURRENT_VERSION) {
+            	throw new AdapterException("Invalid XML version : This version of " + VersionInfos.APP_SHORT_NAME + " can't handle XML versions above " + XMLVersions.CURRENT_VERSION + ". You are trying to read a version " + version);
             }
             
             NodeList targets = root.getElementsByTagName(XML_TARGET);

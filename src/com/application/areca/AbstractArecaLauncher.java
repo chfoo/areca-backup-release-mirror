@@ -55,7 +55,7 @@ extends AbstractLauncher {
 	}
     
     protected void initialize() {
-        ArecaTechnicalConfiguration.initialize();
+        ArecaConfiguration.initialize();
     	Logger.defaultLogger().setTlLogProcessor(new ThreadLocalLogProcessor());
     	
         Map javaargs = FrameworkConfiguration.getInstance().getJavaProperties();

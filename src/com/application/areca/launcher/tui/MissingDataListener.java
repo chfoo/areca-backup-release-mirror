@@ -35,7 +35,7 @@ This file is part of Areca.
 public class MissingDataListener
 implements com.application.areca.adapters.MissingDataListener, XMLTags {
 
-    public EncryptionPolicy missingEncryptionDataDetected(AbstractTarget target, String algorithm, Boolean encryptNames) throws AdapterException {
+    public EncryptionPolicy missingEncryptionDataDetected(AbstractTarget target, String algorithm, Boolean encryptNames, String nameWrappingMode) throws AdapterException {
         throw new AdapterException("No encryption key found : your medium must have a '" + XML_MEDIUM_ENCRYPTIONKEY + "' attribute because it is encrypted (" + XML_MEDIUM_ENCRYPTED + " = true).");
     }
 

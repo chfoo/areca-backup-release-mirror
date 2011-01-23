@@ -20,6 +20,8 @@ import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * Default driver implementation : all calls are routed to the "File" class.
@@ -50,8 +52,6 @@ This file is part of Areca.
 
  */
 public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
-	protected static String[] WRITABLE_DIRECTORIES = FrameworkConfiguration.getInstance().getWritableDirectories();
-
 	protected static boolean USE_BUFFER = FrameworkConfiguration.getInstance().useFileSystemBuffer();
 	protected static int BUFFER_SIZE = FrameworkConfiguration.getInstance().getFileSystemBufferSize();
 
@@ -64,7 +64,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	}
 
 	public boolean createNewFile(File file) throws IOException {
-		checkWriteAccess(file);
 		checkFilePath(file);
 		return file.createNewFile();
 	}
@@ -73,9 +72,13 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 		if (! file.exists()) {
 			return true;
 		} else {
-			checkWriteAccess(file);
 			return file.delete();
 		}
+	}
+
+	public void forceDelete(File file, TaskMonitor monitor) 
+	throws IOException, TaskCancelledException {
+		FileSystemDriverUtils.forceDelete(file, this, monitor);
 	}
 
 	public boolean exists(File file) {
@@ -84,6 +87,10 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 
 	public boolean supportsLongFileNames() {
 		return ! OSTool.isSystemWindows();
+	}
+
+	public String getPhysicalPath(File file) {
+		return getAbsolutePath(file);
 	}
 
 	public File getAbsoluteFile(File file) {
@@ -107,7 +114,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	}
 
 	public boolean createSymbolicLink(File symlink, String realPath) throws IOException {
-		checkWriteAccess(symlink);
 		checkFilePath(symlink);
 
 		if (OSTool.isSystemWindows()) {
@@ -119,7 +125,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	}
 
 	public boolean createNamedPipe(File pipe) throws IOException {
-		checkWriteAccess(pipe);
 		checkFilePath(pipe);
 
 		if (OSTool.isSystemWindows()) {
@@ -266,7 +271,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 
 	public boolean mkdir(File file) {
 		try {
-			checkWriteAccess(file);
 			checkFilePath(file);
 			return file.mkdir();
 		} catch (IOException e) {
@@ -277,7 +281,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 
 	public boolean mkdirs(File file) {
 		try {
-			checkWriteAccess(file);
 			checkFilePath(file);
 			return file.mkdirs();
 		} catch (IOException e) {
@@ -288,8 +291,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 
 	public boolean renameTo(File source, File dest) {
 		try {
-			checkWriteAccess(dest);
-			checkWriteAccess(source);
 			checkFilePath(dest);
 			return source.renameTo(dest);
 		} catch (IOException e) {
@@ -299,7 +300,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	}
 
 	public boolean setLastModified(File file, long time) {
-		checkWriteAccess(file);
 		if (time < 0) {
 			//throw new IllegalArgumentException("Negative time for file [" + file.getAbsolutePath() + "] : " + time);
 			time = 0;
@@ -308,7 +308,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	}
 
 	public boolean setReadOnly(File file) {
-		checkWriteAccess(file);
 		return file.setReadOnly();
 	}
 
@@ -325,13 +324,11 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	}
 
 	public OutputStream getCachedFileOutputStream(File file) throws IOException {
-		checkWriteAccess(file);
 		checkFilePath(file);
 		return getFileOutputStream(file);
 	}
 
 	public OutputStream getFileOutputStream(File file) throws IOException {
-		checkWriteAccess(file);
 		checkFilePath(file);
 		if (USE_BUFFER) {
 			return new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
@@ -346,7 +343,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	}
 
 	public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
-		checkWriteAccess(file);
 		checkFilePath(file);
 		if (USE_BUFFER) {
 			return new BufferedOutputStream(new FileOutputStream(file, append), BUFFER_SIZE);
@@ -360,7 +356,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	}
 
 	public void applyMetaData(FileMetaData p, File f) throws IOException {
-		checkWriteAccess(f);
 		FileMetaDataAccessorHelper.getFileSystemAccessor().setMetaData(f, p);
 	}
 
@@ -381,7 +376,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	}
 
 	public void deleteOnExit(File f) {
-		checkWriteAccess(f);
 		f.deleteOnExit();
 	}
 
@@ -400,23 +394,6 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	
 	public void clearCachedData(File file) throws IOException {
 		// Nothing to do
-	}
-
-	private static void checkWriteAccess(File file) {
-		if (WRITABLE_DIRECTORIES.length == 0 || WRITABLE_DIRECTORIES == null) {
-			// does nothing
-		} else {
-			String path = file.getAbsolutePath().replace('\\', '/');
-			if (! path.endsWith("/")) {
-				path += "/";
-			}
-			for (int i=0; i<WRITABLE_DIRECTORIES.length; i++) {
-				if (path.startsWith(WRITABLE_DIRECTORIES[i])) {
-					return;
-				}
-			}
-			throw new IllegalArgumentException("File " + path + " is not writable !");
-		}
 	}
 }
 

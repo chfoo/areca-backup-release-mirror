@@ -27,6 +27,8 @@ import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * Linkable driver that adds encryption features
@@ -59,6 +61,10 @@ This file is part of Areca.
 public class EncryptedFileSystemDriver 
 extends AbstractLinkableFileSystemDriver {
 
+	public static String WRAP_DEFAULT = "default";
+	public static String WRAP_ENABLED = "enable";
+	public static String WRAP_DISABLED = "disable";
+	
 	protected File directoryRoot;
 	protected Key key;
 	protected String transformation;
@@ -66,13 +72,15 @@ extends AbstractLinkableFileSystemDriver {
 	protected Cipher fileNameEncryptionCipher;
 	protected Cipher fileNameDecryptionCipher;
 	protected boolean encryptNames;
+	protected String nameWrappingMode;
 
 	public EncryptedFileSystemDriver(
 			File directoryRoot, 
 			String transformation, 
 			AlgorithmParameterSpec iv, 
 			Key key,
-			boolean encryptNames
+			boolean encryptNames,
+			String nameWrappingMode
 	) {
 		// Init attributs
 		this.directoryRoot = directoryRoot.getAbsoluteFile();
@@ -81,10 +89,24 @@ extends AbstractLinkableFileSystemDriver {
 		this.transformation = transformation;
 		this.iv = iv;
 		this.encryptNames = encryptNames;
+		this.nameWrappingMode = nameWrappingMode.toLowerCase();
 
 		// Init ciphers
 		fileNameEncryptionCipher = buildNewCipher(Cipher.ENCRYPT_MODE);
 		fileNameDecryptionCipher = buildNewCipher(Cipher.DECRYPT_MODE);
+		
+		if (! checkNameEncryptionScheme()) {
+			throw new IllegalStateException("Illegal name wrapping mode : [" + nameWrappingMode + "]");
+		}
+	}
+	
+	private boolean checkNameEncryptionScheme() {
+		return nameWrappingMode != null
+		&& (
+				nameWrappingMode.equals(WRAP_DEFAULT)
+				|| nameWrappingMode.equals(WRAP_DISABLED)
+				|| nameWrappingMode.equals(WRAP_ENABLED)
+		);
 	}
 
 	/**
@@ -118,7 +140,13 @@ extends AbstractLinkableFileSystemDriver {
 	}
 
 	protected boolean shallWrappPredecessor(FileSystemDriver predecessor) {
-		return encryptNames && (! predecessor.supportsLongFileNames());
+		if (this.nameWrappingMode.equals(WRAP_DISABLED) || (! encryptNames)) {
+			return false;
+		} else if (this.nameWrappingMode.equals(WRAP_ENABLED)) {
+			return true;	
+		} else {
+			return (! predecessor.supportsLongFileNames());
+		}
 	}
 
 	public File getDirectoryRoot() {
@@ -144,6 +172,10 @@ extends AbstractLinkableFileSystemDriver {
 	public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
 		return this.predecessor.getMetaData(this.encryptFileName(f), onlyBasicAttributes);
 	}
+	
+    public String getPhysicalPath(File file) {
+    	return predecessor.getPhysicalPath(this.encryptFileName(file));
+	}
 
 	public boolean createNewFile(File file) throws IOException {
 		return this.predecessor.createNewFile(this.encryptFileName(file));
@@ -151,6 +183,11 @@ extends AbstractLinkableFileSystemDriver {
 
 	public boolean delete(File file) {
 		return this.predecessor.delete(this.encryptFileName(file));
+	}
+	
+    public void forceDelete(File file, TaskMonitor monitor)
+    throws IOException, TaskCancelledException {
+    	predecessor.forceDelete(this.encryptFileName(file), monitor);
 	}
 
 	public boolean exists(File file) {
@@ -437,7 +474,7 @@ extends AbstractLinkableFileSystemDriver {
 		 h = HashHelper.hash(h, this.predecessor);
 		 h = HashHelper.hash(h, this.key);
 		 h = HashHelper.hash(h, this.encryptNames);
-
+		 h = HashHelper.hash(h, this.nameWrappingMode);
 		 return h;
 	 }
 
@@ -453,7 +490,8 @@ extends AbstractLinkableFileSystemDriver {
 					 && EqualsHelper.equals(other.directoryRoot, this.directoryRoot) 
 					 && EqualsHelper.equals(other.predecessor, this.predecessor) 
 					 && EqualsHelper.equals(other.key, this.key) 
-					 && EqualsHelper.equals(other.encryptNames, this.encryptNames) 					 
+					 && EqualsHelper.equals(other.encryptNames, this.encryptNames) 			
+					 && EqualsHelper.equals(other.nameWrappingMode, this.nameWrappingMode) 	
 			 );
 		 } else {
 			 return false;

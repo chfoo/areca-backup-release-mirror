@@ -29,7 +29,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class ArecaTechnicalConfiguration 
+public class ArecaConfiguration 
 extends FrameworkConfiguration {   
     public static String URI = "fwk.properties";
     
@@ -163,6 +163,21 @@ extends FrameworkConfiguration {
      */
     public static String KEY_COMMIT_FILE_NAME = "commit.file.name";
     
+    /**
+     * Nr of kBytes written before saving a transaction point
+     */
+    public static String KEY_TRANSACTION_SIZE_KB = "transaction.size";
+    
+    /**
+     * Whether the "check for new version" feature will be enabled or not
+     */
+    public static String KEY_NEW_VERSION_CHECK_DISPLAYED = "enable.version.check";
+    
+    /**
+     * Whether target properties are logged when an action is performed (merge, backup, ...)
+     */
+    public static String KEY_LOG_TARGET_PROPERTIES = "log.target.properties";
+    
     public static boolean DEF_SMTP_DEBUG = false;
     public static long DEF_MEMORY_BASE_KB = 4 * 1024;
     public static double DEF_MEMORY_BY_ENTRY_KB = 1.3;
@@ -189,26 +204,33 @@ extends FrameworkConfiguration {
     public static boolean DEF_ENABLE_TH_MONITOR = false;
     public static long DEF_TH_MONITOR_DELAY = 1000*60*3;
     public static String DEF_COMMIT_FILE_NAME = ".committed";
+    public static long DEF_TRANSACTION_SIZE_KB = 50*1024;
+    public static boolean DEF_NEW_VERSION_CHECK_DISPLAYED = true;
+    public static boolean DEF_LOG_TARGET_PROPERTIES = true;
     
-    public ArecaTechnicalConfiguration() {
+    public ArecaConfiguration() {
         super();
     }
     
-    public static ArecaTechnicalConfiguration get() {
-        return (ArecaTechnicalConfiguration)FrameworkConfiguration.getInstance();
+    public static ArecaConfiguration get() {
+        return (ArecaConfiguration)FrameworkConfiguration.getInstance();
     }
 
-    public ArecaTechnicalConfiguration(String url) {
+    public ArecaConfiguration(String url) {
         super(url);
     }
     
     public static synchronized void initialize() {
-        ArecaTechnicalConfiguration cfg = new ArecaTechnicalConfiguration(URI);
+        ArecaConfiguration cfg = new ArecaConfiguration(URI);
         FrameworkConfiguration.setInstance(cfg);
     }
     
     public boolean isSMTPDebugMode() {
         return getProperty(KEY_SMTP_DEBUG, DEF_SMTP_DEBUG);
+    }
+    
+    public boolean isLogTargetProperties() {
+        return getProperty(KEY_LOG_TARGET_PROPERTIES, DEF_LOG_TARGET_PROPERTIES);
     }
     
     public String getLogLocationOverride() {
@@ -241,6 +263,10 @@ extends FrameworkConfiguration {
     
     public boolean isFileStreamsDebugMode() {
         return getProperty(KEY_FILESTREAMS_DEBUG, DEF_FILESTREAMS_DEBUG);
+    }
+    
+    public boolean isNewVersionCheckDisplayed() {
+    	return getProperty(KEY_NEW_VERSION_CHECK_DISPLAYED, DEF_NEW_VERSION_CHECK_DISPLAYED);
     }
     
     public boolean isMetaDataDebugMode() {
@@ -309,5 +335,9 @@ extends FrameworkConfiguration {
     
     public boolean isCheckDebug() {
         return getProperty(KEY_CHECK_DEBUG_MODE, DEF_CHECK_DEBUG_MODE);
+    }
+    
+    public long getTransactionSize() {
+        return getProperty(KEY_TRANSACTION_SIZE_KB, DEF_TRANSACTION_SIZE_KB);
     }
 }

@@ -1,5 +1,6 @@
 package com.application.areca.context;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -37,8 +38,10 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class ProcessReport {
-    /**
+public class ProcessReport implements Serializable {
+	private static final long serialVersionUID = 6295165918784264911L;
+
+	/**
      * Ignored files (because not modified)
      */
     protected int ignoredFiles = 0;
@@ -82,7 +85,7 @@ public class ProcessReport {
     /**
      * Archives which have been restored during the recovery/merge process
      */
-    protected RecoveryResult recoveryResult;
+    protected transient RecoveryResult recoveryResult;
     
     /**
      * Process start date (ms)
@@ -94,7 +97,7 @@ public class ProcessReport {
      */
     protected long stopMillis = startMillis;
     
-    protected AbstractTarget target;
+    protected transient AbstractTarget target;
     
     /**
      * nr of written kbytes
@@ -108,14 +111,23 @@ public class ProcessReport {
     
     protected LogMessagesContainer logMessagesContainer;
     
-    public ProcessReport(AbstractTarget target) {
-        this.target = target;
+    private ProcessReport() {
         this.logMessagesContainer = Logger.defaultLogger().getTlLogProcessor().getMessageContainer();
-    } 
+    }
     
-    public AbstractTarget getTarget() {
+    public ProcessReport(AbstractTarget target) {
+    	this();
+        this.target = target;
+    } 
+
+    public void setTarget(AbstractTarget target) {
+		this.target = target;
+	}
+
+	public AbstractTarget getTarget() {
         return target;
     }
+    
     /**
      * Resets all counters ... except the duration counter
      */

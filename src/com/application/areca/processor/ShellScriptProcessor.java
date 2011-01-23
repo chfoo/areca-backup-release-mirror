@@ -90,6 +90,7 @@ public class ShellScriptProcessor extends AbstractProcessor {
             elements[1] = "/c";
             offset = 2;
         }
+        
         elements[offset] = this.command;
         for (int i=0; i<args.size(); i++) {
             elements[i+1+offset] = (String)args.get(i);

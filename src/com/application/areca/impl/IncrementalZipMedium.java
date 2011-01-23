@@ -13,6 +13,7 @@ import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.manifest.Manifest;
+import com.application.areca.metadata.transaction.TransactionPoint;
 import com.myJava.file.CompressionArguments;
 import com.myJava.file.FileFilterList;
 import com.myJava.file.FileNameUtil;
@@ -80,6 +81,10 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 	public boolean retrySupported() {
 		return false;
 	}
+	
+	public String checkResumeSupported() {
+		return "Backup as single zip archive";
+	}
 
 	protected void storeFileInArchive(FileSystemRecoveryEntry entry, InputStream in, ProcessContext context) 
 	throws IOException, ApplicationException, TaskCancelledException {
@@ -107,14 +112,14 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 		}
 	}  
 
-	public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
-		if (imageBackups) {
+	public void open(Manifest manifest, TransactionPoint transactionPoint, ProcessContext context) throws ApplicationException {
+		if (image) {
 			// Delete all archives
 			context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2, "backup-delete");
 			this.deleteArchives(null, context);
 			context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8, "backup-main");
 		}
-		super.open(manifest, context, backupScheme);
+		super.open(manifest, transactionPoint, context);
 	}
 
 	protected void closeArchive(ProcessContext context) throws IOException {
@@ -126,10 +131,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 	public boolean supportsBackupScheme(String backupScheme) {
 		return 
 		super.supportsBackupScheme(backupScheme)
-		&& ! (backupScheme.equals(AbstractTarget.BACKUP_SCHEME_INCREMENTAL) && this.imageBackups);
-	}
-
-	protected void prepareContext(ProcessContext context) {
+		&& ! (backupScheme.equals(AbstractTarget.BACKUP_SCHEME_INCREMENTAL) && this.image);
 	}
 
 	/**
@@ -260,13 +262,13 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 	}
 
 	public void completeLocalCopyCleaning(File copy, ProcessContext context) throws IOException, ApplicationException {
-		FileTool.getInstance().delete(copy, true);
+		FileTool.getInstance().delete(copy);
 	}
 
 	public void cleanLocalCopies(List copies, ProcessContext context) throws IOException, ApplicationException {
 		for (int i=0; i<copies.size(); i++) {
 			File loc = (File)copies.get(i);
-			FileTool.getInstance().delete(loc, true);
+			FileTool.getInstance().delete(loc);
 		}
 	}
 

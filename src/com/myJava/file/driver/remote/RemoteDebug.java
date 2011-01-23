@@ -64,6 +64,6 @@ public class RemoteDebug {
     }
     
     private static void display(String s) {
-        Logger.defaultLogger().info("      " + s);
+        Logger.defaultLogger().fine("      " + s);
     }
 }

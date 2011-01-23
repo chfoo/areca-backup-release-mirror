@@ -103,7 +103,7 @@ public abstract class SerializedCollection implements Collection {
 
         try {
 			if (FileSystemManager.exists(bufferFile)) {
-			    FileTool.getInstance().delete(bufferFile, true);
+			    FileTool.getInstance().delete(bufferFile);
 			}
 		} catch (IOException e) {
 			Logger.defaultLogger().error("Error while trying to delete temporary z64 file (" + FileSystemManager.getAbsolutePath(bufferFile) + ")", e);

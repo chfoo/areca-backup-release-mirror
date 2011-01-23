@@ -47,6 +47,7 @@ public class EncryptionPolicy implements Duplicable {
     protected String encryptionAlgorithm = null;
     protected boolean encryptNames = true; // Names are encrypted by default
     protected boolean isEncrypted = false;
+    protected String nameWrappingMode = EncryptedFileSystemDriver.WRAP_DEFAULT;
     
     public FileSystemDriver initFileSystemDriver(File basePath, FileSystemDriver predecessor) throws ApplicationException {                 
         if (this.isEncrypted()) {         
@@ -59,7 +60,8 @@ public class EncryptionPolicy implements Duplicable {
                     params.getTransformation(),
                     params.getIV(), 
                     key,
-                    encryptNames
+                    encryptNames,
+                    nameWrappingMode
             );
         
             driver.setPredecessor(predecessor);
@@ -138,13 +140,22 @@ public class EncryptionPolicy implements Duplicable {
 	public void setEncrypted(boolean isEncrypted) {
         this.isEncrypted = isEncrypted;
     }
-    
-    public Duplicable duplicate() {
+
+	public String getNameWrappingMode() {
+		return nameWrappingMode;
+	}
+
+	public void setNameWrappingMode(String nameWrappingMode) {
+		this.nameWrappingMode = nameWrappingMode;
+	}
+
+	public Duplicable duplicate() {
         EncryptionPolicy other = new EncryptionPolicy();
         other.encryptionAlgorithm = encryptionAlgorithm;
         other.encryptionKey = encryptionKey;
         other.isEncrypted = isEncrypted;
         other.encryptNames = encryptNames;
+        other.nameWrappingMode = nameWrappingMode;
         return other;
     }
     
@@ -154,6 +165,7 @@ public class EncryptionPolicy implements Duplicable {
         if (isEncrypted) {
             ToStringHelper.append("Algorithm", this.encryptionAlgorithm, sb);
             ToStringHelper.append("Encrypt names", this.encryptNames, sb);
+            ToStringHelper.append("Wrap", this.nameWrappingMode, sb);
         }
         return ToStringHelper.close(sb);
     }

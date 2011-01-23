@@ -19,6 +19,8 @@ import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * Paths length cannot exceed 256 characters under Windows.
@@ -91,6 +93,10 @@ extends AbstractLinkableFileSystemDriver {
 	public boolean canWrite(File file) {
 		return this.predecessor.canWrite(this.encodeFileName(file));
 	}
+	
+    public String getPhysicalPath(File file) {
+    	return predecessor.getPhysicalPath(this.encodeFileName(file));
+	}
 
 	public boolean createNewFile(File file) throws IOException {
 		File encoded = this.encodeFileName(file);
@@ -132,6 +138,16 @@ extends AbstractLinkableFileSystemDriver {
 		File encoded = this.encodeFileName(file);
 
 		return this.predecessor.delete(encoded) && this.predecessor.delete(this.getDecodingFile(encoded));
+	}
+
+	public void forceDelete(File file, TaskMonitor monitor) throws IOException, TaskCancelledException {
+		if (file == null) {
+			return;
+		}
+		File encoded = this.encodeFileName(file);
+
+		this.predecessor.forceDelete(encoded, monitor);
+		this.predecessor.forceDelete(this.getDecodingFile(encoded), monitor);
 	}
 
 	public boolean exists(File file) {

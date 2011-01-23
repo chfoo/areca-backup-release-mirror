@@ -145,7 +145,7 @@ extends Composite {
                 
                 this.addProperty(RM.getLabel("property.directory.label"), medium.getFileSystemPolicy().getDisplayableParameters(false));
                 
-                if (medium.isOverwrite()) {
+                if (medium.isImage()) {
                     this.addProperty(RM.getLabel("property.type.label"), RM.getLabel("targetedition.storagetype.image"));
                 } else if (medium.getHandler() instanceof DefaultArchiveHandler) {
                     this.addProperty(RM.getLabel("property.type.label"), RM.getLabel("targetedition.storagetype.multiple"));

@@ -33,7 +33,7 @@ import com.application.areca.Workspace;
 import com.application.areca.WorkspaceItem;
 import com.application.areca.adapters.ConfigurationListener;
 import com.application.areca.launcher.gui.Application;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.Colors;
 import com.myJava.system.viewer.ViewerHandlerHelper;
 import com.myJava.util.log.Logger;
@@ -72,7 +72,7 @@ extends AbstractTargetTreeComposite {
 	protected Link more;
 
     public TargetTreeComposite(Composite parent) {
-        super(parent, false, ArecaPreferences.isDisplayWSAddress());
+        super(parent, false, ApplicationPreferences.isDisplayWSAddress());
         
         viewer.addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {
@@ -157,7 +157,7 @@ extends AbstractTargetTreeComposite {
                 				Application.getInstance().getWorkspace().getPathFile());
 					} catch (Exception e) {
 						Logger.defaultLogger().error(e);
-						Application.getInstance().openWorkspace(Application.getInstance().getWorkspace().getPath());
+						Application.getInstance().refreshWorkspace();
 					}
                 }
                 refresh();

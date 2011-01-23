@@ -13,6 +13,7 @@ import com.myJava.util.xml.AdapterException;
 import com.myJava.util.xml.XMLTool;
 
 /**
+ * Serializer/Deserializer for DefaultFileSystemPolicy instances.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

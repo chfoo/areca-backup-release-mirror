@@ -17,6 +17,7 @@ import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
 import com.application.areca.metadata.manifest.ManifestManager;
+import com.application.areca.metadata.transaction.TransactionPoint;
 import com.application.areca.processor.ProcessorList;
 import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
@@ -70,6 +71,8 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	public static final String BACKUP_SCHEME_DIFFERENTIAL = "Differential backup";
 	public static final String CONFIG_FILE_EXT_DEPRECATED= ".xml";
 	public static final String CONFIG_FILE_EXT = ".bcfg";
+
+	protected static final long TRANSACTION_SIZE = ArecaConfiguration.get().getTransactionSize();
 
 	protected ArchiveMedium medium;
 	protected FilterGroup filterGroup = new FilterGroup();
@@ -154,7 +157,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	public void setUid(String uid) {
 		this.uid = uid;
 	}
-	
+
 	public void destroyRepository() throws ApplicationException {
 		this.medium.destroyRepository();
 	}
@@ -167,7 +170,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 
 		return uid;
 	}
-	
+
 	public File computeConfigurationFile(File root) {
 		return computeConfigurationFile(root, true);
 	}
@@ -176,7 +179,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 		File directory = appendAncestors ? parent.computeConfigurationFile(root) : root;
 		return new File(directory, computeConfigurationFileName());
 	}
-	
+
 	public String computeConfigurationFileName() {
 		return this.getUid() + CONFIG_FILE_EXT;
 	}
@@ -263,27 +266,55 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	public Iterator getFilterIterator() {
 		return this.filterGroup.getFilterIterator();
 	} 
+	
+	/**
+	 * Open and lock the target
+	 */
+	protected void open(TransactionPoint transactionPoint, ProcessContext context) throws ApplicationException {
+		if (checkResumeSupported() != null) {
+			throw new ApplicationException("Transaction points are not supported by this target configuration.");
+		} else {
+			medium.open(null, transactionPoint, context);
+		}
+	}  
 
 	/**
 	 * Open and lock the target
 	 */
 	protected void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
 		context.setBackupScheme(backupScheme);
-		medium.open(manifest, context, backupScheme);
-	}   
+		medium.open(manifest, null, context);
+		String resumeSupportedResponse = this.checkResumeSupported();
+		
+		if (resumeSupportedResponse == null) {
+			medium.initTransactionPoint(context);
+		} else {
+			Logger.defaultLogger().info("Intermediate transaction points not compatible with current target configuration (" + resumeSupportedResponse + "). No intermediate transaction point will be created during the backup.");
+		}
+	}  
+	
+	public String checkResumeSupported() {
+		return medium.checkResumeSupported();
+	}
 
 	public synchronized void processBackup(
 			Manifest manifest, 
 			String backupScheme,
 			boolean disablePreCheck,
 			CheckParameters checkParams,
+			TransactionPoint transactionPoint,
 			ProcessContext context
 	) throws ApplicationException {
 		boolean backupRequired = true;
 		try {
 			this.validateTargetState(ACTION_BACKUP, context);
 
-			if (this.medium.isPreBackupCheckUseful() && (!disablePreCheck) && backupScheme.equals(BACKUP_SCHEME_INCREMENTAL)) {
+			if (
+					transactionPoint == null 
+					&& this.medium.isPreBackupCheckUseful() 
+					&& (!disablePreCheck) 
+					&& backupScheme.equals(BACKUP_SCHEME_INCREMENTAL)
+			) {
 				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2, "pre-check");
 				context.getInfoChannel().print("Pre-check in progress ...");
 				this.processSimulateImpl(context, false);
@@ -294,7 +325,10 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			}
 
 			if (backupRequired) {
-				if (! this.preProcessors.isEmpty()) {
+				if (
+						transactionPoint == null 
+						&& (! this.preProcessors.isEmpty())
+				) {
 					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1, "pre-processors");
 					TaskMonitor preProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
 					try {     
@@ -304,40 +338,50 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 					}
 				}
 
-				// Create main task monitor
-				double remaining = 
-					1.0 
-					- (this.postProcessors.isEmpty() ? 0 : 0.1) 
-					- (this.preProcessors.isEmpty() ? 0 : 0.1)
-					- (checkParams.isCheck() ? 0.4 : 0);
-
-				if (remaining != 1) {
-					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(remaining, "backup-main");
-				}
-
-				if (manifest == null) {
-					manifest = new Manifest(Manifest.TYPE_BACKUP);
-				}
-
 				try {
-					// Start the backup
-					context.reset(false);
 					context.getInfoChannel().print("Backup in progress ...");
 					context.getTaskMonitor().checkTaskState();
-					context.getReport().startDataFlowTimer();
-					this.open(manifest, context, backupScheme);
-
-					HistoryHandler handler = this.medium.getHistoryHandler();
-					handler.addEntryAndFlush(new HistoryEntry(HISTO_BACKUP, "Backup."));
+	
+					// Start the backup
+					context.reset(false);
+					
+					double remaining = 
+						1.0 
+						- (this.postProcessors.isEmpty() ? 0 : 0.1) 
+						- (this.preProcessors.isEmpty() ? 0 : 0.1)
+						- (checkParams.isCheck() ? 0.3 : 0);
+					
+					// Open the storage medium
+					if (transactionPoint == null) {
+						// Create main task monitor
+						context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(remaining, "backup-main");
+						
+						context.getReport().startDataFlowTimer();
+						if (manifest == null) {
+							manifest = new Manifest(Manifest.TYPE_BACKUP);
+						}
+						
+						this.open(manifest, context, backupScheme);
+						
+						this.medium.getHistoryHandler().addEntryAndFlush(new HistoryEntry(HISTO_BACKUP, "Backup."));
+					} else {
+						this.open(transactionPoint, context);
+						
+				    	context.getFileSystemIterator().setFilter(this.filterGroup);
+				    	context.getTaskMonitor().setCurrentSubTask(context.getFileSystemIterator().getMonitor(), remaining);
+				    	
+						this.medium.getHistoryHandler().addEntryAndFlush(new HistoryEntry(HISTO_RESUME, "Resume backup."));
+					}
 
 					RecoveryEntry entry = this.nextElement(context);
-					long index = 0;
 					while (entry != null) {
 						context.getInfoChannel().getTaskMonitor().checkTaskState();
 						if (this.filterEntryBeforeStore(entry)) {
 							try {
-								index++;
-								context.getInfoChannel().updateCurrentTask(index, 0, entry.toString());
+								handleTransactionPoint(context);
+								
+								context.incrementEntryIndex();
+								context.getInfoChannel().updateCurrentTask(context.getEntryIndex(), 0, entry.toString());
 								this.medium.store(entry, context);
 							} catch (StoreException e) {
 								throw new ApplicationException(e);
@@ -364,7 +408,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 		} finally {
 			Exception checkException = null;
 			if ((! context.getReport().hasError()) && checkParams.isCheck() && context.getCurrentArchiveFile() != null) {
-				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.4, "archive check");
+				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.3, "archive check");
 				TaskMonitor checkMon = context.getTaskMonitor().getCurrentActiveSubTask();
 
 				try {
@@ -394,27 +438,25 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 				}
 			}
 
-			try {
-				if (backupRequired) {
-					if (! this.postProcessors.isEmpty()) {
-						context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1, "post-processors");
-						TaskMonitor postProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
-						try {     
-							this.postProcessors.run(context);
-						} finally {
-							postProcessMon.enforceCompletion();
-						}
+			if (context.getReport() != null) {
+				context.getReport().setStopMillis();
+			}
+			
+			if (backupRequired) {
+				if (! this.postProcessors.isEmpty()) {
+					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1, "post-processors");
+					TaskMonitor postProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
+					try {     
+						this.postProcessors.run(context);
+					} finally {
+						postProcessMon.enforceCompletion();
 					}
-					context.getInfoChannel().print("Backup completed."); 
-				} else {
-					// No backup is necessary
-					context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
-					context.getInfoChannel().print("No backup required - Operation completed.");     
 				}
-			} finally {
-				if (context.getReport() != null) {
-					context.getReport().setStopMillis();
-				}
+				context.getInfoChannel().print("Backup completed."); 
+			} else {
+				// No backup is necessary
+				context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
+				context.getInfoChannel().print("No backup required - Operation completed.");     
 			}
 
 			if (checkException != null) {
@@ -490,6 +532,19 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 		mf.addProperty(ManifestKeys.BUILD_ID, VersionInfos.getBuildId());
 		mf.addProperty(ManifestKeys.ENCODING, OSTool.getIANAFileEncoding());        
 		mf.addProperty(ManifestKeys.OS_NAME, OSTool.getOSDescription());
+	}
+
+	/**
+	 * Save a temporary transaction point
+	 */
+	public void handleTransactionPoint(ProcessContext context) throws ApplicationException {
+		if (
+				this.checkResumeSupported() == null
+				&& (context.getOutputBytesInKB() - context.getTransactionBound()) >= TRANSACTION_SIZE
+		) {
+			context.setTransactionBound(context.getOutputBytesInKB());
+			medium.initTransactionPoint(context);
+		}
 	}
 
 	/**
@@ -841,6 +896,10 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 
 	public void secureUpdateCurrentTask(String task, ProcessContext context) {
 		secureUpdateCurrentTask(0, 1, task, context);
+	}
+	
+	public TransactionPoint getLastTransactionPoint() throws ApplicationException {
+		return ((AbstractFileSystemMedium)medium).getLastTransactionPoint();
 	}
 }
 

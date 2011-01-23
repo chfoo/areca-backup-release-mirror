@@ -17,8 +17,8 @@ import java.util.Set;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
+import com.application.areca.ArecaConfiguration;
 import com.application.areca.ArecaFileConstants;
-import com.application.areca.ArecaTechnicalConfiguration;
 import com.application.areca.EntryArchiveData;
 import com.application.areca.EntryStatus;
 import com.application.areca.LogHelper;
@@ -56,11 +56,13 @@ import com.application.areca.metadata.trace.TraceEntry;
 import com.application.areca.metadata.trace.TraceFileIterator;
 import com.application.areca.metadata.trace.TraceMerger;
 import com.application.areca.metadata.trace.UpdateMetaDataTraceHandler;
+import com.application.areca.metadata.transaction.TransactionPoint;
 import com.application.areca.search.DefaultSearchCriteria;
 import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.SearchMatcher;
 import com.application.areca.search.SearchResultItem;
 import com.application.areca.search.TargetSearchResult;
+import com.application.areca.version.VersionInfos;
 import com.myJava.file.EventInputStream;
 import com.myJava.file.FileFilterList;
 import com.myJava.file.FileNameUtil;
@@ -70,7 +72,6 @@ import com.myJava.file.HashInputStreamListener;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.driver.contenthash.ContentHashFileSystemDriver;
 import com.myJava.file.iterator.FilePathComparator;
-import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.util.CalendarUtils;
@@ -118,10 +119,10 @@ implements TargetActions {
 		public TraceEntry entry;
 	}
 
-	protected static final boolean DEBUG_MODE = ArecaTechnicalConfiguration.get().isBackupDebug();
-	protected static final boolean CHECK_DEBUG_MODE = ArecaTechnicalConfiguration.get().isCheckDebug();
-	protected static final boolean TH_MON_ENABLED = ArecaTechnicalConfiguration.get().isThreadMonitorEnabled();
-	protected static final long TH_MON_DELAY = ArecaTechnicalConfiguration.get().getThreadMonitorDelay();
+	protected static final boolean DEBUG_MODE = ArecaConfiguration.get().isBackupDebug();
+	protected static final boolean CHECK_DEBUG_MODE = ArecaConfiguration.get().isCheckDebug();
+	protected static final boolean TH_MON_ENABLED = ArecaConfiguration.get().isThreadMonitorEnabled();
+	protected static final long TH_MON_DELAY = ArecaConfiguration.get().getThreadMonitorDelay();
 
 	/**
 	 * Filenames reserved by Areca
@@ -138,22 +139,9 @@ implements TargetActions {
 	protected boolean trackPermissions = false;
 
 	/**
-	 * Tells whether many archives shall be created on just one single archive
-	 */
-	protected boolean imageBackups = false;
-
-	/**
 	 * Handler for archive processing
 	 */
 	protected ArchiveHandler handler;
-
-	public boolean isOverwrite() {
-		return this.imageBackups;
-	}
-
-	public void setOverwrite(boolean overwrite) {
-		this.imageBackups = overwrite;
-	} 
 
 	public void setHandler(ArchiveHandler handler) {
 		this.handler = handler;
@@ -184,7 +172,7 @@ implements TargetActions {
 	 */
 	public String getDescription() {
 		String type;
-		if (imageBackups) {
+		if (image) {
 			type = "image"; 
 		} else if (handler instanceof DeltaArchiveHandler) {
 			type = "delta";
@@ -255,9 +243,8 @@ implements TargetActions {
 		try {
 			// Compute recovery destination
 			File destinationRoot = destination == null ? fileSystemPolicy.getArchiveDirectory() : new File((String)destination);
-			File destinationFile = FileTool.getInstance().generateNewWorkingFile(
+			File destinationFile = FileTool.getInstance().createNewWorkingDirectory(
 					destinationRoot, 
-					null, 
 					ArecaFileConstants.CHECK_DESTINATION, 
 					true
 			);
@@ -313,7 +300,7 @@ implements TargetActions {
 					context.getInfoChannel().print("Deleting recovered files (" + FileSystemManager.getAbsolutePath(context.getRecoveryDestination()) + ") ...");
 					if (
 							FileSystemManager.exists(context.getRecoveryDestination())) {
-						FileTool.getInstance().delete(context.getRecoveryDestination(), true);
+						FileTool.getInstance().delete(context.getRecoveryDestination());
 					}
 					context.getInfoChannel().print("Recovered files deleted.");
 				}
@@ -332,7 +319,7 @@ implements TargetActions {
 	public void cleanMerge(ProcessContext context) throws IOException {
 		if (context.getCurrentArchiveFile() != null && context.getRecoveryDestination() != null && ! context.getCurrentArchiveFile().equals(context.getRecoveryDestination())) {
 			Logger.defaultLogger().info("Cleaning temporary data in " + FileSystemManager.getAbsolutePath(context.getRecoveryDestination()) + " ...");
-			AbstractFileSystemMedium.tool.delete(context.getRecoveryDestination(), true);
+			AbstractFileSystemMedium.tool.delete(context.getRecoveryDestination());
 		}
 	}
 
@@ -378,18 +365,36 @@ implements TargetActions {
 
 			// Add properties to manifest
 			context.getManifest().addProperty(ManifestKeys.UNMODIFIED_FILES, context.getReport().getIgnoredFiles());
-			context.getManifest().addProperty(ManifestKeys.ARCHIVE_SIZE, context.getOutputStreamListener().getWritten()); 
+			if (FileSystemManager.isFile(context.getCurrentArchiveFile()) || (! isImage())) {
+				context.getManifest().addProperty(ManifestKeys.ARCHIVE_SIZE, context.getOutputStreamListener().getWritten()); 
+			}
 			context.getManifest().addProperty(ManifestKeys.STORED_FILES, context.getReport().getSavedFiles());
 			context.getManifest().addProperty(ManifestKeys.ARCHIVE_NAME, FileSystemManager.getName(context.getCurrentArchiveFile()));
 
+			// Check archive size
+			FileSystemManager.getInstance().clearCachedData(context.getCurrentArchiveFile());
+			if (FileSystemManager.isFile(context.getCurrentArchiveFile())) {
+				long size = FileSystemManager.length(context.getCurrentArchiveFile());
+				if (size != context.getOutputStreamListener().getWritten()) {
+					Logger.defaultLogger().warn("Caution : Archive size (" + size + ") doesn't match the amount of written data (" + context.getOutputStreamListener().getWritten());
+				} else {
+					Logger.defaultLogger().fine("Archive size validated (" + size + ")");
+				}
+			}
+			
 			// Store the manifest
-			this.storeManifest(context);     
+			this.storeManifest(context);  
+			
+			// Flush all local files
+			FileSystemManager.getInstance().flush(context.getCurrentArchiveFile());
 
 			// Convert the archive : commit
 			this.convertArchiveToFinal(context);
 
+			// Once the archive is committed, we can do all the cleaning.
+			
 			// Create a copy of the target's XML configuration
-			if (ArecaTechnicalConfiguration.get().isXMLBackup()) {
+			if (ArecaConfiguration.get().isXMLBackup()) {
 				this.target.secureUpdateCurrentTask("Creating a copy of the target's XML configuration ...", context);
 				this.storeTargetConfigBackup(context);
 			}
@@ -399,8 +404,12 @@ implements TargetActions {
 				context.getReferenceTrace().close();
 			}
 
-			// Flush all local files
-			FileSystemManager.getInstance().flush(context.getCurrentArchiveFile());
+			// Once all is completed, we can close (and destroy) the current transaction point
+			closeCurrentTransactionPoint(true, true, context);
+			
+			// Destroy intermediate transaction data
+			File transactionDir = new File(getDataDirectory(context.getCurrentArchiveFile()), ArecaFileConstants.TRANSACTION_FILE);
+			FileTool.getInstance().delete(transactionDir);
 
 			this.target.secureUpdateCurrentTask("Commit completed.", context);
 		} catch (Exception e) {
@@ -420,8 +429,46 @@ implements TargetActions {
 		}
 	}
 
+	protected void closeCurrentTransactionPoint(boolean commit, boolean destroy, ProcessContext context) throws ApplicationException {
+		try {
+			if (context.getCurrentTransactionPoint() != null) {
+				
+				// In some cases, this method can be invoked on an already committed transaction point
+				// (when we are resuming a backup, which means that we're starting from an already committed transaction point)
+				if (! context.getCurrentTransactionPoint().isCommitted()) {
+					context.getCurrentTransactionPoint().writeClose(commit, context);
+				}
+				
+				if (destroy) {
+					context.getCurrentTransactionPoint().destroyTransactionFiles();
+				}
+			}
+		} catch (IOException e) {
+			Logger.defaultLogger().error(e);
+			throw new ApplicationException(e);
+		}
+	}
+
+	/**
+	 * Save a temporary transaction point
+	 */
+	public void initTransactionPoint(ProcessContext context) throws ApplicationException {
+		closeCurrentTransactionPoint(true, false, context);
+
+		context.setCurrentTransactionPoint(
+				new TransactionPoint(getDataDirectory(context.getCurrentArchiveFile()), context.getCurrentTransactionPoint())
+		);
+		
+		try {
+			context.getCurrentTransactionPoint().writeInit(context);
+		} catch (IOException e) {
+			Logger.defaultLogger().error(e);
+			throw new ApplicationException(e);
+		}
+	}
+
 	public void commitMerge(ProcessContext context) throws ApplicationException {
-		if (! this.imageBackups) {
+		if (! this.image) {
 			this.target.secureUpdateCurrentTask("Committing merge ...", context);
 			super.commitMerge(context);
 
@@ -494,11 +541,11 @@ implements TargetActions {
 		Manifest manifest = ArchiveManifestCache.getInstance().getManifest(
 				this, 
 				archive
-		);
+		);   
 
 		if (manifest != null) {
 			long prp = manifest.getLongProperty(ManifestKeys.ARCHIVE_SIZE, -1);
-			if (prp == -1 && (forceComputation || FileSystemManager.isFile(archive) || FileSystemManager.getAccessEfficiency(archive) > FileSystemDriver.ACCESS_EFFICIENCY_POOR)) {
+			if (prp == -1 && (forceComputation || FileSystemManager.isFile(archive) || FileSystemManager.getAccessEfficiency(archive) > FileSystemDriver.ACCESS_EFFICIENCY_GOOD)) {
 				try {
 					Logger.defaultLogger().info("Computing size for " + FileSystemManager.getAbsolutePath(archive));
 					prp = FileTool.getInstance().getSize(archive);
@@ -617,7 +664,7 @@ implements TargetActions {
 			throw new ApplicationException("The \".zip\" extension is mandatory if zip-splitting is enabled.");
 		}
 
-		if ((! handler.supportsImageBackup()) && imageBackups) {
+		if ((! handler.supportsImageBackup()) && image) {
 			throw new ApplicationException("Incoherent configuration : image archives are not compatible with delta backup.");
 		}
 	}
@@ -627,7 +674,7 @@ implements TargetActions {
 	 */
 	public File[] listArchives(GregorianCalendar fromDate, GregorianCalendar toDate) {
 		File[] ret = null;
-		if (this.imageBackups) {
+		if (this.image) {
 			File f = new File(fileSystemPolicy.getArchivePath(), computeArchiveName(fromDate));
 			if (FileSystemManager.exists(f) && checkArchiveCompatibility(f)) {
 				ret = new File[] {f};                
@@ -710,7 +757,7 @@ implements TargetActions {
 				fromDate.add(GregorianCalendar.MILLISECOND, -1);
 			}
 
-			if (! imageBackups) { // No merge if "overwrite" = true
+			if (! image) { // No merge if "overwrite" = true
 				Logger.defaultLogger().info(
 						"Starting merge from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate)
 						+ "."
@@ -798,74 +845,111 @@ implements TargetActions {
 				throw new ApplicationException(e);
 			}
 		}
-	}   
+	}  
 
-	/**
-	 * Prepares the backup
-	 */
-	public void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {      
+	public void open(Manifest manifest, TransactionPoint transactionPoint, ProcessContext context) throws ApplicationException { 
 		try {  
-			this.checkRepository();
+			if (transactionPoint == null) {
+				
+				// Check the repository for uncommitted archives, or initialize the context from the previous transaction point
+				this.checkRepository();
 
-			Logger.defaultLogger().info("Opening medium (Backup scheme = '" + backupScheme + "') ...");
-			LogHelper.logFileInformations("Backup location :", fileSystemPolicy.getArchiveDirectory());  
-
-			// Read the previous trace
-			if (backupScheme.equals(AbstractTarget.BACKUP_SCHEME_FULL)) {
-				Logger.defaultLogger().info("Using an empty archive as reference.");
-				context.setReferenceTrace(null);
-			} else {
-				File lastArchive;
-				if (backupScheme.equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
-					lastArchive = this.getLastArchive(AbstractTarget.BACKUP_SCHEME_FULL, null);
-				} else {
-					lastArchive = this.getLastArchive();
-				}
-
-				if (lastArchive != null && FileSystemManager.exists(lastArchive)) {
-					Logger.defaultLogger().info("Using the following archive as reference : " + FileSystemManager.getAbsolutePath(lastArchive) + ".");
-					File trcFile = ArchiveTraceManager.resolveTraceFileForArchive(this, lastArchive);
-					ArchiveTraceAdapter adapter;
-					if (imageBackups) {
-						// In case of image backups, we need to duplicate the trace file in order to read it during the backup process.
-						adapter = new ArchiveTraceAdapter(duplicateMetadataFile(trcFile, context));
-					} else {
-						adapter = new ArchiveTraceAdapter(trcFile);						
-					}
-
-					context.setReferenceTrace(adapter.buildIterator());
-				} else {
-					// Build an empty trace
+				Logger.defaultLogger().info("Opening medium (Backup scheme = '" + context.getBackupScheme() + "') ..."); 
+				
+				// Compute the archive path
+				context.setCurrentArchiveFile(new File(computeFinalArchivePath()));  
+				
+				// Read the previous trace
+				if (context.getBackupScheme().equals(AbstractTarget.BACKUP_SCHEME_FULL)) {
 					Logger.defaultLogger().info("Using an empty archive as reference.");
 					context.setReferenceTrace(null);
-				} 
+				} else {
+					File lastArchive;
+					if (context.getBackupScheme().equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+						lastArchive = this.getLastArchive(AbstractTarget.BACKUP_SCHEME_FULL, null);
+					} else {
+						lastArchive = this.getLastArchive();
+					}
+
+					if (lastArchive != null && FileSystemManager.exists(lastArchive)) {
+						Logger.defaultLogger().info("Using the following archive as reference : " + FileSystemManager.getAbsolutePath(lastArchive) + ".");
+						File trcFile = ArchiveTraceManager.resolveTraceFileForArchive(this, lastArchive);
+						File f;
+						if (image) {
+							// In case of image backups, we need to duplicate the trace file in order to read it during the backup process.
+							f = duplicateMetadataFile(trcFile, context);
+							removeMarkerFile(lastArchive);
+						} else {
+							f = trcFile;					
+						}
+
+						context.setReferenceTrace(ArchiveTraceAdapter.buildIterator(f));
+					} else {
+						// Build an empty trace
+						Logger.defaultLogger().info("Using an empty archive as reference.");
+						context.setReferenceTrace(null);
+					} 
+				}
+				
+				// Set the manifest
+				if (manifest != null) {
+					context.setManifest(manifest);
+					manifest.addProperty(
+							ManifestKeys.OPTION_BACKUP_SCHEME, 
+							context.getReferenceTrace() == null ? AbstractTarget.BACKUP_SCHEME_FULL : context.getBackupScheme()
+					);
+				}
+				
+				// Initiate the archive
+				buildArchive(context);
+			} else {
+				// Resuming a previous backup -> read the context from the transaction point
+				ProcessContext source = transactionPoint.deserializeProcessContext(context);
+				context.setEntryIndex(source.getEntryIndex());
+				context.setInputBytes(source.getInputBytes());
+				context.setInitialized(source.isInitialized());
+				context.setNbChecked(source.getNbChecked());
+				context.setCurrentArchiveFile(source.getCurrentArchiveFile());
+				context.setBackupScheme(source.getBackupScheme());
+				context.setOutputStreamListener(source.getOutputStreamListener());
+				context.setManifest(source.getManifest());
+				context.setReport(source.getReport());
+				context.getReport().setTarget(this.getTarget());
+				context.setFileSystemIterator(source.getFileSystemIterator());
+				context.setCurrentTransactionPoint(transactionPoint);
+				context.setPreviousHashIterator(source.getPreviousHashIterator());
+				context.setReferenceTrace(source.getReferenceTrace());
+
+				context.getManifest().addProperty(ManifestKeys.IS_RESUMED, "true");
+				Logger.defaultLogger().info("Resuming backup (Backup scheme = '" + context.getBackupScheme() + "') ..."); 
 			}
+			
+			LogHelper.logFileInformations("Backup location : ", fileSystemPolicy.getArchiveDirectory()); 
+			LogHelper.logFileInformations("Final archive : ", context.getCurrentArchiveFile()); 
 
-			context.setManifest(manifest);
-			manifest.addProperty(
-					ManifestKeys.OPTION_BACKUP_SCHEME, 
-					context.getReferenceTrace() == null ? AbstractTarget.BACKUP_SCHEME_FULL : backupScheme
-			);
-
-			// Archive creation
-			buildArchive(context);
-
-			// TraceWriter creation
+			// Create trace, content, hash, ...
 			File traceFile = new File(getDataDirectory(context.getCurrentArchiveFile()), getTraceFileName());
-			context.setTraceAdapter(new ArchiveTraceAdapter(traceFile, ((FileSystemTarget)this.target).isTrackSymlinks()));
+			context.setTraceAdapter(new ArchiveTraceAdapter(traceFile, target.getSourceDirectory(), target.isTrackSymlinks()));
 			context.getTraceAdapter().setTrackPermissions(this.trackPermissions);
 
 			File contentFile = new File(getDataDirectory(context.getCurrentArchiveFile()), getContentFileName());
-			context.setContentAdapter(new ArchiveContentAdapter(contentFile));      
+			context.setContentAdapter(new ArchiveContentAdapter(contentFile, target.getSourceDirectory()));      
 
 			File hashFile = new File(getDataDirectory(context.getCurrentArchiveFile()), getHashFileName());
-			context.setHashAdapter(new ArchiveContentAdapter(hashFile));      
+			context.setHashAdapter(new ArchiveContentAdapter(hashFile, target.getSourceDirectory()));  
 
-			// handler-specific initializations
-			handler.init(context);
+			// Read transaction point 
+			if (transactionPoint != null) {
+				context.getTraceAdapter().bulkInit(transactionPoint.getTraceFile());
+				context.getHashAdapter().bulkInit(transactionPoint.getHashFile());
+				context.getContentAdapter().bulkInit(transactionPoint.getContentFile());
+			}
 
-			// medium-specific initializations
-			prepareContext(context);
+			// Call handler-specific initializations
+			handler.init(context, transactionPoint);
+
+			// Call medium-specific initializations
+			this.prepareContext(context, transactionPoint);
 
 			// Enable thread monitor if requested
 			if (TH_MON_ENABLED) {
@@ -876,7 +960,7 @@ implements TargetActions {
 			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
 		}
-	} 
+	}
 
 	/**
 	 * Recovers the stored data
@@ -916,9 +1000,8 @@ implements TargetActions {
 			// Create missing directories and symbolic links
 			this.target.secureUpdateCurrentTask("Creating missing directories and symbolic links ...", context);
 			try {
-				ArchiveTraceAdapter adapter = new ArchiveTraceAdapter(traceFile);
 				RebuildOtherFilesTraceHandler handler = new RebuildOtherFilesTraceHandler((File)destination, filter);
-				adapter.traverseTraceFile(handler, context);
+				ArchiveTraceAdapter.traverseTraceFile(handler, traceFile, context);
 			} catch (IOException e) {
 				throw new ApplicationException(e);
 			} catch (FileMetaDataSerializationException e) {
@@ -937,82 +1020,99 @@ implements TargetActions {
 			ThreadMonitor.getInstance().remove(this.getTarget().getUid());
 		}
 
-		this.target.secureUpdateCurrentTask("Rollbacking backup ...", context);
+		if (this.getTarget().checkResumeSupported() == null) {
+			this.target.secureUpdateCurrentTask("Aborting backup ...", context);
+		} else {
+			this.target.secureUpdateCurrentTask("Rollbacking backup ...", context);
+		}
+
 		try {
+			// Close the current transaction point
+			closeCurrentTransactionPoint(false, false, context);
+		} finally {
 			try {
-				// Close the trace adapter
-				if (context.getTraceAdapter() != null) {
-					try {
-						context.getTraceAdapter().close();
-					} finally {
-						context.setTraceAdapter(null);
-					}
-				}
-			} finally {
 				try {
-					// Close the adapters
-					try {
-						ArchiveContentAdapter adapter = context.getContentAdapter();
-						context.setContentAdapter(null);
-						if (adapter != null) {
-							adapter.close();
-						}
-					} finally {
+					// Close the trace adapter
+					if (context.getTraceAdapter() != null) {
 						try {
-							ArchiveContentAdapter adapter = context.getHashAdapter();
-							context.setHashAdapter(null);
-							if (adapter != null) {
-								adapter.close();
-							}
+							context.getTraceAdapter().close();
 						} finally {
-							handler.close(context);
+							context.setTraceAdapter(null);
 						}
 					}
 				} finally {
 					try {
-						this.closeArchive(context);
-					} catch (Throwable e) {
-						Logger.defaultLogger().error("Error closing archive", e);
-						if (e instanceof ApplicationException) {
-							throw (ApplicationException)e;
-						} else {
-							throw new ApplicationException("Error closing archive", e);
-						}
-					} finally {    
+						// Close the adapters
 						try {
-							// Destroy directories
-							if (context.getCurrentArchiveFile() != null) {
-								AbstractFileSystemMedium.tool.delete(context.getCurrentArchiveFile(), true);
-								AbstractFileSystemMedium.tool.delete(this.getDataDirectory(context.getCurrentArchiveFile()), true);
+							ArchiveContentAdapter adapter = context.getContentAdapter();
+							context.setContentAdapter(null);
+							if (adapter != null) {
+								adapter.close();
 							}
 						} finally {
 							try {
-								// Close the trace iterator
-								if (context.getReferenceTrace() != null) {
-									context.getReferenceTrace().close();
+								ArchiveContentAdapter adapter = context.getHashAdapter();
+								context.setHashAdapter(null);
+								if (adapter != null) {
+									adapter.close();
+								}
+							} finally {
+								handler.close(context);
+							}
+						}
+					} finally {
+						try {
+							this.closeArchive(context);
+						} catch (Throwable e) {
+							Logger.defaultLogger().error("Error closing archive", e);
+							if (e instanceof ApplicationException) {
+								throw (ApplicationException)e;
+							} else {
+								throw new ApplicationException("Error closing archive", e);
+							}
+						} finally {    
+							try {
+								// Destroy directories
+								if (
+										(target.checkResumeSupported() != null)
+										&& (context.getCurrentArchiveFile() != null)
+								) {
+									AbstractFileSystemMedium.tool.delete(context.getCurrentArchiveFile());
+									AbstractFileSystemMedium.tool.delete(getDataDirectory(context.getCurrentArchiveFile()));
 								}
 							} finally {
 								try {
-									// Flush all remaining data
-									if (context.getCurrentArchiveFile() != null) {
-										FileSystemManager.getInstance().flush(context.getCurrentArchiveFile());
+									// Close the trace iterator
+									if (context.getReferenceTrace() != null) {
+										context.getReferenceTrace().close();
 									}
 								} finally {
-									this.target.secureUpdateCurrentTask("Rollback completed.", context);
+									try {
+										// Flush all remaining data
+										if (context.getCurrentArchiveFile() != null) {
+											FileSystemManager.getInstance().flush(context.getCurrentArchiveFile());
+										}
+									} finally {
+										if (this.getTarget().checkResumeSupported() == null) {
+											this.target.secureUpdateCurrentTask("Abort completed.", context);
+										} else {
+											this.target.secureUpdateCurrentTask("Rollback completed.", context);
+										}
+									}
 								}
 							}
 						}
 					}
 				}
+			} catch (IOException e) {
+				Logger.defaultLogger().error(e);
+				throw new ApplicationException(e);
 			}
-		} catch (IOException e) {
-			Logger.defaultLogger().error(e);
-			throw new ApplicationException(e);
 		}
 	}
 
 	public void rollbackMerge(ProcessContext context) throws ApplicationException {
-		if (! this.imageBackups) {
+		if (! this.image) {
 			this.target.secureUpdateCurrentTask("Rollbacking merge ...", context);
 			try {
 				try {
@@ -1025,8 +1125,8 @@ implements TargetActions {
 					} finally {
 						// Delete the archive
 						if (context.getCurrentArchiveFile() != null && ! isCommitted(context.getCurrentArchiveFile())) {
-							AbstractFileSystemMedium.tool.delete(context.getCurrentArchiveFile(), true);
-							AbstractFileSystemMedium.tool.delete(this.getDataDirectory(context.getCurrentArchiveFile()), true);
+							AbstractFileSystemMedium.tool.delete(context.getCurrentArchiveFile());
+							AbstractFileSystemMedium.tool.delete(getDataDirectory(context.getCurrentArchiveFile()));
 						}
 
 						this.target.secureUpdateCurrentTask("Rollback completed.", context);
@@ -1070,11 +1170,9 @@ implements TargetActions {
 			if (! context.isInitialized()) {
 				File archive = this.getLastArchive();
 				if (archive != null) {
-					ArchiveTraceAdapter adapter = new ArchiveTraceAdapter(ArchiveTraceManager.resolveTraceFileForArchive(this, archive));
-					context.setReferenceTrace(adapter.buildIterator());
+					context.setReferenceTrace(ArchiveTraceAdapter.buildIterator(ArchiveTraceManager.resolveTraceFileForArchive(this, archive)));
 				}
 				context.setInitialized();
-				context.setSimulationResult(new ArrayList());
 			}
 
 			TraceFileIterator iter = context.getReferenceTrace();
@@ -1264,7 +1362,7 @@ implements TargetActions {
 	}
 
 	public boolean supportsBackupScheme(String backupScheme) {
-		if (imageBackups && backupScheme.equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
+		if (image && backupScheme.equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)) {
 			return false;
 		} else {
 			return true;
@@ -1275,8 +1373,6 @@ implements TargetActions {
 	 * Build the archive
 	 */
 	protected void buildArchive(ProcessContext context) throws IOException, ApplicationException {
-		context.setCurrentArchiveFile(new File(computeFinalArchivePath()));  
-		LogHelper.logFileInformations("Final archive : ", context.getCurrentArchiveFile()); 
 	}    
 
 	/**
@@ -1310,10 +1406,9 @@ implements TargetActions {
 
 		// process directories
 		String[] dirs = (String[])directoriesToDispatch.toArray(new String[directoriesToDispatch.size()]);
-		ArchiveTraceAdapter adapter = new ArchiveTraceAdapter(traceFile);
 		EntrySetTraceHandler handler = new EntrySetTraceHandler(dirs, maxSetSize, entriesToDispatch, size);
 		try {
-			adapter.traverseTraceFile(handler, context);
+			ArchiveTraceAdapter.traverseTraceFile(handler, traceFile, context);
 		} catch (IllegalStateException e) {
 			return null;
 		}
@@ -1339,59 +1434,10 @@ implements TargetActions {
 		String nameToCheck = this.fileSystemPolicy.getArchiveName();
 		for (int i=0; i<RESERVED_NAMES.length; i++) {
 			if (nameToCheck.startsWith(RESERVED_NAMES[i])) {
-				throw new IllegalArgumentException("Invalid archive name (" + nameToCheck + "). This name is reserved by Areca. Please choose a different one.");
+				throw new IllegalArgumentException("Invalid archive name (" + nameToCheck + "). This name is reserved by " + VersionInfos.APP_SHORT_NAME + ". Please choose a different one.");
 			}
 		}
 	} 
-
-	/**
-	 * Delete unwanted files (ie files that have been recovered but that do not appear in the trace file)
-	 */
-	protected void cleanUnwantedFiles(
-			File targetFile, 
-			File traceFile,
-			boolean cancelSensitive,
-			ProcessContext context
-	) throws IOException, TaskCancelledException, FileMetaDataSerializationException {   
-		FileSystemIterator targetIterator = new FileSystemIterator(targetFile, false, true, true, true);
-		ArchiveTraceAdapter adapter = new ArchiveTraceAdapter(traceFile);
-		TraceFileIterator traceIterator = null;
-
-		try {
-			traceIterator = adapter.buildIterator();
-			FilePathComparator comparator = new FilePathComparator();
-
-			File toCheck = fetchNextFile(targetIterator);				// Ignore the recovery root
-			toCheck = fetchNextFile(targetIterator);
-			TraceEntry entry = fetchNextTraceEntry(traceIterator);
-			while (true) {	
-				if (toCheck == null) {
-					break;
-				}
-				String shortPath = Utils.extractShortFilePath(toCheck, targetFile);
-
-				// Compare the file paths
-				int result = entry == null ? -1 : comparator.compare(shortPath, entry.getKey());
-
-				if (result == 0) {
-					// Found among recovered files and in trace -> ok
-					toCheck = fetchNextFile(targetIterator);
-					entry = fetchNextTraceEntry(traceIterator);
-				} else if (result < 0) {
-					// File found in recovered files but not found in trace -> destroy it
-					deleteRecur(targetFile, toCheck);
-					toCheck = fetchNextFile(targetIterator);
-				} else {
-					// File found in trace but not among recovered files -> ignore it
-					entry = fetchNextTraceEntry(traceIterator);
-				}
-			}
-		} finally {
-			if (traceIterator != null) {
-				traceIterator.close();
-			}
-		}
-	}
 
 	protected abstract void closeArchive(ProcessContext context) throws IOException, ApplicationException;
 
@@ -1401,7 +1447,7 @@ implements TargetActions {
 	protected String computeArchiveName(GregorianCalendar date) {
 		GregorianCalendar cal;
 
-		if (imageBackups) {
+		if (image) {
 			cal = null;
 		} else {
 			cal = (date != null ? date : new GregorianCalendar());		
@@ -1414,7 +1460,7 @@ implements TargetActions {
 			name = "b";
 		}
 		String target = name + getArchiveExtension();
-		if (! imageBackups) {
+		if (! image) {
 			int c = 1;
 			while (FileSystemManager.exists(new File(fileSystemPolicy.getArchiveDirectory(), target))) {
 				target = name + ArchiveNameHelper.SUFFIX_SEPARATOR + c + getArchiveExtension();
@@ -1450,7 +1496,6 @@ implements TargetActions {
 		super.copyAttributes(clone);
 
 		AbstractIncrementalFileSystemMedium other = (AbstractIncrementalFileSystemMedium)clone;
-		other.imageBackups = this.imageBackups;
 		other.trackPermissions = this.trackPermissions;
 		other.handler = (ArchiveHandler)this.handler.duplicate();
 		other.handler.setMedium(other);
@@ -1460,8 +1505,8 @@ implements TargetActions {
 	 * Deletes the archive - WHETHER IT IS COMMITTED OR NOT
 	 */
 	protected void deleteArchive(File archive) throws IOException {
-		AbstractFileSystemMedium.tool.delete(archive, true);
-		AbstractFileSystemMedium.tool.delete(this.getDataDirectory(archive), true);
+		AbstractFileSystemMedium.tool.delete(archive);
+		AbstractFileSystemMedium.tool.delete(getDataDirectory(archive));
 		handler.archiveDeleted(archive);
 	}
 
@@ -1517,7 +1562,7 @@ implements TargetActions {
 	protected boolean matchArchiveName(File f) {
 		String name = FileSystemManager.getName(f);
 
-		if (imageBackups) {
+		if (image) {
 			String parsed = computeArchiveName(null);
 			return parsed.equals(name);
 		} else {
@@ -1525,7 +1570,8 @@ implements TargetActions {
 		}
 	}
 
-	protected abstract void prepareContext(ProcessContext context) throws IOException;
+	protected void prepareContext(ProcessContext context, TransactionPoint transactionPoint) throws IOException {
+	}
 
 	/**
 	 * Recovers the files at the requested recovery location, according to the recovery dates passed as argument.
@@ -1611,7 +1657,7 @@ implements TargetActions {
 							);
 						}
 					}
-					FileTool.getInstance().delete(targetFile, true);
+					FileTool.getInstance().delete(targetFile);
 					context.setRecoveryDestination(targetFile);
 					FileTool.getInstance().createDir(targetFile);
 					Logger.defaultLogger().info("Files will be recovered in " + targetFile.getAbsolutePath());
@@ -1668,11 +1714,10 @@ implements TargetActions {
 					boolean dummyMode = (entriesToDispatch == null);
 					if (traceFile != null && dummyMode) {
 						Logger.defaultLogger().info("Cleaning recovery directory ...");
-						this.cleanUnwantedFiles(
+						MediumUtils.cleanObsoleteFiles(
 								targetFile, 
 								traceFile,
-								true,
-								context);
+								true);
 						Logger.defaultLogger().info("Recovery directory cleaned.");
 					}
 
@@ -1725,10 +1770,9 @@ implements TargetActions {
 		this.target.secureUpdateCurrentTask("Applying metadata ...", context);
 		UpdateMetaDataTraceHandler handler = new UpdateMetaDataTraceHandler();
 		handler.setDestination(destination);
-		ArchiveTraceAdapter adapter = new ArchiveTraceAdapter(traceFile, ((FileSystemTarget)this.target).isTrackSymlinks());
 
 		try {
-			adapter.traverseTraceFile(handler, context);
+			ArchiveTraceAdapter.traverseTraceFile(handler, traceFile, context);
 			this.target.secureUpdateCurrentTask("Metadata applied.", context);
 		} catch (IOException e) {
 			Logger.defaultLogger().error(e);
@@ -1871,8 +1915,7 @@ implements TargetActions {
 			// Build hashIterators
 			for (int i=0; i<archives.length; i++) {
 				File hashFile = ArchiveContentManager.resolveHashFileForArchive(this, archives[i]);
-				ArchiveContentAdapter adapter = new ArchiveContentAdapter(hashFile);
-				iters[i] = adapter.buildIterator();
+				iters[i] = ArchiveContentAdapter.buildIterator(hashFile);
 			}
 
 			while (referenceIterator.hasNext()) {
@@ -1980,35 +2023,6 @@ implements TargetActions {
 		}
 	}
 
-	/**
-	 * Try to delete the file and its parent(s)
-	 */
-	private void deleteRecur(File root, File current) {
-		if (FileSystemManager.delete(current)) {
-			File parent = FileSystemManager.getParentFile(current);
-			if (FileNameUtil.normalizePath(FileSystemManager.getAbsolutePath(parent))
-					.startsWith(FileNameUtil.normalizePath(FileSystemManager.getAbsolutePath(root)))) {
-				deleteRecur(root, parent); // The parent will be deleted only if it is empty
-			}
-		}
-	}
-
-	private File fetchNextFile(FileSystemIterator iter) {
-		if (iter.hasNext()) {
-			return iter.nextFile();
-		} else {
-			return null;
-		}
-	}
-
-	private TraceEntry fetchNextTraceEntry(TraceFileIterator iter) throws IOException {
-		if (iter.hasNext()) {
-			return iter.next();
-		} else {
-			return null;
-		}
-	}  
-
 	private List getAggregatedView(AggregatedViewContext context, String root, GregorianCalendar date, boolean aggregated) throws ApplicationException {
 		try {	
 			Map directories = new HashMap();
@@ -2025,13 +2039,11 @@ implements TargetActions {
 				if (logicalView) {
 					// Case 1 : no date has been provided : use latest trace as reference (used by logical view)
 					File trcFile = ArchiveTraceManager.resolveTraceFileForArchive(this, referenceArchive);
-					ArchiveTraceAdapter trcReader = new ArchiveTraceAdapter(trcFile);
-					referenceIter = trcReader.buildIterator();
+					referenceIter = ArchiveTraceAdapter.buildIterator(trcFile);
 				} else {
 					// Case 2 : a date is provided : use archive content as of provided date (used by physical view)
 					File ctnFile = ArchiveContentManager.resolveContentFileForArchive(this, referenceArchive);
-					ArchiveContentAdapter ctnReader = new ArchiveContentAdapter(ctnFile);
-					referenceIter = ctnReader.buildIterator();
+					referenceIter = ArchiveContentAdapter.buildIterator(ctnFile);
 				}
 
 				// Merge the traces
@@ -2045,8 +2057,7 @@ implements TargetActions {
 			}
 
 			File aggrFile = (File)context.getData();
-			ArchiveTraceAdapter aggrReader = new ArchiveTraceAdapter(aggrFile);
-			TraceFileIterator aggrIter = aggrReader.buildIterator();
+			TraceFileIterator aggrIter = ArchiveTraceAdapter.buildIterator(aggrFile);
 			try {
 				// Populate the set
 				boolean found = true;
@@ -2075,11 +2086,7 @@ implements TargetActions {
 
 								// If the entry is a directory, register it
 								if (entry.getType() == MetadataConstants.T_DIR) {
-									DirectoryData dt = new DirectoryData();
-									dt.entry = entry;
-									dt.size = 0;
-									dt.exists = false;
-									directories.put(entryKey, dt);
+									addDirectoryData(entry, directories);
 								}
 							} else if (entry.getType() == MetadataConstants.T_FILE) {
 								String subdirectory = entryKey.substring(0, idx);
@@ -2088,13 +2095,13 @@ implements TargetActions {
 								if (dt == null) {
 									Logger.defaultLogger().error("No reference data found in archive trace for directory : " + subdirectory + " (entry key = [" + entryKey + "])");
 									Logger.defaultLogger().fine("Directory reference data :\n" + directories.toString());
-								}
-
-								// Update directory data ('exist' flag and size)
-								boolean exists = entry.getData().charAt(0) == '1';
-								dt.exists = dt.exists || exists;
-								if (exists || logicalView) {
-									dt.size += Long.parseLong(entry.getData().substring(1));
+								} else {
+									// Update directory data ('exist' flag and size)
+									boolean exists = entry.getData().charAt(0) == '1';
+									dt.exists = dt.exists || exists;
+									if (exists || logicalView) {
+										dt.size += Long.parseLong(entry.getData().substring(1));
+									}
 								}
 							}
 						} else {
@@ -2127,6 +2134,15 @@ implements TargetActions {
 		}
 	}
 
+	private DirectoryData addDirectoryData(TraceEntry entry, Map directories) {
+		DirectoryData dt = new DirectoryData();
+		dt.entry = entry;
+		dt.size = 0;
+		dt.exists = false;
+		directories.put(entry.getKey(), dt);
+		return dt;
+	}
+
 	private boolean hasBackupScheme(File archive, String backupScheme) throws ApplicationException {
 		if (backupScheme == null) {
 			return true;
@@ -2149,8 +2165,7 @@ implements TargetActions {
 		try {
 			try {
 				File traceFile = ArchiveTraceManager.resolveTraceFileForArchive(this, archive);
-				ArchiveTraceAdapter adapter = new ArchiveTraceAdapter(traceFile);
-				iter = adapter.buildIterator();
+				iter = ArchiveTraceAdapter.buildIterator(traceFile);
 
 				SearchMatcher matcher = new SearchMatcher((DefaultSearchCriteria)criteria);
 
@@ -2182,13 +2197,16 @@ implements TargetActions {
 	/**
 	 * It is sometime necessary to work on a copy of metadata files.
 	 * <BR>This method creates a temporary copy of a source file.
+	 * <BR>The copy is stored in the "transaction" subdirectory so it can be reused if resuming a pending backup.
 	 */
 	protected File duplicateMetadataFile(File source, ProcessContext context) {
 		File target = null;
 		if (FileSystemManager.exists(source)) {
 			try {
-				// Copy file in a temporary place
-				target = FileTool.getInstance().generateNewWorkingFile(null, "areca", "mdt", true);
+				File transactionDirectory = new File(getDataDirectory(context.getCurrentArchiveFile()), ArecaFileConstants.TRANSACTION_FILE);
+				
+				// Copy file in a temporary place - no shutdown hook is registered -> the file will have to be deleted explicitly
+				target = FileTool.getInstance().generateNewWorkingFile(transactionDirectory, ArecaFileConstants.TEMPORARY_DIR_NAME, FileSystemManager.getName(source), false);
 				FileTool.getInstance().copyFile(source, FileSystemManager.getParentFile(target), FileSystemManager.getName(target), null, null);
 			} catch (IOException e) {
 				Logger.defaultLogger().error(e);
@@ -2224,16 +2242,19 @@ implements TargetActions {
 		TraceFileIterator traceIter = null;
 
 		try {
+			// Todo : clean this.
+			// Merged content files should handle their "root" header properly instead of using the target's default root
+			FileSystemTarget target = (FileSystemTarget)this.getTarget();
+
 			// Build the writers
-			contentWriter = new ArchiveContentAdapter(contentTarget);
-			hashWriter = new ArchiveContentAdapter(hashTarget);
+			contentWriter = new ArchiveContentAdapter(contentTarget, target.getSourceDirectory());
+			hashWriter = new ArchiveContentAdapter(hashTarget, target.getSourceDirectory());
 			if (handlerTarget != null) {
-				handlerWriter = new ArchiveContentAdapter(handlerTarget);
+				handlerWriter = new ArchiveContentAdapter(handlerTarget, target.getSourceDirectory());
 			}
 
 			// Build trace Iterator
-			ArchiveTraceAdapter adp = new ArchiveTraceAdapter(traceFile);
-			traceIter = adp.buildIterator();
+			traceIter = ArchiveTraceAdapter.buildIterator(traceFile);
 
 			// Build content/hash/handler files iterator
 			contentIters = new ContentFileIterator[recoveredFiles.length];
@@ -2243,17 +2264,14 @@ implements TargetActions {
 			}
 			for (int i=0; i<recoveredFiles.length; i++) {
 				File contentFile = ArchiveContentManager.resolveContentFileForArchive(this, recoveredFiles[i]);
-				ArchiveContentAdapter contentReader = new ArchiveContentAdapter(contentFile);
-				contentIters[i] = contentReader.buildIterator();
+				contentIters[i] = ArchiveContentAdapter.buildIterator(contentFile);
 
 				File hashFile = ArchiveContentManager.resolveHashFileForArchive(this, recoveredFiles[i]);
-				ArchiveContentAdapter hashReader = new ArchiveContentAdapter(hashFile);
-				hashIters[i] = hashReader.buildIterator();
+				hashIters[i] = ArchiveContentAdapter.buildIterator(hashFile);
 
 				if (handlerTarget != null) {
 					File handlerFile = ArchiveContentManager.resolveSequenceFileForArchive(this, recoveredFiles[i]);
-					ArchiveContentAdapter handlerReader = new ArchiveContentAdapter(handlerFile);
-					handlerIters[i] = handlerReader.buildIterator();
+					handlerIters[i] = ArchiveContentAdapter.buildIterator(handlerFile);
 				}
 			}
 

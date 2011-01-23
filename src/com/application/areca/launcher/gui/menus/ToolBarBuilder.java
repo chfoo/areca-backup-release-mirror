@@ -5,7 +5,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 
 /**
  * <BR>
@@ -52,7 +52,7 @@ extends AppActionReferenceHolder {
     }
     
     public static void addOpenItems(ToolBar bar) {
-        if (! ArecaPreferences.isDisplayWSAddress()) {
+        if (! ApplicationPreferences.isDisplayWSAddress()) {
         	buildToolItem(AC_OPEN, bar);
         }
         buildToolItem(AC_PREFERENCES, bar);       

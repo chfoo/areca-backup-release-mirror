@@ -5,8 +5,6 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
-import com.application.areca.launcher.gui.Application;
-
 /**
  * <BR>
  * @author Olivier PETRUCCI
@@ -36,63 +34,58 @@ This file is part of Areca.
  */
 public class CTabFolderManager 
 extends RefreshManager {
-    private boolean parentRegistered = false;
-    private CTabItem selected = null;
+	private boolean parentRegistered = false;
+	private CTabItem selected = null;
 
-    public void registerTabItem(final CTabItem item) {
-        item.addListener(SWT.Dispose, new Listener() {
-            public void handleEvent(Event event) {
-                unregisterRefreshable(getRefreshable(item));
-            }
-        });
+	public void registerTabItem(final CTabItem item) {
+		item.addListener(SWT.Dispose, new Listener() {
+			public void handleEvent(Event event) {
+				unregisterRefreshable(getRefreshable(item));
+			}
+		});
 
-        if (! parentRegistered) {
-            parentRegistered = true;
-            
-            item.getParent().addListener(SWT.Selection, new Listener() {
-                public void handleEvent(Event event) {
-                    handleSelection((CTabItem)event.item);
-                }
-            });
-        }
+		if (! parentRegistered) {
+			parentRegistered = true;
 
-        this.registerRefreshable(getRefreshable(item));
-        
-        // Register tab index
-        item.setData(new Integer(this.monitors.size() - 1));
-    }
-    
-    public void handleSelection(CTabItem item) {
-        if (selected != null) {
-            lostFocus(getRefreshable(selected));
-        }
+			item.getParent().addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					handleSelection((CTabItem)event.item);
+				}
+			});
+		}
 
-        selected = item; 
-        getFocus(getRefreshable(selected));
-    }
-    
-    public int getCurrentSelection() {
-        if (selected == null) {
-            return 0;
-        } else {
-            return ((Integer)selected.getData()).intValue();
-        }
-    }
+		this.registerRefreshable(getRefreshable(item));
 
-    public Refreshable getRefreshable(CTabItem item) {
-        return (Refreshable)item.getControl();
-    }
-    
-    public boolean references(CTabItem item) {
-        return this.monitors.containsKey(getRefreshable(item).getRefreshableKey());
-    }
+		// Register tab index
+		item.setData(new Integer(this.monitors.size() - 1));
+	}
 
-    public void getFocus(Refreshable refreshable) {
-        try {
-            Application.getInstance().enableWaitCursor();
-            super.getFocus(refreshable);
-        } finally {
-            Application.getInstance().disableWaitCursor();
-        }
-    }
+	public void handleSelection(CTabItem item) {
+		if (selected != null) {
+			lostFocus(getRefreshable(selected));
+		}
+
+		selected = item; 
+		getFocus(getRefreshable(selected));
+	}
+
+	public int getCurrentSelection() {
+		if (selected == null) {
+			return 0;
+		} else {
+			return ((Integer)selected.getData()).intValue();
+		}
+	}
+
+	public Refreshable getRefreshable(CTabItem item) {
+		return (Refreshable)item.getControl();
+	}
+
+	public boolean references(CTabItem item) {
+		return this.monitors.containsKey(getRefreshable(item).getRefreshableKey());
+	}
+
+	public void getFocus(final Refreshable refreshable) {
+		super.getFocus(refreshable);
+	}
 }

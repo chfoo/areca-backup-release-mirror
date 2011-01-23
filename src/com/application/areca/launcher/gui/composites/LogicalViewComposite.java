@@ -222,6 +222,8 @@ implements MouseListener, Refreshable, Listener {
 	        	Logger.defaultLogger().info("Looking for archives in " + medium.getFileSystemPolicy().getDisplayableParameters(true), "Logical View");
 
 				explorer.setMedium(medium);
+				
+				btnMode.setEnabled(! medium.isImage());
 			} else {
 				explorer.setMedium(null);
 			}

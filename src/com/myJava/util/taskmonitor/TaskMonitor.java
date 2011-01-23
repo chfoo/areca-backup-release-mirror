@@ -1,5 +1,6 @@
 package com.myJava.util.taskmonitor;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +36,9 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class TaskMonitor {
+public class TaskMonitor implements Serializable {
+	private static final long serialVersionUID = -223768891867633062L;
+
 	public static final long PAUSE_CHECK_DELAY_MS = 500;
 	
 	/**
@@ -61,7 +64,7 @@ public class TaskMonitor {
     /**
      * Task's listeners
      */
-    protected List listeners; 
+    protected transient List listeners; 
     
     /**
      * Tells whether a "pause" has been requested by the user
@@ -83,13 +86,17 @@ public class TaskMonitor {
      */
     protected String name = "";
     
-    public TaskMonitor(String name) {
+    private TaskMonitor() {
         this.currentCompletionRate = 0;
         this.currentSubTaskShare = 0;
         this.currentSubTask = null;
         this.parentTask = null; 
-        this.name = name;
         this.clearAllListeners();  
+    }
+    
+    public TaskMonitor(String name) {
+    	this();
+        this.name = name;
     }
     
     /**
@@ -125,6 +132,11 @@ public class TaskMonitor {
         }
     }
     
+    public void overrideCurrentSubTask(TaskMonitor subTask) {
+        this.currentSubTask = subTask;
+        subTask.parentTask = this;
+    }
+    
     /**
      * Set the current sub task.
      * @param subTask
@@ -135,9 +147,8 @@ public class TaskMonitor {
             //throw new IllegalArgumentException("Illegal attempt to add a subTask which has already been started.");
         }
         
-        this.currentSubTask = subTask;
+        overrideCurrentSubTask(subTask);
         this.currentSubTaskShare = subTaskShare;
-        subTask.parentTask = this;
     }
     
     public void addNewSubTask(double subTaskShare, String name) {
@@ -216,8 +227,10 @@ public class TaskMonitor {
             this.completeCurrentSubTask();
         }
         
-        for (int i=0; i<this.listeners.size(); i++) {
-            ((TaskMonitorListener)listeners.get(i)).completionChanged(this);
+        if (listeners != null) {
+	        for (int i=0; i<this.listeners.size(); i++) {
+	            ((TaskMonitorListener)listeners.get(i)).completionChanged(this);
+	        }
         }
         
         if (this.parentTask != null) {
@@ -249,8 +262,10 @@ public class TaskMonitor {
             this.pauseRequested = pauseRequested;
         }
         
+        if (listeners != null) {
         for (int i=0; i<this.listeners.size(); i++) {
             ((TaskMonitorListener)listeners.get(i)).pauseRequested(this);
+        }
         }
 	}
 
@@ -264,8 +279,10 @@ public class TaskMonitor {
                 }
             }
             
+            if (listeners != null) {
             for (int i=0; i<this.listeners.size(); i++) {
                 ((TaskMonitorListener)listeners.get(i)).cancelRequested(this);
+            }
             }
         }
     }
@@ -280,8 +297,10 @@ public class TaskMonitor {
             this.cancellable = cancellable;
         }
         
+        if (listeners != null) {
         for (int i=0; i<this.listeners.size(); i++) {
             ((TaskMonitorListener)listeners.get(i)).cancellableChanged(this);
+        }
         }
     }
     

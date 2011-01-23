@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 
 import com.application.areca.metadata.AbstractMetaDataFileIterator;
-import com.myJava.file.FileTool;
 
 /**
  * 
@@ -36,31 +35,11 @@ This file is part of Areca.
 
  */
 public class ContentFileIterator extends AbstractMetaDataFileIterator {
-	private boolean deleteOnClose = false;
-	private File fileToDelete = null;
 	private File referenceArchive = null;		// optional field - used to maintain a link with the source archive
 
 	protected ContentFileIterator(BufferedReader reader, ArchiveContentAdapter adapter) 
 	throws IOException {
 		super(reader, adapter);
-	}
-	
-	/**
-	 * Close the iterator
-	 */
-	public void close() throws IOException {
-		try {
-			super.close();
-		} finally {
-			if (deleteOnClose) {
-				FileTool.getInstance().delete(fileToDelete, true);
-			}
-		}
-	}
-
-	public void setDeleteOnClose(File fileToDelete) {
-		this.fileToDelete = fileToDelete;
-		this.deleteOnClose = true;
 	}
 	
 	public ContentEntry next() throws IOException {

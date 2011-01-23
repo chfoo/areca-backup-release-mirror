@@ -91,10 +91,12 @@ public class ArchiveTraceParser {
 				data.setLastmodified(Long.parseLong(trace.substring(idx1 + 1)));
 			} else {
 				data = FileMetaDataAccessorHelper.getFileSystemAccessor().getMetaDataSerializer().deserialize(trace.substring(idx2 + 1), version);
-				data.setLastmodified(Long.parseLong(trace.substring(idx1 + 1, idx2)));
+				if (data != null) {
+					data.setLastmodified(Long.parseLong(trace.substring(idx1 + 1, idx2)));
+				}
 			}
 			
-			if (data.getLastmodified() < 0) {
+			if (data != null && data.getLastmodified() < 0) {
 				Logger.defaultLogger().warn("CAUTION : Negative modification date (" + data.getLastmodified() + "). It will be set to 0.");
 				data.setLastmodified(0);
 			}
@@ -117,10 +119,12 @@ public class ArchiveTraceParser {
 				data.setLastmodified(Long.parseLong(trace));
 			} else {
 				data = FileMetaDataAccessorHelper.getFileSystemAccessor().getMetaDataSerializer().deserialize(trace.substring(idx1 + 1), version);            
-				data.setLastmodified(Long.parseLong(trace.substring(0, idx1)));
+				if (data != null) {
+					data.setLastmodified(Long.parseLong(trace.substring(0, idx1)));
+				}
 			}
 			
-			if (data.getLastmodified() < 0) {
+			if (data != null && data.getLastmodified() < 0) {
 				Logger.defaultLogger().warn("CAUTION : Negative modification date (" + data.getLastmodified() + "). It will be set to 0.");
 				data.setLastmodified(0);
 			}
@@ -150,10 +154,12 @@ public class ArchiveTraceParser {
 					data.setLastmodified(Long.parseLong(trace.substring(idx1 + 1)));
 				} else {
 					data = FileMetaDataAccessorHelper.getFileSystemAccessor().getMetaDataSerializer().deserialize(trace.substring(idx2 + 1), version);            
-					data.setLastmodified(Long.parseLong(trace.substring(idx1 + 1, idx2)));
+					if (data != null) {
+						data.setLastmodified(Long.parseLong(trace.substring(idx1 + 1, idx2)));
+					}
 				}
 
-				if (data.getLastmodified() < 0) {
+				if (data != null && data.getLastmodified() < 0) {
 					Logger.defaultLogger().warn("CAUTION : Negative modification date (" + data.getLastmodified() + "). It will be set to 0.");
 					data.setLastmodified(0);
 				}

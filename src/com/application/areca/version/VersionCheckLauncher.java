@@ -4,7 +4,7 @@ import javax.swing.JOptionPane;
 
 import org.eclipse.swt.widgets.Display;
 
-import com.application.areca.ArecaTechnicalConfiguration;
+import com.application.areca.ArecaConfiguration;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
 
@@ -41,7 +41,7 @@ public class VersionCheckLauncher {
         
         try {     
             checkJavaVersion();
-            ArecaTechnicalConfiguration.initialize();
+            ArecaConfiguration.initialize();
             
             VersionCheckWindow check = new VersionCheckWindow();
             check.setBlockOnOpen(true);

@@ -19,7 +19,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.application.areca.AbstractTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.launcher.gui.composites.AbstractTabComposite;
@@ -120,7 +120,7 @@ public class MainWindow extends AbstractWindow {
         mainLayout.verticalSpacing = 2;
         composite.setLayout(mainLayout);
 
-        if (ArecaPreferences.isDisplayToolBar()) {
+        if (ApplicationPreferences.isDisplayToolBar()) {
         	ToolBarBuilder.buildMainToolBar(composite);
         }
 
@@ -205,9 +205,7 @@ public class MainWindow extends AbstractWindow {
             itm.setImage(img);
         }
         Application.setTabLabel(itm, title);
- 
         itm.setControl(content);
-
         this.application.getFolderMonitor().registerTabItem(itm);
     }
 

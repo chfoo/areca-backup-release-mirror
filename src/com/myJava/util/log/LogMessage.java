@@ -1,5 +1,7 @@
 package com.myJava.util.log;
 
+import java.io.Serializable;
+
 /**
  * <BR>
  * @author Olivier PETRUCCI
@@ -27,7 +29,9 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class LogMessage {
+public class LogMessage implements Serializable {
+	private static final long serialVersionUID = -2815985432629717344L;
+	
 	private int level;
 	private String message;
 	private String source;

@@ -1,6 +1,7 @@
 package com.myJava.file.iterator;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -34,7 +35,9 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class FileSystemLevel {
+public class FileSystemLevel implements Serializable {
+	private static final long serialVersionUID = -6530590949196639062L;
+	
 	private File[] levelFiles;
 	private int index;
     private boolean hasBeenReturned = false;

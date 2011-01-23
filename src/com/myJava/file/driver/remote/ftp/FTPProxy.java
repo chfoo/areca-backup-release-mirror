@@ -9,7 +9,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 
@@ -70,6 +69,7 @@ public class FTPProxy extends AbstractProxy {
 	private String protection = null;
 	private boolean impliciteSec = false;
 	private String controlEncoding = null;
+	private boolean ignorePsvErrors = false;
 
 	// CLIENT
 	private FTPClient client;
@@ -131,6 +131,14 @@ public class FTPProxy extends AbstractProxy {
 		return controlEncoding;
 	}
 
+	public boolean isIgnorePsvErrors() {
+		return ignorePsvErrors;
+	}
+
+	public void setIgnorePsvErrors(boolean ignorePsvErrors) {
+		this.ignorePsvErrors = ignorePsvErrors;
+	}
+
 	public void setControlEncoding(String controlEncoding) {
 		if (controlEncoding != null && controlEncoding.trim().length() == 0) {
 			this.controlEncoding = null;
@@ -172,6 +180,7 @@ public class FTPProxy extends AbstractProxy {
 			&& EqualsHelper.equals(this.remotePort, o.remotePort)
 			&& EqualsHelper.equals(this.login, o.login)
 			&& EqualsHelper.equals(this.password, o.password)
+			&& EqualsHelper.equals(this.ignorePsvErrors, o.ignorePsvErrors)
 			&& EqualsHelper.equals(this.controlEncoding, o.controlEncoding)
 			&& EqualsHelper.equals(this.remoteServer, o.remoteServer);
 		} else {
@@ -188,6 +197,7 @@ public class FTPProxy extends AbstractProxy {
 		h = HashHelper.hash(h, this.remotePort);
 		h = HashHelper.hash(h, this.login);
 		h = HashHelper.hash(h, this.password);
+		h = HashHelper.hash(h, this.ignorePsvErrors);
 		h = HashHelper.hash(h, this.controlEncoding);
 		h = HashHelper.hash(h, this.remoteServer);
 		return h;
@@ -239,10 +249,11 @@ public class FTPProxy extends AbstractProxy {
 						protection, 
 						impliciteSec,
 						null, // TODO
-						null  // TODO
+						null,  // TODO
+						ignorePsvErrors
 				);
 			} else {
-				this.client = new FTPClient();
+				this.client = new FTPClient(ignorePsvErrors);
 			}
 			if (this.controlEncoding != null) {
 				this.client.setControlEncoding(this.controlEncoding); 
@@ -303,7 +314,7 @@ public class FTPProxy extends AbstractProxy {
 			}
 		} catch (UnknownHostException e) {
 			resetClient(e);
-			throw new FTPConnectionException("Unknown FTP server : " + this.remoteServer);
+			throw new FTPConnectionException("Unknown server : " + this.remoteServer);
 		} catch (SocketException e) {
 			resetClient(e);
 			throw new FTPConnectionException("Error during FTP connection : " + e.getMessage());
@@ -357,8 +368,11 @@ public class FTPProxy extends AbstractProxy {
 					shallReconnect = ! client.sendNoOp();
 					debug("checkConnection : noop", client.getReplyString());
 					this.updateOpTime();
+					shallReconnect = false;
+					debug("checkConnection : connection successfully checked");
 				} else {
 					shallReconnect = false;
+					debug("checkConnection : no need to check connection");
 				}
 			} catch (Throwable e) {
 				debug("checkConnection", e);
@@ -370,6 +384,8 @@ public class FTPProxy extends AbstractProxy {
 			if (client != null) {
 				Logger.defaultLogger().info("Disconnected from server : " + this.remoteServer + " ... tyring to reconnect.");
 				debug("checkConnection : disconnected ... trying to reconnect", client.getReplyString());                
+			} else {
+				debug("checkConnection : not connected ... trying to connect"); 	
 			}
 			this.connect();
 		}
@@ -599,7 +615,7 @@ public class FTPProxy extends AbstractProxy {
 		try {          
 			String shortName = new File(remoteFile).getName();
 			this.changeWorkingDirectory("getRemoteFileInfos", "/");
-
+			
 			// File lookup on server
 			debug("getRemoteFileInfos : listFiles", remoteFile);
 			FTPFile[] files = client.listFiles(remoteFile);
@@ -669,6 +685,7 @@ public class FTPProxy extends AbstractProxy {
 		proxy.setPassword(password);
 		proxy.setRemotePort(remotePort);
 		proxy.setRemoteServer(remoteServer);
+		proxy.setIgnorePsvErrors(ignorePsvErrors);
 		proxy.setControlEncoding(controlEncoding);
 		proxy.setFileInfoCache(fileInfoCache);
 

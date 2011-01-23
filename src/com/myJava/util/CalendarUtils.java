@@ -167,5 +167,9 @@ public class CalendarUtils {
 
     public static String getTimeToString() {
         return getTimeToString(null);
-    }     
+    } 
+    
+    public static Calendar removeTime(Calendar cal) {
+    	return new GregorianCalendar(cal.get(cal.YEAR), cal.get(cal.MONTH), cal.get(cal.DAY_OF_MONTH));
+    }
 }

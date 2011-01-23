@@ -8,7 +8,7 @@ import java.util.GregorianCalendar;
 import com.myJava.util.schedule.ScheduledTask;
 
 /**
- * Tache de nettoyage de rï¿½pertoire temporaire :
+ * Tache de nettoyage de répertoire temporaire :
  * Supprime tous les fichiers plus vieux que N jours.
  * <BR>
  * @author Olivier PETRUCCI
@@ -45,13 +45,13 @@ public class TemporaryDirectoryCleaner extends ScheduledTask {
     protected String tpcPath;
 
     /**
-     *  Dï¿½lai de nettoyage (en jours)
+     *  Délai de nettoyage (en jours)
      */
     protected int tpcCleanDelay;
 
 
     /**
-     * Constructeur : vï¿½rification toutes les 12 heures.
+     * Constructeur : vérification toutes les 12 heures.
      * L'historique s'entend en jours.
      */
     public TemporaryDirectoryCleaner(String path, int cleanDelay) {
@@ -61,7 +61,7 @@ public class TemporaryDirectoryCleaner extends ScheduledTask {
     }
 
     /**
-     * Constructeur : vï¿½rification toutes les 12 heures.
+     * Constructeur : vérification toutes les 12 heures.
      * L'historique est de 3 jours.
      */
     public TemporaryDirectoryCleaner(String path) {
@@ -69,12 +69,12 @@ public class TemporaryDirectoryCleaner extends ScheduledTask {
     }
 
     /**
-     * Exï¿½cution : Nettoyage du chemin.
-     * liste tous les fichiers du chemin, et vï¿½rifie la date
+     * Exécution : Nettoyage du chemin.
+     * liste tous les fichiers du chemin, et vérifie la date
      * pour chacun d'eux.
-     * Si cette date est antï¿½rieure ï¿½ l'historique, alors le fichier
-     * est supprimï¿½.
-     * S'appuie sur la date de derniï¿½re modification pour les vï¿½rifications.
+     * Si cette date est antérieure à l'historique, alors le fichier
+     * est supprimé.
+     * S'appuie sur la date de dernière modification pour les vérifications.
      */
     public void execute() {
         super.execute();
@@ -91,7 +91,7 @@ public class TemporaryDirectoryCleaner extends ScheduledTask {
     }
 
     /**
-     * Vï¿½rifie si le fichier doit ï¿½tre supprimï¿½ ou non
+     * Vérifie si le fichier doit être supprimé ou non
      */
     protected boolean checkFileToBeDeleted(File f) {
         GregorianCalendar fileDate = this.getFileDate(f);

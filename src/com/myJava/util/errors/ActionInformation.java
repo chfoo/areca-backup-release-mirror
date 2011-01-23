@@ -1,8 +1,8 @@
 package com.myJava.util.errors;
 
 /**
- * Classe reprï¿½sentant une information retournï¿½e par une action (par exemple requï¿½te SQL).
- * Ca peut ï¿½tre un id d'enregistrement crï¿½ï¿½, un nombre d'enregistrements supprimï¿½s, etc.
+ * Classe représentant une information retournée par une action (par exemple requête SQL).
+ * Ca peut être un id d'enregistrement créé, un nombre d'enregistrements supprimés, etc.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

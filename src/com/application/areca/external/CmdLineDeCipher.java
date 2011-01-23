@@ -6,6 +6,7 @@ import java.io.IOException;
 import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.ApplicationException;
 import com.application.areca.impl.policy.EncryptionPolicy;
+import com.application.areca.version.VersionInfos;
 import com.myJava.commandline.BooleanCmdLineOption;
 import com.myJava.commandline.CmdLineParserException;
 import com.myJava.commandline.CommandLineParser;
@@ -14,6 +15,7 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.driver.DefaultFileSystemDriver;
 import com.myJava.file.driver.DriverAlreadySetException;
+import com.myJava.file.driver.EncryptedFileSystemDriver;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.iterator.FileSystemIterator;
 
@@ -54,13 +56,15 @@ extends AbstractArecaLauncher {
     private static final String ARG_DESTINATION = "destination";
     private static final String ARG_SHOW = "l";
     private static final String ARG_DONT_ENCRYPT_NAMES = "r";
+    private static final String ARG_WRAP_NAMES_ENABLE = "ew";
+    private static final String ARG_WRAP_NAMES_DISABLE = "dw";
     
     private static final String DESCRIPTION = 
-        "Areca's external decryption tool.\ndecrypt -" 
+        "" + VersionInfos.APP_SHORT_NAME + "'s external decryption tool.\ndecrypt -" 
         + ARG_SOURCE + "=<" + ARG_SOURCE + "> -"
         + ARG_ALG + "=<" + ARG_ALG + "> -"
         + ARG_PASSWD + "=<" + ARG_PASSWD + "> -"
-        + ARG_DESTINATION + "=<" + ARG_DESTINATION + "> [-" + ARG_SHOW + "] [-" + ARG_DONT_ENCRYPT_NAMES + "]"
+        + ARG_DESTINATION + "=<" + ARG_DESTINATION + "> [-" + ARG_SHOW + "] [-" + ARG_DONT_ENCRYPT_NAMES + "] [-" + ARG_WRAP_NAMES_ENABLE + "] [-" + ARG_WRAP_NAMES_DISABLE + "]"
         ;
     
 	private String algorithm="";
@@ -70,6 +74,7 @@ extends AbstractArecaLauncher {
 	private String targetDir="";
 	private boolean disableNameDecryption=false;
 	private boolean justShow=false;
+	private String nameWrappingMode=EncryptedFileSystemDriver.WRAP_DEFAULT;
 	
     public static void main(String[] args) {
         CmdLineDeCipher launcher = new CmdLineDeCipher();
@@ -95,6 +100,8 @@ extends AbstractArecaLauncher {
 		parser.addParameter(new StringCmdLineOption(true,ARG_DESTINATION,"Destination Directory "));
 		parser.addParameter(new BooleanCmdLineOption(false,ARG_SHOW,"Display only mode"));
 		parser.addParameter(new BooleanCmdLineOption(false,ARG_DONT_ENCRYPT_NAMES,"Disable filenames decryption"));
+		parser.addParameter(new BooleanCmdLineOption(false,ARG_WRAP_NAMES_DISABLE,"Disable wrapping of encrypted filenames"));
+		parser.addParameter(new BooleanCmdLineOption(false,ARG_WRAP_NAMES_ENABLE,"Force wrapping of encrypted filenames"));
 		
 		try {
 			parser.parse(args, null);
@@ -106,6 +113,15 @@ extends AbstractArecaLauncher {
 			targetDir =  (String)parser.getParameter(ARG_DESTINATION).getValue();
 			justShow  =  ((Boolean)parser.getParameter(ARG_SHOW).getValue()).booleanValue();
 			disableNameDecryption  =  ((Boolean)parser.getParameter(ARG_DONT_ENCRYPT_NAMES).getValue()).booleanValue();
+			
+			boolean enableWrapping = ((Boolean)parser.getParameter(ARG_WRAP_NAMES_ENABLE).getValue()).booleanValue();
+			boolean disableWrapping = ((Boolean)parser.getParameter(ARG_WRAP_NAMES_DISABLE).getValue()).booleanValue();
+			
+			if (enableWrapping) {
+				nameWrappingMode = EncryptedFileSystemDriver.WRAP_ENABLED;
+			} else if (disableWrapping) {
+				nameWrappingMode = EncryptedFileSystemDriver.WRAP_DISABLED;
+			}
 		} catch (CmdLineParserException e) {
 			System.out.println("Syntax error : " + e.getMessage());
 			System.out.println(parser.usage());
@@ -120,6 +136,7 @@ extends AbstractArecaLauncher {
 		policy.setEncryptionAlgorithm(algorithm);
 		policy.setEncryptionKey(encryption);
 		policy.setEncryptNames(! disableNameDecryption);
+		policy.setNameWrappingMode(nameWrappingMode);
 		
 		try {
 		    File mnt = new File(mountPoint);
@@ -168,6 +185,7 @@ extends AbstractArecaLauncher {
             	System.out.println("Algorithm : " + deCipher.algorithm);
             	System.out.println("Passphrase : " + deCipher.encryption);
             	System.out.println("Disable Name Decryption : " + deCipher.disableNameDecryption);
+            	System.out.println("File Name Wrapping : " + deCipher.nameWrappingMode);
             	deCipher.initializeFileSystemManager();
             	deCipher.process();
             }

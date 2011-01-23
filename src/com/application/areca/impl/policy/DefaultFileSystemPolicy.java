@@ -4,8 +4,9 @@ import java.io.File;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
-import com.application.areca.ArecaTechnicalConfiguration;
+import com.application.areca.ArecaConfiguration;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.FileTool;
 import com.myJava.file.driver.DefaultFileSystemDriver;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.driver.cache.CachedFileSystemDriver;
@@ -43,8 +44,8 @@ This file is part of Areca.
 public class DefaultFileSystemPolicy 
 extends AbstractFileSystemPolicy
 implements FileSystemPolicy {    
-    private static final boolean CACHE = ArecaTechnicalConfiguration.get().isRepositoryHDCache();
-    private static final int CACHE_DEPTH = ArecaTechnicalConfiguration.get().getRepositoryHDCacheDepth();
+    private static final boolean CACHE = ArecaConfiguration.get().isRepositoryHDCache();
+    private static final int CACHE_DEPTH = ArecaConfiguration.get().getRepositoryHDCacheDepth();
     
     /**
      * Storage path
@@ -136,4 +137,11 @@ implements FileSystemPolicy {
         File newStorageDirectory = new File(rootDirectory, getMedium().getTarget().getUid());
         this.archivePath = FileSystemManager.getAbsolutePath(newStorageDirectory);
     }
+
+    /**
+     * The target directory shall not be a child of the source directory
+     */
+	public boolean canHandle(File source) {
+		return ! FileTool.getInstance().isParentOf(source, getArchiveDirectory());
+	}
 }

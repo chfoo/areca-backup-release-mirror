@@ -11,6 +11,7 @@ import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.trace.ArchiveTraceManager;
+import com.application.areca.metadata.transaction.TransactionPoint;
 import com.myJava.file.FileFilterList;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -71,16 +72,21 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 		return "Uncompressed";
 	}
 
-	protected void prepareContext(ProcessContext context) throws IOException {
-		if (imageBackups && context.getReferenceTrace() != null) {
+	protected void prepareContext(ProcessContext context, TransactionPoint transactionPoint) throws IOException {
+		super.prepareContext(context, transactionPoint);
+		
+		// If a transaction point is used, the previousHashIterator has been set during the context's deserialization.
+		// -> No need to instantiate a new one.
+		if (image && context.getReferenceTrace() != null && transactionPoint == null) {
 			// see "registerUnstoredFile" method
-			ArchiveContentAdapter adapter = new ArchiveContentAdapter(duplicateMetadataFile(context.getHashAdapter().getFile(), context));
-			context.setPreviousHashIterator(adapter.buildIterator(true));
+			context.setPreviousHashIterator(
+					ArchiveContentAdapter.buildIterator(duplicateMetadataFile(context.getHashAdapter().getFile(), context))
+			);
 		}
 	}
 	
     protected void registerUnstoredFile(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException {
-		if (imageBackups) {
+		if (image) {
 			context.getContentAdapter().writeContentEntry(entry);
 		
 			boolean found = context.getPreviousHashIterator().fetchUntil(entry.getKey());
@@ -277,17 +283,18 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 			super.computeMergedArchiveFile(context);
 		}
 	}
-
+ 
 	public void commitBackup(ProcessContext context) throws ApplicationException {
 		super.commitBackup(context);
-
-		if (imageBackups) {
+		
+		if (image) {
 			try {
-				this.cleanUnwantedFiles(
+				this.target.secureUpdateCurrentTask("Cleaning repository ...", context);
+				MediumUtils.cleanObsoleteFiles(
 						new File(computeFinalArchivePath()),
 						ArchiveTraceManager.resolveTraceFileForArchive(this, context.getCurrentArchiveFile()),
-						false,
-						context); // --> Call to "cleanUnwantedFiles" in "cancel unsensitive" mode
+						true);
+				this.target.secureUpdateCurrentTask("Repository cleaned.", context);
 			} catch (TaskCancelledException e) {
 				throw new ApplicationException(e);
 			} catch (Exception e) {

@@ -5,6 +5,7 @@ import com.application.areca.adapters.MissingDataListener;
 import com.myJava.util.xml.AdapterException;
 
 /**
+ * This interface describes all services proposed by TargetGroup XML readers
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

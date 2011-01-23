@@ -9,7 +9,7 @@ import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.AbstractTarget;
 import com.application.areca.ActionProxy;
 import com.application.areca.ArecaFileConstants;
-import com.application.areca.ArecaTechnicalConfiguration;
+import com.application.areca.ArecaConfiguration;
 import com.application.areca.CheckParameters;
 import com.application.areca.MergeParameters;
 import com.application.areca.TargetGroup;
@@ -19,6 +19,11 @@ import com.application.areca.adapters.ConfigurationHandler;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.metadata.manifest.Manifest;
+import com.application.areca.metadata.transaction.ConditionalTransactionHandler;
+import com.application.areca.metadata.transaction.NoTransactionHandler;
+import com.application.areca.metadata.transaction.TransactionHandler;
+import com.application.areca.metadata.transaction.YesTransactionHandler;
+import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -98,11 +103,11 @@ implements CommandConstants {
                 }
                 
                 FileLogProcessor proc;
-                if (ArecaTechnicalConfiguration.get().getLogLocationOverride() == null) {
+                if (ArecaConfiguration.get().getLogLocationOverride() == null) {
                     File logDir = new File(parentFile, ArecaFileConstants.LOG_SUBDIRECTORY_NAME);
                 	proc = new FileLogProcessor(new File(logDir, configName));
                 } else {
-                	proc = new FileLogProcessor(new File(ArecaTechnicalConfiguration.get().getLogLocationOverride(), configName));
+                	proc = new FileLogProcessor(new File(ArecaConfiguration.get().getLogLocationOverride(), configName));
                 }
     	        Logger.defaultLogger().addProcessor(proc);
             }
@@ -220,8 +225,8 @@ implements CommandConstants {
     
     private void printHelp() {
         channel.print(SEPARATOR);
-        channel.print("Areca Backup");
-        channel.print("Copyright 2005-2009, Olivier PETRUCCI");
+        channel.print(VersionInfos.APP_NAME);
+        channel.print("Copyright 2005-2011, Olivier PETRUCCI");
         channel.print("List of valid arguments :");
         channel.print("");
         channel.print("Describe targets :");
@@ -234,6 +239,8 @@ implements CommandConstants {
         channel.print("         -d to force differential backup (instead of incremental backup)");
         channel.print("         -c to check the archive consistency after backup");
         channel.print("         -wdir to use a specific working directory during archive check");
+        channel.print("         -resume to resume a pending backup if found");
+        channel.print("         -cresume (nb days) to resume a pending backup if younger than 'nb days'");
         channel.print("         -s to disable asynchronous processing when handling a target group");        
         channel.print("         -title to set a title to the archive");         
 
@@ -264,6 +271,14 @@ implements CommandConstants {
      
         channel.print("");
         channel.print(SEPARATOR);
+        /*
+        try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
     }
     
     /**
@@ -319,6 +334,20 @@ implements CommandConstants {
                 && command.getOption(OPTION_SYNC).trim().length() != 0
         );
         
+        boolean resume = (
+                command.getOption(OPTION_RESUME) != null
+                && command.getOption(OPTION_RESUME).trim().length() != 0
+        );
+        
+        boolean conditionalResume = (
+                command.getOption(OPTION_RESUME_CONDITIONAL) != null
+                && command.getOption(OPTION_RESUME_CONDITIONAL).trim().length() != 0
+        );
+        int resumeLimit = -1;
+        if (conditionalResume) {
+        	resumeLimit = Integer.parseInt(command.getOption(OPTION_RESUME_CONDITIONAL));
+        }
+        
         final Manifest manifest;
         if (command.hasOption(OPTION_TITLE)) {
         	manifest = new Manifest(Manifest.TYPE_BACKUP);
@@ -338,6 +367,18 @@ implements CommandConstants {
         );
         
         if (item instanceof AbstractTarget) {
+        	
+        	// Initialize transaction handler
+        	final TransactionHandler handler;
+        	if (resume) {
+        		handler = new YesTransactionHandler();
+        	} else if (conditionalResume) {
+        		handler = new ConditionalTransactionHandler(resumeLimit);
+        	} else {
+        		handler = new NoTransactionHandler();
+        	}
+        	
+        	// Create runnable
             Runnable rn = new Runnable() {
                 public void run() {
                     try {
@@ -347,6 +388,7 @@ implements CommandConstants {
                                 backupScheme,
                                 false,
                                 checkParams,
+                                handler,
                                 buildContext(item)
                         );
                     } catch (Exception e) {

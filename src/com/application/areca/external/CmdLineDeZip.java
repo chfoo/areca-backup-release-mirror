@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 import com.application.areca.AbstractArecaLauncher;
+import com.application.areca.version.VersionInfos;
 import com.myJava.commandline.CmdLineParserException;
 import com.myJava.commandline.CommandLineParser;
 import com.myJava.commandline.StringCmdLineOption;
@@ -50,7 +51,7 @@ extends AbstractArecaLauncher {
     private static final String ARG_SOURCE = "source";
     private static final String ARG_DESTINATION = "destination";
     
-    private static final String DESCRIPTION = "Areca's external decompression tool.";
+    private static final String DESCRIPTION = "" + VersionInfos.APP_SHORT_NAME + "'s external decompression tool.";
     
 	private String source = "";
 	private String destination = "";

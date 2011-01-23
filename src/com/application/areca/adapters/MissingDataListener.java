@@ -5,6 +5,7 @@ import com.application.areca.impl.policy.EncryptionPolicy;
 import com.myJava.util.xml.AdapterException;
 
 /**
+ * Listener interface used during deserialization of target configuration, when sensitive data such as passwords are missing.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -32,6 +33,6 @@ This file is part of Areca.
 
  */
 public interface MissingDataListener {
-    public EncryptionPolicy missingEncryptionDataDetected(AbstractTarget target, String algorithm, Boolean encryptNames) throws AdapterException;
+    public EncryptionPolicy missingEncryptionDataDetected(AbstractTarget target, String algorithm, Boolean encryptNames, String nameWrappingMode) throws AdapterException;
     public Object missingFTPDataDetected(AbstractTarget target) throws AdapterException;
 }

@@ -1,5 +1,5 @@
 /**
- * Utility class
+ * Utility class ....
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

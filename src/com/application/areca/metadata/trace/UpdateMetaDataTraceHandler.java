@@ -76,7 +76,9 @@ public class UpdateMetaDataTraceHandler implements TraceHandler {
 				throw new FileMetaDataSerializationException("Unsupported type for " + key + " : " + type + " / " + hash);
 			}
 			
-			if (atts != null) {
+			if (atts == null) {
+				Logger.defaultLogger().warn("Unable to retrieve metadata for '" + key + "'. This is probably because you are trying to read an archive that was created on a different operating system.");
+			} else {
 				try {
 					FileSystemManager.applyMetaData(atts, target);
 				} catch (IOException e) {

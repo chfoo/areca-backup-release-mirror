@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -70,7 +71,7 @@ import com.application.areca.impl.policy.DefaultFileSystemPolicy;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.FileComparator;
 import com.application.areca.launcher.gui.common.ListPane;
@@ -85,6 +86,7 @@ import com.myJava.file.CompressionArguments;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.archive.zip64.ZipConstants;
+import com.myJava.file.driver.EncryptedFileSystemDriver;
 import com.myJava.system.OSTool;
 import com.myJava.util.PasswordQualityEvaluator;
 import com.myJava.util.Util;
@@ -130,6 +132,7 @@ extends AbstractWindow {
 	public FileSystemPolicy currentPolicy = null;
 	protected boolean hasBeenSaved = false;
 	protected ArrayList lstEncryptionAlgorithms = new ArrayList();
+	protected ArrayList lstWrapping = new ArrayList();
 
 	protected Button btnSave;
 
@@ -176,18 +179,21 @@ extends AbstractWindow {
 	protected Button btnReveal;
 	protected Label lblMultiVolumesUnit;
 	protected Label lblEncryptionAlgorithm;
+	protected Label lblWrapping;
 	protected Label lblMultiVolumesDigits;
 	protected Text txtMultivolumesDigits;
 	protected Text txtZipComment;
 	protected Label lblEncoding;
 	protected Combo cboEncoding;
-    protected Label lblZipLevel;
-    protected Combo cboZipLevel;
+	protected Combo cboWrapping;
+	protected Label lblZipLevel;
+	protected Combo cboZipLevel;
 	protected Button rdArchive;
 	protected Button rdSingle;
 	protected Button rdImage;
 	protected Button rdMultiple;
 	protected Button rdDelta;
+	protected Text txtRootValue;
 
 	private TreeItem transfered;
 	protected Tree treFilters;
@@ -203,6 +209,8 @@ extends AbstractWindow {
 	protected Button btnAddSource;
 	protected Button btnRemoveSource;
 	protected Button btnModifySource;
+	
+	protected boolean hasDisplayedTransactionWarning = false;
 
 	public TargetEditionWindow(AbstractTarget target) {
 		super();
@@ -293,11 +301,11 @@ extends AbstractWindow {
 		dt.minimumWidth = computeWidth(250);
 		txtMediumPath.setLayoutData(dt);
 		txtMediumPath.addModifyListener(new ModifyListener() {
-            public void modifyText(ModifyEvent e) {
-            	updateFinalPath(txtMediumPath.getText());
-            }
-        });
-		
+			public void modifyText(ModifyEvent e) {
+				updateFinalPath(txtMediumPath.getText());
+			}
+		});
+
 		monitorControl(txtMediumPath);
 		btnMediumPath = new Button(grpPath, SWT.PUSH);
 		btnMediumPath.setText(RM.getLabel("common.browseaction.label"));
@@ -311,7 +319,7 @@ extends AbstractWindow {
 				if (path != null) {
 					LocalPreferences.instance().set("target.lasttargetdir", path);
 					txtMediumPath.setText(path);
-	            	updateFinalPath(path);
+					updateFinalPath(path);
 				}
 			}
 		});
@@ -369,7 +377,7 @@ extends AbstractWindow {
 		lblFinalPath = new Label(grpPath, SWT.NONE);
 		lblFinalPath.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
 		updateFinalPath("");
-		
+
 		// Name
 		lblArchiveName = new Label(grpPath, SWT.NONE);
 		lblArchiveName.setText(RM.getLabel("targetedition.archivenamefield.label"));
@@ -397,12 +405,20 @@ extends AbstractWindow {
 		rdDelta.setText(RM.getLabel("targetedition.storagetype.delta"));
 		rdDelta.setToolTipText(RM.getLabel("targetedition.storagetype.delta.tt"));
 
-		rdImage = new Button(grpType, SWT.RADIO);
-		monitorControl(rdImage);
-		rdImage.setText(RM.getLabel("targetedition.storagetype.image"));
-		rdImage.setToolTipText(RM.getLabel("targetedition.storagetype.image.tt"));
+		//if (target != null && ((AbstractIncrementalFileSystemMedium)target.getMedium()).isOverwrite()) {
+			rdImage = new Button(grpType, SWT.RADIO);
+			monitorControl(rdImage);
+			rdImage.setText(RM.getLabel("targetedition.storagetype.image"));// + " (" + RM.getLabel("common.deprecated.label") + ")");
+			rdImage.setToolTipText(RM.getLabel("targetedition.storagetype.image.tt"));
+			
+			//Application.getInstance().showDoNotShowAgainWindow(
+			//		RM.getLabel("common.image.deprecated.title"),
+			//		RM.getLabel("common.image.deprecated.message"), 
+			//		ApplicationPreferences.DISPLAY_DEPRECATED_IMAGE_MESSAGE
+			//);
+		//}
 	}
-	
+
 	private void updateFinalPath(String path) {
 		if (path == null || path.trim().length() == 0) {
 			lblFinalPath.setText(" \n ");
@@ -467,6 +483,16 @@ extends AbstractWindow {
 			}
 		});
 
+		Label lblRoot = new Label(composite, SWT.NONE | SWT.WRAP);
+		lblRoot.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+		lblRoot.setText(RM.getLabel("targetedition.globalroot.label"));
+		lblRoot.setToolTipText(RM.getLabel("targetedition.globalroot.tt"));
+
+		txtRootValue = new Text(composite, SWT.BORDER);
+		txtRootValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		txtRootValue.setEnabled(false);
+		txtRootValue.setToolTipText(RM.getLabel("targetedition.globalroot.tt"));
+
 		Label lblDnd = new Label(composite, SWT.NONE | SWT.WRAP);
 		lblDnd.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 4, 1));
 		lblDnd.setText(RM.getLabel("targetedition.sources.dnd.label"));
@@ -478,7 +504,7 @@ extends AbstractWindow {
 				File newFile = showSourceEditionFrame(null);
 				if (newFile != null) {
 					addSource(newFile);
-					sortSources();
+					arrangeSources();
 					registerUpdate();                
 				}
 			}
@@ -528,7 +554,7 @@ extends AbstractWindow {
 				for (int i=0; i<files.length; i++) {
 					addSource(new File(files[i]));	
 				} 
-				sortSources();
+				arrangeSources();
 				registerUpdate();
 			}
 		});
@@ -544,6 +570,7 @@ extends AbstractWindow {
 			if (result == SWT.YES) {
 				tblSources.remove(idx);
 				tblSources.setSelection(Math.max(0, Math.min(tblSources.getItemCount() - 1, idx[0])));
+				arrangeSources();
 				registerUpdate();                  
 			}
 		}
@@ -554,7 +581,7 @@ extends AbstractWindow {
 			TableItem item = tblSources.getItem(tblSources.getSelectionIndex());
 			File source = (File)item.getData();
 			updateSource(item, showSourceEditionFrame(source));
-			sortSources();
+			arrangeSources();
 			registerUpdate();  
 		}
 	}
@@ -570,8 +597,8 @@ extends AbstractWindow {
 		this.chkAddExtension.setEnabled(enable);
 		this.lblEncoding.setEnabled(enable);
 		this.cboEncoding.setEnabled(enable);
-        this.lblZipLevel.setEnabled(enable);
-        this.cboZipLevel.setEnabled(enable);
+		this.lblZipLevel.setEnabled(enable);
+		this.cboZipLevel.setEnabled(enable);
 		this.rdArchive.setEnabled(enable);
 		this.rdSingle.setEnabled(enable);
 		this.resetMVData();
@@ -626,6 +653,16 @@ extends AbstractWindow {
 		rdArchive = new Button(grpStorage, SWT.RADIO);
 		rdArchive.setText(RM.getLabel("targetedition.zip.archive.label"));
 		rdArchive.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+		
+		rdArchive.addListener(SWT.Selection, new Listener(){
+			public void handleEvent(Event event) {
+				if (rdArchive.getSelection() && ! hasDisplayedTransactionWarning) {
+					Application.getInstance().showDoNotShowAgainWindow(RM.getLabel("common.ziparchive.transaction.warn.title"), RM.getLabel("common.ziparchive.transaction.warn.message"), "show.transaction.ziparchive.incompatibility.warning");
+					hasDisplayedTransactionWarning = true;
+				}
+			}
+		});
+		
 		rdSingle = new Button(grpStorage, SWT.RADIO);
 		rdSingle.setText(RM.getLabel("targetedition.zip.unit.label"));
 		rdSingle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
@@ -657,18 +694,18 @@ extends AbstractWindow {
 
 		Label lblb = new Label(grpZipOptions, SWT.NONE);
 		lblb.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-		
-        lblZipLevel = new Label(grpZipOptions, SWT.NONE);
-        lblZipLevel.setText(RM.getLabel("targetedition.ziplevel.label"));
-        lblZipLevel.setToolTipText(RM.getLabel("targetedition.ziplevel.tt"));
-        cboZipLevel = new Combo(grpZipOptions, SWT.READ_ONLY);
-        cboZipLevel.setToolTipText(RM.getLabel("targetedition.ziplevel.tt"));
-        for (int i=0; i<=9; i++) {
-        	cboZipLevel.add("" + i);
-        }
-        monitorControl(cboZipLevel);
-        cboZipLevel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-		
+
+		lblZipLevel = new Label(grpZipOptions, SWT.NONE);
+		lblZipLevel.setText(RM.getLabel("targetedition.ziplevel.label"));
+		lblZipLevel.setToolTipText(RM.getLabel("targetedition.ziplevel.tt"));
+		cboZipLevel = new Combo(grpZipOptions, SWT.READ_ONLY);
+		cboZipLevel.setToolTipText(RM.getLabel("targetedition.ziplevel.tt"));
+		for (int i=0; i<=9; i++) {
+			cboZipLevel.add("" + i);
+		}
+		monitorControl(cboZipLevel);
+		cboZipLevel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+
 
 
 		chkMultiVolumes = new Button(grpZipOptions, SWT.CHECK);
@@ -715,26 +752,24 @@ extends AbstractWindow {
 	}
 
 	private void initAdvancedTab(Composite composite) {
-		composite.setLayout(initLayout(2));
+		composite.setLayout(initLayout(1));
 
 		// FILE MANAGEMENT
 		grpFileManagement = new Group(composite, SWT.NONE);
 		grpFileManagement.setText(RM.getLabel("targetedition.filemanagement.label"));
-		RowLayout lytFileManagement = new RowLayout(SWT.VERTICAL);
-		grpFileManagement.setLayout(lytFileManagement);
-		grpFileManagement.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true));
+		grpFileManagement.setLayout(new RowLayout(SWT.VERTICAL));
+		grpFileManagement.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 
 		chkFollowSubDirectories = new Button(grpFileManagement, SWT.CHECK);
 		monitorControl(chkFollowSubDirectories);
 		chkFollowSubDirectories.setText(RM.getLabel("targetedition.followsubdirs.label"));
 		chkFollowSubDirectories.setToolTipText(RM.getLabel("targetedition.followsubdirs.tooltip"));
 
-		chkFollowLinks = new Button(grpFileManagement, SWT.CHECK);
-		monitorControl(chkFollowLinks);
-		chkFollowLinks.setText(RM.getLabel("targetedition.followlinks.label"));
-		chkFollowLinks.setToolTipText(RM.getLabel("targetedition.followlinks.tooltip"));
-		if (OSTool.isSystemWindows()) {
-			chkFollowLinks.setVisible(false);
+		if (! OSTool.isSystemWindows()) {
+			chkFollowLinks = new Button(grpFileManagement, SWT.CHECK);
+			monitorControl(chkFollowLinks);
+			chkFollowLinks.setText(RM.getLabel("targetedition.followlinks.label"));
+			chkFollowLinks.setToolTipText(RM.getLabel("targetedition.followlinks.tooltip"));
 		}
 
 		// ENCRYPTION
@@ -757,14 +792,29 @@ extends AbstractWindow {
 		chkEncrypNames.setText(RM.getLabel("targetedition.encryptnames.label"));
 		chkEncrypNames.setToolTipText(RM.getLabel("targetedition.encryptnames.tooltip"));
 		chkEncrypNames.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1)); 
+		chkEncrypNames.addListener(SWT.Selection, new Listener(){
+			public void handleEvent(Event event) {
+				resetEcryptionKey();
+			}
+		});
+		
+		lblWrapping = new Label(grpEncryption, SWT.NONE);
+		lblWrapping.setText(RM.getLabel("targetedition.wrapping.label")); 
+		lblWrapping.setToolTipText(RM.getLabel("targetedition.wrapping.tooltip"));
+		cboWrapping = new Combo(grpEncryption, SWT.READ_ONLY);
+		cboWrapping.setToolTipText(RM.getLabel("targetedition.wrapping.tooltip"));
+		monitorControl(cboWrapping);
+		cboWrapping.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+
+		lstWrapping.add(EncryptedFileSystemDriver.WRAP_DEFAULT);
+		cboWrapping.add(RM.getLabel("targetedition.wrapping." + EncryptedFileSystemDriver.WRAP_DEFAULT));
+		lstWrapping.add(EncryptedFileSystemDriver.WRAP_ENABLED);
+		cboWrapping.add(RM.getLabel("targetedition.wrapping." + EncryptedFileSystemDriver.WRAP_ENABLED));
+		lstWrapping.add(EncryptedFileSystemDriver.WRAP_DISABLED);
+		cboWrapping.add(RM.getLabel("targetedition.wrapping." + EncryptedFileSystemDriver.WRAP_DISABLED));
 
 		lblEncryptionAlgorithm = new Label(grpEncryption, SWT.NONE);
 		lblEncryptionAlgorithm.setText(RM.getLabel("targetedition.algorithmfield.label"));    
-
-		EncryptionConfiguration recConf = EncryptionConfiguration.getParameters(EncryptionConfiguration.RECOMMENDED_ALGORITHM);
-		if (recConf != null) {
-			lblEncryptionAlgorithm.setToolTipText(RM.getLabel("targetedition.algorithmfield.tooltip", new Object[] {recConf.getAlgorithm()}));
-		}
 
 		cboEncryptionAlgorithm = new Combo(grpEncryption, SWT.READ_ONLY);
 		monitorControl(cboEncryptionAlgorithm);
@@ -773,6 +823,12 @@ extends AbstractWindow {
 				handleAlgorithmModification();
 			}
 		});
+
+		EncryptionConfiguration recConf = EncryptionConfiguration.getParameters(EncryptionConfiguration.RECOMMENDED_ALGORITHM);
+		if (recConf != null) {
+			lblEncryptionAlgorithm.setToolTipText(RM.getLabel("targetedition.algorithmfield.tooltip", new Object[] {recConf.getAlgorithm()}));
+			cboEncryptionAlgorithm.setToolTipText(RM.getLabel("targetedition.algorithmfield.tooltip", new Object[] {recConf.getAlgorithm()}));
+		}
 
 		cboEncryptionAlgorithm.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		String[] algs = EncryptionConfiguration.getAvailableAlgorithms();
@@ -863,7 +919,7 @@ extends AbstractWindow {
 		grpConfiguration = new Group(composite, SWT.NONE);
 		grpConfiguration.setText(RM.getLabel("targetedition.configuration.label"));
 		grpConfiguration.setLayout(new GridLayout(1, false));
-		grpConfiguration.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		grpConfiguration.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
 		chkNoXMLCopy = new Button(grpConfiguration, SWT.CHECK);
 		chkNoXMLCopy.setText(RM.getLabel("targetedition.noxmlbackup.label"));
@@ -1132,7 +1188,7 @@ extends AbstractWindow {
 
 			AbstractIncrementalFileSystemMedium fMedium = (AbstractIncrementalFileSystemMedium)target.getMedium();
 
-			if (fMedium.isOverwrite()) {
+			if (fMedium.isImage() && rdImage != null) {
 				rdImage.setSelection(true);
 			} else if (fMedium.getHandler() instanceof DeltaArchiveHandler) {
 				rdDelta.setSelection(true);
@@ -1142,7 +1198,9 @@ extends AbstractWindow {
 
 			chkFollowSubDirectories.setSelection(((FileSystemTarget)target).isFollowSubdirectories());
 			chkNoXMLCopy.setSelection(! target.isCreateSecurityCopyOnBackup());
-			chkFollowLinks.setSelection( ! ((FileSystemTarget)target).isTrackSymlinks());
+			if (chkFollowLinks != null) {
+				chkFollowLinks.setSelection( ! ((FileSystemTarget)target).isTrackSymlinks());
+			}
 
 			if (fMedium.getCompressionArguments().isCompressed()) {
 				if (fMedium.getCompressionArguments().isMultiVolumes()) {
@@ -1162,11 +1220,11 @@ extends AbstractWindow {
 				);
 
 				chkAddExtension.setSelection(fMedium.getCompressionArguments().isAddExtension());
-				
-                // Compression level
-                int cpr = fMedium.getCompressionArguments().getLevel() == -1 ? 9 : fMedium.getCompressionArguments().getLevel();
-                cboZipLevel.select(cpr);
-				
+
+				// Compression level
+				int cpr = fMedium.getCompressionArguments().getLevel() == -1 ? 9 : fMedium.getCompressionArguments().getLevel();
+				cboZipLevel.select(cpr);
+
 				if (fMedium.getCompressionArguments().isUseZip64()) {
 					rdZip64.setSelection(true);
 				} else {
@@ -1200,6 +1258,16 @@ extends AbstractWindow {
 			if (fMedium.getEncryptionPolicy().isEncrypted()) {
 				txtEncryptionKey.setText(fMedium.getEncryptionPolicy().getEncryptionKey());
 				chkEncrypNames.setSelection(fMedium.getEncryptionPolicy().isEncryptNames());
+				Iterator iter = lstWrapping.iterator();
+				int idx = 0;
+				while (iter.hasNext()) {
+					String scheme = (String)iter.next();
+					if (scheme.equals(fMedium.getEncryptionPolicy().getNameWrappingMode())) {
+						cboWrapping.select(idx);
+						break;
+					}
+					idx++;
+				}
 				String algoId = fMedium.getEncryptionPolicy().getEncryptionAlgorithm();
 
 				if (EncryptionConfiguration.validateAlgorithmId(algoId)) {
@@ -1221,7 +1289,7 @@ extends AbstractWindow {
 			while (sources.hasNext()) {
 				addSource((File)sources.next());
 			}
-			sortSources();
+			arrangeSources();
 
 			// INIT FILTERS
 			this.mdlFilters = (FilterGroup)target.getFilterGroup().duplicate();
@@ -1234,16 +1302,14 @@ extends AbstractWindow {
 			// Default settings
 			rdZip64.setSelection(true);
 			rdFile.setSelection(true);
-            cboZipLevel.select(4);
+			cboZipLevel.select(4);
 			rdMultiple.setSelection(true);
 			chkFollowSubDirectories.setSelection(true);
 			rdSingle.setSelection(true);
 			selectEncoding(ZipConstants.DEFAULT_CHARSET);
-			if (OSTool.isSystemWindows()) {
-				this.chkFollowLinks.setSelection(true);
-			}
-			processSelection(PLUGIN_HD, ArecaPreferences.getDefaultArchiveStorage());
+			processSelection(PLUGIN_HD, ApplicationPreferences.getDefaultArchiveStorage());
 			txtArchiveName.setText(DEFAULT_ARCHIVE_PATTERN);
+			cboWrapping.select(0);
 
 			// Default filters
 			this.mdlFilters = new FilterGroup();
@@ -1270,6 +1336,7 @@ extends AbstractWindow {
 
 		// FREEZE
 		if (isFrozen(true)) {
+			/*
 			Iterator iter = this.strRadio.keySet().iterator();
 			while (iter.hasNext()) {
 				String id = (String)iter.next();
@@ -1277,11 +1344,11 @@ extends AbstractWindow {
 				Button btn = (Button)strButton.get(id);
 				Text txt = (Text)strText.get(id);
 
-				//btn.setEnabled(false);
-				//txt.setEnabled(false);
-				//rd.setEnabled(false);
+				btn.setEnabled(false);
+				txt.setEnabled(false);
+				rd.setEnabled(false);
 			}
-
+			 */
 			grpCompression.setEnabled(false);
 			grpEncryption.setEnabled(false);
 			grpZipOptions.setEnabled(false);
@@ -1297,7 +1364,9 @@ extends AbstractWindow {
 			chkMultiVolumes.setEnabled(false);
 			rdMultiple.setEnabled(false);
 			rdDelta.setEnabled(false);
-			rdImage.setEnabled(false);
+			if (rdImage != null) {
+				rdImage.setEnabled(false);
+			}
 			cboEncryptionAlgorithm.setEnabled(false);
 			lblEncryptionAlgorithm.setEnabled(false);
 			lblEncryptionKey.setEnabled(false);
@@ -1308,13 +1377,17 @@ extends AbstractWindow {
 			lblEncryptionExample.setEnabled(false);
 			txtEncryptionKey.setEnabled(false);
 			chkEncrypNames.setEnabled(false);
+			lblWrapping.setEnabled(false);
+			cboWrapping.setEnabled(false);
 			txtMultiVolumes.setEnabled(false);
 			txtMultivolumesDigits.setEnabled(false);
 			lblMultiVolumesUnit.setEnabled(false);
 			lblMultiVolumesDigits.setEnabled(false);
 			chkFollowSubDirectories.setEnabled(false);
 			chkNoXMLCopy.setEnabled(false);
-			chkFollowLinks.setEnabled(false);
+			if (chkFollowLinks != null) {
+				chkFollowLinks.setEnabled(false);
+			}
 			txtZipComment.setEnabled(false);
 			chkAddExtension.setEnabled(false);
 			lblEncoding.setEnabled(false);
@@ -1324,8 +1397,8 @@ extends AbstractWindow {
 			btnReveal.setEnabled(false);
 			btnGenerateKey.setEnabled(false);
 			pgbPwdQuality.setEnabled(false);
-            cboZipLevel.setEnabled(false);
-            lblZipLevel.setEnabled(false);
+			cboZipLevel.setEnabled(false);
+			lblZipLevel.setEnabled(false);
 		}    
 	}
 
@@ -1418,8 +1491,25 @@ extends AbstractWindow {
 		updateSource(item, source);
 	}
 
-	private void sortSources() {
+	private void arrangeSources() {
+		// 0 : compute the global root
 		TableItem[] items = tblSources.getItems();    	
+		Set sourceDirectories = new HashSet();
+		for (int i=0; i<items.length; i++) {
+			sourceDirectories.add((File)items[i].getData());
+		}
+		String newPath = FileSystemTarget.computeSourceRoot(sourceDirectories);
+		txtRootValue.setText(newPath);
+		
+		// 1 : check the sources modification
+		if (isFrozen(false)) {
+			String initialPath = ((FileSystemTarget)target).getSourceDirectory();
+			if (! newPath.equals(initialPath)) {
+				Application.getInstance().showWarningDialog(RM.getLabel("targetedition.rootwarning.message", new Object[] {initialPath, newPath}), RM.getLabel("targetedition.rootwarning.title"), false);
+			}
+		}
+		
+		// 2 : sort the sources   	
 		File[] files = new File[items.length];
 		for (int i=0; i<items.length; i++) {
 			files[i] = (File)items[i].getData();
@@ -1509,15 +1599,15 @@ extends AbstractWindow {
 			this.setInError(txtArchiveName, RM.getLabel("error.field.mandatory"));
 			return false;
 		} else if (
-    		this.txtArchiveName.getText().startsWith(".")
-    		|| this.txtArchiveName.getText().endsWith(FileSystemTarget.CONFIG_FILE_EXT)
-    		|| this.txtArchiveName.getText().endsWith(FileSystemTarget.CONFIG_FILE_EXT_DEPRECATED)
-    		|| this.txtArchiveName.getText().endsWith(".properties")  
-    		|| this.txtArchiveName.getText().endsWith(AbstractFileSystemMedium.DATA_DIRECTORY_SUFFIX)  
-    		|| this.txtArchiveName.getText().endsWith(AbstractFileSystemMedium.MANIFEST_FILE)  
-    		) {
-            this.setInError(txtArchiveName, RM.getLabel("error.reserved.words"));
-            return false;
+				this.txtArchiveName.getText().startsWith(".")
+				|| this.txtArchiveName.getText().endsWith(FileSystemTarget.CONFIG_FILE_EXT)
+				|| this.txtArchiveName.getText().endsWith(FileSystemTarget.CONFIG_FILE_EXT_DEPRECATED)
+				|| this.txtArchiveName.getText().endsWith(".properties")  
+				|| this.txtArchiveName.getText().endsWith(AbstractFileSystemMedium.DATA_DIRECTORY_SUFFIX)  
+				|| this.txtArchiveName.getText().endsWith(AbstractFileSystemMedium.MANIFEST_FILE)  
+		) {
+			this.setInError(txtArchiveName, RM.getLabel("error.reserved.words"));
+			return false;
 		}
 
 		// MULTI-VOLUMES
@@ -1556,6 +1646,17 @@ extends AbstractWindow {
 		}
 
 		// CRYPTAGE
+
+		this.resetErrorState(cboWrapping);
+		if (
+				this.chkEncrypted.getSelection()
+				&& (! this.isFrozen(false))
+				&& (this.cboWrapping.getSelectionIndex() == -1)
+		) {
+			this.setInError(cboWrapping, RM.getLabel("error.field.mandatory"));
+			return false;
+		}  
+
 		this.resetErrorState(cboEncryptionAlgorithm);
 		if (
 				this.chkEncrypted.getSelection()
@@ -1565,6 +1666,7 @@ extends AbstractWindow {
 			this.setInError(cboEncryptionAlgorithm, RM.getLabel("error.field.mandatory"));
 			return false;
 		}    
+
 
 		this.resetErrorState(txtEncryptionKey);
 		if (this.chkEncrypted.getSelection()) {
@@ -1653,6 +1755,10 @@ extends AbstractWindow {
 			this.lblEncryptionExample.setEnabled(true);
 			this.lblEncryptionKey.setEnabled(true);
 			this.btnReveal.setEnabled(true);
+
+			this.lblWrapping.setEnabled(chkEncrypNames.getSelection());
+			this.cboWrapping.setEnabled(chkEncrypNames.getSelection());
+
 			handleAlgorithmModification();
 		} else {
 			this.txtEncryptionKey.setEditable(false);
@@ -1671,6 +1777,8 @@ extends AbstractWindow {
 			this.pgbPwdQuality.setEnabled(false);
 			this.lblQuality.setEnabled(false);
 			this.btnReveal.setEnabled(false);
+			this.lblWrapping.setEnabled(false);
+			this.cboWrapping.setEnabled(false);
 		}
 	}
 
@@ -1730,7 +1838,11 @@ extends AbstractWindow {
 			newTarget.setComments(this.txtDesc.getText());
 			newTarget.setTargetName(txtTargetName.getText());
 			newTarget.setCreateSecurityCopyOnBackup(! chkNoXMLCopy.getSelection());
-			newTarget.setTrackSymlinks( ! this.chkFollowLinks.getSelection());
+			if (chkFollowLinks == null) {
+				newTarget.setTrackSymlinks(false);
+			} else {
+				newTarget.setTrackSymlinks(! this.chkFollowLinks.getSelection());
+			}
 			newTarget.setTrackEmptyDirectories(true);
 			newTarget.setFollowSubdirectories(this.chkFollowSubDirectories.getSelection());
 
@@ -1753,7 +1865,7 @@ extends AbstractWindow {
 			}
 			storagePolicy.setArchiveName(txtArchiveName.getText());
 			storagePolicy.validate(false);
-			
+
 			if (isFrozen(false)) {
 				newTarget.setMedium(target.getMedium(), false);
 				((AbstractIncrementalFileSystemMedium)newTarget.getMedium()).setFileSystemPolicy(storagePolicy);
@@ -1763,10 +1875,14 @@ extends AbstractWindow {
 				encrArgs.setEncrypted(isEncrypted);
 				if (isEncrypted) {
 					String encryptionKey = this.txtEncryptionKey.getText();
+
 					EncryptionConfiguration config = (EncryptionConfiguration)lstEncryptionAlgorithms.get(cboEncryptionAlgorithm.getSelectionIndex());
 					encrArgs.setEncryptionAlgorithm(config.getId());
 					encrArgs.setEncryptNames(chkEncrypNames.getSelection());
 					encrArgs.setEncryptionKey(encryptionKey);
+
+					String wrappingMode = (String)lstWrapping.get(cboWrapping.getSelectionIndex());
+					encrArgs.setNameWrappingMode(wrappingMode);
 				}
 
 				// Clear the history - it will be written after the drivers have been initialized
@@ -1785,11 +1901,11 @@ extends AbstractWindow {
 				compression.setUseZip64(this.rdZip64.getSelection());
 				compression.setComment(this.txtZipComment.getText());
 				compression.setAddExtension(this.chkAddExtension.getSelection());
-                if (cboZipLevel.getSelectionIndex() != -1) {
-                    compression.setLevel(cboZipLevel.getSelectionIndex());
-                } else {
-                	compression.setLevel(9);
-                }
+				if (cboZipLevel.getSelectionIndex() != -1) {
+					compression.setLevel(cboZipLevel.getSelectionIndex());
+				} else {
+					compression.setLevel(9);
+				}
 
 				if (this.chkMultiVolumes.getSelection()) {
 					compression.setMultiVolumes(Long.parseLong(txtMultiVolumes.getText()), Integer.parseInt(txtMultivolumesDigits.getText()));
@@ -1798,7 +1914,7 @@ extends AbstractWindow {
 				if (cboEncoding.getSelectionIndex() != -1) {
 					compression.setCharset(Charset.forName(cboEncoding.getItem(cboEncoding.getSelectionIndex())));
 				}
-				
+
 				AbstractIncrementalFileSystemMedium medium = null;
 				if ((! this.rdDir.getSelection()) && this.rdArchive.getSelection()) {
 					medium = new IncrementalZipMedium();
@@ -1820,7 +1936,7 @@ extends AbstractWindow {
 					medium.setHandler(new DeltaArchiveHandler());
 				} else {
 					medium.setHandler(new DefaultArchiveHandler());
-					medium.setOverwrite(this.rdImage.getSelection());
+					medium.setImage(this.rdImage != null && this.rdImage.getSelection());
 				}
 
 				newTarget.setMedium(medium, false);

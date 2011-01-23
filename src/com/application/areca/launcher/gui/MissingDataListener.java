@@ -35,7 +35,7 @@ This file is part of Areca.
 public class MissingDataListener
 implements com.application.areca.adapters.MissingDataListener, XMLTags {
     
-    public EncryptionPolicy missingEncryptionDataDetected(AbstractTarget target, String algorithm, Boolean encryptNames) throws AdapterException {
+    public EncryptionPolicy missingEncryptionDataDetected(AbstractTarget target, String algorithm, Boolean encryptNames, String nameWrappingMode) throws AdapterException {
 		MissingEncryptionDataWindow frm = new MissingEncryptionDataWindow(target, algorithm, encryptNames);
 		Application.getInstance().showDialog(frm);
 		
@@ -45,6 +45,8 @@ implements com.application.areca.adapters.MissingDataListener, XMLTags {
 			policy.setEncryptionAlgorithm(frm.getAlgo());
 			policy.setEncryptionKey(frm.getPassword());
 			policy.setEncryptNames(frm.isEncryptFileNames().booleanValue());
+			policy.setNameWrappingMode(nameWrappingMode);
+			
 			return policy;
 		} else {
 			return null;

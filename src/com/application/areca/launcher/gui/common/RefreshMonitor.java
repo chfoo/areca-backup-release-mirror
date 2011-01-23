@@ -1,5 +1,7 @@
 package com.application.areca.launcher.gui.common;
 
+import com.application.areca.launcher.gui.Application;
+
 /**
  * <BR>
  * @author Olivier PETRUCCI
@@ -29,35 +31,44 @@ This file is part of Areca.
  */
 public class RefreshMonitor {
 
-    private boolean validated = false;
-    private boolean synchronous = false;
-    private Refreshable refreshable = null;
+	private boolean validated = false;
+	private boolean synchronous = false;
+	private Refreshable refreshable = null;
 
-    public RefreshMonitor(Refreshable refreshable) {
-        this.refreshable = refreshable;
-    }
+	public RefreshMonitor(Refreshable refreshable) {
+		this.refreshable = refreshable;
+	}
 
-    public void invalidate() {
-        this.validated = false;
-        
-        if (synchronous) {
-            this.refreshable.refresh();
-            this.validated = true;
-        }
-    }
+	public void invalidate() {
+		this.validated = false;
 
-    public void getFocus() {
-        this.synchronous = true;
-        this.refreshable.getFocus();
-        
-        if (! validated) {
-            this.refreshable.refresh();
-            this.validated = true;
-        }
-    }
-    
-    public void lostFocus() {
-        this.synchronous = false;
-        this.refreshable.looseFocus();
-    }
+		if (synchronous) {
+			refresh();
+			this.validated = true;
+		}
+	}
+
+	public void getFocus() {
+		this.synchronous = true;
+		this.refreshable.getFocus();
+
+		if (! validated) {
+			refresh();
+			this.validated = true;
+		}
+	}
+
+	private void refresh() {
+		try {
+			Application.getInstance().enableWaitCursor();
+			refreshable.refresh();
+		} finally {
+			Application.getInstance().disableWaitCursor();
+		}
+	}
+
+	public void lostFocus() {
+		this.synchronous = false;
+		this.refreshable.looseFocus();
+	}
 }

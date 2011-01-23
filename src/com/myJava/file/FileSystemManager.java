@@ -23,6 +23,8 @@ import com.myJava.file.driver.FileCacheableInformations;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.metadata.FileMetaData;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * Gestionnaire de systeme de fichiers. <BR>
@@ -288,6 +290,11 @@ public class FileSystemManager {
 	public static boolean delete(File file) {
 		return getInstance().getDriver(file).delete(file);
 	}
+	
+    public static void forceDelete(File file, TaskMonitor monitor)
+    throws IOException, TaskCancelledException {
+		getInstance().getDriver(file).forceDelete(file, monitor);
+	}
 
 	public static boolean renameTo(File sourceFile, File destinationFile) {
 		FileSystemDriver sourceDriver = getInstance().getDriver(sourceFile);
@@ -402,6 +409,10 @@ public class FileSystemManager {
 
 	public static String getAbsolutePath(File file) {
 		return getInstance().getDriver(file).getAbsolutePath(file);
+	}
+	
+	public static String getPhysicalPath(File file) {
+		return getInstance().getDriver(file).getPhysicalPath(file);
 	}
 
 	public static String getCanonicalPath(File file) throws IOException {

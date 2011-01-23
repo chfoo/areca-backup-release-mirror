@@ -6,7 +6,6 @@ import java.net.Socket;
 
 import javax.net.ssl.SSLSocket;
 
-import org.apache.commons.net.ftp.FTPClient;
 
 /**
  * FTPClient subclass that manages secured sockets
@@ -45,9 +44,10 @@ public class FTPSClient extends FTPClient {
             String protection, 
             boolean implicit,
             InputStream certificateInputStream,
-            String certificatePassword            
+            String certificatePassword,
+            boolean ignorePsvErrors
     ) {
-        super();
+        super(ignorePsvErrors);
         this.setSocketFactory(
                 new SecuredSocketFactory(
                         protocol, 

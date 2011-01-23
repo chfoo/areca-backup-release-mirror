@@ -18,7 +18,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import com.application.areca.ApplicationException;
-import com.application.areca.ArecaTechnicalConfiguration;
+import com.application.areca.ArecaConfiguration;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.context.ProcessReport;
 import com.application.areca.context.ProcessReportWriter;
@@ -66,7 +66,7 @@ public class MailSendProcessor extends AbstractProcessor {
 	private String recipients;
 	private String user;
 	private String password;
-	private String title = "Areca : backup report for target %TARGET_NAME%.";
+	private String title = "" + VersionInfos.APP_SHORT_NAME + " : backup report for target %TARGET_NAME%.";
 	private String intro = "Backup report :";
 
 	public MailSendProcessor() {
@@ -187,7 +187,7 @@ public class MailSendProcessor extends AbstractProcessor {
 				 + "\n"
 				 + getReportAsText(context.getReport());
 
-			 if (ArecaTechnicalConfiguration.get().isSMTPDebugMode()) {
+			 if (ArecaConfiguration.get().isSMTPDebugMode()) {
 				 baos = new ByteArrayOutputStream();
 				 str = new PrintStream(baos);
 			 }
@@ -244,9 +244,9 @@ public class MailSendProcessor extends AbstractProcessor {
 			 msg.setSender(fromAddress);
 			 msg.setSentDate(new Date());
 			 if (context != null && context.getReport() != null) {
-				 msg.setHeader("X-Areca-Target", context.getReport().getTarget().getUid());
+				 msg.setHeader("X-" + VersionInfos.APP_SHORT_NAME + "-Target", context.getReport().getTarget().getUid());
 			 }
-			 msg.setHeader("X-Areca-Version", VersionInfos.getLastVersion().getVersionId());
+			 msg.setHeader("X-" + VersionInfos.APP_SHORT_NAME + "-Version", VersionInfos.getLastVersion().getVersionId());
 			 if (isAuthenticated()) {
 				 Transport tr;
 				 if (isSmtps()) {

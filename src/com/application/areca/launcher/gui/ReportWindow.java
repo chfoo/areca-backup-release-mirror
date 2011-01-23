@@ -85,8 +85,9 @@ extends AbstractWindow {
         SavePanel pnlSave = new SavePanel(RM.getLabel("common.close.label"), this);
         pnlSave.setShowCancel(false);
         pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		
+        
 		composite.pack();
+		
 		return composite;
 	}
 

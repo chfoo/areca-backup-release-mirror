@@ -40,8 +40,9 @@ This file is part of Areca.
 
  */
 public class FileDateArchiveFilter extends AbstractArchiveFilter {
-    
-    private long minDate;
+	private static final long serialVersionUID = 2159313565291490223L;
+	
+	private long minDate;
     private boolean greaterThan;
 
 	public void acceptParameters(String parameters) {     

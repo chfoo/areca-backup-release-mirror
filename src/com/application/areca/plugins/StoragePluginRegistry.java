@@ -14,7 +14,7 @@ import java.util.StringTokenizer;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.ArecaFileConstants;
-import com.application.areca.ArecaTechnicalConfiguration;
+import com.application.areca.ArecaConfiguration;
 import com.application.areca.Utils;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.Logger;
@@ -50,7 +50,7 @@ public class StoragePluginRegistry implements ArecaFileConstants {
     public static final String KEY_JAR_PATH = "plugin.jar.file";
     public static final String KEY_CLASS = "plugin.class";
     public static final String SEPARATOR = ";";  
-    private static final String PLUGIN_DIRECTORY = ArecaTechnicalConfiguration.get().getPluginsLocationOverride();
+    private static final String PLUGIN_DIRECTORY = ArecaConfiguration.get().getPluginsLocationOverride();
 
     private static StoragePluginRegistry instance = new StoragePluginRegistry();
 
@@ -73,7 +73,7 @@ public class StoragePluginRegistry implements ArecaFileConstants {
         // Add default plugins : HD, FTP
         register(new DefaultStoragePlugin());
         register(new FTPStoragePlugin());
-        //register(new SFTPStoragePlugin()); TODO ?
+        register(new SFTPStoragePlugin());
     }
 
     public void load(File pluginsDirectory) {

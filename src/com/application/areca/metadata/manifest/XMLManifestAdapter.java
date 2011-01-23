@@ -16,6 +16,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.xml.AdapterException;
@@ -90,7 +91,7 @@ public class XMLManifestAdapter implements ManifestReader {
 			version = Integer.parseInt(versionNode.getNodeValue());
 		}  
 		if (version > CURRENT_VERSION) {
-			throw new AdapterException("Invalid manifest XML version : This version of Areca can't handle XML versions above " + CURRENT_VERSION + ". You are trying to read a version " + version);
+			throw new AdapterException("Invalid manifest XML version : This version of " + VersionInfos.APP_SHORT_NAME + " can't handle XML versions above " + CURRENT_VERSION + ". You are trying to read a version " + version);
 		}
 
 		int type = Integer.parseInt(XMLTool.readNonNullableNode(root, XML_TYPE));

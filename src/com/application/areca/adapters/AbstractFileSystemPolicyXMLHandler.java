@@ -3,6 +3,7 @@ package com.application.areca.adapters;
 import com.application.areca.plugins.FileSystemPolicyXMLHandler;
 
 /**
+ * Base implementation for all FileSystemPolicyXMLHandler, used for serialization of FileSystemPolicy instances
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

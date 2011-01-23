@@ -19,6 +19,8 @@ import com.myJava.file.metadata.FileMetaData;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.object.ToStringHelper;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
  * <BR>
@@ -142,6 +144,15 @@ implements LinkableFileSystemDriver {
         throwStopEvent(event);
         return res;
     }
+    
+    
+    public String getPhysicalPath(File file) {
+        FileSystemDriverEvent event = buildEvent("getPhysicalPath", file);
+        throwStartEvent(event);
+        String res =  predecessor.getPhysicalPath(file);
+        throwStopEvent(event);
+        return res;
+	}
 
     public FileCacheableInformations getInformations(File file) {
         FileSystemDriverEvent event = buildEvent("getInformations", file);
@@ -176,13 +187,23 @@ implements LinkableFileSystemDriver {
         return res;
     }
 
-    public boolean delete(File file) {
+    public void forceDelete(File file, TaskMonitor monitor) 
+    throws IOException, TaskCancelledException {
+        FileSystemDriverEvent event = buildEvent("forceDelete", file);
+        throwStartEvent(event);
+        predecessor.forceDelete(file, monitor);
+        throwStopEvent(event);
+	}
+
+	public boolean delete(File file) {
         FileSystemDriverEvent event = buildEvent("delete", file);
         throwStartEvent(event);
         boolean res =  predecessor.delete(file);
         throwStopEvent(event);
         return res;
     }
+    
+    
 
     public void deleteOnExit(File f) {
         FileSystemDriverEvent event = buildEvent("deleteOnExit", f);

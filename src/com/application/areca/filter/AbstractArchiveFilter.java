@@ -1,6 +1,5 @@
 package com.application.areca.filter;
 
-import com.application.areca.impl.FileSystemTarget;
 
 /**
  * Filter base class
@@ -31,9 +30,9 @@ This file is part of Areca.
 
  */
 public abstract class AbstractArchiveFilter implements ArchiveFilter {
-
-    protected boolean logicalNot = false;
-    protected FileSystemTarget medium;
+	private static final long serialVersionUID = 2523786676212193778L;
+	
+	protected boolean logicalNot = false;
     
     public boolean isLogicalNot() {
         return logicalNot;

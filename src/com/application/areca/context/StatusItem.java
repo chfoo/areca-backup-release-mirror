@@ -1,5 +1,7 @@
 package com.application.areca.context;
 
+import java.io.Serializable;
+
 /**
  * 
  * <BR>
@@ -28,7 +30,9 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class StatusItem {
+public class StatusItem implements Serializable {
+	private static final long serialVersionUID = -4194478179322849992L;
+	
 	private boolean hasErrors = false;
 	private String key;
 	private String errorMessage;

@@ -1,7 +1,7 @@
 package com.application.areca.adapters.write;
 
 /**
- * 
+ * XML version history
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

@@ -1,8 +1,10 @@
 package com.application.areca.metadata;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 
+import com.application.areca.metadata.AbstractMetadataAdapter.MetadataHeader;
 import com.myJava.file.iterator.FilePathComparator;
 
 /**
@@ -34,14 +36,27 @@ This file is part of Areca.
 
  */
 public abstract class AbstractMetaDataFileIterator {
+	/**
+	 * The reader from which data will be read
+	 */
 	private BufferedReader in;
+	
+	/**
+	 * The current entry
+	 */
 	private AbstractMetaDataEntry pointer = null;
+	
+	/**
+	 * The AbstractMetadataAdapter that will be used to decode entries read from the Reader
+	 */
 	private AbstractMetadataAdapter adapter;
-	private boolean header = true;
+	
+	protected boolean closed = false;
 
 	protected AbstractMetaDataFileIterator(BufferedReader reader, AbstractMetadataAdapter adapter) throws IOException {
 		this.in = reader;
 		this.adapter = adapter;
+		
 		this.fetchNext();
 	}
 	
@@ -49,19 +64,29 @@ public abstract class AbstractMetaDataFileIterator {
 	 * Close the iterator
 	 */
 	public void close() throws IOException {
+    	if (closed) {
+    		return;
+    	}
+    	closed = true;
+    	
 		in.close();
+	}
+	
+	public MetadataHeader getHeader() throws IOException {
+		return adapter.getMetaData();
 	}
 
 	public boolean hasNext() {
 		return (pointer != null);
 	}
 	
+	public File getSource() {
+		return adapter.file;
+	}
+	
 	private void fetchNext() throws IOException {
 		String line = in.readLine();
-		if (header) {
-			header = false;
-			fetchNext();
-		} else if (line == null) {
+		if (line == null) {
 			pointer = null;
 		} else {
 	        line = line.trim();

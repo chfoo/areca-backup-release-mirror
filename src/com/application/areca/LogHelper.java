@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.Enumeration;
 import java.util.Properties;
 
+import com.application.areca.adapters.write.TargetXMLWriter;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.version.VersionInfos;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileSystemManager;
@@ -40,70 +42,82 @@ This file is part of Areca.
 
  */
 public class LogHelper {
-    private static String SEPARATOR = "----------------------------------------";
-    
-    public static void logStartupInformations() {
-    	String mtdtAccessor = FileMetaDataAccessorHelper.getFileSystemAccessor().getClass().getName();
-    	
-        log("System informations :");
-        Logger.defaultLogger().info(SEPARATOR);
-        log("Version : " + VersionInfos.getLastVersion().getVersionId());
-        log("Build ID : " + VersionInfos.getBuildId());
-        log("Available Memory : " + OSTool.getMaxMemoryMB() + " MB");
-        log("OS Name : " + OSTool.getOSDescription());
-        log("Java Virtual Machine : " + OSTool.getVMDescription());
-        log("File encoding : " + OSTool.getIANAFileEncoding());
-        log("Language : " + OSTool.getUserLanguage());
-        log("Framework properties : " + FrameworkConfiguration.getInstance().toFullString(FrameworkConfiguration.class));
-        log("Available translations : " + Utils.getTranslationsAsString());
-        log("File metadata accessor : " + mtdtAccessor);
-        Logger.defaultLogger().info(SEPARATOR);
-    }
-    
-    public static void logThreadInformations() {
-    	Util.logThreadInformations();
-    }
-    
-    public static void logFileInformations(String description, File f) {
-        StringBuffer sb = new StringBuffer(description).append(' ');
-        try {
-            if (f == null) {
-                sb.append("<null>");
-            } else {
-                String ap = FileSystemManager.getAbsolutePath(f);
-                String cp = FileSystemManager.getCanonicalPath(f);
-                sb.append("AbsolutePath = ").append(ap);
-                if (! ap.equals(cp)) {
-                    sb.append(", CanonicalPath = ").append(cp);
-                }
-            }
-        } catch (Throwable e) {
-            Logger.defaultLogger().error(e);
-        } finally {
-            log(sb.toString());
-        }
-    }
-    
-    public static void logProperties(String description, Properties p) {
-        try {
-            log(description);
-            Logger.defaultLogger().info(SEPARATOR);
-            if (p == null) {
-                log("<null>");
-            } else {
-                Enumeration en = p.keys();
-                while (en.hasMoreElements()) {
-                    String key = (String)en.nextElement();
-                    log("[" + key + "] = [" + p.getProperty(key) + "]");
-                }
-            }
-            Logger.defaultLogger().info(SEPARATOR);
-        } catch (Throwable e) {
-            Logger.defaultLogger().error(e);
-        }        
-    }
-    
-    private static void log(String str) {
-        Logger.defaultLogger().info(str);
-    }
+	private static String SEPARATOR = "----------------------------------------";
+	private static boolean LOG_TARGET_PROPERTIES = ArecaConfiguration.get().isLogTargetProperties();
+	
+	public static void logStartupInformations() {
+		String mtdtAccessor = FileMetaDataAccessorHelper.getFileSystemAccessor().getClass().getName();
+
+		log("System informations :");
+		Logger.defaultLogger().info(SEPARATOR);
+		log("Version : " + VersionInfos.getLastVersion().getVersionId());
+		log("Build ID : " + VersionInfos.getBuildId());
+		log("Available Memory : " + OSTool.getMaxMemoryMB() + " MB");
+		log("OS Name : " + OSTool.getOSDescription());
+		log("Java Virtual Machine : " + OSTool.getVMDescription());
+		log("File encoding : " + OSTool.getIANAFileEncoding());
+		log("Language : " + OSTool.getUserLanguage());
+		log("Framework properties : " + FrameworkConfiguration.getInstance().toFullString(FrameworkConfiguration.class));
+		log("Available translations : " + Utils.getTranslationsAsString());
+		log("File metadata accessor : " + mtdtAccessor);
+		Logger.defaultLogger().info(SEPARATOR);
+	}
+
+	public static void logThreadInformations() {
+		Util.logThreadInformations();
+	}
+
+	public static void logFileInformations(String description, File f) {
+		StringBuffer sb = new StringBuffer(description).append(' ');
+		try {
+			if (f == null) {
+				sb.append("<null>");
+			} else {
+				String ap = FileSystemManager.getAbsolutePath(f);
+				String cp = FileSystemManager.getCanonicalPath(f);
+				sb.append("AbsolutePath = ").append(ap);
+				if (! ap.equals(cp)) {
+					sb.append(", CanonicalPath = ").append(cp);
+				}
+			}
+		} catch (Throwable e) {
+			Logger.defaultLogger().error(e);
+		} finally {
+			log(sb.toString());
+		}
+	}
+
+	public static void logProperties(String description, Properties p) {
+		try {
+			log(description);
+			Logger.defaultLogger().info(SEPARATOR);
+			if (p == null) {
+				log("<null>");
+			} else {
+				Enumeration en = p.keys();
+				while (en.hasMoreElements()) {
+					String key = (String)en.nextElement();
+					log("[" + key + "] = [" + p.getProperty(key) + "]");
+				}
+			}
+			Logger.defaultLogger().info(SEPARATOR);
+		} catch (Throwable e) {
+			Logger.defaultLogger().error(e);
+		}        
+	}
+
+	private static void log(String str) {
+		Logger.defaultLogger().info(str);
+	}
+
+	public static void logTarget(AbstractTarget target) {
+		if (LOG_TARGET_PROPERTIES) {
+			StringBuffer sb = new StringBuffer();
+			TargetXMLWriter writer = new TargetXMLWriter(sb, false);
+			writer.setRemoveSensitiveData(true);
+			writer.serializeTarget((FileSystemTarget)target);
+			String xml = writer.getXML();
+			Logger.defaultLogger().fine("Configuration for target " + target.getUid() + " (" + target.getName() + ") :" + xml);
+		}
+	}
 }

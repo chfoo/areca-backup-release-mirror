@@ -54,13 +54,14 @@ public class VersionInfos {
 	+ OSTool.formatJavaVersion(OSTool.getJavaVersion()) 
 	+ ") does not meet this requirement.\n\nPlease go to http://java.sun.com/javase/downloads/ and get a newer version of Java.\n "; 
 
-	public static String VENDOR_MSG = "CAUTION : The Java Runtime Environment you are currently using has been released by '" + OSTool.getJavaVendor() + "'.\nIt seems that some open source Java Virtual Machines have problems dealing with some specific filenames characters (German 'Umlaut' for instance).\nIt is so HIGHLY advised to use Sun Microsystem's Java Runtime Environment to run Areca.\n(http://www.java.com/download/)";
+	public static String VENDOR_MSG = "CAUTION : The Java Runtime Environment you are currently using has been released by '" + OSTool.getJavaVendor() + "'.\nIt seems that some open source Java Virtual Machines have problems dealing with some specific filenames characters (German 'Umlaut' for instance).\nIt is so HIGHLY advised to use Sun Microsystem's Java Runtime Environment to run " + VersionInfos.APP_SHORT_NAME + ".\n(http://www.java.com/download/)";
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 416074940963221133L;
+		BUILD_ID = 6615271941412524462L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.2", new GregorianCalendar(2011, 0, 23), "Added support for intermediate transaction points; Added SFTP storage; Added control on encrypted filenames wrapping; Enhanced control on FTP passive mode."));
 		VERSIONS.add(new VersionData("7.1.10", new GregorianCalendar(2010, 10, 01), "Fixed a bug on search window."));
 		VERSIONS.add(new VersionData("7.1.9", new GregorianCalendar(2010, 9, 17), "Fixed a bug that could occur when checking recovered files; Default zip compression level set to 4."));
 		VERSIONS.add(new VersionData("7.1.8", new GregorianCalendar(2010, 8, 29), "Added control encoding option to FTP window; Fixed a problem that prevented last modification time to be recovered on read-only files (windows specific); Faster and storage efficient 'archive check' feature; Faster delta storage mode; Added control on zip compression level; Minor other bugfixes & enhancements."));

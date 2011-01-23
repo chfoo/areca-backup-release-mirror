@@ -40,6 +40,7 @@ This file is part of Areca.
 
  */
 public class LockedFileFilter extends AbstractArchiveFilter {
+	private static final long serialVersionUID = 5217697405726544538L;
 
 	public void acceptParameters(String parameters) {
     }

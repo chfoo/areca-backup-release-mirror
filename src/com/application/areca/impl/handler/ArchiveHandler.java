@@ -10,6 +10,7 @@ import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.impl.tools.RecoveryFilterMap;
+import com.application.areca.metadata.transaction.TransactionPoint;
 import com.myJava.object.Duplicable;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -88,7 +89,7 @@ public interface ArchiveHandler extends Duplicable {
     /**
      * Init the handler
      */
-    public void init(ProcessContext context) throws IOException;
+    public void init(ProcessContext context, TransactionPoint transactionPoint) throws IOException;
     
     /**
      * Close the handler

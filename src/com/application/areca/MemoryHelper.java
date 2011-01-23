@@ -33,10 +33,10 @@ This file is part of Areca.
  */
 public class MemoryHelper {
 
-    private static double MEMORY_BY_ENTRY_KB = ArecaTechnicalConfiguration.get().getMemoryByEntryKb();
-    private static long MEMORY_BASE_KB = ArecaTechnicalConfiguration.get().getMemoryBaseKb();
+    private static double MEMORY_BY_ENTRY_KB = ArecaConfiguration.get().getMemoryByEntryKb();
+    private static long MEMORY_BASE_KB = ArecaConfiguration.get().getMemoryBaseKb();
     
-    private static double MEMORY_SAFETY_MARGIN = ArecaTechnicalConfiguration.get().getMemorySafetyMargin();
+    private static double MEMORY_SAFETY_MARGIN = ArecaConfiguration.get().getMemorySafetyMargin();
     private static double MEMORY_USAGE_RATE = 1 - MEMORY_SAFETY_MARGIN;  
     
     public static long getMaxManageableEntries() {

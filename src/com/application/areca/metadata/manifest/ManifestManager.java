@@ -45,8 +45,11 @@ public class ManifestManager {
     
     public static Manifest readManifestForArchive(AbstractFileSystemMedium medium, File archive) throws ApplicationException {
         try {
-            File dataDir = medium.getDataDirectory(archive);
+            File dataDir = AbstractFileSystemMedium.getDataDirectory(archive);
             File manifestFile = new File(dataDir, medium.getManifestName());
+            if (! FileSystemManager.exists(manifestFile)) {
+            	return null;
+            }
             ManifestReader reader = buildReader(manifestFile);
             return reader.read(manifestFile);
         } catch (AdapterException e) {
@@ -57,7 +60,7 @@ public class ManifestManager {
     
     public static void writeManifest(AbstractFileSystemMedium medium, Manifest mf, File archive) throws ApplicationException {
         try {
-            File metadataDir = medium.getDataDirectory(archive);
+            File metadataDir = AbstractFileSystemMedium.getDataDirectory(archive);
             if (! FileSystemManager.exists(metadataDir)) {
                 tool.createDir(metadataDir);
             }

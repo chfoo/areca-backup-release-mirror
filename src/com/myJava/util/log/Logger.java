@@ -44,17 +44,21 @@ public final class Logger {
 	private ArrayList messages = new ArrayList();
 	private int logLevel;
 	private ArrayList processors = new ArrayList();
-	private LogConsumer consumer;
-	private Thread consumerThread;
 	private static int WAIT = 5000;
 	private ThreadLocalLogProcessor tlLogProcessor; // specific log processor - depends on the current thread ... to be refactored
 
 	private static Logger defaultLogger = new Logger();
 	
 	private class LogConsumer implements Runnable {	
+		private boolean infiniteLoop = true;
+
+		public LogConsumer(boolean infiniteLoop) {
+			this.infiniteLoop = infiniteLoop;
+		}
+
 		public void run() {
 			try {
-				while (true) {
+				while (infiniteLoop || (! messages.isEmpty())) {
 					LogMessage msg = null;
 					synchronized(lock) {
 						if (! messages.isEmpty()) {
@@ -75,7 +79,7 @@ public final class Logger {
 					}
 
 					synchronized(lock) {
-						if (messages.isEmpty()) {
+						if (infiniteLoop && messages.isEmpty()) {
 							try {
 								lock.wait(WAIT);
 							} catch (InterruptedException e) {
@@ -88,7 +92,7 @@ public final class Logger {
 				// Unexpected exception during logging
 				
 				// Show a message in the console
-				String msg = "An error occurred during logging. No more application messages will be displayed. It is advisable to restart Areca.";
+				String msg = "An error occurred during logging. No more application messages will be displayed. It is advisable to restart the application.";
 				System.out.println(msg);
 				e.printStackTrace();
 				
@@ -117,11 +121,19 @@ public final class Logger {
 		this.setLogLevel(FrameworkConfiguration.getInstance().getLogLevel());
 		this.addProcessor(new ConsoleLogProcessor(true));
 
-		this.consumer = new LogConsumer();
-		consumerThread = new Thread(consumer);
+		// Create and launch consumer thread
+		LogConsumer consumer = new LogConsumer(true);
+		Thread consumerThread = new Thread(consumer);
 		consumerThread.setDaemon(true);
 		consumerThread.setName("Logger");
 		consumerThread.start();
+		
+		// Create and register shutdown hook
+		LogConsumer hook = new LogConsumer(false);
+		Thread shutdownThread = new Thread(hook);
+		shutdownThread.setDaemon(false);
+		shutdownThread.setName("Logger - Shutdown Thread");
+		Runtime.getRuntime().addShutdownHook(shutdownThread);
 	}
 
 	public static Logger defaultLogger() {

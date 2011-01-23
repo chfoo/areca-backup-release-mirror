@@ -1,10 +1,12 @@
 package com.application.areca.context;
 
+import java.io.Externalizable;
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.UserInformationChannel;
@@ -13,6 +15,8 @@ import com.application.areca.metadata.content.ContentFileIterator;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.trace.ArchiveTraceAdapter;
 import com.application.areca.metadata.trace.TraceFileIterator;
+import com.application.areca.metadata.transaction.TransactionPoint;
+import com.myJava.file.FileSystemManager;
 import com.myJava.file.MeteredOutputStreamListener;
 import com.myJava.file.archive.ArchiveWriter;
 import com.myJava.file.iterator.FileSystemIterator;
@@ -45,9 +49,14 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class ProcessContext {
+public class ProcessContext implements Externalizable {
     
     /**
+	 * The ProcessContext is serializable, and needs a serial version uid
+	 */
+	private static final long serialVersionUID = 102772337124247716L;
+
+	/**
      * Archive being written
      */
     protected File currentArchiveFile;
@@ -70,7 +79,7 @@ public class ProcessContext {
     protected long inputBytes = 0;
     
     /**
-     * Trace file - as of last backup
+     * Trace iterator - as of last backup
      */
     protected TraceFileIterator referenceTrace;
     
@@ -90,14 +99,11 @@ public class ProcessContext {
     protected Manifest manifest;
     
     /**
-     * Nr of sources to store
-     */
-    protected int rootCount;
-    
-    /**
      * Report being built during the process
      */
-    protected ProcessReport currentReport;
+    protected ProcessReport report;
+    
+    private UserInformationChannel infoChannel;
     
     protected FileSystemIterator fileSystemIterator;  
     
@@ -107,30 +113,102 @@ public class ProcessContext {
     protected ArrayList contentIterators = new ArrayList();
     
     protected String backupScheme;
-    
-    protected Map sequenceRoots = new HashMap();
-    
-    protected File recoveryDestination;
-    
-    protected ArrayList simulationResult;
-    
+
     protected MeteredOutputStreamListener outputStreamListener = new MeteredOutputStreamListener();
-    
-    private UserInformationChannel infoChannel;
-    
+
     /**
      * This object is used to keep the archive's content in case of uncompressed "image" targets.
      * <BR>See "prepareContext()" method.
      */
     private ContentFileIterator previousHashIterator;
     
+    protected File recoveryDestination;
     private List invalidRecoveredFiles = new ArrayList();
     private List uncheckedRecoveredFiles = new ArrayList();
     private List unrecoveredFiles = new ArrayList();
     private long nbChecked = 0;
     
-    public void reset(boolean operationalOnly) {
-        this.rootCount = 0;
+    /**
+     * Current transaction point (the one being written)
+     */
+    private TransactionPoint currentTransactionPoint;
+    
+    /**
+     * Index used during backup
+     */
+    private long entryIndex;
+    
+    private long transactionBound;
+
+    
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    	entryIndex = in.readLong();
+		inputBytes = in.readLong();
+		isInitialized = in.readBoolean();
+		nbChecked = in.readLong();
+		currentArchiveFile = (File)in.readObject();
+		backupScheme = (String)in.readObject();
+		outputStreamListener = (MeteredOutputStreamListener)in.readObject();
+		manifest = (Manifest)in.readObject();
+		report = (ProcessReport)in.readObject();
+		fileSystemIterator = (FileSystemIterator)in.readObject();
+		transactionBound = in.readLong();
+		
+		String hashPath = (String)in.readObject();
+		if (hashPath != null) {
+			File hashFile = new File(hashPath);
+			if (FileSystemManager.exists(hashFile)) {
+				previousHashIterator = ArchiveContentAdapter.buildIterator(hashFile);
+			}
+		}
+		
+		String tracePath = (String)in.readObject();
+		if (tracePath != null) {
+			File traceFile = new File(tracePath);
+			if (FileSystemManager.exists(traceFile)) {
+				referenceTrace = ArchiveTraceAdapter.buildIterator(traceFile);
+			}
+		}
+	}
+
+	public void writeExternal(ObjectOutput out) throws IOException {
+		// Ignored
+		//ArchiveWriter archiveWriter; -> Used by "zip" archives
+		//List invalidRecoveredFiles = new ArrayList(); -> Not used during backup
+		//List uncheckedRecoveredFiles = new ArrayList(); -> Not used during backup
+		//List unrecoveredFiles = new ArrayList(); -> Not used during backup
+		//out.writeObject(contentIterators);  -> Ignored because these iterators are already closed by the "rollback" method
+		//out.writeObject(recoveryDestination); -> Not used during backup
+		
+		// Initialized afterwards
+	    //ArchiveTraceAdapter traceAdapter;
+		//ArchiveContentAdapter contentAdapter;
+		//ArchiveContentAdapter hashAdapter;
+		//ArchiveContentAdapter sequenceAdapter;
+		//UserInformationChannel infoChannel;
+		//out.writeObject(currentTransactionPoint);
+		
+		out.writeLong(entryIndex);
+		out.writeLong(inputBytes);
+		out.writeBoolean(isInitialized);
+		out.writeLong(nbChecked);
+		out.writeObject(currentArchiveFile);
+		out.writeObject(backupScheme);
+		out.writeObject(outputStreamListener);
+		out.writeObject(manifest);
+		out.writeObject(report);
+		out.writeObject(fileSystemIterator);
+		out.writeLong(transactionBound);
+		
+		String hashPath = previousHashIterator == null ? null : FileSystemManager.getAbsolutePath(previousHashIterator.getSource());
+		out.writeObject(hashPath);
+		
+		String tracePath = referenceTrace == null ? null : FileSystemManager.getAbsolutePath(referenceTrace.getSource());
+		out.writeObject(tracePath);
+	}
+
+	public void reset(boolean operationalOnly) {
+		this.entryIndex = 0;
         this.manifest = null;
         this.archiveWriter = null;
         this.hashAdapter = null;
@@ -140,8 +218,6 @@ public class ProcessContext {
         this.referenceTrace = null;
         this.traceAdapter = null;
         this.contentIterators.clear();
-        this.sequenceRoots.clear();
-        this.simulationResult = null;
         this.invalidRecoveredFiles.clear();
         this.uncheckedRecoveredFiles.clear();
         this.unrecoveredFiles.clear();
@@ -153,22 +229,45 @@ public class ProcessContext {
             this.getReport().reset();
         }
     }
-    
+
+	public long getTransactionBound() {
+		return transactionBound;
+	}
+
+	public void setTransactionBound(long transactionBound) {
+		this.transactionBound = transactionBound;
+	}
+
+	public ProcessContext() {
+		this(null, null);
+	}
+
     public ProcessContext(AbstractTarget target, UserInformationChannel channel) {
         this(target, channel, null);
     }
 
 	public ProcessContext(AbstractTarget target, UserInformationChannel channel, TaskMonitor taskMonitor) {
-        this.currentReport = new ProcessReport(target);
+        this.report = new ProcessReport(target);
         this.infoChannel = channel;
         if (taskMonitor != null) {
             this.infoChannel.setTaskMonitor(taskMonitor);
             this.infoChannel.setContext(this);
         }
     }
-	
-    
-    public void addChecked() {
+
+	public void setReport(ProcessReport currentReport) {
+		this.report = currentReport;
+	}
+
+	public TransactionPoint getCurrentTransactionPoint() {
+		return currentTransactionPoint;
+	}
+
+	public void setCurrentTransactionPoint(TransactionPoint currentTP) {
+		this.currentTransactionPoint = currentTP;
+	}
+
+	public void addChecked() {
     	this.nbChecked++;
     }
 
@@ -184,14 +283,6 @@ public class ProcessContext {
         return recoveryDestination;
     }
 
-    public ArrayList getSimulationResult() {
-		return simulationResult;
-	}
-
-	public void setSimulationResult(ArrayList simulationResult) {
-		this.simulationResult = simulationResult;
-	}
-
 	public void setRecoveryDestination(File recoveryDestination) {
         this.recoveryDestination = recoveryDestination;
     }
@@ -199,10 +290,6 @@ public class ProcessContext {
 	public MeteredOutputStreamListener getOutputStreamListener() {
 		return this.outputStreamListener;
 	}
-
-    public Map getSequenceRoots() {
-        return sequenceRoots;
-    }
 
     public ArrayList getContentIterators() {
 		return contentIterators;
@@ -304,7 +391,7 @@ public class ProcessContext {
     }
     
     public ProcessReport getReport() {
-        return currentReport;
+        return report;
     }
 
     public ContentFileIterator getPreviousHashIterator() {
@@ -351,11 +438,35 @@ public class ProcessContext {
         return infoChannel.getTaskMonitor();
     }
 
-    public int getRootCount() {
-        return rootCount;
-    }
+	public void setEntryIndex(long entryIndex) {
+		this.entryIndex = entryIndex;
+	}
 
-    public void setRootCount(int rootCount) {
-        this.rootCount = rootCount;
-    }
+	public long getEntryIndex() {
+		return entryIndex;
+	}
+	
+	public void incrementEntryIndex() {
+		this.entryIndex++;
+	}
+
+	public long getInputBytes() {
+		return inputBytes;
+	}
+
+	public void setInputBytes(long inputBytes) {
+		this.inputBytes = inputBytes;
+	}
+
+	public void setInitialized(boolean isInitialized) {
+		this.isInitialized = isInitialized;
+	}
+
+	public void setNbChecked(long nbChecked) {
+		this.nbChecked = nbChecked;
+	}
+
+	public void setOutputStreamListener(MeteredOutputStreamListener outputStreamListener) {
+		this.outputStreamListener = outputStreamListener;
+	}
 }

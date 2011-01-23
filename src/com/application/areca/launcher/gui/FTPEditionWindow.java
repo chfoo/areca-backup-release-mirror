@@ -59,6 +59,7 @@ extends AbstractWindow {
     
     private static final ResourceManager RM = ResourceManager.instance();
     private static final String TITLE = RM.getLabel("ftpedition.dialog.title");
+    private static final String DEFAULT_CTRL_ENCODING = "UTF-8";
     private static String[] PROTOCOLS;
     
     static {
@@ -87,6 +88,7 @@ extends AbstractWindow {
     protected Button btnCancel;
     protected Combo cboProtection;
     protected Button btnReveal;
+    protected Button btnIgnorePassiveAddressConsistency;
     
     public FTPEditionWindow(FTPFileSystemPolicy currentPolicy) {
         super();
@@ -104,8 +106,11 @@ extends AbstractWindow {
         Composite itm1 = tabs.addElement("ftpedition.main.title", RM.getLabel("ftpedition.main.title"));
         initMainPanel(itm1);
 
-        Composite itm2 = tabs.addElement("ftpedition.ftps.label", RM.getLabel("ftpedition.ftps.label"));
-        initFTPsPanel(itm2);
+        Composite itm2 = tabs.addElement("ftpedition.advanced.label", RM.getLabel("ftpedition.advanced.label"));
+        initAdvancedPanel(itm2);
+        
+        Composite itm3 = tabs.addElement("ftpedition.ftps.label", RM.getLabel("ftpedition.ftps.label"));
+        initFTPsPanel(itm3);
         
         buildSaveComposite(ret);
         initValues();
@@ -131,15 +136,7 @@ extends AbstractWindow {
             }
             this.cboProtocol.select(index);
             
-            index = -1;
-            Charset[] encs = OSTool.getCharsets();
-            for (int i=0; i<encs.length; i++) {
-                if (encs[i].name().equals(currentPolicy.getControlEncoding())) {
-                    index = i;
-                    break;
-                }
-            }
-            this.cboCtrlEncoding.select(index);
+            selectEncoding(currentPolicy.getControlEncoding());
             
             index = 0;
             for (int i=0; i<SecuredSocketFactory.PROTECTIONS.length; i++) {
@@ -153,11 +150,26 @@ extends AbstractWindow {
             this.txtLogin.setText(currentPolicy.getLogin());
             this.txtPassword.setText(currentPolicy.getPassword());
             this.txtRemoteDir.setText(currentPolicy.getRemoteDirectory());
+            
+            this.btnIgnorePassiveAddressConsistency.setSelection(currentPolicy.isIgnorePsvErrors());
         } else {
             this.txtPort.setText("" + FTPFileSystemPolicy.DEFAULT_PORT);
             this.cboProtection.select(0);
             this.chkPassiv.setSelection(true);
+            selectEncoding(DEFAULT_CTRL_ENCODING);
         }
+    }
+    
+    private void selectEncoding(String encoding) {
+        int index = -1;
+        Charset[] encs = OSTool.getCharsets();
+        for (int i=0; i<encs.length; i++) {
+            if (encs[i].name().equals(encoding)) {
+                index = i;
+                break;
+            }
+        }
+        this.cboCtrlEncoding.select(index);
     }
     
     private GridLayout initLayout(int nbCols) {
@@ -202,15 +214,8 @@ extends AbstractWindow {
         Label lblRemoteDir = new Label(grpServer, SWT.NONE);
         lblRemoteDir.setText(RM.getLabel("ftpedition.dir.label"));
         txtRemoteDir = new Text(grpServer, SWT.BORDER);
-        txtRemoteDir.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        txtRemoteDir.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         monitorControl(txtRemoteDir);
-
-        cboCtrlEncoding = new Combo(grpServer, SWT.READ_ONLY);
-        cboCtrlEncoding.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
-		for (int i=0; i<OSTool.getCharsets().length; i++) {
-			cboCtrlEncoding.add(OSTool.getCharsets()[i].name());
-		}
-        monitorControl(cboCtrlEncoding);
         
         new Label(composite, SWT.NONE);
         
@@ -249,6 +254,29 @@ extends AbstractWindow {
             }
         });
         
+        return composite;
+    }
+    
+    private Composite initAdvancedPanel(Composite parent) {
+        parent.setLayout(new FillLayout());
+        Composite composite = new Composite(parent, SWT.NONE);
+        composite.setLayout(initLayout(2));
+
+        Label lblEncoding = new Label(composite, SWT.NONE);
+        lblEncoding.setText(RM.getLabel("ftpedition.ctrlenc.label"));
+        
+        cboCtrlEncoding = new Combo(composite, SWT.READ_ONLY);
+        cboCtrlEncoding.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+		for (int i=0; i<OSTool.getCharsets().length; i++) {
+			cboCtrlEncoding.add(OSTool.getCharsets()[i].name());
+		}
+        monitorControl(cboCtrlEncoding);
+        
+        btnIgnorePassiveAddressConsistency = new Button(composite, SWT.CHECK);
+        btnIgnorePassiveAddressConsistency.setText(RM.getLabel("ftpedition.ignorepasverr.label"));
+        btnIgnorePassiveAddressConsistency.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+        monitorControl(btnIgnorePassiveAddressConsistency);
+
         return composite;
     }
     
@@ -435,7 +463,7 @@ extends AbstractWindow {
     
     protected void initPolicy(FTPFileSystemPolicy policy) {
         policy.setLogin(txtLogin.getText());
-        policy.setPassivMode(chkPassiv.getSelection());
+        policy.setPassiveMode(chkPassiv.getSelection());
         policy.setImplicit(chkImplicit.getSelection());
 
         if (cboProtocol.getSelectionIndex() != -1) {
@@ -463,6 +491,19 @@ extends AbstractWindow {
         policy.setRemoteDirectory(txtRemoteDir.getText());
         policy.setRemotePort(Integer.parseInt(txtPort.getText()));
         policy.setRemoteServer(txtHost.getText());
+        
+        policy.setIgnorePsvErrors(btnIgnorePassiveAddressConsistency.getSelection());
+        if (policy.isIgnorePsvErrors()) {
+			int rep = Application.getInstance().showConfirmDialog(
+					RM.getLabel("ftpedition.ignorepsverr.warningtext"), 
+					RM.getLabel("ftpedition.ignorepsverr.warningtitle")
+			);
+
+			if (rep != SWT.YES) {
+				policy.setIgnorePsvErrors(false);
+				btnIgnorePassiveAddressConsistency.setSelection(false);
+			}
+        }
     }
 
     public FTPFileSystemPolicy getCurrentPolicy() {

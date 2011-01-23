@@ -1,5 +1,6 @@
 package com.myJava.util.log;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -33,9 +34,10 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class LogMessagesContainer {
+public class LogMessagesContainer implements Serializable {
+	private static final long serialVersionUID = 2548990974492892206L;
 	private static int MAX_SIZE = FrameworkConfiguration.getInstance().getMaxInlineLogMessages();
-	
+
 	private ArrayList content = new ArrayList();
 	private boolean maxSizeReached = false;
 	private boolean hasWarnings = false;

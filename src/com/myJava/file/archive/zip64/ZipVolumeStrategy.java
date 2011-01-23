@@ -50,6 +50,7 @@ public class ZipVolumeStrategy implements VolumeStrategy {
     protected FileSystemDriver driver;
     protected boolean cached = false;
     protected OutputStreamListener listener;
+    protected boolean closed = false;
 
     public ZipVolumeStrategy(File file, int nbDigits) {
         this(file, null, false, nbDigits);
@@ -157,6 +158,11 @@ public class ZipVolumeStrategy implements VolumeStrategy {
     }
 
     public void close() throws IOException {
+    	if (closed) {
+    		return;
+    	}
+    	closed = true;
+    	
         File lastArchive = getVolume(this.currentVolume);
         File finalArchive = getFinalArchive();
         if (exists(lastArchive)) {

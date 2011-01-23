@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 import com.myJava.configuration.FrameworkConfiguration;
-import com.myJava.file.FileNameUtil;
 import com.myJava.file.driver.remote.AbstractRemoteFileSystemDriver;
 import com.myJava.file.driver.remote.RemoteFileInfoCache;
 import com.myJava.file.metadata.FileMetaDataAccessor;
@@ -58,7 +57,7 @@ public class FTPFileSystemDriver extends AbstractRemoteFileSystemDriver {
     	super(localRoot);
     	this.maxProxies = FrameworkConfiguration.getInstance().getMaxFTPProxies();
         this.proxy = ftpProxy;
-        this.remoteRootDirectory = FileNameUtil.normalizeSlashes(FileNameUtil.normalizePath(remoteRoot), true);
+        this.remoteRootDirectory = remoteRoot;
         this.proxy.setFileInfoCache(new RemoteFileInfoCache());
     } 
 

@@ -31,6 +31,8 @@ import com.myJava.util.log.Logger;
 import com.myJava.util.xml.AdapterException;
 
 /**
+ * Singleton class used to handle serialization/deserialization operations.
+ * <BR>It uses xxxXMLReader/Writer to perform these operations.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

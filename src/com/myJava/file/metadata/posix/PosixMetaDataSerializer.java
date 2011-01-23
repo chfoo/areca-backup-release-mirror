@@ -47,7 +47,11 @@ implements FileMetaDataSerializer {
 	 * <BR>- acl : "size;tag;[identifier;]permissions;tag;[identifier;]permissions ..."
 	 */
 	public FileMetaData deserialize(String s, long version) throws FileMetaDataSerializationException {
-		if (version <= 3) {
+		if (s.charAt(0) == 'w') {
+			// Not pretty (uses the fact that windows metadata are prefixed by "w") ... should be refactored by adding a
+			// dedicated prefix for posix attributes
+			return null;
+		} else if (version <= 3) {
 			return deserializePriorV4(s);
 		} else {
 			return deserializeCurrentVersion(s);

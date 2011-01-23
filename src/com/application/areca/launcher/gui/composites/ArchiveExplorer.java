@@ -40,7 +40,8 @@ import com.application.areca.metadata.trace.TraceEntry;
 import com.myJava.util.log.Logger;
 
 /**
- * <BR>
+ * Expansive logs have been temporarily added to this class to diagnose application crashes which have been
+ * reported by some users.<BR>
  * 
  * @author Olivier PETRUCCI <BR>
  *
@@ -84,60 +85,70 @@ implements MouseListener, Listener {
 
 	public ArchiveExplorer(Composite parent, boolean aggregated) {
 		super(parent, SWT.NONE);
-		this.aggregated = aggregated;
-		
-		setLayout(new FillLayout());
-		TreeViewer viewer = new TreeViewer(this, SWT.BORDER | SWT.MULTI);
-		tree = viewer.getTree();
-		tree.setLinesVisible(AbstractWindow.getTableLinesVisible());
-		tree.setHeaderVisible(true);
-		tree.addMouseListener(this);
-		tree.addListener(SWT.Selection, this);
+		try {
+			this.aggregated = aggregated;
+			
+			setLayout(new FillLayout());
+			TreeViewer viewer = new TreeViewer(this, SWT.BORDER | SWT.MULTI);
+			tree = viewer.getTree();
+			tree.setLinesVisible(AbstractWindow.getTableLinesVisible());
+			tree.setHeaderVisible(true);
+			tree.addMouseListener(this);
+			tree.addListener(SWT.Selection, this);
 
-		TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
-		column1.setText(RM.getLabel("mainpanel.name.label"));
-		column1.setWidth(AbstractWindow.computeWidth(400));
-		TreeColumn column2 = new TreeColumn(tree, SWT.LEFT);
-		column2.setText(RM.getLabel("mainpanel.size.label"));
-		column2.setWidth(AbstractWindow.computeWidth(120));
+			TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
+			column1.setText(RM.getLabel("mainpanel.name.label"));
+			column1.setWidth(AbstractWindow.computeWidth(400));
+			TreeColumn column2 = new TreeColumn(tree, SWT.LEFT);
+			column2.setText(RM.getLabel("mainpanel.size.label"));
+			column2.setWidth(AbstractWindow.computeWidth(120));
 
-		viewer.addDoubleClickListener(new IDoubleClickListener() {
-			public void doubleClick(DoubleClickEvent event) {
-				TreeItem item = tree.getSelection()[0];
-				if (item.getExpanded()) {
-					item.setExpanded(false);
-					handleExpansion(item, false);
-				} else {
-					handleExpansion(item, true);
-					item.setExpanded(true);
+			viewer.addDoubleClickListener(new IDoubleClickListener() {
+				public void doubleClick(DoubleClickEvent event) {
+					TreeItem item = tree.getSelection()[0];
+					if (item.getExpanded()) {
+						item.setExpanded(false);
+						handleExpansion(item, false);
+					} else {
+						handleExpansion(item, true);
+						item.setExpanded(true);
+					}
 				}
-			}
-		});
+			});
 
-		TreeListener listener = new TreeListener() {
-			public void treeCollapsed(TreeEvent arg0) {
-				TreeItem item = (TreeItem) arg0.item;
-				handleExpansion(item, false);
-			}
+			TreeListener listener = new TreeListener() {
+				public void treeCollapsed(TreeEvent arg0) {
+					TreeItem item = (TreeItem) arg0.item;
+					handleExpansion(item, false);
+				}
 
-			public void treeExpanded(TreeEvent event) {
-				TreeItem item = (TreeItem) event.item;
-				handleExpansion(item, true);
-			}
-		};
-		tree.addTreeListener(listener);
+				public void treeExpanded(TreeEvent event) {
+					TreeItem item = (TreeItem) event.item;
+					handleExpansion(item, true);
+				}
+			};
+			tree.addTreeListener(listener);
+		} catch (RuntimeException e) {
+			Application.getInstance().handleException(e);
+			throw e;
+		}
 	}
 	
 	private void handleExpansion(TreeItem item, boolean expanded) {
-		if (expanded) {
-			try {
-				refreshNode(item, (TraceEntry) item.getData(), null);
-			} catch (ApplicationException e) {
-				Logger.defaultLogger().error(e);
+		try {
+			if (expanded) {
+				try {
+					refreshNode(item, (TraceEntry) item.getData(), null);
+				} catch (ApplicationException e) {
+					Logger.defaultLogger().error(e);
+				}
+			} else {
+				item.removeAll();
+				new TreeItem(item, ITEM_STYLE);
 			}
-		} else {
-			item.removeAll();
-			new TreeItem(item, ITEM_STYLE);
+		} catch (RuntimeException e) {
+			Application.getInstance().handleException("Error while displaying " + item, e);
+			throw e;
 		}
 	}
 
@@ -166,14 +177,19 @@ implements MouseListener, Listener {
 	}
 
 	public void refresh(boolean aggregated) throws ApplicationException {
-		this.aggregated = aggregated;
-		reset();
-		if (medium != null) {
-			TraceEntry entry = new TraceEntry();
-			entry.setKey("");
-			entry.setType(MetadataConstants.T_DIR);
+		try {
+			this.aggregated = aggregated;
+			reset();
+			if (medium != null) {
+				TraceEntry entry = new TraceEntry();
+				entry.setKey("");
+				entry.setType(MetadataConstants.T_DIR);
 
-			refreshNode(null, entry, tree);
+				refreshNode(null, entry, tree);
+			}
+		} catch (RuntimeException e) {
+			Application.getInstance().handleException(e);
+			throw e;
 		}
 	}
 
@@ -274,39 +290,49 @@ implements MouseListener, Listener {
 	}
 
 	public void reset() {
-		this.tree.removeAll();
-		this.context.setData(null);
+		try {
+			this.tree.removeAll();
+			this.context.setData(null);
+		} catch (RuntimeException e) {
+			Application.getInstance().handleException(e);
+			throw e;
+		}
 	}
 
 	public void widgetDefaultSelected(SelectionEvent e) {
 	}
 
 	public void setSelectedEntry(TraceEntry entry) {
-		if (entry != null) {
-			StringTokenizer stt = new StringTokenizer(entry.getKey(), "/");
-			TreeItem parent = null;
-			String element = null;
-			while (stt.hasMoreTokens()) {
-				element = element == null ? stt.nextToken() : element + "/"
-						+ stt.nextToken();
-				parent = getElement(parent, element);
-				if (parent == null) {
-					Logger.defaultLogger().warn("No tree item found for key : [" + element + "]. Initial entry : " + entry.toString());
-					break;
+		try {
+			if (entry != null) {
+				StringTokenizer stt = new StringTokenizer(entry.getKey(), "/");
+				TreeItem parent = null;
+				String element = null;
+				while (stt.hasMoreTokens()) {
+					element = element == null ? stt.nextToken() : element + "/"
+							+ stt.nextToken();
+					parent = getElement(parent, element);
+					if (parent == null) {
+						Logger.defaultLogger().warn("No tree item found for key : [" + element + "]. Initial entry : " + entry.toString());
+						break;
+					}
+					try {
+						refreshNode(parent, (TraceEntry) parent.getData(), null);
+						parent.setExpanded(true);
+					} catch (ApplicationException e) {
+						Logger.defaultLogger().error(e);
+					}
 				}
-				try {
-					refreshNode(parent, (TraceEntry) parent.getData(), null);
-					parent.setExpanded(true);
-				} catch (ApplicationException e) {
-					Logger.defaultLogger().error(e);
+				if (parent != null) {
+					this.tree.setSelection(parent);
 				}
-			}
-			if (parent != null) {
-				this.tree.setSelection(parent);
-			}
 
-			Application.getInstance().setCurrentEntry(entry);
-			Application.getInstance().setCurrentFilter(buildFilter(entry));
+				Application.getInstance().setCurrentEntry(entry);
+				Application.getInstance().setCurrentFilter(buildFilter(entry));
+			}
+		} catch (RuntimeException e) {
+			Application.getInstance().handleException(e);
+			throw e;
 		}
 	}
 
@@ -362,9 +388,14 @@ implements MouseListener, Listener {
 	}
 
 	public void mouseDown(MouseEvent e) {
-		showMenu(e, logicalView ? Application.getInstance()
-				.getArchiveContextMenuLogical() : Application.getInstance()
-				.getArchiveContextMenu());
+		try {
+			showMenu(e, logicalView ? Application.getInstance()
+					.getArchiveContextMenuLogical() : Application.getInstance()
+					.getArchiveContextMenu());
+		} catch (RuntimeException e1) {
+			Application.getInstance().handleException(e1);
+			throw e1;
+		}
 	}
 
 	private void showMenu(MouseEvent e, Menu m) {
@@ -374,16 +405,21 @@ implements MouseListener, Listener {
 	}
 
 	public void handleEvent(Event event) {
-		TreeItem[] selection = tree.getSelection();
+		try {
+			TreeItem[] selection = tree.getSelection();
 
-		if (selection.length == 1) {
-			TraceEntry data = (TraceEntry) (selection[0].getData());
-			Application.getInstance().setCurrentEntry(data);
-		} else {
-			Application.getInstance().setCurrentEntry(null);
+			if (selection.length == 1) {
+				TraceEntry data = (TraceEntry) (selection[0].getData());
+				Application.getInstance().setCurrentEntry(data);
+			} else {
+				Application.getInstance().setCurrentEntry(null);
+			}
+
+			Application.getInstance().setCurrentFilter(buildFilter(selection));
+		} catch (RuntimeException e) {
+			Application.getInstance().handleException(e);
+			throw e;
 		}
-
-		Application.getInstance().setCurrentFilter(buildFilter(selection));
 	}
 
 	public Tree getTree() {

@@ -1,5 +1,11 @@
 package com.application.areca.metadata.manifest;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.GregorianCalendar;
@@ -40,8 +46,10 @@ This file is part of Areca.
 
  */
 public class Manifest
-implements Duplicable {
-    public static final int TYPE_BACKUP = 0;
+implements Duplicable, Serializable {
+	private static final long serialVersionUID = -8883407978478338006L;
+	
+	public static final int TYPE_BACKUP = 0;
     public static final int TYPE_MERGE = 1;   
     
     private GregorianCalendar date;
@@ -148,5 +156,27 @@ implements Duplicable {
 		
 		// Properties are not cloned
 		return clone;
+	}
+	
+	public static void main(String[] args) {
+		try {
+			Manifest mf = new Manifest();
+			mf.setTitle("aaa");
+			mf.addProperty("zz1", "v1");
+			mf.addProperty("zz2", "v2");
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ObjectOutputStream out = new ObjectOutputStream(baos);
+			out.writeObject(mf);
+			byte[] data = baos.toByteArray();
+			ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(data));
+			Manifest clone = (Manifest)in.readObject();
+			System.out.println("");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

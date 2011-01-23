@@ -13,10 +13,12 @@ import java.util.zip.GZIPInputStream;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
-import com.application.areca.ArecaTechnicalConfiguration;
+import com.application.areca.ArecaConfiguration;
+import com.application.areca.ArecaFileConstants;
 import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.impl.IOTask;
 import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
@@ -28,6 +30,7 @@ import com.application.areca.metadata.manifest.ManifestKeys;
 import com.application.areca.metadata.trace.ArchiveTraceAdapter;
 import com.application.areca.metadata.trace.ArchiveTraceManager;
 import com.application.areca.metadata.trace.TraceFileIterator;
+import com.application.areca.metadata.transaction.TransactionPoint;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileFilterList;
 import com.myJava.file.FileSystemManager;
@@ -81,18 +84,12 @@ This file is part of Areca.
 public class DeltaArchiveHandler
 extends AbstractArchiveHandler {
 	private static final boolean DEBUG = FrameworkConfiguration.getInstance().isDeltaDebugMode();
-	private static final int MIN_BLOCK_SIZE_BYTE = ArecaTechnicalConfiguration.get().getDeltaMinBucketSize();
-	private static final int MAX_BLOCK_SIZE_BYTE = ArecaTechnicalConfiguration.get().getDeltaMaxBucketSize();
-	private static final int TARGET_BUCKET_NUMBER = ArecaTechnicalConfiguration.get().getDeltaTargetBucketNumber();
+	private static final int MIN_BLOCK_SIZE_BYTE = ArecaConfiguration.get().getDeltaMinBucketSize();
+	private static final int MAX_BLOCK_SIZE_BYTE = ArecaConfiguration.get().getDeltaMaxBucketSize();
+	private static final int TARGET_BUCKET_NUMBER = ArecaConfiguration.get().getDeltaTargetBucketNumber();
 
 	private static final String LOCAL_COPY_SUFFIX = "lc";
 	private static final String SEQUENCE_FOLDER = "seq";
-
-	/**
-	 * sequence filename
-	 */
-	protected static final String SEQUENCE_FILE = "sequence";
-
 
 	/**
 	 * Temporary directory where all sequence files are stored
@@ -104,7 +101,7 @@ extends AbstractArchiveHandler {
 	 * Return the final sequence file name
 	 */
 	public String getSequenceFileName() {
-		return SEQUENCE_FILE;
+		return ArecaFileConstants.SEQUENCE_FILE;
 	}
 
 	public void close(ProcessContext context) 
@@ -122,10 +119,15 @@ extends AbstractArchiveHandler {
 		}
 	}
 
-	public void init(ProcessContext context) 
+	public void init(ProcessContext context, TransactionPoint transactionPoint) 
 	throws IOException {
+		FileSystemTarget target = (FileSystemTarget)medium.getTarget();
 		File file = new File(medium.getDataDirectory(context.getCurrentArchiveFile()), getSequenceFileName());
-		context.setSequenceAdapter(new ArchiveContentAdapter(file));  
+		context.setSequenceAdapter(new ArchiveContentAdapter(file, target.getSourceDirectory()));  
+		
+		if (transactionPoint != null) {
+			context.getSequenceAdapter().bulkInit(transactionPoint.getSequenceFile());
+		}
 	}
 
 	/**
@@ -228,8 +230,7 @@ extends AbstractArchiveHandler {
 				Logger.defaultLogger().fine("Opening hash file for : " + FileSystemManager.getAbsolutePath(lastArchive));
 			}
 			File sequenceFile = ArchiveContentManager.resolveSequenceFileForArchive(medium, lastArchive);
-			ArchiveContentAdapter adp = new ArchiveContentAdapter(sequenceFile);
-			ctnIter = adp.buildIterator();
+			ctnIter = ArchiveContentAdapter.buildIterator(sequenceFile);
 			ctnIter.setReferenceArchive(lastArchive);
 
 			// Add the new iterator to the collection of already loaded iterators
@@ -329,7 +330,7 @@ extends AbstractArchiveHandler {
 	public void archiveDeleted(File archive) 
 	throws IOException {
 		File f = getLocalSequenceDirectory(archive);
-		FileTool.getInstance().delete(f, true);
+		FileTool.getInstance().delete(f);
 	}
 
 	private File buildRecoveryFile(File destination) {
@@ -525,11 +526,8 @@ extends AbstractArchiveHandler {
 
 		try {
 			for (int i=0; i<archives.length; i++) {
-				ArchiveContentAdapter cadapter = new ArchiveContentAdapter(ArchiveContentManager.resolveContentFileForArchive(this.medium, archives[i]));
-				citers[i] = cadapter.buildIterator();
-
-				ArchiveTraceAdapter tadapter = new ArchiveTraceAdapter(ArchiveTraceManager.resolveTraceFileForArchive(this.medium, archives[i]));
-				titers[i] = tadapter.buildIterator();
+				citers[i] = ArchiveContentAdapter.buildIterator(ArchiveContentManager.resolveContentFileForArchive(this.medium, archives[i]));
+				titers[i] = ArchiveTraceAdapter.buildIterator(ArchiveTraceManager.resolveTraceFileForArchive(this.medium, archives[i]));
 			}
 
 			// Build a list of entries to recover indexed by archive

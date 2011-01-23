@@ -10,6 +10,7 @@ import com.application.areca.ConfigurationSource;
 import com.application.areca.TargetGroup;
 import com.application.areca.WorkspaceItem;
 import com.application.areca.impl.FileSystemTarget;
+import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.log.Logger;
@@ -75,7 +76,7 @@ public class ConfigurationListener {
 		ensureConfigurationFileAvailability(item, configurationDirectory);
 		
 		File configFile = item.computeConfigurationFile(configurationDirectory);
-		FileTool.getInstance().delete(configFile, true);
+		FileTool.getInstance().delete(configFile);
 	}
 
 	public void itemMoved(
@@ -104,7 +105,7 @@ public class ConfigurationListener {
 		File targetFile = movedItem.computeConfigurationFile(configurationDirectory);
 		File targetDir = FileSystemManager.getParentFile(targetFile);
 		FileTool.getInstance().copy(sourceFile, targetDir);
-		FileTool.getInstance().delete(sourceFile, true);
+		FileTool.getInstance().delete(sourceFile);
 		
 		synchronizeLoadedFrom(movedItem, configurationDirectory);
 	}
@@ -134,7 +135,7 @@ public class ConfigurationListener {
 		if (group.getLoadedFrom().isDeprecated()) {
 			// Destroy existing configuration file
 			Logger.defaultLogger().warn("The configuration of \"" + group.getAncestorPath() + "\" will be migrated to the new format");
-			FileTool.getInstance().delete(group.getLoadedFrom().getSource(), true);	
+			FileTool.getInstance().delete(group.getLoadedFrom().getSource());	
 			
 			// Serialize group
 			ConfigurationHandler.getInstance().serialize(
@@ -152,7 +153,7 @@ public class ConfigurationListener {
         ConfigurationSource source = new ConfigurationSource(false, item.computeConfigurationFile(configurationDirectory));
         
 		if (! FileSystemManager.exists(source.getSource())) {
-			throw new IOException("Configuration file not found (" + source.getSource() + "). Please restart Areca.");
+			throw new IOException("Configuration file not found (" + source.getSource() + "). Please restart " + VersionInfos.APP_SHORT_NAME + ".");
 		}
         
 		item.setLoadedFrom(source);

@@ -1,8 +1,8 @@
 package com.myJava.file.driver;
 
 /**
- * Exception jetï¿½e lorsque l'on tente d'initialiser un driver sur un point de montage 
- * alors qu'un autre driver a dï¿½jï¿½ ï¿½tï¿½ initialisï¿½ et utilisï¿½.
+ * Exception jetée lorsque l'on tente d'initialiser un driver sur un point de montage 
+ * alors qu'un autre driver a déjà été initialisé et utilisé.
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

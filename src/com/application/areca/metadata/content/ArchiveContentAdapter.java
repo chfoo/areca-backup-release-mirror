@@ -19,7 +19,6 @@ import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
- * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -47,67 +46,66 @@ This file is part of Areca.
 
  */
 public class ArchiveContentAdapter extends AbstractMetadataAdapter {
-    protected String previousKey = null;
-    
-    public ArchiveContentAdapter(File contentFile) {
-        this.file = contentFile;
-    }
-    
-    private void writeSerializedEntry(String entry) throws IOException {
-        initWriter();
-        this.writer.write("\r\n" + entry);
-    }
-    
-    public void writeGenericEntry(ContentEntry entry) throws IOException {
-    	checkEntry(entry.getKey());
-    	writeGenericEntry(entry.getKey(), entry.getData());
-    }
-    
-    public void writeGenericEntry(String key, String data) throws IOException {
-    	checkEntry(key);
-    	writeSerializedEntry(key + MetadataConstants.SEPARATOR + data);
-    }
-    
-    public void writeContentEntry(FileSystemRecoveryEntry entry) throws IOException {
-    	checkEntry(entry.getKey());
-    	writeSerializedEntry(ArchiveContentParser.serialize(entry));
-    }
-    
-    public void writeHashEntry(FileSystemRecoveryEntry entry, byte[] hash) throws IOException {
-    	checkEntry(entry.getKey());
-    	writeSerializedEntry(ArchiveContentParser.serialize(entry, hash));
-    }
-    
-    public void writeSequenceEntry(FileSystemRecoveryEntry entry, HashSequence sequence) throws IOException {
-    	checkEntry(entry.getKey());
-    	writeSerializedEntry(ArchiveContentParser.serialize(entry, sequence));
-    }
-    
-    private void checkEntry(String key) {
-    	if (previousKey != null) {
-	    	if (FilePathComparator.instance().compare(key, previousKey) <= 0) {
-	    		throw new IllegalStateException(key + " <= " + previousKey);
-	    	}
-    	}
-    }
-    
-    /**
-     * Same as traverseContentFile but ignored TaskCancelledExceptions
-     * <BR>(useful when we know they will never be thrown)
-     */
-    public void traverseContentFileNoCancel(ContentHandler handler, ProcessContext context) throws IOException {
-    	try {
+	protected String previousKey = null;
+
+	private ArchiveContentAdapter(File contentFile) {
+		this(contentFile, null);
+	}
+	
+	public ArchiveContentAdapter(File contentFile, String prefix) {
+		super(contentFile, prefix);
+	}
+
+	public void writeGenericEntry(ContentEntry entry) throws IOException {
+		checkEntry(entry.getKey());
+		writeGenericEntry(entry.getKey(), entry.getData());
+	}
+
+	public void writeGenericEntry(String key, String data) throws IOException {
+		checkEntry(key);
+		write(MetadataEncoder.encode(key) + MetadataConstants.SEPARATOR + data);
+	}
+
+	public void writeContentEntry(FileSystemRecoveryEntry entry) throws IOException {
+		checkEntry(entry.getKey());
+		write(ArchiveContentParser.serialize(entry));
+	}
+
+	public void writeHashEntry(FileSystemRecoveryEntry entry, byte[] hash) throws IOException {
+		checkEntry(entry.getKey());
+		write(ArchiveContentParser.serialize(entry, hash));
+	}
+
+	public void writeSequenceEntry(FileSystemRecoveryEntry entry, HashSequence sequence) throws IOException {
+		checkEntry(entry.getKey());
+		write(ArchiveContentParser.serialize(entry, sequence));
+	}
+
+	private void checkEntry(String key) {
+		if (previousKey != null) {
+			if (FilePathComparator.instance().compare(key, previousKey) <= 0) {
+				throw new IllegalStateException(key + " <= " + previousKey);
+			}
+		}
+	}
+
+	/**
+	 * Same as traverseContentFile but ignored TaskCancelledExceptions
+	 * <BR>(useful when we know they will never be thrown)
+	 */
+	public void traverseContentFileNoCancel(ContentHandler handler, ProcessContext context) throws IOException {
+		try {
 			traverseContentFile(handler, context);
 		} catch (TaskCancelledException ignored) {
 		}
-    }
-    
-    public AbstractMetaDataEntry decodeEntry(String serialized) {
-    	if (DEBUG) {
-    		Logger.defaultLogger().fine("Parsing content : [" + serialized + "]");
-    	}
-    	ContentEntry entry = new ContentEntry();
-    	
+	}
+
+	public AbstractMetaDataEntry decodeEntry(String serialized) {
+		if (DEBUG) {
+			Logger.defaultLogger().fine("Parsing content : [" + serialized + "]");
+		}
+		ContentEntry entry = new ContentEntry();
+
 		int index = serialized.indexOf(MetadataConstants.SEPARATOR);
 		String key;
 		String data;
@@ -118,77 +116,83 @@ public class ArchiveContentAdapter extends AbstractMetadataAdapter {
 			key = MetadataEncoder.decode(serialized.substring(0, index));
 			data = serialized.substring(index + MetadataConstants.SEPARATOR.length());
 		} 
-		
+
 		entry.setKey(key);
 		entry.setData(data);
-		
-		return entry;
-    }
-    
-    /**
-     * Read the archive content file line by line and call the ContentHandler provided as argument
-     * for each line.
-     */
-    public void traverseContentFile(ContentHandler handler, ProcessContext context) throws IOException, TaskCancelledException {
-        long version = getVersion();
-        String encoding = resolveEncoding(version);
-        handler.setVersion(version);
-        InputStream in = this.getInputStream();
-        
-        try {
-            BufferedReader reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding));            
-            String line = null;
-            boolean header = true;
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (line.length() != 0 && !header) {
-                	ContentEntry entry = (ContentEntry)decodeEntry(line);
-        			
-        			// It is VERY important that the key / data are compliant with the current serialization
-        			// format. Each line can indeed be written as part of a new content (case of archive merge)
-        			// and will be assumed to match the current serialization format.
-                	handler.newRow(entry.getKey(), entry.getData(), context);
-                }
-            	header = false;
-            }
-        	handler.close();
-        } finally {
-            try {
-            	in.close();
-            } catch (Exception ignored) {
-            }
-        }
-    }
-    
-    /**
-     * Build a ContentFileIterator
-     */
-    public ContentFileIterator buildIterator(boolean deleteOnClose) throws IOException {
-    	ContentFileIterator iter = buildIterator();
-    	if (deleteOnClose) {
-    		iter.setDeleteOnClose(this.file);
-    	}
-    	return iter;
-    }
-    
-    /**
-     * Build a ContentFileIterator
-     */
-    public ContentFileIterator buildIterator() throws IOException {
-		 long version = getVersion();
-	     String encoding = resolveEncoding(version);
-	     InputStream in = this.getInputStream();
-         BufferedReader reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding)); 
 
-         ContentFileIterator iter = new ContentFileIterator(reader, this);
-         return iter;
-    }
-    
+		return entry;
+	}
+
+	/**
+	 * Read the archive content file line by line and call the ContentHandler provided as argument
+	 * for each line.
+	 */
+	public void traverseContentFile(ContentHandler handler, ProcessContext context) throws IOException, TaskCancelledException {
+		MetadataHeader hdr = getMetaData();
+		String encoding = hdr.getEncoding();
+		handler.setVersion(hdr.getVersion());
+		InputStream in = this.getInputStream();
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding));            
+			String line = null;
+			
+			// Skip the header
+			skipHeader(reader);
+			
+			while ((line = reader.readLine()) != null) {
+				line = line.trim();
+				if (line.length() != 0) {
+					ContentEntry entry = (ContentEntry)decodeEntry(line);
+
+					// It is VERY important that the key / data are compliant with the current serialization
+					// format. Each line can indeed be written as part of a new content (case of archive merge)
+					// and will be assumed to match the current serialization format.
+					handler.newRow(entry.getKey(), entry.getData(), context);
+				}
+			}
+			handler.close();
+		} finally {
+			try {
+				if (reader != null) {
+					reader.close();
+				}
+				in.close();
+			} catch (Exception ignored) {
+			}
+		}
+	}
+
+	/**
+	 * Build a ContentFileIterator
+	 */
+	private ContentFileIterator getIterator() throws IOException {
+		String encoding = getMetaData().getEncoding();
+
+		InputStream in = this.getInputStream();
+		BufferedReader reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding)); 
+
+		// Skip the header
+		skipHeader(reader);
+		
+		// Build the iterator
+		return new ContentFileIterator(reader, this);
+	}
 	
+	public static ContentFileIterator buildIterator(File file) throws IOException {
+		ArchiveContentAdapter adapter = new ArchiveContentAdapter(file);
+		return adapter.getIterator();
+	}
+
+
 	public static void handleFile(File file, ContentHandler contentHandler, ProcessContext context) throws IOException, ApplicationException {
 		if (file != null) {
 			ArchiveContentAdapter reader = new ArchiveContentAdapter(file);
 			reader.traverseContentFileNoCancel(contentHandler, context);
 		}
+	}
+
+	protected AbstractMetadataAdapter buildReader(File sourceFile) {
+		return new ArchiveContentAdapter(sourceFile);
 	}
 }

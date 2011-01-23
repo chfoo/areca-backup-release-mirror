@@ -49,11 +49,7 @@ This file is part of Areca.
  */
 
 public class FileTool {
-
-	private static final long DEFAULT_DELETION_DELAY = FrameworkConfiguration.getInstance().getFileToolDelay();
 	private static final int BUFFER_SIZE = FrameworkConfiguration.getInstance().getFileToolBufferSize();
-	private static final int DELETION_GC_FREQUENCY = (int) (2000 / DEFAULT_DELETION_DELAY);
-	private static final int DELETION_MAX_ATTEMPTS = 1000;
 	private static final String HASH_ALGORITHM = FrameworkConfiguration.getInstance().getFileHashAlgorithm();
 
 	private static FileTool instance = new FileTool();
@@ -201,91 +197,13 @@ public class FileTool {
 		}
 	}
 
-	/**
-	 * Delete the directory / file and all its content. <BR>
-	 * If "waitForAvailability" is true, the process will wait - for each file
-	 * or directory - until it is available. (the thread will be paused) and
-	 * will make an attempt every "deletionDelay" milliseconds.
-	 */
-	public void delete(File fileOrDirectory, boolean waitForAvailability, long deletionDelay, TaskMonitor monitor)
-	throws IOException,	TaskCancelledException {
-		if (monitor != null) {
-			monitor.checkTaskState();
-		}
-
-		if (FileSystemManager.isDirectory(fileOrDirectory)) {
-			File[] files = FileSystemManager.listFiles(fileOrDirectory);
-			for (int i = 0; i < files.length; i++) {
-				this.delete(files[i], waitForAvailability, deletionDelay,
-						monitor);
-			}
-		}
-
-		if (waitForAvailability) {
-			long retry = 0;
-			try {
-				while (
-						(! FileSystemManager.delete(fileOrDirectory)) 
-						&& (FileSystemManager.exists(fileOrDirectory))
-				) {
-					retry++;
-					if (retry == 10 || retry == 100 || retry == DELETION_MAX_ATTEMPTS) {
-						Logger
-						.defaultLogger()
-						.warn(
-								"Attempted to delete file ("
-								+ FileSystemManager
-								.getAbsolutePath(fileOrDirectory)
-								+ ") during "
-								+ (retry * deletionDelay)
-								+ " ms but it seems to be locked !");
-					} else if (retry == DELETION_MAX_ATTEMPTS - 1) {
-						FileSystemManager.getInstance().clearCachedData(fileOrDirectory);
-					} else if (retry > DELETION_MAX_ATTEMPTS) {
-						String[] files = FileSystemManager
-						.list(fileOrDirectory);
-						throw new IOException("Unable to delete file : "
-								+ FileSystemManager
-								.getAbsolutePath(fileOrDirectory)
-								+ " - isFile="
-								+ FileSystemManager.isFile(fileOrDirectory)
-								+ " - Exists="
-								+ FileSystemManager.exists(fileOrDirectory)
-								+ " - Children="
-								+ (files == null ? 0 : files.length)
-								+ (files == null || files.length > 0 ? "("
-										+ files[0] + " ...)" : ""));
-					}
-					if (retry % DELETION_GC_FREQUENCY == 0) {
-						// Logger.defaultLogger().warn("File deletion (" +
-						// FileSystemManager.getAbsolutePath(fileOrDirectory) +
-						// ") : Performing a GC.");
-						System.gc(); // I know it's not very beautiful ...
-						// but it seems to be a bug with old
-						// file references (even if all streams
-						// are closed)
-					}
-					Thread.sleep(deletionDelay);
-				}
-			} catch (InterruptedException ignored) {
-			}
-		} else {
-			FileSystemManager.delete(fileOrDirectory);
-		}
-	}
-
-	public void delete(File fileOrDirectory, boolean waitForAvailability)
+	public void delete(File fileOrDirectory)
 	throws IOException {
 		try {
-			delete(fileOrDirectory, waitForAvailability, null);
+			FileSystemManager.forceDelete(fileOrDirectory, null);
 		} catch (TaskCancelledException ignored) {
 			// Never happens since no monitor is set
 		}
-	}
-
-	public void delete(File fileOrDirectory, boolean waitForAvailability, TaskMonitor monitor)
-	throws IOException, TaskCancelledException {
-		delete(fileOrDirectory, waitForAvailability, DEFAULT_DELETION_DELAY, monitor);
 	}
 
 	public void createFile(File destinationFile, String content)
@@ -389,6 +307,16 @@ public class FileTool {
 	 */
 	public String[] getInputStreamRows(InputStream inStream, String encoding, boolean closeStreamOnExit)
 	throws IOException {
+		return getInputStreamRows(inStream, encoding, -1, closeStreamOnExit);
+	}
+
+	/**
+	 * Return the content of the inputStream as a String array (one string by
+	 * line). <BR>
+	 * The lines are trimmed and empty lines are ignored.
+	 */
+	public String[] getInputStreamRows(InputStream inStream, String encoding, long maxRows, boolean closeStreamOnExit)
+	throws IOException {
 		if (inStream == null) {
 			return null;
 		}
@@ -400,7 +328,7 @@ public class FileTool {
 					: new InputStreamReader(inStream, encoding),
 					BUFFER_SIZE);
 			String line = null;
-			while ((line = reader.readLine()) != null) {
+			while ((line = reader.readLine()) != null && (maxRows != v.size())) {
 				line = line.trim();
 				if (line.length() != 0) {
 					v.add(line);
@@ -536,7 +464,14 @@ public class FileTool {
 			}
 		}
 	}
-
+	
+	public File createNewWorkingDirectory(File parent, String dirName, boolean registerDeleteHook)
+	throws IOException {
+		File target = generateNewWorkingFile(parent, null, dirName, registerDeleteHook);
+		FileTool.getInstance().createDir(target);
+		return target;
+	}
+	
 	/**
 	 * Return a new - non existing - temporary file or directory in the user's
 	 * main temporary directory. <BR>
@@ -572,7 +507,7 @@ public class FileTool {
 			Runnable rn = new Runnable() {
 				public void run() {
 					try {
-						FileTool.getInstance().delete(toRemove, true);
+						FileTool.getInstance().delete(toRemove);
 					} catch (IOException e) {
 						Logger.defaultLogger().error(e);
 					}

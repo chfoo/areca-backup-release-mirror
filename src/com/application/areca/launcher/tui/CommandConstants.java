@@ -28,7 +28,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public interface CommandConstants {   
+public interface CommandConstants {  
     public static UserCommand COMMAND_BACKUP = new UserCommand("backup");
     public static UserCommand COMMAND_RECOVER = new UserCommand("recover");
     public static UserCommand COMMAND_MERGE = new UserCommand("merge");
@@ -46,6 +46,8 @@ public interface CommandConstants {
     public static UserOption OPTION_CHECK_FILES = new UserOption("-c", 1);  
     public static UserOption OPTION_SPEC_LOCATION = new UserOption("-wdir", 2);  
     public static UserOption OPTION_SYNC = new UserOption("-s", 1);  
+    public static UserOption OPTION_RESUME = new UserOption("-resume", 1); 
+    public static UserOption OPTION_RESUME_CONDITIONAL = new UserOption("-cresume", 2); 
     public static UserOption OPTION_CHECK_ALL = new UserOption("-a", 1); 
     public static UserOption OPTION_FULL_BACKUP = new UserOption("-f", 1);
     public static UserOption OPTION_KEEP_DELETED_ENTRIES = new UserOption("-k", 1);

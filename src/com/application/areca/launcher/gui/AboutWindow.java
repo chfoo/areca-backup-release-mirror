@@ -18,7 +18,7 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.ArecaTechnicalConfiguration;
+import com.application.areca.ArecaConfiguration;
 import com.application.areca.ArecaURLs;
 import com.application.areca.MemoryHelper;
 import com.application.areca.ResourceManager;
@@ -209,7 +209,7 @@ implements ArecaURLs {
         	prps.put("log.file", proc.getCurrentLogFile());
         }
         
-        prps.putAll(ArecaTechnicalConfiguration.get().getAll());
+        prps.putAll(ArecaConfiguration.get().getAll());
         
         // User preferences
         prps.putAll(LocalPreferences.instance().getPreferences());

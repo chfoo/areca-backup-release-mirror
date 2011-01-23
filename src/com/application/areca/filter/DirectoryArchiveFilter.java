@@ -37,7 +37,8 @@ This file is part of Areca.
 
  */
 public class DirectoryArchiveFilter extends AbstractArchiveFilter {
-    private File directory;
+	private static final long serialVersionUID = -5000073891121676700L;
+	private File directory;
 
 	public void acceptParameters(String parameters) {
         if (Utils.isEmpty(parameters)) {

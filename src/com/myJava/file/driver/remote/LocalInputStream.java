@@ -38,6 +38,7 @@ public class LocalInputStream extends InputStream {
 
     private InputStream in;
     private File file;
+    private boolean closed = false;
     
     public LocalInputStream(File file) throws IOException {
         this.file = file;
@@ -49,12 +50,17 @@ public class LocalInputStream extends InputStream {
     }
 
     public void close() throws IOException {
+    	if (closed) {
+    		return;
+    	}
+    	closed = true;
+    	
         try {
             if (in != null) {
                 in.close();
             }
         } finally {
-            FileTool.getInstance().delete(file, true);
+            FileTool.getInstance().delete(file);
         }
     }
 

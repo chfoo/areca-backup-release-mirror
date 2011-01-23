@@ -37,8 +37,9 @@ This file is part of Areca.
 
  */
 public class FileSizeArchiveFilter extends AbstractArchiveFilter {
-    
-    private long maxSize;
+	private static final long serialVersionUID = -1511296476562232634L;
+	
+	private long maxSize;
     private boolean greaterThan;
 
 	public void acceptParameters(String parameters) {

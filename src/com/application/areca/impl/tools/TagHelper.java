@@ -40,7 +40,8 @@ This file is part of Areca.
 
  */
 public class TagHelper {
-    public static final String PARAM_ARCHIVE = "%ARCHIVE%";
+    public static final String PARAM_ARCHIVE_PATH = "%ARCHIVE%";
+    public static final String PARAM_ARCHIVE_LOGICAL_PATH = "%ARCHIVE_LOGICAL_PATH%";
     public static final String PARAM_ARCHIVE_NAME = "%ARCHIVE_NAME%";
     public static final String PARAM_TARGET_UID = "%TARGET_UID%";
     public static final String PARAM_TARGET_NAME = "%TARGET_NAME%";
@@ -62,10 +63,21 @@ public class TagHelper {
             String value = param;
             
             if (context.getCurrentArchiveFile() != null) {
-                value = Util.replace(value, PARAM_ARCHIVE, FileSystemManager.getAbsolutePath(context.getCurrentArchiveFile()));
+            	String archivePath = FileSystemManager.getPhysicalPath(context.getCurrentArchiveFile());
+            	String archiveLogicalPath = FileSystemManager.getAbsolutePath(context.getCurrentArchiveFile());     	
+            	if (archivePath == null) {
+            		archivePath = "";
+            		archiveLogicalPath = "";
+            	}
+            	if (OSTool.isSystemWindows()) {
+            		archivePath = Util.replace(archivePath, "/", "\\");
+            		archiveLogicalPath = Util.replace(archiveLogicalPath, "/", "\\");
+            	}
+                value = Util.replace(value, PARAM_ARCHIVE_PATH, archivePath);
+                value = Util.replace(value, PARAM_ARCHIVE_LOGICAL_PATH, archiveLogicalPath);
                 value = Util.replace(value, PARAM_ARCHIVE_NAME, FileSystemManager.getName(context.getCurrentArchiveFile()));
             } else {
-                value = Util.replace(value, PARAM_ARCHIVE, "");
+                value = Util.replace(value, PARAM_ARCHIVE_PATH, "");
                 value = Util.replace(value, PARAM_ARCHIVE_NAME, "");
             }
             

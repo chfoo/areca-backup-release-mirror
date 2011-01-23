@@ -68,4 +68,29 @@ public interface ArecaFileConstants {
 	 * History file
 	 */
 	public static final String HISTORY_NAME = "history";
+	
+	/**
+	 * Commit file
+	 */
+	public static final String COMMIT_MARKER_NAME = ArecaConfiguration.get().getCommitFileName();
+	
+	/**
+	 * Sequence files (for delta storage)
+	 */
+	public static final String SEQUENCE_FILE = "sequence";
+	
+	/**
+	 * Transaction points
+	 */
+	public static final String TRANSACTION_FILE = "transaction";
+	
+	/**
+	 * Transaction header
+	 */
+	public static final String TRANSACTION_HEADER_FILE = "header";
+	
+	/**
+	 * Name of subdirectory in transaction directory that is used to store temporary files
+	 */
+	public static final String TEMPORARY_DIR_NAME = "tmp";
 }

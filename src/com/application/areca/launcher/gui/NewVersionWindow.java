@@ -18,7 +18,7 @@ import com.application.areca.ArecaURLs;
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.myJava.system.viewer.ViewerHandlerHelper;
 import com.myJava.util.log.Logger;
@@ -96,7 +96,7 @@ extends AbstractWindow {
             checkNewVersions = new Button(ret, SWT.CHECK);
             checkNewVersions.setText(RM.getLabel("preferences.checkversions.label"));
             checkNewVersions.setToolTipText(RM.getLabel("preferences.checkversions.tt"));    
-            checkNewVersions.setSelection(ArecaPreferences.isCheckNewVersions());
+            checkNewVersions.setSelection(ApplicationPreferences.isCheckNewVersions());
             checkNewVersions.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false)); 
             
             GridData dt3 = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
@@ -160,12 +160,12 @@ extends AbstractWindow {
     }
 
     protected void cancelChanges() {
-        ArecaPreferences.setCheckNewVersion(checkNewVersions.getSelection());
+        ApplicationPreferences.setCheckNewVersion(checkNewVersions.getSelection());
         super.cancelChanges();
     }
 
     protected void saveChanges() {
-        ArecaPreferences.setCheckNewVersion(checkNewVersions.getSelection());
+        ApplicationPreferences.setCheckNewVersion(checkNewVersions.getSelection());
         validated = ! locked;
         this.close();
     }

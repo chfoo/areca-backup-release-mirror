@@ -19,8 +19,8 @@ import com.application.areca.UserInformationChannel;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ReportWindow;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.ArecaImages;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.util.log.Logger;
@@ -70,7 +70,7 @@ implements UserInformationChannel, Colors, Listener {
 	private boolean running;
 	private String stateBeforePause = "";
 	private String currentMessage = "";
-	private boolean synthetic = ArecaPreferences.isInformationSynthetic();
+	private boolean synthetic = ApplicationPreferences.isInformationSynthetic();
 	private String action;
 
 	public InfoChannel(AbstractTarget target, Composite parent) {
@@ -232,7 +232,7 @@ implements UserInformationChannel, Colors, Listener {
 						SecuredRunner.execute(new Runnable() {
 							public void run() {
 								ReportWindow frm = new ReportWindow(context.getReport());
-								Application.getInstance().showDialog(frm);
+								Application.getInstance().showDialog(frm, false);
 							}
 						});
 					}

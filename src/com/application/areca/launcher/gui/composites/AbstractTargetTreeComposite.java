@@ -27,7 +27,7 @@ import com.application.areca.Workspace;
 import com.application.areca.WorkspaceItem;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.ArecaImages;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 
 /**
@@ -119,7 +119,7 @@ implements MouseListener, Listener {
     public void synchronizeHistory() {
     	if (txtPath != null){
 	    	txtPath.removeAll();
-	        Stack h = ArecaPreferences.getWorkspaceHistory();
+	        Stack h = ApplicationPreferences.getWorkspaceHistory();
 	        for (int i=0; i<h.size(); i++) {
 	        	txtPath.add((String)h.get(i));
 	        }

@@ -37,7 +37,9 @@ This file is part of Areca.
 
  */
 public class RegexArchiveFilter extends AbstractArchiveFilter {
-    public static String SCHEME_FULLPATH = "full_path";
+	private static final long serialVersionUID = 1090696259398514977L;
+	
+	public static String SCHEME_FULLPATH = "full_path";
     public static String SCHEME_NAME = "file_name";
     public static String SCHEME_PARENTDIR = "parent_directory";
 	

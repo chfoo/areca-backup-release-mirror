@@ -5,7 +5,7 @@ import java.util.Hashtable;
 import com.myJava.util.collections.SimpleEnumeration;
 
 /**
- * Classe reprï¿½sentant une erreur de donnï¿½es.
+ * Classe représentant une erreur de données.
  * Utile pour les ActionReports
  * <BR>
  * @author Olivier PETRUCCI
@@ -44,7 +44,7 @@ public class ActionError implements SimpleEnumeration {
     private String message;
 
     /**
-     * Liste de champs associï¿½s ï¿½ l'erreur
+     * Liste de champs associés à l'erreur
      */
     private Hashtable fields;
 
@@ -84,7 +84,7 @@ public class ActionError implements SimpleEnumeration {
     }
 
     /**
-     * Retourne la valeur du champ sous forme de chaï¿½ne de caractï¿½res
+     * Retourne la valeur du champ sous forme de chaîne de caractères
      */
     public String getString(String key) {
         return this.getValue(key).toString();
@@ -98,7 +98,7 @@ public class ActionError implements SimpleEnumeration {
     }
 
     /**
-     * Redï¿½finition toString
+     * Redéfinition toString
      */
     public String toString() {
         return "" + this.code;

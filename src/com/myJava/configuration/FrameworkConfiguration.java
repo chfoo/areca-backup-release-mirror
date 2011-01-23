@@ -179,12 +179,6 @@ public class FrameworkConfiguration {
     public static String KEY_DEFAULT_LOG_HISTORY = "log.default.history";
     
     /**
-     * List of directories on which Areca is allowed to write.
-     * <BR>If left empty, Areca will be able to write anywhere
-     */
-    public static String KEY_WRITABLE_DIRECTORIES = "fs.writable.directories";
-    
-    /**
      * Size of the buffer used by the "filediff" classes
      */
     public static String KEY_DELTA_LINKEDLIST_BUFFER_SIZE = "delta.linkedlist.buffer.size"; 
@@ -244,7 +238,7 @@ public class FrameworkConfiguration {
     public static String KEY_INLINE_LOG_LEVEL = "threadlocal.log.level"; 
     
     public static int DEF_ENCRYPTION_KG_ITER = 96731;
-    public static String DEF_ENCRYPTION_KG_SALT = "Ã¹%${{Â²]}}[|`Ã¨â‚¬$Â£^Â¤*!Â§:/..;;,,_?\"\\Â°Ã @@%Âµ";
+    public static String DEF_ENCRYPTION_KG_SALT = "ù%${{²]}}[|`è€$£^¤*!§:/..;;,,_?\"\\°à@@%µ";
     public static String DEF_ENCRYPTION_KG_SALT_ENC = "UTF-8";
     public static String DEF_ENCRYPTION_KG_ALG = "PBKDF2WithHmacSHA1";
     public static boolean DEF_DELTA_DEBUG = false;
@@ -269,7 +263,6 @@ public class FrameworkConfiguration {
     public static long DEF_MAX_FILEPATH_LENGTH = 256;   
     public static int DEF_FORCE_FILEPATH_LENGTH_CHECK = -1;   // -1 = UNSET, 0 = FORCE DISABLE, 1 = FORCE ENABLE
     public static int DEF_DEFAULT_LOG_HISTORY = 10;  
-    public static String[] DEF_WRITABLE_DIRECTORIES = new String[] {};
     public static int DEF_DELTA_LINKEDLIST_BUFFER_SIZE = 200 * 1024; 
     public static int DEF_DELTA_HASHMAP_SIZE = 10007;
     public static int DEF_DELTA_QUICKHASH_MULTIPLIER = 691 * 13 * 11; 
@@ -473,10 +466,6 @@ public class FrameworkConfiguration {
     
     public int getFileToolBufferSize() {
         return getProperty(KEY_FT_BUFFER_SIZE, DEF_FT_BUFFER_SIZE);
-    }
-    
-    public String[] getWritableDirectories() {
-        return getProperty(KEY_WRITABLE_DIRECTORIES, DEF_WRITABLE_DIRECTORIES);
     }
     
     public String[] getOSBrowsers() {

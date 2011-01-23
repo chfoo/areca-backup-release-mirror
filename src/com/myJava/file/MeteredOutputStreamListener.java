@@ -1,5 +1,10 @@
 package com.myJava.file;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 
 /**
  * <BR>
@@ -28,7 +33,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class MeteredOutputStreamListener implements OutputStreamListener {
+public class MeteredOutputStreamListener implements OutputStreamListener, Externalizable {
 	private long written;
 	
 	public void bytesWritten(byte[] data, int offset, int length) {
@@ -48,5 +53,13 @@ public class MeteredOutputStreamListener implements OutputStreamListener {
 
 	public void reset() {
 		written = 0;
+	}
+
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		written = in.readLong();
+	}
+
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeLong(written);
 	}
 }

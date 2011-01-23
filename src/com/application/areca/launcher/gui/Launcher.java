@@ -4,7 +4,7 @@ import javax.swing.JOptionPane;
 
 import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.ArecaFileConstants;
-import com.application.areca.launcher.gui.common.ArecaPreferences;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.version.VersionInfos;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
@@ -51,12 +51,12 @@ public class Launcher extends AbstractArecaLauncher {
         boolean killOnError = true;
         try {
             String workspace = null;
-            switch (ArecaPreferences.getStartupMode()) {
-            case ArecaPreferences.LAST_WORKSPACE_MODE:
-                workspace = ArecaPreferences.getLastWorkspace();
+            switch (ApplicationPreferences.getStartupMode()) {
+            case ApplicationPreferences.LAST_WORKSPACE_MODE:
+                workspace = ApplicationPreferences.getLastWorkspace();
                 break;
-            case ArecaPreferences.DEFAULT_WORKSPACE_MODE:
-                workspace = ArecaPreferences.getDefaultWorkspace();
+            case ApplicationPreferences.DEFAULT_WORKSPACE_MODE:
+                workspace = ApplicationPreferences.getDefaultWorkspace();
                 break;
             }
             if (workspace == null) {
