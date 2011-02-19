@@ -72,8 +72,6 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	public static final String CONFIG_FILE_EXT_DEPRECATED= ".xml";
 	public static final String CONFIG_FILE_EXT = ".bcfg";
 
-	protected static final long TRANSACTION_SIZE = ArecaConfiguration.get().getTransactionSize();
-
 	protected ArchiveMedium medium;
 	protected FilterGroup filterGroup = new FilterGroup();
 	protected int id = -1; // DEPRECATED - Numeric unique id of the target within its process
@@ -287,6 +285,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 		String resumeSupportedResponse = this.checkResumeSupported();
 		
 		if (resumeSupportedResponse == null) {
+			// Transaction points supported
 			medium.initTransactionPoint(context);
 		} else {
 			Logger.defaultLogger().info("Intermediate transaction points not compatible with current target configuration (" + resumeSupportedResponse + "). No intermediate transaction point will be created during the backup.");
@@ -378,7 +377,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 						context.getInfoChannel().getTaskMonitor().checkTaskState();
 						if (this.filterEntryBeforeStore(entry)) {
 							try {
-								handleTransactionPoint(context);
+								medium.handleTransactionPoint(context);
 								
 								context.incrementEntryIndex();
 								context.getInfoChannel().updateCurrentTask(context.getEntryIndex(), 0, entry.toString());
@@ -532,19 +531,6 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 		mf.addProperty(ManifestKeys.BUILD_ID, VersionInfos.getBuildId());
 		mf.addProperty(ManifestKeys.ENCODING, OSTool.getIANAFileEncoding());        
 		mf.addProperty(ManifestKeys.OS_NAME, OSTool.getOSDescription());
-	}
-
-	/**
-	 * Save a temporary transaction point
-	 */
-	public void handleTransactionPoint(ProcessContext context) throws ApplicationException {
-		if (
-				this.checkResumeSupported() == null
-				&& (context.getOutputBytesInKB() - context.getTransactionBound()) >= TRANSACTION_SIZE
-		) {
-			context.setTransactionBound(context.getOutputBytesInKB());
-			medium.initTransactionPoint(context);
-		}
 	}
 
 	/**

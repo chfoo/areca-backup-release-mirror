@@ -48,17 +48,19 @@ public class ArchiveNameFilter implements FilenameFilter {
     private GregorianCalendar fromDate;
     private GregorianCalendar toDate;
     private AbstractIncrementalFileSystemMedium medium;
+    private boolean committedOnly;
     
-    public ArchiveNameFilter(GregorianCalendar fromDate, GregorianCalendar toDate, AbstractIncrementalFileSystemMedium medium) {
+    public ArchiveNameFilter(GregorianCalendar fromDate, GregorianCalendar toDate, AbstractIncrementalFileSystemMedium medium, boolean committedOnly) {
         this.fromDate = fromDate;
         this.toDate = toDate;
         this.medium = medium;
+        this.committedOnly = committedOnly;
     }
     
     public boolean accept(File dir, String name) {
         File archive = new File(dir, name);
         
-        if (! medium.checkArchiveCompatibility(archive)) {
+        if (! medium.checkArchiveCompatibility(archive, committedOnly)) {
             return false;
         }
         

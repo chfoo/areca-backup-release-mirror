@@ -39,7 +39,7 @@ public class ArchiveTraceManager {
     
     public static File resolveTraceFileForArchive(AbstractIncrementalFileSystemMedium medium, File archive) 
     throws IOException {
-        if (! medium.checkArchiveCompatibility(archive)) {
+        if (! medium.checkArchiveCompatibility(archive, true)) {
             return null;
         }
         File dataDir = medium.getDataDirectory(archive);

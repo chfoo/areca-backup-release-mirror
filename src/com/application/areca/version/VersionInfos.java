@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 6615271941412524462L;
+		BUILD_ID = 6676889719984660763L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.2.1", new GregorianCalendar(2011, 1, 19), "Transaction parameters have been added to the target configuration window."));
 		VERSIONS.add(new VersionData("7.2", new GregorianCalendar(2011, 0, 23), "Added support for intermediate transaction points; Added SFTP storage; Added control on encrypted filenames wrapping; Enhanced control on FTP passive mode."));
 		VERSIONS.add(new VersionData("7.1.10", new GregorianCalendar(2010, 10, 01), "Fixed a bug on search window."));
 		VERSIONS.add(new VersionData("7.1.9", new GregorianCalendar(2010, 9, 17), "Fixed a bug that could occur when checking recovered files; Default zip compression level set to 4."));

@@ -53,6 +53,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.ArecaConfiguration;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.filter.ArchiveFilter;
@@ -88,6 +89,7 @@ import com.myJava.file.FileTool;
 import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.file.driver.EncryptedFileSystemDriver;
 import com.myJava.system.OSTool;
+import com.myJava.util.CommonRules;
 import com.myJava.util.PasswordQualityEvaluator;
 import com.myJava.util.Util;
 import com.myJava.util.history.History;
@@ -122,7 +124,8 @@ This file is part of Areca.
  */
 public class TargetEditionWindow
 extends AbstractWindow {
-
+	private static final long DEFAULT_TRANSACTION_SIZE = ArecaConfiguration.get().getTransactionSize();
+	
 	private static final ResourceManager RM = ResourceManager.instance();
 	private static final String TITLE = RM.getLabel("targetedition.dialog.title");
 	private static final String PLUGIN_HD = "hd";
@@ -194,6 +197,9 @@ extends AbstractWindow {
 	protected Button rdMultiple;
 	protected Button rdDelta;
 	protected Text txtRootValue;
+	protected Button chkUseTransactions;
+	protected Text txtTransactionSize;
+	protected Label lblTransactionSize;
 
 	private TreeItem transfered;
 	protected Tree treFilters;
@@ -209,7 +215,7 @@ extends AbstractWindow {
 	protected Button btnAddSource;
 	protected Button btnRemoveSource;
 	protected Button btnModifySource;
-	
+
 	protected boolean hasDisplayedTransactionWarning = false;
 
 	public TargetEditionWindow(AbstractTarget target) {
@@ -240,6 +246,7 @@ extends AbstractWindow {
 			initFiltersTab(initTab(tabs, RM.getLabel("targetedition.filtersgroup.title")));
 			initPreProcessorsTab(initTab(tabs, RM.getLabel("targetedition.preprocessing.title")));
 			initPostProcessorsTab(initTab(tabs, RM.getLabel("targetedition.postprocessing.title")));
+			initTransactionTab(initTab(tabs, RM.getLabel("targetedition.transactions.label")));
 			initDescriptionTab(initTab(tabs, RM.getLabel("targetedition.descriptiongroup.title")));
 
 			SavePanel pnlSave = new SavePanel(this);
@@ -406,16 +413,16 @@ extends AbstractWindow {
 		rdDelta.setToolTipText(RM.getLabel("targetedition.storagetype.delta.tt"));
 
 		//if (target != null && ((AbstractIncrementalFileSystemMedium)target.getMedium()).isOverwrite()) {
-			rdImage = new Button(grpType, SWT.RADIO);
-			monitorControl(rdImage);
-			rdImage.setText(RM.getLabel("targetedition.storagetype.image"));// + " (" + RM.getLabel("common.deprecated.label") + ")");
-			rdImage.setToolTipText(RM.getLabel("targetedition.storagetype.image.tt"));
-			
-			//Application.getInstance().showDoNotShowAgainWindow(
-			//		RM.getLabel("common.image.deprecated.title"),
-			//		RM.getLabel("common.image.deprecated.message"), 
-			//		ApplicationPreferences.DISPLAY_DEPRECATED_IMAGE_MESSAGE
-			//);
+		rdImage = new Button(grpType, SWT.RADIO);
+		monitorControl(rdImage);
+		rdImage.setText(RM.getLabel("targetedition.storagetype.image"));// + " (" + RM.getLabel("common.deprecated.label") + ")");
+		rdImage.setToolTipText(RM.getLabel("targetedition.storagetype.image.tt"));
+
+		//Application.getInstance().showDoNotShowAgainWindow(
+		//		RM.getLabel("common.image.deprecated.title"),
+		//		RM.getLabel("common.image.deprecated.message"), 
+		//		ApplicationPreferences.DISPLAY_DEPRECATED_IMAGE_MESSAGE
+		//);
 		//}
 	}
 
@@ -447,6 +454,37 @@ extends AbstractWindow {
 		dt.widthHint = AbstractWindow.computeWidth(500);
 		dt.heightHint = AbstractWindow.computeHeight(70);
 		txtDesc.setLayoutData(dt);
+	}
+
+	private void initTransactionTab(Composite composite) {
+		composite.setLayout(initLayout(1));
+
+
+		// ENCRYPTION
+		Group grpTransactions = new Group(composite, SWT.NONE);
+		grpTransactions.setText(RM.getLabel("targetedition.transactions.label"));
+		grpTransactions.setLayout(new GridLayout(2, false));
+		grpTransactions.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+		chkUseTransactions = new Button(grpTransactions, SWT.CHECK);
+		chkUseTransactions.setText(RM.getLabel("targetedition.use.transactions.label"));
+		chkUseTransactions.setToolTipText(RM.getLabel("targetedition.use.transactions.tooltip"));
+		monitorControl(chkUseTransactions);
+		chkUseTransactions.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+		chkUseTransactions.addListener(SWT.Selection, new Listener(){
+			public void handleEvent(Event event) {
+				handleTransactionData();
+			}
+		});
+
+		lblTransactionSize = new Label(grpTransactions, SWT.NONE);
+		lblTransactionSize.setText(RM.getLabel("targetedition.transaction.size.label"));  
+		lblTransactionSize.setToolTipText(RM.getLabel("targetedition.transaction.size.tooltip"));
+
+		txtTransactionSize = new Text(grpTransactions, SWT.BORDER);
+		txtTransactionSize.setToolTipText(RM.getLabel("targetedition.transaction.size.tooltip"));
+		txtTransactionSize.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		monitorControl(txtTransactionSize);
 	}
 
 	private void initSourcesTab(Composite composite) {
@@ -602,6 +640,7 @@ extends AbstractWindow {
 		this.rdArchive.setEnabled(enable);
 		this.rdSingle.setEnabled(enable);
 		this.resetMVData();
+		handleTransactionData();
 	}
 
 	private void initCompressionTab(Composite composite) {
@@ -653,19 +692,27 @@ extends AbstractWindow {
 		rdArchive = new Button(grpStorage, SWT.RADIO);
 		rdArchive.setText(RM.getLabel("targetedition.zip.archive.label"));
 		rdArchive.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-		
+
 		rdArchive.addListener(SWT.Selection, new Listener(){
 			public void handleEvent(Event event) {
+				handleTransactionData();
+				
 				if (rdArchive.getSelection() && ! hasDisplayedTransactionWarning) {
 					Application.getInstance().showDoNotShowAgainWindow(RM.getLabel("common.ziparchive.transaction.warn.title"), RM.getLabel("common.ziparchive.transaction.warn.message"), "show.transaction.ziparchive.incompatibility.warning");
 					hasDisplayedTransactionWarning = true;
 				}
 			}
 		});
-		
+
 		rdSingle = new Button(grpStorage, SWT.RADIO);
 		rdSingle.setText(RM.getLabel("targetedition.zip.unit.label"));
 		rdSingle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+		
+		rdSingle.addListener(SWT.Selection, new Listener(){
+			public void handleEvent(Event event) {
+				handleTransactionData();
+			}
+		});
 
 		new Label(grpStorage, SWT.NONE);
 
@@ -797,7 +844,7 @@ extends AbstractWindow {
 				resetEcryptionKey();
 			}
 		});
-		
+
 		lblWrapping = new Label(grpEncryption, SWT.NONE);
 		lblWrapping.setText(RM.getLabel("targetedition.wrapping.label")); 
 		lblWrapping.setToolTipText(RM.getLabel("targetedition.wrapping.tooltip"));
@@ -1298,6 +1345,12 @@ extends AbstractWindow {
 			// INIT PROCS
 			this.preProcessesTab.setProcessors(target.getPreProcessors());
 			this.postProcessesTab.setProcessors(target.getPostProcessors());
+			
+			// TRANSACTION DATA
+			this.chkUseTransactions.setSelection(fMedium.isUseTransactions());
+			if (fMedium.isUseTransactions()) {
+				this.txtTransactionSize.setText("" + fMedium.getTransactionSize());
+			}
 		} else {     
 			// Default settings
 			rdZip64.setSelection(true);
@@ -1326,6 +1379,9 @@ extends AbstractWindow {
 			mdlFilters.addFilter(filter2);
 
 			addFilter(null, mdlFilters);
+			
+			this.chkUseTransactions.setSelection(true);
+			this.txtTransactionSize.setText("" + DEFAULT_TRANSACTION_SIZE);
 		}
 
 		expandAll(treFilters.getItem(0));
@@ -1333,6 +1389,7 @@ extends AbstractWindow {
 		this.resetMVData();
 		enableZipOptions(! (rdDir.getSelection()));
 		handleAlgorithmModification();
+		handleTransactionData();
 
 		// FREEZE
 		if (isFrozen(true)) {
@@ -1500,7 +1557,7 @@ extends AbstractWindow {
 		}
 		String newPath = FileSystemTarget.computeSourceRoot(sourceDirectories);
 		txtRootValue.setText(newPath);
-		
+
 		// 1 : check the sources modification
 		if (isFrozen(false)) {
 			String initialPath = ((FileSystemTarget)target).getSourceDirectory();
@@ -1508,7 +1565,7 @@ extends AbstractWindow {
 				Application.getInstance().showWarningDialog(RM.getLabel("targetedition.rootwarning.message", new Object[] {initialPath, newPath}), RM.getLabel("targetedition.rootwarning.title"), false);
 			}
 		}
-		
+
 		// 2 : sort the sources   	
 		File[] files = new File[items.length];
 		for (int i=0; i<items.length; i++) {
@@ -1679,6 +1736,18 @@ extends AbstractWindow {
 				}
 			}
 		}
+		
+		
+		// TRANSACTIONS
+		this.resetErrorState(txtTransactionSize);
+		if (this.chkUseTransactions.getSelection()) {
+			try {
+				Long.parseLong(this.txtTransactionSize.getText());
+			} catch (NumberFormatException e) {
+				this.setInError(txtTransactionSize, RM.getLabel("error.numeric.value.expected"));
+				return false;
+			}
+		}
 
 		return true;        
 	}
@@ -1782,6 +1851,25 @@ extends AbstractWindow {
 		}
 	}
 
+	private void handleTransactionData() {
+		boolean transactionsAllowed = rdDir.getSelection() || (! this.rdArchive.getSelection());
+		
+		if (transactionsAllowed) {
+			this.chkUseTransactions.setEnabled(true);
+			
+			this.lblTransactionSize.setEnabled(this.chkUseTransactions.getSelection());
+			this.txtTransactionSize.setEnabled(this.chkUseTransactions.getSelection());
+			
+			if (this.chkUseTransactions.getSelection() && (this.txtTransactionSize.getText() == null || this.txtTransactionSize.getText().trim().length() == 0)) {
+				this.txtTransactionSize.setText(""+DEFAULT_TRANSACTION_SIZE);
+			}
+		} else {
+			this.chkUseTransactions.setEnabled(false);
+			this.lblTransactionSize.setEnabled(false);
+			this.txtTransactionSize.setEnabled(false);
+		}
+	}
+
 	/**
 	 * Indique si certaines zones sont desactivees ou non
 	 * @return
@@ -1791,7 +1879,7 @@ extends AbstractWindow {
 			return false;
 		} else {
 			try {
-				return (((AbstractFileSystemMedium)target.getMedium()).listArchives(null, null).length != 0);
+				return (((AbstractFileSystemMedium)target.getMedium()).listArchives(null, null, true).length != 0);
 			} catch (Throwable e) {
 				if (showWarning) {
 					this.application.handleException(RM.getLabel("targetedition.frozen.message"), e);
@@ -1951,6 +2039,12 @@ extends AbstractWindow {
 					}
 				}
 			}
+
+			((AbstractFileSystemMedium)newTarget.getMedium()).setUseTransactions(chkUseTransactions.getSelection());
+			if (CommonRules.checkInteger(txtTransactionSize.getText())) {
+				((AbstractFileSystemMedium)newTarget.getMedium()).setTransactionSize(Long.parseLong(txtTransactionSize.getText()));
+			}
+
 			newTarget.setFilterGroup(this.mdlFilters);
 
 			preProcessesTab.addProcessors(newTarget.getPreProcessors());

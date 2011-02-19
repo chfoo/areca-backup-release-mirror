@@ -13,9 +13,9 @@ import com.application.areca.AbstractMedium;
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArecaConfiguration;
+import com.application.areca.ArecaFileConstants;
 import com.application.areca.EntryArchiveData;
 import com.application.areca.Errors;
-import com.application.areca.ArecaFileConstants;
 import com.application.areca.TargetActions;
 import com.application.areca.Utils;
 import com.application.areca.adapters.ConfigurationHandler;
@@ -81,9 +81,11 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public abstract class AbstractFileSystemMedium extends AbstractMedium implements
-		TargetActions, IndicatorTypes {
+public abstract class AbstractFileSystemMedium 
+extends AbstractMedium 
+implements TargetActions, IndicatorTypes {
 
+	private static final long DEFAULT_TRANSACTION_SIZE = ArecaConfiguration.get().getTransactionSize();
 	public static final boolean CHECK_DIRECTORY_CONSISTENCY = ArecaConfiguration.get().isCheckRepositoryConsistency();
 	private static final boolean REPOSITORY_ACCESS_DEBUG = ArecaConfiguration.get().isRepositoryAccessDebugMode();
 	private static final boolean FILESTREAMS_DEBUG = ArecaConfiguration.get().isFileStreamsDebugMode();
@@ -131,6 +133,13 @@ public abstract class AbstractFileSystemMedium extends AbstractMedium implements
 	 * Tells whether many archives shall be created on just one single archive
 	 */
 	protected boolean image = false;
+	
+	/**
+	 * If transactions are supported, size of the transactions, in kb
+	 */
+	protected long transactionSize = DEFAULT_TRANSACTION_SIZE;
+	
+	protected boolean useTransactions = true;
 
 	public boolean isImage() {
 		return this.image;
@@ -140,21 +149,50 @@ public abstract class AbstractFileSystemMedium extends AbstractMedium implements
 		this.image = imageBackups;
 	} 
 
+	public boolean isUseTransactions() {
+		return useTransactions;
+	}
+
+	public void setUseTransactions(boolean useTransactions) {
+		this.useTransactions = useTransactions;
+	}
+
 	public String checkResumeSupported() {
 		return null;
 	}
-	
+
+	public long getTransactionSize() {
+		return transactionSize;
+	}
+
+	public void setTransactionSize(long transactionSize) {
+		this.transactionSize = transactionSize;
+	}
+
 	/**
 	 * Checks that the archive provided as argument belongs to this medium
 	 */
-	public boolean checkArchiveCompatibility(File archive) {
+	public boolean checkArchiveCompatibility(File archive, boolean committedOnly) {
 		if (archive == null) {
 			return false;
 		} else {
 			String archivePath = FileSystemManager.getAbsolutePath(archive);
 
 			return (!archivePath.endsWith(DATA_DIRECTORY_SUFFIX))
-					&& isCommitted(archive);
+					&& ((! committedOnly) || isCommitted(archive));
+		}
+	}
+
+	/**
+	 * Save a temporary transaction point
+	 */
+	public void handleTransactionPoint(ProcessContext context) throws ApplicationException {
+		if (
+				this.checkResumeSupported() == null
+				&& (context.getOutputBytesInKB() - context.getTransactionBound()) >= getTransactionSize()
+		) {
+			context.setTransactionBound(context.getOutputBytesInKB());
+			initTransactionPoint(context);
 		}
 	}
 
@@ -218,7 +256,7 @@ public abstract class AbstractFileSystemMedium extends AbstractMedium implements
 	public IndicatorMap computeIndicators() throws ApplicationException {
 		try {
 			IndicatorMap indicators = new IndicatorMap();
-			File[] archives = this.listArchives(null, null);
+			File[] archives = this.listArchives(null, null, true);
 
 			// Archives' physical size - APS
 			long apsValue = 0;
@@ -376,7 +414,7 @@ public abstract class AbstractFileSystemMedium extends AbstractMedium implements
 			fromDate.add(GregorianCalendar.MILLISECOND, -1);
 		}
 
-		File[] archives = this.listArchives(fromDate, null);
+		File[] archives = this.listArchives(fromDate, null, true);
 
 		for (int i = 0; i < archives.length; i++) {
 			try {
@@ -467,7 +505,7 @@ public abstract class AbstractFileSystemMedium extends AbstractMedium implements
 
 	public EntryArchiveData[] getHistory(String entry)
 			throws ApplicationException {
-		File[] archives = this.listArchives(null, null);
+		File[] archives = this.listArchives(null, null, true);
 		ArrayList list = new ArrayList();
 
 		for (int i = 0; i < archives.length; i++) {
@@ -540,11 +578,9 @@ public abstract class AbstractFileSystemMedium extends AbstractMedium implements
 		return true;
 	}
 
-	public abstract File[] listArchives(GregorianCalendar fromDate,
-			GregorianCalendar toDate);
+	public abstract File[] listArchives(GregorianCalendar fromDate, GregorianCalendar toDate, boolean committedOnly);
 
-	public void setCompressionArguments(
-			CompressionArguments compressionArguments) {
+	public void setCompressionArguments(CompressionArguments compressionArguments) {
 		this.compressionArguments = compressionArguments;
 	}
 
@@ -570,6 +606,8 @@ public abstract class AbstractFileSystemMedium extends AbstractMedium implements
 		ToStringHelper.append("FileSystemPolicy", this.fileSystemPolicy, sb);
 		ToStringHelper.append("EncryptionPolicy", this.encryptionPolicy, sb);
 		ToStringHelper.append("CompressionArguments", this.compressionArguments, sb);
+		ToStringHelper.append("Image", this.image, sb);
+		ToStringHelper.append("Transaction Size", this.transactionSize, sb);
 		return ToStringHelper.close(sb);
 	}
 
@@ -724,6 +762,8 @@ public abstract class AbstractFileSystemMedium extends AbstractMedium implements
 		other.setFileSystemPolicy((FileSystemPolicy) this.fileSystemPolicy.duplicate());
 		other.compressionArguments = (CompressionArguments) this.compressionArguments.duplicate();
 		other.image = this.image;
+		other.transactionSize = this.transactionSize;
+		other.useTransactions = this.useTransactions;
 	}
 
 	protected abstract void deleteArchive(File archive) throws IOException;

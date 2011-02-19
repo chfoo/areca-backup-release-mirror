@@ -13,6 +13,7 @@ import java.util.zip.GZIPInputStream;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
+import com.application.areca.ArchiveMedium;
 import com.application.areca.ArecaConfiguration;
 import com.application.areca.ArecaFileConstants;
 import com.application.areca.cache.ArchiveManifestCache;
@@ -46,6 +47,8 @@ import com.myJava.file.delta.sequence.ByteProcessorException;
 import com.myJava.file.delta.sequence.FileSequencerByteProcessor;
 import com.myJava.file.delta.sequence.HashSequence;
 import com.myJava.file.delta.sequence.SequenceAdapter;
+import com.myJava.file.driver.DriverAlreadySetException;
+import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.object.Duplicable;
 import com.myJava.system.OSTool;
@@ -88,7 +91,7 @@ extends AbstractArchiveHandler {
 	private static final int MAX_BLOCK_SIZE_BYTE = ArecaConfiguration.get().getDeltaMaxBucketSize();
 	private static final int TARGET_BUCKET_NUMBER = ArecaConfiguration.get().getDeltaTargetBucketNumber();
 
-	private static final String LOCAL_COPY_SUFFIX = "lc";
+	private static final String LOCAL_COPY_SUFFIX = "lcpy0";
 	private static final String SEQUENCE_FOLDER = "seq";
 
 	/**
@@ -270,7 +273,7 @@ extends AbstractArchiveHandler {
 	}
 	
 	private File[] listCandidatesForSequenceLookup(GregorianCalendar date, String backupScheme) {
-		File[] files = medium.listArchives(null, date);
+		File[] files = medium.listArchives(null, date, true);
 		return files;
 	}
 
@@ -353,6 +356,11 @@ extends AbstractArchiveHandler {
 		}
 	}
 	 */
+	
+	public void initializeSimulationDriverData(FileSystemDriver initialDriver, ProcessContext context) throws IOException, DriverAlreadySetException {
+		File workDirectory = buildRecoveryFile(context.getRecoveryDestination());
+		FileSystemManager.getInstance().registerDriver(workDirectory, initialDriver);
+	}
 
 	public void recoverRawData(
 			File[] archivesToRecover, 
@@ -439,7 +447,7 @@ extends AbstractArchiveHandler {
 
 		// Local input stream
 		LayerHandler in = null;
-		if (mode == MODE_RECOVER) {
+		if (mode == ArchiveMedium.RECOVER_MODE_RECOVER) {
 			in = new DeltaInputStream();
 		} else {
 			in = new DeltaMerger();
@@ -470,7 +478,7 @@ extends AbstractArchiveHandler {
 			FileTool.getInstance().createDir(FileSystemManager.getParentFile(target));
 			OutputStream out = FileSystemManager.getFileOutputStream(target, false, context.getOutputStreamListener());
 
-			if (mode == MODE_RECOVER) {
+			if (mode == ArchiveMedium.RECOVER_MODE_RECOVER) {
 				if (DEBUG) {
 					Logger.defaultLogger().fine("Recovering ...");
 				}

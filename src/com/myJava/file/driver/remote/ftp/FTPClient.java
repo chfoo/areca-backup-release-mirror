@@ -43,8 +43,6 @@ public class FTPClient extends org.apache.commons.net.ftp.FTPClient {
 		super();
 		this.ignorePasvErrors = ignorePasvErrors;
 	}
-	
-	
 
 	public int pasv() throws IOException {
 		int ret = super.pasv();

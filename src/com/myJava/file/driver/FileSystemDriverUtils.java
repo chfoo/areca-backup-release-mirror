@@ -69,7 +69,7 @@ public class FileSystemDriverUtils {
 					&& (driver.exists(fileOrDirectory))
 			) {
 				retry++;
-				if (retry == 10 || retry == 100 || retry == DELETION_MAX_ATTEMPTS) {
+				if (retry == 100 || retry == DELETION_MAX_ATTEMPTS) {
 					Logger
 					.defaultLogger()
 					.warn(

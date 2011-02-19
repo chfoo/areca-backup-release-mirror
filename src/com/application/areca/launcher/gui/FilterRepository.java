@@ -96,7 +96,7 @@ public class FilterRepository {
 
 	public static List getFilters() {
 		ArrayList list = new ArrayList();
-		int nb = OSTool.isSystemWindows() ? 6 : 8;
+		int nb = OSTool.isSystemWindows() ? 7 : 9;
 		for (int i=0; i<nb; i++) {
 			list.add(LABELS[i]);
 		}

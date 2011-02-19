@@ -473,6 +473,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         } else {
             throw new IllegalArgumentException("Unknown handler type : " + medium.getHandler().getClass().getName());
         }
+        serializeTransactionData(medium);
         sb.append("\n</" + XML_MEDIUM + ">");
         
     }
@@ -490,6 +491,14 @@ public class TargetXMLWriter extends AbstractXMLWriter {
     
     protected void serializeHandler(DeltaArchiveHandler handler) {
         startHandler(XML_HANDLER_TYPE_DELTA);
+        sb.append("/>");
+    }
+    
+    protected void serializeTransactionData(AbstractIncrementalFileSystemMedium medium) {
+        sb.append("\n<");
+        sb.append(XML_TRANSACTION_CONFIG);
+        sb.append(XMLTool.encodeProperty(XML_USE_TRANSACTIONS, medium.isUseTransactions()));
+        sb.append(XMLTool.encodeProperty(XML_TRANSACTION_SIZE, medium.getTransactionSize()));
         sb.append("/>");
     }
     

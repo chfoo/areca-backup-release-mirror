@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import com.myJava.configuration.FrameworkConfiguration;
+import com.myJava.file.AsyncOutputStream;
 import com.myJava.file.EventOutputStream;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.OutputStreamListener;
@@ -54,7 +55,8 @@ This file is part of Areca.
 public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 	protected static boolean USE_BUFFER = FrameworkConfiguration.getInstance().useFileSystemBuffer();
 	protected static int BUFFER_SIZE = FrameworkConfiguration.getInstance().getFileSystemBufferSize();
-
+	protected static boolean ASYNC_OUTPUT = false;
+	
 	public boolean canRead(File file) {
 		return file.canRead();
 	}
@@ -330,11 +332,7 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 
 	public OutputStream getFileOutputStream(File file) throws IOException {
 		checkFilePath(file);
-		if (USE_BUFFER) {
-			return new BufferedOutputStream(new FileOutputStream(file), BUFFER_SIZE);
-		} else {
-			return new FileOutputStream(file);
-		}
+		return wrapOutputStream(new FileOutputStream(file));
 	}
 
 	public OutputStream getFileOutputStream(File file, boolean append, OutputStreamListener listener) throws IOException {
@@ -344,10 +342,17 @@ public class DefaultFileSystemDriver extends AbstractFileSystemDriver {
 
 	public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
 		checkFilePath(file);
+		return wrapOutputStream(new FileOutputStream(file, append));
+	}
+	
+	private OutputStream wrapOutputStream(OutputStream out) {
+		if (ASYNC_OUTPUT) {
+			out = new AsyncOutputStream(out);
+		}
 		if (USE_BUFFER) {
-			return new BufferedOutputStream(new FileOutputStream(file, append), BUFFER_SIZE);
+			return new BufferedOutputStream(out, BUFFER_SIZE);
 		} else {
-			return new FileOutputStream(file, append);
+			return out;
 		}
 	}
 

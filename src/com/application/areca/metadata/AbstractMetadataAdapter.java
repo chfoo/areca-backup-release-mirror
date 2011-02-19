@@ -194,7 +194,7 @@ public abstract class AbstractMetadataAdapter {
 
 	protected MetadataHeader getMetaData() throws IOException {
 		if (this.header == null) {
-			long version = 1L;
+			long version = 0L;
 			String prefix = null;
 			FileTool tool = FileTool.getInstance();
 			String[] lines = tool.getInputStreamRows(getInputStream(), DATA_CHARSET, 2, true);
@@ -212,7 +212,7 @@ public abstract class AbstractMetadataAdapter {
 				}
 			}
 
-			if (version < 5) {
+			if (version != 0 && version < 5) {
 				Logger.defaultLogger().warn("Incompatible metadata format : version=" + version);
 				throw new IllegalArgumentException("The archive your are trying to read was created with an old version of " + VersionInfos.APP_SHORT_NAME + ". Your current version of " + VersionInfos.APP_SHORT_NAME + " (" + VersionInfos.getLastVersion().getVersionId() + ") is not compatible with archives created with older versions than 7.0.");
 			}

@@ -45,6 +45,10 @@ This file is part of Areca.
  */
 public interface ArchiveMedium extends Duplicable {
 
+    public static final short RECOVER_MODE_MERGE = 1;
+    public static final short RECOVER_MODE_RECOVER = 2;
+    public static final short RECOVER_MODE_CHECK = 3;
+    
 	/**
 	 * Check the medium's state
 	 */
@@ -128,6 +132,9 @@ public interface ArchiveMedium extends Duplicable {
      * Save a temporary transaction point
      */
     public void initTransactionPoint(ProcessContext context)
+    throws ApplicationException;
+    
+    public void handleTransactionPoint(ProcessContext context)
     throws ApplicationException;
     
     /**

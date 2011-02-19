@@ -245,7 +245,7 @@ public class FrameworkConfiguration {
     public static int DEF_FTP_MAX_PROXIES = 3;
     public static long DEF_FTP_NOOP_DELAY = 20000;    
     public static boolean DEF_FTP_DEBUG =  false;
-    public static int DEF_FT_DELAY = 100;
+    public static int DEF_FT_DELAY = 200;
     public static int DEF_FT_BUFFER_SIZE = 100000;
     public static int DEF_FTP_CACHE_SIZE = 300;    
     public static boolean DEF_FTP_USE_CACHE = true;    

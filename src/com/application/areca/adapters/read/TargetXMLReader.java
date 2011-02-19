@@ -580,6 +580,30 @@ public class TargetXMLReader implements XMLTags {
 				}
 				medium.setHandler(readHandler(children.item(i)));
 			}
+			
+			if (child.equalsIgnoreCase(XML_TRANSACTION_CONFIG)) {
+				Node transactionNode = children.item(i);
+				
+				boolean useTransactions = true;
+				long transactionSize = -1;
+				
+				Node enabledNode = transactionNode.getAttributes().getNamedItem(XML_USE_TRANSACTIONS);
+				if (enabledNode != null) {
+					useTransactions = Boolean.valueOf(enabledNode.getNodeValue()).booleanValue();
+				}
+				
+				if (useTransactions) {
+					Node sizeNode = transactionNode.getAttributes().getNamedItem(XML_TRANSACTION_SIZE);
+					if (sizeNode != null) {
+						transactionSize = Long.parseLong(sizeNode.getNodeValue());
+					}
+				}
+				
+				medium.setUseTransactions(useTransactions);
+				if (useTransactions) {
+					medium.setTransactionSize(transactionSize);
+				}
+			}
 		}
 
 		// Default handler

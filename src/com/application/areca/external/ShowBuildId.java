@@ -1,6 +1,6 @@
-package com.myJava.file.vss;
+package com.application.areca.external;
 
-import java.io.File;
+import com.application.areca.version.VersionInfos;
 
 /**
  * 
@@ -30,11 +30,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class VSSTest {
+public class ShowBuildId {
 	public static void main(String[] args) {
-		File f = new File("\\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy20\\SnapDir");
-		f = new File("\\\\?\\GLOBALROOT\\Device");
-		System.out.println("Exists : " + f.exists());
-		System.out.println("Length : " + f.length());
+		System.out.println(VersionInfos.getBuildId());
 	}
 }

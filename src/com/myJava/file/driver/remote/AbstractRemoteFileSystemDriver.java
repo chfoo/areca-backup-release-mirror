@@ -360,12 +360,14 @@ extends AbstractFileSystemDriver {
         disconnect();
     }
 
-
     protected void disconnect() {
         Logger.defaultLogger().info("Disconnecting all proxies ...");
+        Logger.defaultLogger().fine("Disconnecting main proxy ...");
         this.proxy.disconnect();
         Iterator iter = this.alternateProxies.iterator();
+        int i=0;
         while (iter.hasNext()) {
+            Logger.defaultLogger().fine("Disconnecting proxy #" + ++i + " ...");
             AbstractProxy px = (AbstractProxy)iter.next();
             px.disconnect();
         }

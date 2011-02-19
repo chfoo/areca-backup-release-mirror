@@ -15,6 +15,8 @@ import com.application.areca.metadata.content.ContentFileIterator;
 import com.application.areca.metadata.transaction.TransactionPoint;
 import com.myJava.file.FileFilterList;
 import com.myJava.file.FileTool;
+import com.myJava.file.driver.DriverAlreadySetException;
+import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.object.Duplicable;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -80,6 +82,9 @@ extends AbstractArchiveHandler {
 
 	public void init(ProcessContext context, TransactionPoint transactionPoint) 
 	throws IOException {
+	}
+	
+	public void initializeSimulationDriverData(FileSystemDriver initialDriver, ProcessContext context) throws IOException, DriverAlreadySetException {
 	}
 
 	public Duplicable duplicate() {

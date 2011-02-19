@@ -86,6 +86,10 @@ public interface XMLTags {
     public static final String XML_HANDLER_TYPE = "type";
     public static final String XML_HANDLER_TYPE_STANDARD = "standard";
     public static final String XML_HANDLER_TYPE_DELTA = "delta";
+    
+    public static final String XML_TRANSACTION_CONFIG = "transaction_configuration";
+    public static final String XML_USE_TRANSACTIONS = "use_transactions";
+    public static final String XML_TRANSACTION_SIZE = "transaction_size";
 
     public static final String XML_MEDIUM = "medium";    
     public static final String XML_MEDIUM_ARCHIVEPATH_DEPRECATED = "archive_path";   // Backward - compatibility

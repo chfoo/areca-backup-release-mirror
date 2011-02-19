@@ -424,7 +424,7 @@ implements TargetActions {
             mFromDate.add(Calendar.MILLISECOND, -1);
             GregorianCalendar mToDate = (GregorianCalendar)toDate.clone();
             mToDate.add(Calendar.MILLISECOND, 1);
-            File[] recoveredFiles = mdm.listArchives(mFromDate, mToDate);
+            File[] recoveredFiles = mdm.listArchives(mFromDate, mToDate, true);
             return mdm.buildDefaultMergeManifest(recoveredFiles, fromDate, toDate);
         }
     }

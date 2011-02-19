@@ -265,6 +265,7 @@ public class FTPProxy extends AbstractProxy {
 
 			debug("connect : connect", remoteServer);
 			client.connect(remoteServer, this.remotePort);
+			//RemoteConnectionMonitor.getInstance().registerNewConnection(client, this);
 
 			Logger.defaultLogger().info("Received FTP server response : " + formatFTPReplyString(client.getReplyString()));
 			this.connectionId = Util.getRndLong();
@@ -349,6 +350,7 @@ public class FTPProxy extends AbstractProxy {
 				Logger.defaultLogger().info("Disconnecting from server : " + this.remoteServer + " ...");
 				debug("disconnect : disconnect");
 				this.client.disconnect();
+				//RemoteConnectionMonitor.getInstance().registerCloseEvent(client, this);
 				Logger.defaultLogger().info("OK : disconnected from server : " + this.remoteServer + ".");
 			}
 		} catch (IOException e) {

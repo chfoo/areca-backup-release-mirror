@@ -38,7 +38,7 @@ This file is part of Areca.
 public class ArchiveContentManager {
     
     public static File resolveContentFileForArchive(AbstractIncrementalFileSystemMedium medium, File archive) throws IOException {
-        if (! medium.checkArchiveCompatibility(archive)) {
+        if (! medium.checkArchiveCompatibility(archive, true)) {
             return null;
         }
     	File metadataDir = medium.getDataDirectory(archive);
@@ -46,7 +46,7 @@ public class ArchiveContentManager {
     }
     
     public static File resolveHashFileForArchive(AbstractIncrementalFileSystemMedium medium, File archive) throws IOException {
-        if (! medium.checkArchiveCompatibility(archive)) {
+        if (! medium.checkArchiveCompatibility(archive, true)) {
             return null;
         }
     	File metadataDir = medium.getDataDirectory(archive);
@@ -54,7 +54,7 @@ public class ArchiveContentManager {
     }
     
     public static File resolveSequenceFileForArchive(AbstractIncrementalFileSystemMedium medium, File archive) throws IOException {
-        if (! medium.checkArchiveCompatibility(archive)) {
+        if (! medium.checkArchiveCompatibility(archive, true)) {
             return null;
         }
     	File metadataDir = medium.getDataDirectory(archive);

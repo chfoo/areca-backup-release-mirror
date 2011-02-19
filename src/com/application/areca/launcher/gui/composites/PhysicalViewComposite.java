@@ -157,7 +157,7 @@ implements SelectionListener, Refreshable {
 		File[] archives = new File[0];
 		try {
 			Logger.defaultLogger().info("Looking for archives in " + medium.getFileSystemPolicy().getDisplayableParameters(true), "Physical View");
-			archives = medium.listArchives(null, null);
+			archives = medium.listArchives(null, null, true);
 		} catch (Throwable e) {
 			this.application.handleException(e);
 		}

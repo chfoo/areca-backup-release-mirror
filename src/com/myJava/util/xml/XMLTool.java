@@ -70,6 +70,10 @@ public class XMLTool {
     	return encodeProperty(property, "" + value);
     }
     
+    public static String encodeProperty(String property, long value) {
+    	return encodeProperty(property, "" + value);
+    }
+    
     public static String encodeProperty(String property, String value) {
 		StringBuffer sb = new StringBuffer();
 		if (value != null) {

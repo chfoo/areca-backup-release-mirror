@@ -20,11 +20,12 @@ import org.eclipse.swt.widgets.MessageBox;
 
 import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
-import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.ApplicationPreferences;
+import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.Refreshable;
 import com.application.areca.launcher.gui.common.SecuredRunner;
+import com.myJava.file.driver.remote.RemoteConnectionMonitor;
 import com.myJava.system.OSTool;
 import com.myJava.util.Util;
 import com.myJava.util.log.LogHelper;
@@ -183,6 +184,9 @@ implements LogProcessor, Refreshable {
 		btnThreadDump.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				Util.logAllThreadInformations();
+				
+				Logger.defaultLogger().info("Connection data :");
+				Logger.defaultLogger().fine(RemoteConnectionMonitor.getInstance().toString());
 			}
 		});
 

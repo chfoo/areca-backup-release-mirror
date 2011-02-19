@@ -11,6 +11,8 @@ import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.transaction.TransactionPoint;
+import com.myJava.file.driver.DriverAlreadySetException;
+import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.object.Duplicable;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -47,10 +49,6 @@ This file is part of Areca.
 
  */
 public interface ArchiveHandler extends Duplicable {
-
-    public static final short MODE_MERGE = 1;
-    public static final short MODE_RECOVER = 2;
-    
     /**
      * Medium to which the handler is associated
      */
@@ -116,4 +114,9 @@ public interface ArchiveHandler extends Duplicable {
 	 * Ugly but no time to do better
 	 */
 	public File getContentFile(File archive);
+	
+	/**
+	 * performs simulation-specific driver initializations
+	 */
+	public void initializeSimulationDriverData(FileSystemDriver initialDriver, ProcessContext context) throws IOException, DriverAlreadySetException;
 }
