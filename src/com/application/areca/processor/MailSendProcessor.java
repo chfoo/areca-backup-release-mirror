@@ -40,7 +40,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -68,9 +68,22 @@ public class MailSendProcessor extends AbstractProcessor {
 	private String password;
 	private String title = "" + VersionInfos.APP_SHORT_NAME + " : backup report for target %TARGET_NAME%.";
 	private String intro = "Backup report :";
+	private boolean appendStatistics;
 
 	public MailSendProcessor() {
 		super();
+	}
+	
+	public boolean requireStatictics() {
+		return appendStatistics;
+	}
+
+	public boolean isAppendStatistics() {
+		return appendStatistics;
+	}
+
+	public void setAppendStatistics(boolean appendStatistics) {
+		this.appendStatistics = appendStatistics;
 	}
 	
 	public String getKey() {
@@ -277,7 +290,7 @@ public class MailSendProcessor extends AbstractProcessor {
 		 ProcessReportWriter writer = null;
 		 ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		 try {
-			 writer = new ProcessReportWriter(new OutputStreamWriter(baos));
+			 writer = new ProcessReportWriter(new OutputStreamWriter(baos), appendStatistics);
 			 writer.writeReport(report);
 		 } finally {
 			 writer.close();            

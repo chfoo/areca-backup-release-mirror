@@ -13,8 +13,9 @@ import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.content.ArchiveContentManager;
 import com.application.areca.metadata.content.ContentFileIterator;
 import com.application.areca.metadata.transaction.TransactionPoint;
-import com.myJava.file.FileFilterList;
+import com.myJava.file.FileList;
 import com.myJava.file.FileTool;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.file.driver.DriverAlreadySetException;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.object.Duplicable;
@@ -29,7 +30,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -58,7 +59,9 @@ extends AbstractArchiveHandler {
 
 	public void recoverRawData(
 			File[] archivesToRecover, 
-			RecoveryFilterMap filtersByArchive, 
+			RecoveryFilterMap filtersByArchive,
+            CopyPolicy policy,
+			File referenceTrace,
 			short mode,
 			ProcessContext context
 	) throws IOException, ApplicationException, TaskCancelledException {
@@ -68,6 +71,8 @@ extends AbstractArchiveHandler {
 				true, 
 				context.getRecoveryDestination(), 
 				filtersByArchive, 
+				policy,
+				referenceTrace,
 				context
 		);
 	}
@@ -109,7 +114,7 @@ extends AbstractArchiveHandler {
 			for (int e=0; e<entriesToRecover.length; e++) {
 				int index = -1;
 				for (int i=archives.length-1; i>=0; i--) {
-					boolean found = iters[i].fetchUntil(entriesToRecover[e]);
+					boolean found = iters[i].fetch(entriesToRecover[e]);
 					if (found) {
 						index = i;
 						break;
@@ -120,9 +125,9 @@ extends AbstractArchiveHandler {
 					// This can happen if the user tries to recover a symbolic link
 					// throw new IllegalStateException(entriesToRecover[e] + " was not found in ANY archive.");
 				} else {
-					FileFilterList entries = (FileFilterList)entriesByArchive.get(archives[index]);
+					FileList entries = (FileList)entriesByArchive.get(archives[index]);
 					if (entries == null) {
-						entries = new FileFilterList();
+						entries = new FileList();
 						entriesByArchive.put(archives[index], entries);
 					}
 					entries.add(entriesToRecover[e]);

@@ -10,6 +10,7 @@ import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.transaction.TransactionPoint;
 import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.object.Duplicable;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.HistoryHandler;
@@ -24,7 +25,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -85,7 +86,8 @@ public interface ArchiveMedium extends Duplicable {
      */
     public void recover(
             Object destination, 
-            String[] filter,
+            ArecaFileList filter,
+            CopyPolicy policy,
             GregorianCalendar date,
             boolean keepDeletedEntries,
             boolean checkRecoveredFiles,

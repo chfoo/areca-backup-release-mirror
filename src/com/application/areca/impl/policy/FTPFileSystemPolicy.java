@@ -21,7 +21,7 @@ import com.myJava.object.ToStringHelper;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -125,6 +125,11 @@ implements FileSystemPolicy {
         copyAttributes(policy);
         return policy;
     }
+    
+	public AccessInformations checkReachable() {
+		AccessInformations ret = new AccessInformations();
+		return ret;
+	}
        
     public String getLogin() {
         return login;

@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui.postprocessors;
+package com.application.areca.launcher.gui.processors;
 
 import java.io.File;
 
@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
+import com.application.areca.launcher.gui.processors.AbstractProcessorComposite;
 import com.application.areca.processor.FileDumpProcessor;
 import com.application.areca.processor.Processor;
 import com.myJava.file.FileSystemManager;
@@ -26,7 +27,7 @@ import com.myJava.file.FileSystemManager;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -49,6 +50,7 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
 
     private Text txtDir;
     private Text txtName;
+    private Button chkAppendStatistics;
     
     public FileDumpProcessorComposite(Composite composite, Processor proc, final ProcessorEditionWindow window) {
         super(composite, proc, window);
@@ -83,11 +85,20 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
         Label lblExample = new Label(this, SWT.NONE);
         lblExample.setText(RM.getLabel("procedition.dynparams.label"));
         lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        new Label(this, SWT.NONE);
+        
+        // Append Statistics
+        new Label(this, SWT.NONE);
+        chkAppendStatistics = new Button(this, SWT.CHECK);
+        chkAppendStatistics.setText(RM.getLabel("procedition.appendstats.label"));
+        chkAppendStatistics.setToolTipText(RM.getLabel("procedition.appendstats.tt"));
+        window.monitorControl(chkAppendStatistics);
         
         if (proc != null) {
             FileDumpProcessor sProc = (FileDumpProcessor)proc;
             txtDir.setText(FileSystemManager.getAbsolutePath(sProc.getDestinationFolder()));
             txtName.setText(sProc.getReportName());
+            chkAppendStatistics.setSelection(sProc.isAppendStatistics());
         }
     }
 
@@ -95,6 +106,7 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
         FileDumpProcessor fProc = (FileDumpProcessor)proc;
         fProc.setDestinationFolder(new File(txtDir.getText()));
         fProc.setReportName(txtName.getText());
+        fProc.setAppendStatistics(chkAppendStatistics.getSelection());
     }
     
     public boolean validateParams() {

@@ -17,7 +17,7 @@ import com.myJava.object.HashHelper;
 import com.myJava.util.log.Logger;
 
 /**
- * Dumps the report into a file
+ * Dump the report into a file
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -25,7 +25,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -48,6 +48,7 @@ public class FileDumpProcessor extends AbstractProcessor {
 
 	private File destinationFolder;
 	private String reportName = "%TARGET_UID%_%ARCHIVE_NAME%.report";
+	private boolean appendStatistics;
 
 	/**
 	 * @param target
@@ -64,6 +65,18 @@ public class FileDumpProcessor extends AbstractProcessor {
 		this.destinationFolder = destinationFolder;
 	}
 
+	public boolean requireStatictics() {
+		return appendStatistics;
+	}
+
+	public boolean isAppendStatistics() {
+		return appendStatistics;
+	}
+
+	public void setAppendStatistics(boolean appendStatistics) {
+		this.appendStatistics = appendStatistics;
+	}
+
 	public String getReportName() {
 		return reportName;
 	}
@@ -72,7 +85,7 @@ public class FileDumpProcessor extends AbstractProcessor {
 		this.reportName = name;
 	}
 
-	public void runImpl(ProcessContext context) throws ApplicationException {
+	public void runImpl(ProcessContext context) throws ApplicationException {	
 		ProcessReportWriter writer = null;
 		File destination = new File(
 				destinationFolder, 
@@ -90,7 +103,7 @@ public class FileDumpProcessor extends AbstractProcessor {
 				FileTool tool = FileTool.getInstance();
 				tool.createDir(parent);
 			}
-			writer = new ProcessReportWriter(FileSystemManager.getWriter(destination));
+			writer = new ProcessReportWriter(FileSystemManager.getWriter(destination), appendStatistics);
 			writer.writeReport(report);
 		} catch (FileNotFoundException e) {
 			Logger.defaultLogger().error("The report filename is incorrect : " + FileSystemManager.getAbsolutePath(destination), e);            

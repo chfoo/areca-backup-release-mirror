@@ -7,12 +7,12 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ResourceManager;
-import com.application.areca.launcher.gui.postprocessors.AbstractProcessorComposite;
-import com.application.areca.launcher.gui.postprocessors.DeleteProcessorComposite;
-import com.application.areca.launcher.gui.postprocessors.FileDumpProcessorComposite;
-import com.application.areca.launcher.gui.postprocessors.MailSendProcessorComposite;
-import com.application.areca.launcher.gui.postprocessors.MergeProcessorComposite;
-import com.application.areca.launcher.gui.postprocessors.ShellScriptProcessorComposite;
+import com.application.areca.launcher.gui.processors.AbstractProcessorComposite;
+import com.application.areca.launcher.gui.processors.DeleteProcessorComposite;
+import com.application.areca.launcher.gui.processors.FileDumpProcessorComposite;
+import com.application.areca.launcher.gui.processors.MailSendProcessorComposite;
+import com.application.areca.launcher.gui.processors.MergeProcessorComposite;
+import com.application.areca.launcher.gui.processors.ShellScriptProcessorComposite;
 import com.application.areca.processor.DeleteProcessor;
 import com.application.areca.processor.FileDumpProcessor;
 import com.application.areca.processor.MailSendProcessor;
@@ -28,7 +28,7 @@ import com.application.areca.processor.ShellScriptProcessor;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 

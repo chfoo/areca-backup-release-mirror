@@ -8,16 +8,20 @@ import java.util.List;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
+import com.application.areca.impl.copypolicy.ArecaCompositeCopyPolicy;
+import com.application.areca.impl.copypolicy.TraceFileFilter;
 import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.trace.ArchiveTraceManager;
 import com.application.areca.metadata.transaction.TransactionPoint;
-import com.myJava.file.FileFilterList;
+import com.myJava.file.FileList;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.InvalidPathException;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.file.driver.CompressedFileSystemDriver;
 import com.myJava.file.driver.FileSystemDriver;
+import com.myJava.file.iterator.FileNameComparator;
 import com.myJava.object.Duplicable;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
@@ -31,7 +35,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -74,7 +78,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 
 	protected void prepareContext(ProcessContext context, TransactionPoint transactionPoint) throws IOException {
 		super.prepareContext(context, transactionPoint);
-		
+
 		// If a transaction point is used, the previousHashIterator has been set during the context's deserialization.
 		// -> No need to instantiate a new one.
 		if (image && context.getReferenceTrace() != null && transactionPoint == null) {
@@ -84,12 +88,12 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 			);
 		}
 	}
-	
-    protected void registerUnstoredFile(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException {
+
+	protected void registerUnstoredFile(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException {
 		if (image) {
 			context.getContentAdapter().writeContentEntry(entry);
-		
-			boolean found = context.getPreviousHashIterator().fetchUntil(entry.getKey());
+
+			boolean found = context.getPreviousHashIterator().fetch(entry.getKey());
 			if (found) {
 				context.getHashAdapter().writeGenericEntry(entry.getKey(), context.getPreviousHashIterator().current().getData());
 			} else {
@@ -123,9 +127,9 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 		} catch (InvalidPathException e) {
 			throw new ApplicationException("Error storing file " + FileSystemManager.getAbsolutePath(entry.getFile()) + " : " + e.getMessage(), e);
 		} catch (IOException e) {
-            Logger.defaultLogger().error(e);
-            throw e;
-        } catch (Throwable e) {
+			Logger.defaultLogger().error(e);
+			throw e;
+		} catch (Throwable e) {
 			if (e instanceof TaskCancelledException) {
 				throw (TaskCancelledException)e;
 			} else {
@@ -148,34 +152,41 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 			File[] archivesToProcess, 
 			boolean overrideRecoveredFiles, 
 			File destination, 
-			RecoveryFilterMap filtersByArchive, 
+			RecoveryFilterMap filesByArchive, 
+			CopyPolicy policy,
+			File referenceTrace,
 			ProcessContext context
 	) throws IOException, ApplicationException, TaskCancelledException {
 		if (overrideRecoveredFiles) {
 			try {
 				context.getInfoChannel().print("Data recovery ...");
+				TraceFileFilter f = new TraceFileFilter(referenceTrace, FileSystemManager.getAbsolutePath(destination));
 				for (int i=0; i<archivesToProcess.length; i++) {
-					FileFilterList filters = null;
-					if (filtersByArchive != null) {
-						filters = (FileFilterList)filtersByArchive.get(archivesToProcess[i]);
-					}
-					logRecoveryStep(filtersByArchive, filters, archivesToProcess[i], context);
+					try {
+						if (filesByArchive == null) {
+							throw new ApplicationException("The file map passed as argument shall not be null.");
+						}
 
-					// Copy current element
-					if (filtersByArchive == null) {
-						doAndRetry(new EnsureLocalCopy(archivesToProcess, i, destination, context), "An error was detected during recovery of " + archivesToProcess[i].getAbsolutePath());
-						
-					} else if (filters != null) {
-						for (int j=0; j<filters.size(); j++) {
-							File sourceFileOrDirectory = new File(archivesToProcess[i], filters.get(j));
-							if (FileSystemManager.exists(sourceFileOrDirectory)) {
-								File targetDirectory = FileSystemManager.getParentFile(new File(destination, filters.get(j)));
-								doAndRetry(new EnsureLocalCopyByFilter(targetDirectory, sourceFileOrDirectory, context), "An error was detected during recovery of " + archivesToProcess[i].getAbsolutePath());
+						FileList files = (FileList)filesByArchive.get(archivesToProcess[i]);
+						logRecoveryStep(filesByArchive, files, archivesToProcess[i], context);
+
+						// Copy current element
+						if (files != null) {
+							for (int j=0; j<files.size(); j++) {
+								File sourceFileOrDirectory = new File(archivesToProcess[i], files.get(j));
+								if (FileSystemManager.exists(sourceFileOrDirectory)) {
+									File targetDirectory = FileSystemManager.getParentFile(new File(destination, files.get(j)));
+									doAndRetry(new EnsureLocalCopyTask(sourceFileOrDirectory, targetDirectory, new ArecaCompositeCopyPolicy(f, policy), context), "An error was detected during recovery of " + archivesToProcess[i].getAbsolutePath());
+								}
 							}
 						}
-					}
 
-					context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, archivesToProcess.length);
+						context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, archivesToProcess.length);
+					} finally {
+						if (f != null) {
+							f.reset();
+						}
+					}
 				}
 
 				return new File[] {destination};
@@ -193,56 +204,22 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 			return archivesToProcess;
 		}
 	}
-	
-	private class EnsureLocalCopyByFilter implements IOTask {
-		private File targetDirectory;
+
+	private class EnsureLocalCopyTask implements IOTask {
+		private File destination;
 		private File sourceFileOrDirectory;
 		private ProcessContext context;
+		private CopyPolicy policy;
 
-		public EnsureLocalCopyByFilter(File targetDirectory, File sourceFileOrDirectory, ProcessContext context) {
-			this.targetDirectory = targetDirectory;
-			this.sourceFileOrDirectory = sourceFileOrDirectory;
-			this.context = context;
-		}
-
-		public void run() throws IOException, TaskCancelledException, ApplicationException {
-			tool.copy(sourceFileOrDirectory, targetDirectory, context.getTaskMonitor(), context.getOutputStreamListener());
-		}
-	}
-	
-	private class EnsureLocalCopy implements IOTask {
-		private File[] archivesToProcess;
-		private int i;
-		private File destination;
-		private ProcessContext context;
-
-		public EnsureLocalCopy(File[] archivesToProcess, int i, File destination, ProcessContext context) {
-			this.archivesToProcess = archivesToProcess;
-			this.i = i;
+		public EnsureLocalCopyTask(File sourceFileOrDirectory, File destination, CopyPolicy policy, ProcessContext context) {
 			this.destination = destination;
+			this.sourceFileOrDirectory = sourceFileOrDirectory;
+			this.policy = policy;
 			this.context = context;
 		}
 
 		public void run() throws IOException, TaskCancelledException, ApplicationException {
-			copyFile(archivesToProcess[i], destination, FileSystemManager.getAbsolutePath(archivesToProcess[i]), i, context);
-		}
-	}
-
-	/**
-	 * Copy a stored file to a local location denoted by the "destination" argument.
-	 */
-	private void copyFile(File source, File destination, String root, int index, ProcessContext context) 
-	throws IOException, TaskCancelledException {
-		String localPath = FileSystemManager.getAbsolutePath(source).substring(root.length());
-		if (FileSystemManager.isFile(source)) {
-			File tg = new File(destination, localPath);
-			tool.copyFile(source, FileSystemManager.getFileOutputStream(tg, false, context.getOutputStreamListener()), true, context.getTaskMonitor());
-		} else {
-			tool.createDir(new File(destination, localPath));
-			File[] files = FileSystemManager.listFiles(source);
-			for (int i=0; i<files.length; i++) {
-				copyFile(files[i], destination, root, index, context);
-			}
+			tool.copy(sourceFileOrDirectory, destination, policy, new FileNameComparator(), context.getTaskMonitor(), context.getOutputStreamListener());
 		}
 	}
 
@@ -258,7 +235,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 		if (context.getCurrentArchiveFile() != null && context.getRecoveryDestination() != null && ! context.getCurrentArchiveFile().equals(context.getRecoveryDestination())) {
 			try {			
 				AbstractFileSystemMedium.tool.createDir(context.getCurrentArchiveFile());
-				FileTool.getInstance().copyDirectoryContent(context.getRecoveryDestination(), context.getCurrentArchiveFile(), context.getTaskMonitor(), null);
+				FileTool.getInstance().copyDirectoryContent(context.getRecoveryDestination(), context.getCurrentArchiveFile(), null, null, context.getTaskMonitor(), null);
 			} catch (IOException e) {
 				throw new ApplicationException(e);
 			} catch (TaskCancelledException e) {
@@ -266,11 +243,11 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 			}
 		}
 	} 
-	
+
 	protected void computeMergedArchiveFile(ProcessContext context) throws ApplicationException {
 		File recoveryDirectory = context.getRecoveryDestination();
 		File backupMainDirectory = fileSystemPolicy.getArchiveDirectory();
-		
+
 		if (
 				FileSystemManager.getParentFile(recoveryDirectory).equals(backupMainDirectory)
 				&& matchArchiveName(recoveryDirectory)
@@ -283,10 +260,10 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 			super.computeMergedArchiveFile(context);
 		}
 	}
- 
+
 	public void commitBackup(ProcessContext context) throws ApplicationException {
 		super.commitBackup(context);
-		
+
 		if (image) {
 			try {
 				this.target.secureUpdateCurrentTask("Cleaning repository ...", context);

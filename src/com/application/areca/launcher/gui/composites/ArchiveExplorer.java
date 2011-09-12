@@ -31,7 +31,7 @@ import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.impl.AggregatedViewContext;
 import com.application.areca.launcher.gui.Application;
-import com.application.areca.launcher.gui.RecoveryFilter;
+import com.application.areca.launcher.gui.UIRecoveryFilter;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
@@ -48,7 +48,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -348,8 +348,8 @@ implements MouseListener, Listener {
 		return null;
 	}
 
-	private RecoveryFilter buildFilter(TreeItem[] nodes) {
-        RecoveryFilter ret = new RecoveryFilter();
+	private UIRecoveryFilter buildFilter(TreeItem[] nodes) {
+        UIRecoveryFilter ret = new UIRecoveryFilter();
         
         String[] filter = new String[nodes.length];
         for (int i=0; i<nodes.length; i++) {
@@ -373,8 +373,8 @@ implements MouseListener, Listener {
         return ret;
     }
 
-	private RecoveryFilter buildFilter(TraceEntry entry) {
-		RecoveryFilter filter = new RecoveryFilter();
+	private UIRecoveryFilter buildFilter(TraceEntry entry) {
+		UIRecoveryFilter filter = new UIRecoveryFilter();
 		filter.setContainsDeletedDirectory(false);
 		filter.initViewable(entry);
 		filter.setFilter(new String[] { entry.getKey() });

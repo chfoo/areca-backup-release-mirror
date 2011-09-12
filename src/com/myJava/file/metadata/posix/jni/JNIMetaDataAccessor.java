@@ -34,7 +34,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -274,7 +274,7 @@ public class JNIMetaDataAccessor implements FileMetaDataAccessor {
 		} catch (Throwable e) {
 			Logger.defaultLogger().warn(this.getClass().getName() + " cannot be used on this system. Got the following error : \"" + e.getClass().getName() + " : " + e.getMessage() + "\"");
 			if (e.getMessage().toLowerCase().indexOf("no acl in java.library.path") != -1) {
-				Logger.defaultLogger().warn("You should check that the 'acl' package is deployed on your computer.");
+				Logger.defaultLogger().warn("You should check that the 'acl' package is properly deployed on your computer.\nIn most cases, there should be a 'libacl.so' file or symbolic link somewhere on your filesystem.\nIf it is not the case, you should check for a 'libacl.<some version number>.so' file and create a symbolic link named 'libacl.so' on it.\nIf no such file can be found, just install the 'acl' package using your standard package manager.");
 			}
 			return false;
 		}

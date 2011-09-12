@@ -62,7 +62,7 @@ import com.myJava.util.xml.AdapterException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -254,6 +254,7 @@ implements TargetActions, IndicatorTypes {
 	}
 
 	public IndicatorMap computeIndicators() throws ApplicationException {
+		Logger.defaultLogger().info("Computing statistics ...");
 		try {
 			IndicatorMap indicators = new IndicatorMap();
 			File[] archives = this.listArchives(null, null, true);
@@ -578,7 +579,7 @@ implements TargetActions, IndicatorTypes {
 		return true;
 	}
 
-	public abstract File[] listArchives(GregorianCalendar fromDate, GregorianCalendar toDate, boolean committedOnly);
+	public abstract File[] listArchives(GregorianCalendar fromDate, GregorianCalendar toDate, boolean committedOnly) throws ApplicationException;
 
 	public void setCompressionArguments(CompressionArguments compressionArguments) {
 		this.compressionArguments = compressionArguments;
@@ -633,7 +634,6 @@ implements TargetActions, IndicatorTypes {
 
 		// List all potential archive files
 		File[] archives = FileSystemManager.listFiles(storageDir);
-
 		if (archives != null) {
 			for (int i = 0; i < archives.length; i++) {
 				// If it has not been committed - destroy it

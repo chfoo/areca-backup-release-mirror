@@ -8,8 +8,8 @@ import java.util.List;
 import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.AbstractTarget;
 import com.application.areca.ActionProxy;
-import com.application.areca.ArecaFileConstants;
 import com.application.areca.ArecaConfiguration;
+import com.application.areca.ArecaFileConstants;
 import com.application.areca.CheckParameters;
 import com.application.areca.MergeParameters;
 import com.application.areca.TargetGroup;
@@ -18,6 +18,8 @@ import com.application.areca.WorkspaceItem;
 import com.application.areca.adapters.ConfigurationHandler;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.FileSystemTarget;
+import com.application.areca.impl.copypolicy.AlwaysOverwriteCopyPolicy;
+import com.application.areca.impl.copypolicy.NeverOverwriteCopyPolicy;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.transaction.ConditionalTransactionHandler;
 import com.application.areca.metadata.transaction.NoTransactionHandler;
@@ -27,6 +29,7 @@ import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.log.ConsoleLogProcessor;
 import com.myJava.util.log.FileLogProcessor;
@@ -42,7 +45,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -259,7 +262,8 @@ implements CommandConstants {
         channel.print("");
         channel.print("Recover archives :");
         channel.print("      recover -config (xml configuration file) -destination (destination folder) [-date (recovered date : YYYY-MM-DD)] [-c]");
-        channel.print("         -c to check consistency of recovered files");     
+        channel.print("         -c to check consistency of recovered files");   
+        channel.print("         -o to overwrite existing files");   
         channel.print("         -date to specify the recovery date");
         
         channel.print("");
@@ -271,14 +275,6 @@ implements CommandConstants {
      
         channel.print("");
         channel.print(SEPARATOR);
-        /*
-        try {
-			Thread.sleep(10000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
     }
     
     /**
@@ -540,9 +536,22 @@ implements CommandConstants {
                 && command.getOption(OPTION_CHECK_FILES).trim().length() != 0
         );
         
+        boolean overwrite = (
+                command.getOption(OPTION_OVERWRITE) != null
+                && command.getOption(OPTION_OVERWRITE).trim().length() != 0
+        );
+        
+        CopyPolicy policy;
+        if (overwrite) {
+        	policy = new AlwaysOverwriteCopyPolicy();
+        } else {
+        	policy = new NeverOverwriteCopyPolicy(); 	
+        }
+        
         ActionProxy.processRecoverOnTarget(
                 target,
                 null,
+                policy,
                 destination,
                 CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null),
                 false, 

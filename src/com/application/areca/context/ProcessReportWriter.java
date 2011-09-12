@@ -5,6 +5,8 @@ import java.io.Writer;
 import java.util.Iterator;
 
 import com.application.areca.Utils;
+import com.application.areca.indicator.Indicator;
+import com.application.areca.indicator.IndicatorMap;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.LogHelper;
@@ -21,7 +23,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -42,9 +44,20 @@ This file is part of Areca.
  */
 public class ProcessReportWriter {
 	private Writer writer;
-
-	public ProcessReportWriter(Writer writer) {
+	private boolean appendStatistics;
+	
+	public ProcessReportWriter(Writer writer, boolean appendStatistics) {
 		this.writer = writer;
+		this.appendStatistics = appendStatistics;
+	}
+
+	private void writeStatusItem(StatusItem itm) throws IOException {
+		String hdr = "     " + itm.getKey() + " : ";
+		if (itm.isHasErrors()) {
+			write(hdr + "Failure");
+		} else {
+			write(hdr + "Success");
+		}
 	}
 
 	public void writeReport(ProcessReport report) throws IOException {
@@ -54,15 +67,19 @@ public class ProcessReportWriter {
 		write("Overall Status : " + (report.hasError() ? "Failure":"Success"));
 		if (report.getStatus().size() > 0) {
 			write("Detailed Status :");
+			boolean detailedErrors = false;
 			Iterator sttIter = report.getStatus().iterator();
 			while (sttIter.hasNext()) {
 				StatusItem itm = (StatusItem)sttIter.next();
-				String hdr = "     " + itm.getKey() + " : ";
-				if (itm.isHasErrors()) {
-					write(hdr + "Failure");
-				} else {
-					write(hdr + "Success");
-				}
+				writeStatusItem(itm);
+				detailedErrors |= itm.isHasErrors();
+			}
+			
+			if ((! detailedErrors) && report.hasError()) {
+				StatusItem itm = new StatusItem();
+				itm.setHasErrors(true);
+				itm.setKey(StatusList.KEY_PREPARE);
+				writeStatusItem(itm);
 			}
 		}
 
@@ -83,6 +100,23 @@ public class ProcessReportWriter {
 			write("Unfiltered files : " + report.getUnfilteredFiles());
 			write("Ignored files (not modified) : " + report.getIgnoredFiles());
 			write("Saved files : " + report.getSavedFiles());
+			
+			if (this.appendStatistics) {
+				writeSeparator();
+				write("Archive statictics :");
+				
+				IndicatorMap indicators = report.getIndicators();
+				if (indicators == null) {
+					write("<no statictics available>");
+				} else {
+					Integer[] ids = indicators.getSortedIndicatorKeys();
+					for (int i=0; i<ids.length; i++) {
+						Integer id = (Integer)ids[i];
+						Indicator indicator = indicators.getIndicator(id);
+						write(indicator.getName() + " = " + indicator.getStringValue());
+					}
+				}
+			}
 		}
 
 		LogMessagesContainer ctn = report.getLogMessagesContainer();

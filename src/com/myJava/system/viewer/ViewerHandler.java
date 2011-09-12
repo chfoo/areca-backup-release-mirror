@@ -14,7 +14,7 @@ import com.myJava.system.NoBrowserFoundException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 

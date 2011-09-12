@@ -13,7 +13,7 @@ import java.util.ResourceBundle;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -49,7 +49,7 @@ public class ResourceManager {
      */
     protected ResourceBundle getResource(String name, String language) throws IllegalArgumentException {
         if (language == null || language.length() != 2) {
-            throw new IllegalArgumentException("Le code langue est obligatoire et correspond au code ISO-639 de la langue. (2 caract�res)");
+            throw new IllegalArgumentException("ISO-639 language code mandatory.");
         }
         ResourceBundle res = (ResourceBundle)(resources.get(name + "." + language.toLowerCase()));
 
@@ -61,7 +61,7 @@ public class ResourceManager {
 
         return res;
     }
-
+    
     /**
      * Store the dictionnary passed as argument
      */

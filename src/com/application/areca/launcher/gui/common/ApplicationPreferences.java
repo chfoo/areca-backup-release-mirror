@@ -7,6 +7,7 @@ import com.application.areca.TranslationData;
 import com.application.areca.Utils;
 import com.application.areca.context.ReportingConfiguration;
 import com.myJava.configuration.FrameworkConfiguration;
+import com.myJava.file.FileSystemManager;
 import com.myJava.system.OSTool;
 
 /**
@@ -16,7 +17,7 @@ import com.myJava.system.OSTool;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -68,10 +69,15 @@ public final class ApplicationPreferences {
     private static final String STARTUP_MODE_DEFAULT = "default";
     
     public static final int MAX_HISTORY_SIZE = 10;
-	
-	static {
+
+    public static void initialize(String configurationDirectory) {
+    	LocalPreferences.initialize(configurationDirectory);
 	    synchronizeClientConfigurations();
-	}
+    }
+    
+    public static String getPath() {
+    	return FileSystemManager.getAbsolutePath(LocalPreferences.instance().getFile(false));
+    }
 	
     public static boolean isDisplayWSAddress() {
         return LocalPreferences.instance().getBoolean(DISPLAY_WS_ADDRESS, true);

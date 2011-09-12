@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui.postprocessors;
+package com.application.areca.launcher.gui.processors;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
+import com.application.areca.launcher.gui.processors.AbstractProcessorComposite;
 import com.application.areca.processor.DeleteProcessor;
 import com.application.areca.processor.Processor;
 import com.myJava.util.CommonRules;
@@ -20,7 +21,7 @@ import com.myJava.util.CommonRules;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 

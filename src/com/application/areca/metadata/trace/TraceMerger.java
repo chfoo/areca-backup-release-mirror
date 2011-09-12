@@ -21,7 +21,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -131,7 +131,7 @@ public class TraceMerger {
 					if (referenceIterator == null) {
 						rawData = current.getData(); // No provided reference iterator -> keep data unchanged 
 					} else {
-						boolean foundInReference = referenceIterator.fetchUntil(current.getKey());
+						boolean foundInReference = referenceIterator.fetch(current.getKey());
 						if (current.getType() == MetadataConstants.T_FILE) {
 							rawData = (foundInReference ? "1":"0") + ArchiveTraceParser.extractFileSizeFromTrace(current.getData());
 						} else if (current.getType() == MetadataConstants.T_SYMLINK) {

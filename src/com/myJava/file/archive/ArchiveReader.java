@@ -4,10 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import com.myJava.file.FileFilterList;
+import com.myJava.file.FileList;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.OutputStreamListener;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
@@ -20,7 +21,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -51,15 +52,28 @@ public class ArchiveReader {
     
     public void injectIntoDirectory(File dir) throws IOException {
         try {
-            this.injectIntoDirectory(dir, null, null, null);
+            this.injectIntoDirectory(dir, null, null, null, null);
         } catch (TaskCancelledException ignored) {
             // This exception is never thrown because no monitor is set. 
         }
     }
     
+    /**
+     * Copy the content of the archive into the target directory.
+     * <BR>The file filter is applied on the target file location, ie to the file denoted by the logical path within the archive, starting from the destination directory
+     * 
+     * @param dir
+     * @param entriesToRecover
+     * @param filter
+     * @param monitor
+     * @param listener
+     * @throws IOException
+     * @throws TaskCancelledException
+     */
     public void injectIntoDirectory(
     		File dir, 
-    		FileFilterList entriesToRecover, 
+    		FileList entriesToRecover, 
+    		CopyPolicy policy,
     		TaskMonitor monitor, 
     		OutputStreamListener listener) 
     throws IOException, TaskCancelledException {
@@ -91,10 +105,12 @@ public class ArchiveReader {
                         monitor.checkTaskState();
                     }
                     
-                    if (normalizedEntries == null || Util.passFilter(Util.trimSlashes(fileName), normalizedEntries)) {
+                    File target = new File(dir, fileName);
+                    if (
+                    		(normalizedEntries == null || Util.passFilter(Util.trimSlashes(fileName), normalizedEntries))
+                    		&& (policy == null || policy.accept(target))
+                    ) {
                         remaining--;
-                        
-                        File target = new File(dir, fileName);
 
 	                    if (FileSystemManager.exists(target)) {
 	                        FileSystemManager.delete(target);

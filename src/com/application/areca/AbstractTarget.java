@@ -23,6 +23,7 @@ import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
@@ -44,7 +45,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -191,7 +192,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	}
 
 	public String getDescription() {
-		String ancestors = parent == null ? "" : this.parent.getAncestorPath();
+		String ancestors = parent == null ? "" : this.parent.getFullPath();
 		StringBuffer buf = new StringBuffer();
 		buf.append(ancestors);
 		if (ancestors.length() != 0) {
@@ -445,7 +446,16 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 				if (! this.postProcessors.isEmpty()) {
 					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1, "post-processors");
 					TaskMonitor postProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
-					try {     
+					try {  
+						if (this.postProcessors.requireStatistics()) {
+				            try {
+								context.getReport().setIndicators(this.computeIndicators(context));
+				                context.getReport().getStatus().addItem("Compute Statistics");
+				            } catch (Throwable e) {
+				                Logger.defaultLogger().error("Error while computing statistics.", e);
+				                context.getReport().getStatus().addItem("Compute Statistics", e.getMessage());
+				            }
+						}
 						this.postProcessors.run(context);
 					} finally {
 						postProcessMon.enforceCompletion();
@@ -707,7 +717,8 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	 */
 	public void processRecover(
 			String destination, 
-			String[] filters, 
+			ArecaFileList filters, 
+			CopyPolicy policy,
 			GregorianCalendar date, 
 			boolean keepDeletedEntries,
 			boolean checkRecoveredFiles, 
@@ -719,13 +730,13 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			String strDate = date == null ? "" : " as of " + CalendarUtils.getDateToString(date);
 			context.getInfoChannel().print("Recovery" + strDate + " in progress ...");
 			StringBuffer sb = new StringBuffer("Recovery destination = " + destination);
-			if (filters != null && filters.length != 0) {
+			if (filters != null && ! filters.isEmpty()) {
 				sb.append(", Items = {");
-				for (int i=0; i<filters.length; i++) {
+				for (int i=0; i<filters.length(); i++) {
 					if (i != 0) {
 						sb.append(", ");
 					}
-					sb.append(filters[i]);
+					sb.append(filters.get(i));
 				}
 				sb.append("}");
 			}
@@ -738,7 +749,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			HistoryHandler handler = medium.getHistoryHandler();
 			handler.addEntryAndFlush(new HistoryEntry(HISTO_RECOVER, "Recovery : " + Utils.formatDisplayDate(date) + "."));
 
-			this.processRecoverImpl(destination, filters, date, keepDeletedEntries, checkRecoveredFiles, context);
+			this.processRecoverImpl(destination, filters, policy, date, keepDeletedEntries, checkRecoveredFiles, context);
 		} finally {
 			context.getInfoChannel().print("Recovery completed.");
 			globalMonitor.enforceCompletion();
@@ -752,6 +763,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			String destination, 
 			GregorianCalendar date, 
 			String entry, 
+			CopyPolicy policy,
 			boolean checkRecoveredFiles, 
 			ProcessContext context
 	) throws ApplicationException {
@@ -761,7 +773,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			String strDate = date == null ? "" : " as of " + CalendarUtils.getDateToString(date);
 			context.getInfoChannel().print("Recovery of " + entry + strDate + " in progress ...");
 			Logger.defaultLogger().info("Recovery destination = " + destination);
-			this.processRecoverImpl(destination, date, entry, checkRecoveredFiles,context);
+			this.processRecoverImpl(destination, date, entry, policy, checkRecoveredFiles,context);
 		} finally {
 			context.getInfoChannel().print("Recovery of " + entry + " completed.");
 			globalMonitor.enforceCompletion();
@@ -773,7 +785,8 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	 */
 	protected abstract void processRecoverImpl(
 			String destination, 
-			String[] filters, 
+			ArecaFileList filters, 
+			CopyPolicy policy,
 			GregorianCalendar date, 
 			boolean keepDeletedEntries,
 			boolean checkRecoveredFiles, 
@@ -796,6 +809,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			String destination, 
 			GregorianCalendar date, 
 			String name, 
+			CopyPolicy policy,
 			boolean checkRecoveredFiles,
 			ProcessContext context
 	) throws ApplicationException;    

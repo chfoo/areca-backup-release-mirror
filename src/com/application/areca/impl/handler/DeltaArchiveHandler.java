@@ -33,9 +33,10 @@ import com.application.areca.metadata.trace.ArchiveTraceManager;
 import com.application.areca.metadata.trace.TraceFileIterator;
 import com.application.areca.metadata.transaction.TransactionPoint;
 import com.myJava.configuration.FrameworkConfiguration;
-import com.myJava.file.FileFilterList;
+import com.myJava.file.FileList;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.file.delta.DeltaInputStream;
 import com.myJava.file.delta.DeltaMerger;
 import com.myJava.file.delta.DeltaProcessor;
@@ -65,7 +66,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -167,7 +168,7 @@ extends AbstractArchiveHandler {
 			if (DEBUG) {
 				Logger.defaultLogger().fine("Entry " + entry.getKey() + " : checking sequence file contained in " + FileSystemManager.getAbsolutePath(currentCtnIter.getReferenceArchive()));
 			}
-			boolean found = currentCtnIter.fetchUntil(entry.getKey());
+			boolean found = currentCtnIter.fetch(entry.getKey());
 			if (found) {
 				if (DEBUG) {
 					Logger.defaultLogger().fine("Entry " + entry.getKey() + " : OK ");
@@ -240,7 +241,7 @@ extends AbstractArchiveHandler {
 			context.getContentIterators().add(ctnIter);
 
 			// Check whether the entry can be found
-			boolean found = ctnIter.fetchUntil(entry.getKey());
+			boolean found = ctnIter.fetch(entry.getKey());
 			if (! found) {
 				if (lastPossibleCandidate) {
 					// The last possible candidate has been reached (it was a full backup) -> ignore previous archives and return null (new entry)
@@ -272,7 +273,7 @@ extends AbstractArchiveHandler {
 		return seq;
 	}
 	
-	private File[] listCandidatesForSequenceLookup(GregorianCalendar date, String backupScheme) {
+	private File[] listCandidatesForSequenceLookup(GregorianCalendar date, String backupScheme) throws ApplicationException {
 		File[] files = medium.listArchives(null, date, true);
 		return files;
 	}
@@ -364,12 +365,14 @@ extends AbstractArchiveHandler {
 
 	public void recoverRawData(
 			File[] archivesToRecover, 
-			RecoveryFilterMap filtersByArchive, 
+			RecoveryFilterMap filtersByArchive,
+            CopyPolicy policy,
+			File referenceTrace,
 			final short mode,
 			final ProcessContext context
 	) throws IOException, ApplicationException, TaskCancelledException {
 		// 1 : Ensure that there is a local copy of the files to recover
-		final File[] localFiles = medium.ensureLocalCopy(archivesToRecover, false, buildRecoveryFile(context.getRecoveryDestination()), filtersByArchive, context);
+		final File[] localFiles = medium.ensureLocalCopy(archivesToRecover, false, buildRecoveryFile(context.getRecoveryDestination()), filtersByArchive, policy, referenceTrace, context);
 
 		// 2 : Process the files to recover
 		for (int i=0; i<localFiles.length; i++) {
@@ -383,9 +386,9 @@ extends AbstractArchiveHandler {
 			if (localArchive != null) {
 				String[] filters = null;
 				if (filtersByArchive != null) {
-					FileFilterList lstFilters = (FileFilterList)filtersByArchive.get(archivesToRecover[i]);
+					FileList lstFilters = (FileList)filtersByArchive.get(archivesToRecover[i]);
 					if (lstFilters == null) {
-						lstFilters = new FileFilterList();
+						lstFilters = new FileList();
 					}
 					if (DEBUG) {
 						Logger.defaultLogger().fine("Filter : " + lstFilters.toString());
@@ -542,13 +545,13 @@ extends AbstractArchiveHandler {
 			for (int e=0; e<entriesToRecover.length; e++) {
 				List indexes = new ArrayList();
 				for (int i=archives.length-1; i>=0; i--) {
-					boolean found = titers[i].fetchUntil(entriesToRecover[e]);
+					boolean found = titers[i].fetch(entriesToRecover[e]);
 					if (! found) {
 						// Not found in trace anymore -> stop searching
 						break;
 					}
 
-					found = citers[i].fetchUntil(entriesToRecover[e]);
+					found = citers[i].fetch(entriesToRecover[e]);
 					if (found) {
 						indexes.add(new Integer(i));
 					}
@@ -560,9 +563,9 @@ extends AbstractArchiveHandler {
 					Iterator iter = indexes.iterator();
 					while (iter.hasNext()) {
 						int index = ((Integer)iter.next()).intValue();
-						FileFilterList entries = (FileFilterList)entriesByArchive.get(archives[index]);
+						FileList entries = (FileList)entriesByArchive.get(archives[index]);
 						if (entries == null) {
-							entries = new FileFilterList();
+							entries = new FileList();
 							entriesByArchive.put(archives[index], entries);
 						}
 						entries.add(entriesToRecover[e]);

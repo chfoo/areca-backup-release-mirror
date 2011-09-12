@@ -15,7 +15,7 @@ import java.util.Iterator;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -203,7 +203,7 @@ extends AbstractWorkspaceItem {
     }
 	
 	public File computeConfigurationFile(File root) {
-		return new File(root, getAncestorPath());
+		return new File(root, getFullPath());
 	}
 	
 	public File computeConfigurationFile(File root, boolean appendAncestors) {
@@ -215,15 +215,19 @@ extends AbstractWorkspaceItem {
 		}
 	}
 	
-	public String getAncestorPath() {
+	public String getFullPath() {
+		return getFullPath("/");
+	}
+	
+	public String getFullPath(String separator) {
 		String ret = "";
 		
 		if (parent != null) {
-			String prefix = parent.getAncestorPath();
+			String prefix = parent.getFullPath(separator);
 			if (prefix.length() == 0) {
 				ret = this.name;
 			} else {
-				ret = prefix + "/" + this.name;
+				ret = prefix + separator + this.name;
 			}
 		}
 		

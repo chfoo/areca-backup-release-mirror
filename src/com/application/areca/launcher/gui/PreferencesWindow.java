@@ -29,7 +29,7 @@ import com.application.areca.launcher.gui.common.SavePanel;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -66,6 +66,7 @@ extends AbstractWindow {
     private Button checkNewVersions;
     private Button showWSPath;
     private Button showToolBar;
+    private Label lblPrfPath;
 
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
@@ -88,6 +89,11 @@ extends AbstractWindow {
        
         grpArchives.setLayout(new GridLayout(3, false));
         buildArchivesComposite(grpArchives);
+        
+        lblPrfPath = new Label(composite, SWT.NONE);
+        lblPrfPath.setLayoutData(new GridData(SWT.CENTER, SWT.FILL, true, false));
+        lblPrfPath.setEnabled(false);
+        lblPrfPath.setText(ApplicationPreferences.getPath());
         
         SavePanel pnlSave = new SavePanel(this);
         pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));

@@ -64,7 +64,7 @@ import com.myJava.util.xml.AdapterException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -372,6 +372,11 @@ public class TargetXMLReader implements XMLTags {
 		if (nameNode != null) {
 			pp.setReportName(nameNode.getNodeValue());
 		}
+		
+		Node statsNode = node.getAttributes().getNamedItem(XML_PP_ADD_STATS);
+		if (statsNode != null) {
+			pp.setAppendStatistics(Boolean.valueOf(statsNode.getNodeValue()).booleanValue());
+		}
 
 		return pp;
 	}
@@ -477,6 +482,11 @@ public class TargetXMLReader implements XMLTags {
 		Node fromNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_FROM);
 		if (fromNode != null) {
 			pp.setFrom(fromNode.getNodeValue());
+		}
+		
+		Node statsNode = node.getAttributes().getNamedItem(XML_PP_ADD_STATS);
+		if (statsNode != null) {
+			pp.setAppendStatistics(Boolean.valueOf(statsNode.getNodeValue()).booleanValue());
 		}
 
 		pp.setRecipients(recipientsNode.getNodeValue());
@@ -711,7 +721,7 @@ public class TargetXMLReader implements XMLTags {
 				&& (! encryptionAlgo.equals(EncryptionConfiguration.AES_RAW))
 				&& (! encryptionAlgo.equals(EncryptionConfiguration.AES256_RAW))
 		) {
-			throw new AdapterException("\nError reading target \"" + target.getName() + "\" in group \"" + target.getParent().getName() + "\" (" + target.getParent().getAncestorPath() + ") :\nEncryption management has been refactored in version 6.1 of " + VersionInfos.APP_SHORT_NAME + ", and your configuration has been generated with a previous version of " + VersionInfos.APP_SHORT_NAME + ". As a result, it is not compatible with your current version (" + VersionInfos.getLastVersion().getVersionId() + ").\nYou must either :\n- re-create your target/targetgroup and use one of the available encryption algorithms, or\n- re-install a previous version of " + VersionInfos.APP_SHORT_NAME + " (6.0.7 or before).");
+			throw new AdapterException("\nError reading target \"" + target.getName() + "\" in group \"" + target.getParent().getName() + "\" (" + target.getParent().getFullPath() + ") :\nEncryption management has been refactored in version 6.1 of " + VersionInfos.APP_SHORT_NAME + ", and your configuration has been generated with a previous version of " + VersionInfos.APP_SHORT_NAME + ". As a result, it is not compatible with your current version (" + VersionInfos.getLastVersion().getVersionId() + ").\nYou must either :\n- re-create your target/targetgroup and use one of the available encryption algorithms, or\n- re-install a previous version of " + VersionInfos.APP_SHORT_NAME + " (6.0.7 or before).");
 		}
 
 		return encrArgs;

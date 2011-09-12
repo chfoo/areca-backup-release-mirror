@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.myJava.file.FileFilterList;
+import com.myJava.file.FileList;
 
 /**
  * <BR>
@@ -15,7 +15,7 @@ import com.myJava.file.FileFilterList;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -42,7 +42,7 @@ public class RecoveryFilterMap {
 		this.optimized = optimized;
 	}
 
-	public void put(File archive, FileFilterList filters) {
+	public void put(File archive, FileList filters) {
     	content.put(archive, filters);
     }
 
@@ -50,14 +50,14 @@ public class RecoveryFilterMap {
     	int filterCount = 0;
     	Iterator iter = content.values().iterator();
     	while (iter.hasNext()) {
-    		FileFilterList list = (FileFilterList)iter.next();
+    		FileList list = (FileList)iter.next();
         	filterCount += list.size();
     	}
     	return filterCount;
 	}
 
-	public FileFilterList get(File archive) {
-    	return (FileFilterList)content.get(archive);
+	public FileList get(File archive) {
+    	return (FileList)content.get(archive);
     }
 
 	public boolean isOptimized() {
@@ -72,7 +72,7 @@ public class RecoveryFilterMap {
 		Iterator iter = content.keySet().iterator();
 		while (iter.hasNext()) {
 			File archive = (File)iter.next();
-			FileFilterList list = get(archive);
+			FileList list = get(archive);
 			if (list.containsDirectories()) {
 				return true;
 			}

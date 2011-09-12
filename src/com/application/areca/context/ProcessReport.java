@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.indicator.IndicatorMap;
 import com.myJava.util.log.LogMessagesContainer;
 import com.myJava.util.log.Logger;
 
@@ -19,7 +20,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -110,6 +111,8 @@ public class ProcessReport implements Serializable {
     protected StatusList status = new StatusList();
     
     protected LogMessagesContainer logMessagesContainer;
+    
+    private transient IndicatorMap indicators;
     
     private ProcessReport() {
         this.logMessagesContainer = Logger.defaultLogger().getTlLogProcessor().getMessageContainer();
@@ -210,6 +213,14 @@ public class ProcessReport implements Serializable {
     public void setStopMillis() {
     	this.stopMillis = System.currentTimeMillis();
     }
+
+	public IndicatorMap getIndicators() {
+		return indicators;
+	}
+
+	public void setIndicators(IndicatorMap indicators) {
+		this.indicators = indicators;
+	}
 
 	public int getFilteredEntries() {
         return filteredEntries;

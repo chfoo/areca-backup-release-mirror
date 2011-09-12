@@ -11,11 +11,13 @@ import java.util.List;
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
+import com.application.areca.impl.copypolicy.ArecaCompositeCopyPolicy;
+import com.application.areca.impl.copypolicy.TraceFileFilter;
 import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.transaction.TransactionPoint;
 import com.myJava.file.CompressionArguments;
-import com.myJava.file.FileFilterList;
+import com.myJava.file.FileList;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -25,6 +27,7 @@ import com.myJava.file.archive.ArchiveWriter;
 import com.myJava.file.archive.zip64.ZipArchiveAdapter;
 import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.file.archive.zip64.ZipVolumeStrategy;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.file.multivolumes.VolumeStrategy;
 import com.myJava.object.Duplicable;
 import com.myJava.util.log.Logger;
@@ -39,7 +42,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -81,7 +84,7 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 	public boolean retrySupported() {
 		return false;
 	}
-	
+
 	public String checkResumeSupported() {
 		return "Backup as single zip archive";
 	}
@@ -205,7 +208,9 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 			final File[] archivesToProcess, 
 			final boolean overrideRecoveredFiles, 
 			final File destination, 
-			RecoveryFilterMap filtersByArchive, 
+			RecoveryFilterMap filesByArchive, 
+			CopyPolicy policy,
+			File referenceTrace,
 			final ProcessContext context
 	) throws IOException, ApplicationException, TaskCancelledException {
 		try {
@@ -216,18 +221,18 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 			}
 
 			for (int i=0; i<archivesToProcess.length; i++) {
-				final FileFilterList filters;
-				final int index = i;
-				if (filtersByArchive != null) {
-					filters = (FileFilterList)filtersByArchive.get(archivesToProcess[i]);
+
+				FileList files;
+				if (filesByArchive != null) {
+					files = (FileList)filesByArchive.get(archivesToProcess[i]);
 				} else {
-					filters = null;
+					files = null;
 				}
 
-				logRecoveryStep(filtersByArchive, filters, archivesToProcess[i], context);
+				logRecoveryStep(filesByArchive, files, archivesToProcess[i], context);
 
-				if (filtersByArchive == null || (filters != null && filters.size() != 0)) {
-					ensureLocalCopy(archivesToProcess[index], overrideRecoveredFiles, destination, filters, ret, context);
+				if (filesByArchive == null || (files != null && files.size() != 0)) {
+					ensureLocalCopy(archivesToProcess[i], overrideRecoveredFiles, destination, files, referenceTrace, policy, ret, context);
 				} else {
 					ret.add(null);
 				}
@@ -241,11 +246,19 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 			throw e;        	
 		} catch (Exception e) {
 			throw new ApplicationException(e);
-		}    
+		}
 	}
 
-	private void ensureLocalCopy(File archiveToProcess, boolean overrideRecoveredFiles, File destination, FileFilterList filters, List ret, ProcessContext context) 
-	throws IOException, ApplicationException, TaskCancelledException {
+	private void ensureLocalCopy(
+			File archiveToProcess, 
+			boolean overrideRecoveredFiles, 
+			File destination, 
+			FileList files,
+			File referenceTrace,
+			CopyPolicy policy,
+			List ret, 
+			ProcessContext context
+	) throws IOException, ApplicationException, TaskCancelledException {
 		ArchiveReader zrElement = new ArchiveReader(buildArchiveAdapter(archiveToProcess, false, context));
 
 		File realDestination;
@@ -257,8 +270,16 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 				ret.add(realDestination);
 			}
 		}
-		zrElement.injectIntoDirectory(realDestination, filters, context.getTaskMonitor(), context.getOutputStreamListener());
-		zrElement.close();
+		TraceFileFilter filter = new TraceFileFilter(referenceTrace, FileSystemManager.getAbsolutePath(realDestination));
+		try {
+			ArecaCompositeCopyPolicy compositePolicy = new ArecaCompositeCopyPolicy(filter, policy);
+			//todo : transformer la trace en un itérateur quelconque utilisé par l'archive reader
+			//on fait l'hypothèse que l'archive est triée ds le meme ordre que la trace - ca sera à vérifier et à afficher en warning ou error si incohérence
+			zrElement.injectIntoDirectory(realDestination, files, compositePolicy, context.getTaskMonitor(), context.getOutputStreamListener());
+			zrElement.close();
+		} finally {
+			filter.reset();
+		}
 	}
 
 	public void completeLocalCopyCleaning(File copy, ProcessContext context) throws IOException, ApplicationException {

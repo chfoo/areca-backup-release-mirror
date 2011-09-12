@@ -1,5 +1,7 @@
 package com.application.areca.launcher.gui.composites;
 
+import java.util.GregorianCalendar;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.MouseEvent;
@@ -32,6 +34,7 @@ import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Refreshable;
 import com.application.areca.metadata.MetadataConstants;
 import com.application.areca.metadata.manifest.Manifest;
+import com.application.areca.metadata.trace.ArchiveTraceParser;
 import com.application.areca.metadata.trace.TraceEntry;
 import com.myJava.util.log.Logger;
 
@@ -43,7 +46,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -123,10 +126,18 @@ implements MouseListener, Refreshable, Listener {
 		col1.setMoveable(true);
 		TableColumn col2 = new TableColumn(history, SWT.NONE);
 		col2.setMoveable(true);
+		TableColumn col3 = new TableColumn(history, SWT.NONE);
+		col3.setMoveable(true);
+		TableColumn col4 = new TableColumn(history, SWT.NONE);
+		col4.setMoveable(true);
 		col1.setText(RM.getLabel("archivecontent.actioncolumn.label"));
-		col2.setText(RM.getLabel("archivecontent.datecolumn.label"));
+		col2.setText(RM.getLabel("mainpanel.size.label"));
+		col3.setText(RM.getLabel("archivecontent.filedatecolumn.label"));
+		col4.setText(RM.getLabel("archivecontent.backupdatecolumn.label"));
 		col1.setWidth(AbstractWindow.computeWidth(150));
-		col2.setWidth(AbstractWindow.computeWidth(150));
+		col2.setWidth(AbstractWindow.computeWidth(110));
+		col3.setWidth(AbstractWindow.computeWidth(150));
+		col4.setWidth(AbstractWindow.computeWidth(150));
 		history.setHeaderVisible(true);
 		history.setLinesVisible(AbstractWindow.getTableLinesVisible());
 		history.addMouseListener(this);
@@ -220,9 +231,7 @@ implements MouseListener, Refreshable, Listener {
 			if (Application.getInstance().isCurrentObjectTarget()) {
 			    AbstractFileSystemMedium medium = (AbstractFileSystemMedium)Application.getInstance().getCurrentTarget().getMedium();
 	        	Logger.defaultLogger().info("Looking for archives in " + medium.getFileSystemPolicy().getDisplayableParameters(true), "Logical View");
-
 				explorer.setMedium(medium);
-				
 				btnMode.setEnabled(! medium.isImage());
 			} else {
 				explorer.setMedium(null);
@@ -310,10 +319,23 @@ implements MouseListener, Refreshable, Listener {
 				item.setImage(0, Application.STATUS_ICONS[currentEntryData[i].getStatus() + 1]); 
 				item.setData(currentEntryData[i]);
 				if (mf != null) {
-					item.setText(1, Utils.formatDisplayDate(mf.getDate()));
+					item.setText(3, Utils.formatDisplayDate(mf.getDate()));
 				} else {
-					item.setText(1, " ");
-				}      
+					item.setText(3, " ");
+				}  	
+				if (currentEntryData[i].getHash() != null) {
+					try {
+						long lastModified = ArchiveTraceParser.extractFileAttributesFromTrace(currentEntryData[i].getHash(), currentEntryData[i].getMetadataVersion()).getLastmodified();
+						GregorianCalendar cal = new GregorianCalendar();
+						cal.setTimeInMillis(lastModified);
+						item.setText(2, Utils.formatDisplayDate(cal));
+						
+						long size = ArchiveTraceParser.extractFileSizeFromTrace(currentEntryData[i].getHash());
+						item.setText(1, Utils.formatFileSize(size));
+					} catch (Exception e) {
+						Logger.defaultLogger().warn("Error reading data for " + entry.getKey() + " : " + entry.getData(), e);
+					}
+				}
 			}
 
 			if (currentEntryData.length != 0) {

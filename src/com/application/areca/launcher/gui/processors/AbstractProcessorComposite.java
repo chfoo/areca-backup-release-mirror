@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui.postprocessors;
+package com.application.areca.launcher.gui.processors;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -16,7 +16,7 @@ import com.application.areca.processor.Processor;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 

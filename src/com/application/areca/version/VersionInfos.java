@@ -19,7 +19,7 @@ import com.myJava.util.version.VersionData;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 6676889719984660763L;
+		BUILD_ID = 4004230264633549822L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.2.2", new GregorianCalendar(2011, 7, 28), "Statistics can now be added to backup reports; Recovery performance improvements when handling large number of files; Minor GUI enhancements and bugfixes."));
 		VERSIONS.add(new VersionData("7.2.1", new GregorianCalendar(2011, 1, 19), "Transaction parameters have been added to the target configuration window."));
 		VERSIONS.add(new VersionData("7.2", new GregorianCalendar(2011, 0, 23), "Added support for intermediate transaction points; Added SFTP storage; Added control on encrypted filenames wrapping; Enhanced control on FTP passive mode."));
 		VERSIONS.add(new VersionData("7.1.10", new GregorianCalendar(2010, 10, 01), "Fixed a bug on search window."));

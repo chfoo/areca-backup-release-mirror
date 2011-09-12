@@ -8,6 +8,7 @@ import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.transaction.TransactionHandler;
 import com.application.areca.metadata.transaction.TransactionPoint;
 import com.application.areca.version.VersionInfos;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.util.log.Logger;
 import com.myJava.util.xml.AdapterException;
 
@@ -20,7 +21,7 @@ import com.myJava.util.xml.AdapterException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -133,7 +134,8 @@ public class ActionProxy {
 	 */
 	public static void processRecoverOnTarget(
 			AbstractTarget target, 
-			String[] filters, 
+			ArecaFileList filters, 
+			CopyPolicy policy,
 			String path, 
 			GregorianCalendar date, 
 			boolean keepDeletedEntries,
@@ -141,7 +143,7 @@ public class ActionProxy {
 			ProcessContext context
 	) throws ApplicationException {
 		LogHelper.logTarget(target);
-		target.processRecover(path, filters, date, keepDeletedEntries, checkRecoveredEntries, context);
+		target.processRecover(path, filters, policy, date, keepDeletedEntries, checkRecoveredEntries, context);
 	}
 
 	public static void processRecoverOnTarget(
@@ -149,11 +151,12 @@ public class ActionProxy {
 			String path, 
 			GregorianCalendar date, 
 			String entry, 
+			CopyPolicy policy,
 			boolean checkRecoveredEntries, 
 			ProcessContext context
 	) throws ApplicationException {
 		LogHelper.logTarget(target);
-		target.processRecover(path, date, entry, checkRecoveredEntries, context);
+		target.processRecover(path, date, entry, policy, checkRecoveredEntries, context);
 	}
 
 	/**

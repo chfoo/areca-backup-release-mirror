@@ -12,6 +12,7 @@ import java.util.Set;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
+import com.application.areca.ArecaFileList;
 import com.application.areca.CheckParameters;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.SimulationResult;
@@ -24,6 +25,7 @@ import com.application.areca.metadata.transaction.TransactionPoint;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.object.Duplicable;
@@ -40,7 +42,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -344,7 +346,8 @@ implements TargetActions {
      */
     public void processRecoverImpl(
     		String destination,
-    		String[] filters,
+    		ArecaFileList filters,
+			CopyPolicy policy,
     		GregorianCalendar date,
     		boolean keepDeletedEntries,
     		boolean checkRecoveredEntries,
@@ -354,6 +357,7 @@ implements TargetActions {
 			this.medium.recover(
 			        buildRecoveryFile(destination),
 			        filters,
+					policy,
 			        date,
 			        keepDeletedEntries,
 			        checkRecoveredEntries,
@@ -371,6 +375,7 @@ implements TargetActions {
     		String destination,
     		GregorianCalendar date,
     		String entry,
+			CopyPolicy policy,
     		boolean checkRecoveredEntries,
     		ProcessContext context
     ) throws ApplicationException {
@@ -378,7 +383,8 @@ implements TargetActions {
         try {
 			this.medium.recover(
 			        dest,
-			        new String[] {entry},
+			        new ArecaFileList(entry),
+					policy,
 			        date,
 			        false,
 			        checkRecoveredEntries,

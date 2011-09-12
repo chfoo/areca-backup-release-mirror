@@ -25,7 +25,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -69,7 +69,7 @@ extends AbstractWindow {
 		ProcessReportWriter writer = null;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			writer = new ProcessReportWriter(new OutputStreamWriter(baos));
+			writer = new ProcessReportWriter(new OutputStreamWriter(baos), false);
 			writer.writeReport(report);
 		} catch (IOException e) {
 			Logger.defaultLogger().error(e);

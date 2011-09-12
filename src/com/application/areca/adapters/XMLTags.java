@@ -9,7 +9,7 @@ package com.application.areca.adapters;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -136,6 +136,7 @@ public interface XMLTags {
     public static final String XML_PP_AFTER = "execute_after";   
     public static final String XML_PP_DUMP_DIRECTORY = "directory";
     public static final String XML_PP_DUMP_NAME = "filename";
+    public static final String XML_PP_ADD_STATS = "statistics";
     public static final String XML_PP_EMAIL_RECIPIENTS = "recipients";
     public static final String XML_PP_EMAIL_SMTP = "smtp_host";
     public static final String XML_PP_EMAIL_TITLE = "title";    

@@ -28,7 +28,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -51,15 +51,24 @@ This file is part of Areca.
 public class LocalPreferences implements ArecaFileConstants {
 
     private static final String HEADER = "" + VersionInfos.APP_SHORT_NAME + " user preferences";
-    private static LocalPreferences instance = new LocalPreferences();
+    private static LocalPreferences instance = null;
 
     private final Properties preferences = new Properties();
+    private String storageDirectory;
     
-    private LocalPreferences() {
+    private LocalPreferences(String storageDirectory) {
+    	this.storageDirectory = storageDirectory;
         load();
     }
     
+    public static void initialize(String configurationDirectory) {
+    	instance = new LocalPreferences(configurationDirectory);
+    }
+    
     public static LocalPreferences instance() {
+    	if (instance == null) {
+    		throw new IllegalStateException("Properties not initialized.");
+    	}
         return instance;
     }
 
@@ -159,11 +168,11 @@ public class LocalPreferences implements ArecaFileConstants {
         }
     }
 
-    private File getFile(boolean deprecated) {
+    public File getFile(boolean deprecated) {
     	if (deprecated) {
-    		return new File(System.getProperty("user.home"), USER_PREFERENCES_PATH_DEPRECATED);
+    		return new File(storageDirectory, USER_PREFERENCES_PATH_DEPRECATED);
     	} else {
-    		return new File(System.getProperty("user.home"), USER_PREFERENCES_PATH);
+    		return new File(storageDirectory, USER_PREFERENCES_PATH);
     	}
     }
 

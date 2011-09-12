@@ -16,7 +16,7 @@ import java.util.Map;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -65,6 +65,7 @@ public class UserCommandLine implements CommandConstants {
         Launcher.COMMAND_RECOVER.addOptionalArgument(Launcher.OPTION_TARGET);
         Launcher.COMMAND_RECOVER.addOptionalArgument(Launcher.OPTION_DATE);
         Launcher.COMMAND_RECOVER.addOptionalArgument(Launcher.OPTION_CHECK_FILES);
+        Launcher.COMMAND_RECOVER.addOptionalArgument(Launcher.OPTION_OVERWRITE);
         Launcher.COMMAND_RECOVER.addMandatoryArgument(Launcher.OPTION_DESTINATION);
         
         Launcher.COMMAND_CHECK.addMandatoryArgument(Launcher.OPTION_CONFIG);

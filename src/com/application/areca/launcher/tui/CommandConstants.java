@@ -9,7 +9,7 @@ package com.application.areca.launcher.tui;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -44,6 +44,7 @@ public interface CommandConstants {
     public static UserOption OPTION_TO = new UserOption("-to", 2);
     public static UserOption OPTION_DATE = new UserOption("-date", 2);    
     public static UserOption OPTION_CHECK_FILES = new UserOption("-c", 1);  
+    public static UserOption OPTION_OVERWRITE = new UserOption("-o", 1);  
     public static UserOption OPTION_SPEC_LOCATION = new UserOption("-wdir", 2);  
     public static UserOption OPTION_SYNC = new UserOption("-s", 1);  
     public static UserOption OPTION_RESUME = new UserOption("-resume", 1); 

@@ -42,7 +42,7 @@ import com.myJava.util.xml.XMLTool;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -180,6 +180,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         serializeProcessorHeader(XML_PROCESSOR_DUMP, postProcess, pp);
         sb.append(XMLTool.encodeProperty(XML_PP_DUMP_DIRECTORY, FileSystemManager.getAbsolutePath(pp.getDestinationFolder())));
         sb.append(XMLTool.encodeProperty(XML_PP_DUMP_NAME, pp.getReportName()));
+        sb.append(XMLTool.encodeProperty(XML_PP_ADD_STATS, pp.isAppendStatistics()));
         sb.append("/>");        
     }
     
@@ -207,6 +208,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_TITLE, pp.getTitle()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_FROM, pp.getFrom()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_INTRO, pp.getIntro())); 
+        sb.append(XMLTool.encodeProperty(XML_PP_ADD_STATS, pp.isAppendStatistics()));
         sb.append("/>");        
     }
     
@@ -256,21 +258,10 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("\n<");
         sb.append(XML_FILTER_REGEX);
         sb.append(" ");
-        sb.append(XML_FILTER_LOGICAL_NOT);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.isLogicalNot()));
-        sb.append(" ");
-        sb.append(XML_FILTER_RG_PATTERN);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.getRegex()));
-        sb.append(" ");
-        sb.append(XML_FILTER_RG_MODE);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.getScheme()));
-        sb.append(" ");
-        sb.append(XML_FILTER_RG_FULL_MATCH);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.isMatch()));
+        sb.append(XMLTool.encodeProperty(XML_FILTER_LOGICAL_NOT, filter.isLogicalNot())); 
+        sb.append(XMLTool.encodeProperty(XML_FILTER_RG_PATTERN, filter.getRegex()));         
+        sb.append(XMLTool.encodeProperty(XML_FILTER_RG_MODE, filter.getScheme())); 
+        sb.append(XMLTool.encodeProperty(XML_FILTER_RG_FULL_MATCH, filter.isMatch())); 
         sb.append("/>");        
     }
     
@@ -278,13 +269,8 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("\n<");
         sb.append(XML_FILTER_DIRECTORY);
         sb.append(" ");
-        sb.append(XML_FILTER_LOGICAL_NOT);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.isLogicalNot()));
-        sb.append(" ");
-        sb.append(XML_FILTER_DIR_PATH);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.getStringParameters()));
+        sb.append(XMLTool.encodeProperty(XML_FILTER_LOGICAL_NOT, filter.isLogicalNot())); 
+        sb.append(XMLTool.encodeProperty(XML_FILTER_DIR_PATH, filter.getStringParameters())); 
         sb.append("/>");        
     }
     
@@ -292,9 +278,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("\n<");
         sb.append(XML_FILTER_FILEEXTENSION);
         sb.append(" ");
-        sb.append(XML_FILTER_LOGICAL_NOT);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.isLogicalNot()));
+        sb.append(XMLTool.encodeProperty(XML_FILTER_LOGICAL_NOT, filter.isLogicalNot())); 
         sb.append(">");
         
         Iterator iter = filter.getExtensionIterator();
@@ -329,29 +313,13 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("\n<");
         sb.append(XML_FILTER_TP);
         sb.append(" ");
-        sb.append(XML_FILTER_LOGICAL_NOT);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.isLogicalNot()));
-        sb.append(" ");
-        sb.append(XML_FILTER_TP_BLOCKSPECFILE);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.isBlockSpecFile()));
-        sb.append(" ");
-        sb.append(XML_FILTER_TP_CHARSPECFILE);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.isCharSpecFile()));
-        sb.append(" ");
-        sb.append(XML_FILTER_TP_PIPE);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.isPipe()));
-        sb.append(" ");
-        sb.append(XML_FILTER_TP_SOCKET);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.isSocket()));
-        sb.append(" ");
-        sb.append(XML_FILTER_TP_LINK);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.isLink()));
+        
+        sb.append(XMLTool.encodeProperty(XML_FILTER_LOGICAL_NOT, filter.isLogicalNot())); 
+        sb.append(XMLTool.encodeProperty(XML_FILTER_TP_BLOCKSPECFILE, filter.isBlockSpecFile())); 
+        sb.append(XMLTool.encodeProperty(XML_FILTER_TP_CHARSPECFILE, filter.isCharSpecFile())); 
+        sb.append(XMLTool.encodeProperty(XML_FILTER_TP_PIPE, filter.isPipe())); 
+        sb.append(XMLTool.encodeProperty(XML_FILTER_TP_SOCKET, filter.isSocket())); 
+        sb.append(XMLTool.encodeProperty(XML_FILTER_TP_LINK, filter.isLink())); 
         sb.append("/>");  
     }
 
@@ -363,14 +331,9 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("\n<");
         sb.append(filterName);
         sb.append(" ");
-        sb.append(XML_FILTER_LOGICAL_NOT);
-        sb.append("=");
-        sb.append(XMLTool.encode(filter.isLogicalNot()));
+        sb.append(XMLTool.encodeProperty(XML_FILTER_LOGICAL_NOT, filter.isLogicalNot())); 
         if (addParam) {
-            sb.append(" ");
-            sb.append(XML_FILTER_PARAM);
-            sb.append("=");
-            sb.append(XMLTool.encode(filter.getStringParameters()));
+            sb.append(XMLTool.encodeProperty(XML_FILTER_PARAM, filter.getStringParameters())); 
         }
         sb.append("/>");        
     }
@@ -379,9 +342,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("\n<");
         sb.append(XML_MEDIUM);
         sb.append(" ");
-        sb.append(XML_MEDIUM_TYPE);
-        sb.append("=");
-        sb.append(XMLTool.encode(XML_MEDIUM_TYPE_ZIP));
+        sb.append(XMLTool.encodeProperty(XML_MEDIUM_TYPE, XML_MEDIUM_TYPE_ZIP)); 
         
         this.endMedium(medium);     
     } 
@@ -390,15 +351,10 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("\n<");
         sb.append(XML_MEDIUM);
         sb.append(" ");
-        sb.append(XML_MEDIUM_TYPE);
-        sb.append("=");
-        sb.append(XMLTool.encode(XML_MEDIUM_TYPE_DIR));
+        sb.append(XMLTool.encodeProperty(XML_MEDIUM_TYPE, XML_MEDIUM_TYPE_DIR)); 
         
         if (medium.getCompressionArguments().isCompressed()) {
-            sb.append(" ");      
-            sb.append(XML_MEDIUM_FILECOMPRESSION);
-            sb.append("=");
-            sb.append(XMLTool.encode("true"));
+            sb.append(XMLTool.encodeProperty(XML_MEDIUM_FILECOMPRESSION, true));
         }
         
         this.endMedium(medium); 
@@ -408,61 +364,32 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(" ");
         serializeFileSystemPolicy(medium.getFileSystemPolicy());
         serializeEncryptionPolicy(medium.getEncryptionPolicy());
-         
         sb.append(" ");
-        sb.append(XML_MEDIUM_TRACK_PERMS);
-        sb.append("=");
-        sb.append(XMLTool.encode(medium.isTrackPermissions())); 
-        
-        sb.append(" ");
-        sb.append(XML_MEDIUM_OVERWRITE);
-        sb.append("=");
-        sb.append(XMLTool.encode(medium.isImage())); 
+        sb.append(XMLTool.encodeProperty(XML_MEDIUM_TRACK_PERMS, medium.isTrackPermissions()));
+        sb.append(XMLTool.encodeProperty(XML_MEDIUM_OVERWRITE, medium.isImage()));  
         
         if (medium.getCompressionArguments().isCompressed()) {
             if (medium.getCompressionArguments().isMultiVolumes()) {
-                sb.append(" ");      
-                sb.append(XML_MEDIUM_VOLUME_SIZE);
-                sb.append("=");
-                sb.append(XMLTool.encode(medium.getCompressionArguments().getVolumeSize()));
-                
-                sb.append(" ");     
-                sb.append(XML_MEDIUM_VOLUME_DIGITS);
-                sb.append("=");
-                sb.append(XMLTool.encode(medium.getCompressionArguments().getNbDigits()));
+                sb.append(XMLTool.encodeProperty(XML_MEDIUM_VOLUME_SIZE, medium.getCompressionArguments().getVolumeSize()));  
+                sb.append(XMLTool.encodeProperty(XML_MEDIUM_VOLUME_DIGITS, medium.getCompressionArguments().getNbDigits()));  
             }
             
             if (medium.getCompressionArguments().getComment() != null) {
-                sb.append(" ");     
-                sb.append(XML_MEDIUM_ZIP_COMMENT);
-                sb.append("=");
-                sb.append(XMLTool.encode(medium.getCompressionArguments().getComment()));
+                sb.append(XMLTool.encodeProperty(XML_MEDIUM_ZIP_COMMENT, medium.getCompressionArguments().getComment()));  
             }
             
             if (medium.getCompressionArguments().getLevel() >= 0) {
-	            sb.append(" ");     
-	            sb.append(XML_MEDIUM_ZIP_LEVEL);
-	            sb.append("=");
-	            sb.append(XMLTool.encode(medium.getCompressionArguments().getLevel()));
+                sb.append(XMLTool.encodeProperty(XML_MEDIUM_ZIP_LEVEL, medium.getCompressionArguments().getLevel()));  
             }
 
-            sb.append(" ");     
-            sb.append(XML_MEDIUM_ZIP_EXTENSION);
-            sb.append("=");
-            sb.append(XMLTool.encode(medium.getCompressionArguments().isAddExtension()));
+            sb.append(XMLTool.encodeProperty(XML_MEDIUM_ZIP_EXTENSION, medium.getCompressionArguments().isAddExtension())); 
             
             if (medium.getCompressionArguments().getCharset() != null) {
-                sb.append(" ");    
-                sb.append(XML_MEDIUM_ZIP_CHARSET);
-                sb.append("=");
-                sb.append(XMLTool.encode(medium.getCompressionArguments().getCharset().name()));        
+                sb.append(XMLTool.encodeProperty(XML_MEDIUM_ZIP_CHARSET, medium.getCompressionArguments().getCharset().name()));     
             }
             
             if (medium.getCompressionArguments().isUseZip64()) {
-                sb.append(" ");      
-                sb.append(XML_MEDIUM_Z64);
-                sb.append("=");
-                sb.append(XMLTool.encode("true"));
+                sb.append(XMLTool.encodeProperty(XML_MEDIUM_Z64, true)); 
             }
         }
         sb.append(">");

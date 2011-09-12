@@ -17,7 +17,7 @@ import com.myJava.object.HashHelper;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -54,8 +54,12 @@ public class DeleteProcessor extends AbstractProcessor {
     public void setDelay(int delay) {
         this.delay = delay;
     }
-    
-    public void runImpl(ProcessContext context) throws ApplicationException {
+
+    public boolean requireStatictics() {
+		return false;
+	}
+
+	public void runImpl(ProcessContext context) throws ApplicationException {
         AbstractTarget target = context.getReport().getTarget();
         ActionProxy.processDeleteOnTarget(target, delay, new ProcessContext(target, context.getInfoChannel()));
     }

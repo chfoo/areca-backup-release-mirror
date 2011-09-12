@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui.postprocessors;
+package com.application.areca.launcher.gui.processors;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -29,7 +29,7 @@ import com.application.areca.version.VersionInfos;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -59,6 +59,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
     private Text txtFrom;
     private Button btnTest;
     private Button btnSMTPS;
+    private Button chkAppendStatistics;
     
     public MailSendProcessorComposite(Composite composite, Processor proc, ProcessorEditionWindow window) {
         super(composite, proc, window);
@@ -87,6 +88,13 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         Label lblExample = new Label(this, SWT.NONE);
         lblExample.setText(RM.getLabel("procedition.dynparams.label"));
         lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        
+        // Append Statistics
+        new Label(this, SWT.NONE);
+        chkAppendStatistics = new Button(this, SWT.CHECK);
+        chkAppendStatistics.setText(RM.getLabel("procedition.appendstats.label"));
+        chkAppendStatistics.setToolTipText(RM.getLabel("procedition.appendstats.tt"));
+        window.monitorControl(chkAppendStatistics);
         
         // Recipients
         Label lblRecipients = new Label(this, SWT.NONE);
@@ -134,7 +142,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         txtPassword = new Text(this, SWT.BORDER);
         txtPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         window.monitorControl(txtPassword);
-        
+
         // Test
         new Label(this, SWT.NONE);
         btnTest = new Button(this, SWT.PUSH);
@@ -156,7 +164,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
                 }
             }
         });
-        
+
         if (proc != null) {
             MailSendProcessor mProc = (MailSendProcessor)proc;
             txtRecipients.setText(mProc.getRecipients());
@@ -171,6 +179,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
             if (mProc.getFrom() != null) {
                 txtFrom.setText(mProc.getFrom());
             }
+            chkAppendStatistics.setSelection(mProc.isAppendStatistics());
         }
     }
 
@@ -184,6 +193,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         mProc.setSmtps(btnSMTPS.getSelection());
         mProc.setIntro(txtIntro.getText());
         mProc.setFrom(txtFrom.getText());
+        mProc.setAppendStatistics(chkAppendStatistics.getSelection());
     }
     
     public boolean validateParams() {

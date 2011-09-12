@@ -24,7 +24,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -134,7 +134,7 @@ public class ConfigurationListener {
 		// Check that the group format is deprecated
 		if (group.getLoadedFrom().isDeprecated()) {
 			// Destroy existing configuration file
-			Logger.defaultLogger().warn("The configuration of \"" + group.getAncestorPath() + "\" will be migrated to the new format");
+			Logger.defaultLogger().warn("The configuration of \"" + group.getFullPath() + "\" will be migrated to the new format");
 			FileTool.getInstance().delete(group.getLoadedFrom().getSource());	
 			
 			// Serialize group

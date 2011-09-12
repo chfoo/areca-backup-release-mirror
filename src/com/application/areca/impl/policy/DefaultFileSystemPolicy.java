@@ -22,7 +22,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -76,6 +76,17 @@ implements FileSystemPolicy {
 
     public String getArchivePath() {
 		return this.archivePath;
+	}
+
+	public AccessInformations checkReachable() {
+		AccessInformations ret = new AccessInformations();
+		File path = new File(archivePath);
+		File parent = FileSystemManager.getParentFile(path);
+		if (! FileSystemManager.exists(parent)) {
+			ret.setReachable(false);
+			ret.setMessage(FileSystemManager.getAbsolutePath(parent) + " doesn't exist.");
+		}
+		return ret;
 	}
 
 	public void setArchivePath(String archivePath) {

@@ -13,7 +13,7 @@ import java.util.Iterator;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -40,6 +40,7 @@ public class StatusList implements Serializable {
 	public static String KEY_MERGE = "Merge Archives";
 	public static String KEY_SIMULATE = "Simulate Backup";
 	public static String KEY_DELETE = "Delete Archives";
+	public static String KEY_PREPARE = "Pre/Post Backup Operations";
 	
 	private ArrayList content = new ArrayList();
 	private boolean hasError = false;

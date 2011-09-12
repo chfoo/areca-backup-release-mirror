@@ -31,6 +31,7 @@ import com.application.areca.ActionProxy;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
 import com.application.areca.ArecaConfiguration;
+import com.application.areca.ArecaFileList;
 import com.application.areca.ArecaURLs;
 import com.application.areca.CheckParameters;
 import com.application.areca.EntryArchiveData;
@@ -50,6 +51,7 @@ import com.application.areca.context.ProcessContext;
 import com.application.areca.context.ReportingConfiguration;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemTarget;
+import com.application.areca.impl.copypolicy.AskBeforeOverwriteCopyPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ActionConstants;
 import com.application.areca.launcher.gui.common.ApplicationPreferences;
@@ -72,6 +74,7 @@ import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.system.NoBrowserFoundException;
 import com.myJava.system.OSTool;
 import com.myJava.system.viewer.ViewerHandlerHelper;
@@ -91,7 +94,7 @@ import com.myJava.util.xml.AdapterException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -169,7 +172,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 	private EntryArchiveData currentEntryData; // En cas d'affichage de
 												// l'historique d'une entree,
 												// date en cours de selection
-	private RecoveryFilter currentFilter; // En cas de selection d'un noeud sur
+	private UIRecoveryFilter currentFilter; // En cas de selection d'un noeud sur
 											// le panel de detail d'une archive
 											// (repertoire ou Entry reelle), nom
 											// de celui ci.
@@ -231,7 +234,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		}
 	}
 
-	public RecoveryFilter getCurrentFilter() {
+	public UIRecoveryFilter getCurrentFilter() {
 		return currentFilter;
 	}
 
@@ -460,19 +463,19 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 					.isRecoverDeletedEntries();
 
 			if (path != null) {
-				if (FileSystemTarget.class.isAssignableFrom(this
-						.getCurrentObject().getClass())) {
-					FileSystemTarget target = (FileSystemTarget) this
-							.getCurrentObject();
+				if (FileSystemTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
+					FileSystemTarget target = (FileSystemTarget) this.getCurrentObject();
 					TargetGroup process = target.getParent();
+					final CopyPolicy policy = new AskBeforeOverwriteCopyPolicy();
 					ProcessRunner rn = new ProcessRunner(target) {
 						public void runCommand() throws ApplicationException {
 							ActionProxy.processRecoverOnTarget(
 									rTarget,
-									argument == null ? null
-											: ((RecoveryFilter) argument)
-													.getFilter(), rPath,
-									rFromDate, recoverDeletedEntries,
+									argument == null ? null : new ArecaFileList(((UIRecoveryFilter) argument).getFilter()), 
+									policy,
+									rPath,
+									rFromDate, 
+									recoverDeletedEntries,
 									checkRecoveredFiles, context);
 						}
 
@@ -558,6 +561,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 					FileSystemTarget target = (FileSystemTarget) this
 							.getCurrentObject();
 					TargetGroup process = target.getParent();
+					final CopyPolicy policy = new AskBeforeOverwriteCopyPolicy();
 					ProcessRunner rn = new ProcessRunner(target) {
 						private File recoveredFile;
 
@@ -568,9 +572,14 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 							if (FileSystemManager.exists(recoveredFile)) {
 								FileSystemManager.delete(recoveredFile);
 							}
-							ActionProxy.processRecoverOnTarget(rTarget, rPath,
-									rFromDate, rEntry.getKey(),
-									checkRecoveredFiles, context);
+							ActionProxy.processRecoverOnTarget(
+									rTarget, 
+									rPath,
+									rFromDate, 
+									rEntry.getKey(),
+									policy,
+									checkRecoveredFiles, 
+									context);
 						}
 
 						protected void finishCommand() {
@@ -1130,7 +1139,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 
 		String comments = commentPrefix + type + "\n" + commentPrefix
 				+ "Target Group : \"" + process.getName() + "\"\n";
-		File config = new File(workspace.getPath(), process.getAncestorPath());
+		File config = new File(workspace.getPath(), process.getFullPath());
 		if (target != null) {
 			config = target.computeConfigurationFile(config, false);
 		}
@@ -1454,15 +1463,12 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 	}
 
 	public void handleException(Throwable e) {
-		FileLogProcessor processor = (FileLogProcessor) Logger.defaultLogger()
-				.find(FileLogProcessor.class);
+		FileLogProcessor processor = (FileLogProcessor) Logger.defaultLogger().find(FileLogProcessor.class);
 		String logFile = "<null>";
 		if (processor != null) {
 			logFile = processor.getCurrentLogFile();
 		}
-		handleException(
-				RM.getLabel("error.process.message", new Object[] {
-						getExceptionMessage(e), logFile }), e);
+		handleException(RM.getLabel("error.process.message", new Object[] {getExceptionMessage(e), logFile }), e);
 	}
 
 	private String getExceptionMessage(Throwable e) {
@@ -1513,7 +1519,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		return currentEntry;
 	}
 
-	public void setCurrentFilter(RecoveryFilter argCurrentFilter) {
+	public void setCurrentFilter(UIRecoveryFilter argCurrentFilter) {
 		if (argCurrentFilter != null && argCurrentFilter.getFilter() != null) {
 			for (int i = 0; i < argCurrentFilter.getFilter().length; i++) {
 				if (argCurrentFilter.getFilter()[i].equals("/")

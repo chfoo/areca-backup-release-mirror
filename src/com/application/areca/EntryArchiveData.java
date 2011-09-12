@@ -12,7 +12,7 @@ import com.application.areca.metadata.manifest.Manifest;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -35,6 +35,7 @@ public class EntryArchiveData {
 	protected short status;    
     protected Manifest manifest;
     protected String hash;
+    protected long metadataVersion;
 
     public Manifest getManifest() {
         return manifest;
@@ -62,5 +63,13 @@ public class EntryArchiveData {
 	
 	public void setStatus(short status) {
 		this.status = status;
+	}
+
+	public long getMetadataVersion() {
+		return metadataVersion;
+	}
+
+	public void setMetadataVersion(long metadataVersion) {
+		this.metadataVersion = metadataVersion;
 	}
 }

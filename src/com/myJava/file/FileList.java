@@ -14,7 +14,7 @@ import com.myJava.object.ToStringHelper;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -33,7 +33,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class FileFilterList {
+public class FileList {
 	private List content = new ArrayList();
 	private boolean containsDirectories = false;
 	private boolean containsFiles = false;

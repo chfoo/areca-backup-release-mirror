@@ -12,7 +12,7 @@ import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
- * Collection of PostProcessors
+ * Collection of Pre/PostProcessors
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -20,7 +20,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -60,6 +60,17 @@ public class ProcessorList implements Duplicable {
 
 	public void setForwardErrors(boolean forwardErrors) {
 		this.forwardErrors = forwardErrors;
+	}
+	
+	public boolean requireStatistics() {
+        Iterator iter = this.processors.iterator();
+        while (iter.hasNext()) {
+            Processor processor = (Processor)iter.next();
+            if (processor.requireStatictics()) {
+            	return true;
+            }
+        }
+        return false;
 	}
 
 	/**

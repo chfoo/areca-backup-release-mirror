@@ -11,6 +11,7 @@ import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.transaction.TransactionPoint;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.file.driver.DriverAlreadySetException;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.object.Duplicable;
@@ -29,7 +30,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -73,6 +74,8 @@ public interface ArchiveHandler extends Duplicable {
     public void recoverRawData(
             File[] archivesToRecover, 
             RecoveryFilterMap filtersByArchive, 
+            CopyPolicy policy,
+			File referenceTrace,
             short mode,
             ProcessContext context
     ) throws IOException, ApplicationException, TaskCancelledException;

@@ -1,6 +1,7 @@
 package com.application.areca;
 
 import java.text.MessageFormat;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -18,7 +19,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -97,6 +98,22 @@ public class ResourceManager {
     	} else {
     		return input;
     	}
+    }
+    
+    private static boolean checkKeyWord(ResourceBundle properties, String kw) {
+    	Iterator iter = properties.keySet().iterator();
+    	while (iter.hasNext()) {
+    		String k = (String)iter.next();
+    		String v = properties.getString(k);
+    		if (v.contains(kw)) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    
+    public boolean checkKeyword(String kw) {
+    	return checkKeyWord(properties, kw) || checkKeyWord(defaultProperties, kw);
     }
 
     public String getLabel(String key) {

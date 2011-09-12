@@ -3,9 +3,9 @@ package com.application.areca.metadata.trace;
 import java.io.File;
 import java.io.IOException;
 
+import com.application.areca.ArecaFileList;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.metadata.MetadataConstants;
-import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
@@ -21,7 +21,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -43,21 +43,16 @@ This file is part of Areca.
 public class RebuildOtherFilesTraceHandler implements TraceHandler {
 	
 	private File directory;
-	private String[] filters;
-	private String[] normalizedFilters;
+	private ArecaFileList filters;
+	private ArecaFileList normalizedFilters;
 
-	public RebuildOtherFilesTraceHandler(File directory, String[] filters) {
+	public RebuildOtherFilesTraceHandler(File directory, ArecaFileList filters) {
 		this.directory = directory;
 		this.filters = filters;
 		
 		if (filters != null) {
-			normalizedFilters = new String[filters.length];
-			for (int i=0; i<filters.length; i++) {
-				normalizedFilters[i] = FileSystemManager.getAbsolutePath(new File(directory, filters[i]));
-				if (FileNameUtil.endsWithSeparator(normalizedFilters[i])) {
-					normalizedFilters[i] = normalizedFilters[i].substring(0, normalizedFilters[i].length() - 1);
-				}
-			}
+			normalizedFilters = (ArecaFileList)this.filters.duplicate();
+			normalizedFilters.normalize(directory);
 		}
 	}
 
@@ -78,7 +73,7 @@ public class RebuildOtherFilesTraceHandler implements TraceHandler {
 				}
 			}
 		} else if (type == MetadataConstants.T_SYMLINK) {
-			if (filters == null || Util.passFilter(key, filters)) {
+			if (filters == null || Util.passFilter(key, filters.asArray())) {
 				File symLink = new File(directory, key);
 				File parent = symLink.getParentFile();
 				if (! FileSystemManager.exists(parent)) {
@@ -87,7 +82,7 @@ public class RebuildOtherFilesTraceHandler implements TraceHandler {
 				FileSystemManager.createSymbolicLink(symLink, ArchiveTraceParser.extractSymLinkPathFromTrace(trace));
 			}
 		} else if (type == MetadataConstants.T_PIPE) {
-			if (filters == null || Util.passFilter(key, filters)) {
+			if (filters == null || Util.passFilter(key, filters.asArray())) {
 				FileSystemManager.createNamedPipe(new File(directory, key));
 			}
 		}
@@ -97,13 +92,13 @@ public class RebuildOtherFilesTraceHandler implements TraceHandler {
 	}
 
 	// To refactor / clean
-	private boolean matchFilters(File dir, String[] normalizedFilters) {
+	private boolean matchFilters(File dir, ArecaFileList normalizedFilters) {
 		if (normalizedFilters == null) {
 			return true;
 		} else {
 			String tested = FileSystemManager.getAbsolutePath(dir);
-			for (int i=0; i<normalizedFilters.length; i++) {
-				if (tested.equals(normalizedFilters[i]) || tested.startsWith(normalizedFilters[i] + "/")) {
+			for (int i=0; i<normalizedFilters.length(); i++) {
+				if (tested.equals(normalizedFilters.get(i)) || tested.startsWith(normalizedFilters.get(i) + "/")) {
 					return true;
 				}
 			}

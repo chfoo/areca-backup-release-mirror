@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -37,6 +37,8 @@ This file is part of Areca.
 
  */
 public class Launcher extends AbstractArecaLauncher {
+	private static String OPT_WORKSPACE = "ws";
+	private static String OPT_CONFIG = "cfg";
 	
 	static {
 		AbstractArecaLauncher.setInstance(new Launcher());
@@ -46,25 +48,93 @@ public class Launcher extends AbstractArecaLauncher {
     	getInstance().launch(args);
     	getInstance().exit();
     }
+	
+	private static class Options {
+		public String workspace;
+		public String configurationDirectory;
+		
+		public Options(String[] args) {
+			for (int i=0; i<args.length; i++) {
+				load(args[i]);
+			}
+		}
+		
+		private void load(String option) {
+			if (option != null && option.trim().length() != 0) {
+				String chk;
+				
+				chk = check(option, OPT_WORKSPACE);
+				if (chk != null) {
+					workspace = chk;
+				} else {
+					chk = check(option, OPT_CONFIG);
+					if (chk != null) {
+						configurationDirectory = chk;
+					} else {
+						// Default case (backward compatibility)
+						workspace = option;
+					}
+				}
+			}
+		}
+		
+		private String check(String option, String prefix) {
+			String opt = option.toLowerCase();
+			String prf1 = "-" + prefix + "=";
+			String prf2 = "-" + prefix + " =";
+			
+			if (opt.startsWith(prf1)) {
+				return option.substring(prf1.length()).trim();
+			} else if (opt.startsWith(prf2)) {
+				return option.substring(prf2.length()).trim();
+			} else {
+				return null;
+			}
+		}
+		
+		public String toString() {
+			String ret = "";
+			if (workspace != null) {
+				ret += ", Workspace=\"" + workspace + "\"";
+			}
+			if (configurationDirectory != null) {
+				ret += ", Configuration Directory=\"" + configurationDirectory + "\"";
+			}
+			
+			if (ret.length() != 0) {
+				return ret.substring(2);
+			} else {
+				return ret;
+			}
+		}
+	}
 
     protected void launchImpl(String[] args) {
+    	Options opt = new Options(args);
+    	if (opt.toString().length() != 0) {
+            Logger.defaultLogger().info("Parameters detected : " + opt.toString());
+    	}
+    	ApplicationPreferences.initialize(opt.configurationDirectory == null ? System.getProperty("user.home") : opt.configurationDirectory);
+    	
         boolean killOnError = true;
         try {
             String workspace = null;
-            switch (ApplicationPreferences.getStartupMode()) {
-            case ApplicationPreferences.LAST_WORKSPACE_MODE:
-                workspace = ApplicationPreferences.getLastWorkspace();
-                break;
-            case ApplicationPreferences.DEFAULT_WORKSPACE_MODE:
-                workspace = ApplicationPreferences.getDefaultWorkspace();
-                break;
-            }
-            if (workspace == null) {
-                if (args.length != 0 && args[0].trim().length() != 0) {
-                    workspace = args[0];
-                } else {
-                    workspace = System.getProperty("user.home") + "/" + ArecaFileConstants.USER_DEFAULT_WORKSPACE;
-                }
+            
+            if (opt.workspace != null && opt.workspace.trim().length() != 0) {
+                workspace = opt.workspace;
+            } else {
+	            switch (ApplicationPreferences.getStartupMode()) {
+	            case ApplicationPreferences.LAST_WORKSPACE_MODE:
+	                workspace = ApplicationPreferences.getLastWorkspace();
+	                break;
+	            case ApplicationPreferences.DEFAULT_WORKSPACE_MODE:
+	                workspace = ApplicationPreferences.getDefaultWorkspace();
+	                break;
+	            }
+	            
+	            if (workspace == null) {
+	                workspace = System.getProperty("user.home") + "/" + ArecaFileConstants.USER_DEFAULT_WORKSPACE;
+	            }
             }
 
             Application gui = Application.getInstance();

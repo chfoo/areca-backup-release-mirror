@@ -12,8 +12,11 @@ import java.io.Reader;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import com.myJava.configuration.FrameworkConfiguration;
+import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.system.OSTool;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
@@ -28,7 +31,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -64,7 +67,7 @@ public class FileTool {
 	public void copy(File sourceFileOrDirectory, File targetParentDirectory)
 	throws IOException {
 		try {
-			copy(sourceFileOrDirectory, targetParentDirectory, null, null);
+			copy(sourceFileOrDirectory, targetParentDirectory, null, null, null, null);
 		} catch (TaskCancelledException ignored) {
 			// Never happens since no monitor is set.
 		}
@@ -73,8 +76,14 @@ public class FileTool {
 	/**
 	 * Copy the source file or directory in the parent destination.
 	 */
-	public void copy(File sourceFileOrDirectory, File targetParentDirectory, TaskMonitor monitor, OutputStreamListener listener)
-	throws IOException, TaskCancelledException {
+	public void copy(
+			File sourceFileOrDirectory, 
+			File targetParentDirectory, 
+			CopyPolicy policy, 
+			Comparator comparator, 
+			TaskMonitor monitor, 
+			OutputStreamListener listener
+	) throws IOException, TaskCancelledException {
 		if (sourceFileOrDirectory == null || targetParentDirectory == null) {
 			throw new IllegalArgumentException("Source : "
 					+ sourceFileOrDirectory + ", Destination : "
@@ -86,11 +95,47 @@ public class FileTool {
 		}
 
 		if (FileSystemManager.isFile(sourceFileOrDirectory)) {
-			copyFile(sourceFileOrDirectory, targetParentDirectory, FileSystemManager.getName(sourceFileOrDirectory), monitor, listener);
+			if (policy == null || policy.accept(new File(targetParentDirectory, FileSystemManager.getName(sourceFileOrDirectory)))) {
+				copyFile(sourceFileOrDirectory, targetParentDirectory, FileSystemManager.getName(sourceFileOrDirectory), monitor, listener);
+			}
 		} else {
 			File td = new File(targetParentDirectory, FileSystemManager.getName(sourceFileOrDirectory));
 			this.createDir(td);
-			this.copyDirectoryContent(sourceFileOrDirectory, td, monitor,listener);
+			this.copyDirectoryContent(sourceFileOrDirectory, td, policy, comparator, monitor,listener);
+		}
+	}
+	
+	/**
+	 * Copy the content of sourceDirectory into targetDirectory <BR>
+	 * Example : <BR>- sourceDirectory = c:\toto\sourceDir <BR>-
+	 * targetDirectory = d:\myDir <BR>
+	 * <BR>
+	 * The content of c:\toto\sourceDir will be copied into d:\myDir
+	 */
+	public void copyDirectoryContent(
+			File sourceDirectory, 
+			File targetDirectory, 
+			CopyPolicy policy, 
+			Comparator comparator,
+			TaskMonitor monitor, 
+			OutputStreamListener listener
+	) throws IOException, TaskCancelledException {
+		this.createDir(targetDirectory);
+
+		File[] files = FileSystemManager.listFiles(sourceDirectory);
+		if (files == null) {
+			if (FileSystemManager.exists(sourceDirectory)) {
+				Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(sourceDirectory) + " : Directory exists but no children.");
+			} else {
+				Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(sourceDirectory) + " : Directory doesn't exist.");
+			}
+		} else {
+			if (comparator != null) {
+				Arrays.sort(files, comparator);
+			}
+			for (int i = 0; i < files.length; i++) {
+				this.copy(files[i], targetDirectory, policy, comparator, monitor, listener);
+			}
 		}
 	}
 
@@ -98,8 +143,13 @@ public class FileTool {
 	 * Copy the file to the parent target directory, with the short name passed
 	 * as argument.
 	 */
-	public void copyFile(File sourceFile, File targetDirectory, String targetShortFileName, TaskMonitor monitor, OutputStreamListener listener) 
-	throws IOException,	TaskCancelledException {
+	public void copyFile(
+			File sourceFile, 
+			File targetDirectory, 
+			String targetShortFileName, 
+			TaskMonitor monitor, 
+			OutputStreamListener listener
+	) throws IOException,	TaskCancelledException {
 		if (!FileSystemManager.exists(targetDirectory)) {
 			this.createDir(targetDirectory);
 		}
@@ -113,8 +163,12 @@ public class FileTool {
 	/**
 	 * Copy the source file to the target outputstream
 	 */
-	public void copyFile(File sourceFile, OutputStream outStream, boolean closeStream, TaskMonitor monitor) 
-	throws IOException, TaskCancelledException {
+	public void copyFile(
+			File sourceFile, 
+			OutputStream outStream, 
+			boolean closeStream, 
+			TaskMonitor monitor
+	) throws IOException, TaskCancelledException {
 		InputStream in;
 		try {
 			in = FileSystemManager.getFileInputStream(sourceFile);
@@ -131,8 +185,12 @@ public class FileTool {
 		this.copy(in, outStream, true, closeStream, monitor);
 	}
 
-	public void copy(InputStream inStream, OutputStream outStream, boolean closeInputStream, boolean closeOutputStream)
-	throws IOException {
+	public void copy(
+			InputStream inStream, 
+			OutputStream outStream, 
+			boolean closeInputStream, 
+			boolean closeOutputStream
+	) throws IOException {
 		try {
 			copy(inStream, outStream, closeInputStream, closeOutputStream, null);
 		} catch (TaskCancelledException ignored) {
@@ -142,8 +200,13 @@ public class FileTool {
 	/**
 	 * Copy inStream into outStream.
 	 */
-	public void copy(InputStream inStream, OutputStream outStream, boolean closeInputStream, boolean closeOutputStream, TaskMonitor monitor)
-	throws IOException, TaskCancelledException {
+	public void copy(
+			InputStream inStream, 
+			OutputStream outStream,
+			boolean closeInputStream, 
+			boolean closeOutputStream, 
+			TaskMonitor monitor
+	) throws IOException, TaskCancelledException {
 
 		try {
 			byte[] in = new byte[BUFFER_SIZE];
@@ -168,31 +231,6 @@ public class FileTool {
 				if (closeOutputStream && outStream != null) {
 					outStream.close();
 				}
-			}
-		}
-	}
-
-	/**
-	 * Copy the content of sourceDirectory into targetDirectory <BR>
-	 * Example : <BR>- sourceDirectory = c:\toto\sourceDir <BR>-
-	 * targetDirectory = d:\myDir <BR>
-	 * <BR>
-	 * The content of c:\toto\sourceDir will be copied into d:\myDir
-	 */
-	public void copyDirectoryContent(File sourceDirectory, File targetDirectory, TaskMonitor monitor, OutputStreamListener listener)
-	throws IOException,	TaskCancelledException {
-		this.createDir(targetDirectory);
-
-		File[] files = FileSystemManager.listFiles(sourceDirectory);
-		if (files == null) {
-			if (FileSystemManager.exists(sourceDirectory)) {
-				Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(sourceDirectory) + " : Directory exists but no children.");
-			} else {
-				Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(sourceDirectory) + " : Directory doesn't exist.");
-			}
-		} else {
-			for (int i = 0; i < files.length; i++) {
-				this.copy(files[i], targetDirectory, monitor, listener);
 			}
 		}
 	}

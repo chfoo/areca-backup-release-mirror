@@ -19,7 +19,7 @@ import com.application.areca.ResourceManager;
 import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
-import com.application.areca.launcher.gui.postprocessors.AbstractProcessorComposite;
+import com.application.areca.launcher.gui.processors.AbstractProcessorComposite;
 import com.application.areca.processor.AbstractProcessor;
 import com.application.areca.processor.Processor;
 
@@ -31,7 +31,7 @@ import com.application.areca.processor.Processor;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -65,7 +65,7 @@ extends AbstractWindow {
     protected Button chkError;
     protected Button chkWarning;
     protected Button chkOK;
-    
+
     protected AbstractProcessor proc;  
     protected FileSystemTarget currentTarget;
     protected Button btnSave;

@@ -1,6 +1,8 @@
 package com.application.areca.launcher.gui.composites;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Stack;
 
 import org.eclipse.jface.viewers.TreeViewer;
@@ -21,13 +23,14 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.AbstractWorkspaceItem;
 import com.application.areca.ResourceManager;
 import com.application.areca.TargetGroup;
 import com.application.areca.Workspace;
 import com.application.areca.WorkspaceItem;
 import com.application.areca.launcher.gui.Application;
-import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.ApplicationPreferences;
+import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 
 /**
@@ -38,7 +41,7 @@ import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -180,31 +183,35 @@ implements MouseListener, Listener {
             tree.setSelection(targetNode);
         }
     }
+    
 
     public void setSelectedTarget(AbstractTarget target) {
-        if (target != null) {
-            TreeItem processNode = null;
-            TargetGroup process = target.getParent();
-            TreeItem[] processes = tree.getItems();
-            for (int i=0; i<processes.length; i++) {
-                TreeItem child = processes[i];
-                TargetGroup cProcess = (TargetGroup)child.getData();
-                if (cProcess.getUid().equals(process.getUid())) {
-                    processNode = child;
-                    break;
-                }
-            }
-
-            TreeItem[] targets = processNode.getItems();
-            for (int i=0; i<targets.length; i++) {
-                TreeItem child = targets[i];
-                AbstractTarget cTarget = (AbstractTarget)child.getData();
-                if (cTarget.equals(target)) {
-                    tree.setSelection(child);
-                    break;
-                }
-            }
-        }
+    	List path = new ArrayList();
+    	AbstractWorkspaceItem itm = target;
+    	while (itm != null) {
+    		path.add(itm);
+    		itm = itm.getParent();
+    	}
+    	
+    	if (path.size() != 0) {
+        	path.remove(path.size() - 1);
+    		TreeItem toSelect = null;
+    		TreeItem[] searchRange = tree.getItems();
+    		for (int i=path.size() - 1; i >=0; i--) {
+    			itm = (AbstractWorkspaceItem)path.get(i);
+    			for (int j=0; j<searchRange.length; j++) {
+    				AbstractWorkspaceItem candidate = (AbstractWorkspaceItem)searchRange[j].getData();
+                    if (candidate.getUid().equals(itm.getUid())) {
+                    	toSelect = searchRange[j];
+                    	searchRange = toSelect.getItems();
+                        break;
+                    }
+    			}
+    		}
+    		
+    		tree.setSelection(toSelect);
+    		tree.showSelection();
+    	}
     }
 
     public void mouseDoubleClick(MouseEvent e) {

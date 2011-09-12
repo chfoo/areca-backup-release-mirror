@@ -16,7 +16,7 @@ import com.myJava.file.iterator.FilePathComparator;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -101,7 +101,7 @@ public abstract class AbstractMetaDataFileIterator {
 	/**
 	 * Iterates until the key provided as argument is found or passed
 	 */
-	public boolean fetchUntil(String key) throws IOException {
+	public boolean fetch(String key) throws IOException {
 		while (true) {
 			if (this.pointer == null) {
 				// End of file

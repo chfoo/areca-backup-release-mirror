@@ -49,7 +49,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -299,7 +299,7 @@ implements MouseListener, Listener, Refreshable {
 				AbstractTarget target = (AbstractTarget)item;
 				this.targets.add(target);
 				Button chk = new Button(pnlTargets, SWT.CHECK);
-				chk.setText(target.getName());
+				chk.setText(target.getParent().getFullPath(" / ") + " / " + target.getName());
 				this.checkBoxes.add(chk);
 			} else {
 				addItems((TargetGroup)item);

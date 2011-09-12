@@ -18,7 +18,7 @@ import com.myJava.object.HashHelper;
  */
 
  /*
- Copyright 2005-2010, Olivier PETRUCCI.
+ Copyright 2005-2011, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -53,6 +53,10 @@ public class MergeProcessor extends AbstractProcessor {
     public int getToDelay() {
         return toDelay;
     }
+    
+    public boolean requireStatictics() {
+		return false;
+	}
     
 	public String getKey() {
 		return "Merge Archives";
