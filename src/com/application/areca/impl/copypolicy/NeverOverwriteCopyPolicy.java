@@ -30,6 +30,12 @@ This file is part of Areca.
 
  */
 public class NeverOverwriteCopyPolicy extends OverwriteCopyPolicy {
+
+	public boolean accept(File file) throws CopyPolicyException {
+		return true;
+		//to remove
+	}
+
 	protected boolean overrideExistingFile(File file) {
 		return false;
 	}

@@ -6,7 +6,7 @@ import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.AskBeforeOverwriteWindow;
 
 /**
- * 
+ *
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -37,17 +37,25 @@ public class AskBeforeOverwriteCopyPolicy extends OverwriteCopyPolicy {
 	private boolean rememberDecision = false;
 	private boolean overwrite = false;
 
+
+
+	public boolean accept(File file) throws CopyPolicyException {
+		return true;
+		//to remove
+	}
+
 	protected boolean overrideExistingFile(File file) {
 		if (rememberDecision) {
 			return overwrite;
 		} else {
 			AskBeforeOverwriteWindow window = new AskBeforeOverwriteWindow(file);
+			// not thread safe !!!!
 			Application.getInstance().showDialog(window);
 			rememberDecision = window.isRemember();
 			if (rememberDecision) {
 				overwrite = window.isOverwrite();
 			}
-			
+
 			return window.isOverwrite();
 		}
 	}
