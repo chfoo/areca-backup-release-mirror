@@ -5,12 +5,12 @@ import java.util.List;
 
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.AggregatedViewContext;
+import com.application.areca.impl.copypolicy.AbstractCopyPolicy;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.transaction.TransactionPoint;
 import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
-import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.object.Duplicable;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.HistoryHandler;
@@ -86,8 +86,8 @@ public interface ArchiveMedium extends Duplicable {
      */
     public void recover(
             Object destination, 
-            ArecaFileList filter,
-            CopyPolicy policy,
+            ArecaRawFileList filter,
+            AbstractCopyPolicy policy,
             GregorianCalendar date,
             boolean keepDeletedEntries,
             boolean checkRecoveredFiles,

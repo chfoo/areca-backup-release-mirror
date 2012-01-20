@@ -62,12 +62,13 @@ public class UserCommandLine implements CommandConstants {
         Launcher.COMMAND_MERGE.addOptionalArgument(Launcher.OPTION_SPEC_LOCATION);
         
         Launcher.COMMAND_RECOVER.addMandatoryArgument(Launcher.OPTION_CONFIG);
+        Launcher.COMMAND_RECOVER.addMandatoryArgument(Launcher.OPTION_DESTINATION);
         Launcher.COMMAND_RECOVER.addOptionalArgument(Launcher.OPTION_TARGET);
         Launcher.COMMAND_RECOVER.addOptionalArgument(Launcher.OPTION_DATE);
         Launcher.COMMAND_RECOVER.addOptionalArgument(Launcher.OPTION_CHECK_FILES);
         Launcher.COMMAND_RECOVER.addOptionalArgument(Launcher.OPTION_OVERWRITE);
-        Launcher.COMMAND_RECOVER.addMandatoryArgument(Launcher.OPTION_DESTINATION);
-        
+        Launcher.COMMAND_RECOVER.addOptionalArgument(Launcher.OPTION_NO_SUBDIR);
+
         Launcher.COMMAND_CHECK.addMandatoryArgument(Launcher.OPTION_CONFIG);
         Launcher.COMMAND_CHECK.addOptionalArgument(Launcher.OPTION_TARGET);
         Launcher.COMMAND_CHECK.addOptionalArgument(Launcher.OPTION_DATE);

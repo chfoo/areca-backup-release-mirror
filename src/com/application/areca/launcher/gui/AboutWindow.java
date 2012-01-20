@@ -20,7 +20,6 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ArecaConfiguration;
 import com.application.areca.ArecaURLs;
-import com.application.areca.MemoryHelper;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
@@ -197,7 +196,6 @@ implements ArecaURLs {
         prps.put("system.total.memory", "" + OSTool.getTotalMemory());
         prps.put("system.max.available.memory", "" + OSTool.getMaxMemory());
         prps.put("file.encoding.iana", OSTool.getIANAFileEncoding());
-        prps.put("areca-backup.max.optimized.entries", "" + MemoryHelper.getMaxManageableEntries());
         prps.put("areca-backup.version", VersionInfos.getLastVersion().getVersionId());
         prps.put("areca-backup.build.id", "" + VersionInfos.getBuildId());
         prps.put("areca-backup.path.length.limited", Boolean.toString(AbstractFileSystemDriver.CHECK_PATH));

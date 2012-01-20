@@ -74,7 +74,7 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
 	}
 
 	public void writeEntry(char type, String key, String data) throws IOException {
-		write(type + MetadataEncoder.encode(key) + MetadataConstants.SEPARATOR + data);
+		write(type + MetadataEncoder.getInstance().encode(key) + MetadataConstants.SEPARATOR + data);
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
 		String encoding = hdr.getEncoding();
 		handler.setVersion(hdr.getVersion());
 
-		InputStream in = this.getInputStream();
+		InputStream in = this.buildInputStream();
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding));            
@@ -137,10 +137,10 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
 		String key;
 		String hash;
 		if (index == -1) {
-			key = MetadataEncoder.decode(serialized);
+			key = MetadataEncoder.getInstance().decode(serialized);
 			hash = null;
 		} else {
-			key = MetadataEncoder.decode(serialized.substring(0, index));
+			key = MetadataEncoder.getInstance().decode(serialized.substring(0, index));
 			hash = serialized.substring(index + MetadataConstants.SEPARATOR.length());
 		}
 		//handle current directory
@@ -154,10 +154,10 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
 	/**
 	 * Build a TraceFileIterator
 	 */
-	private TraceFileIterator getIterator() throws IOException {
+	private TraceFileIterator buildIterator() throws IOException {
 		String encoding = getMetaData().getEncoding();
 		
-		InputStream in = this.getInputStream();
+		InputStream in = this.buildInputStream();
 		BufferedReader reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding)); 
 
 		// Skip the header
@@ -169,8 +169,11 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
 	}
 
 	public static TraceFileIterator buildIterator(File traceFile) throws IOException {
+		if (traceFile == null) {
+			throw new NullPointerException("Trace file name shall not be null");
+		}
 		ArchiveTraceAdapter adapter = new ArchiveTraceAdapter(traceFile);
-		return adapter.getIterator();
+		return adapter.buildIterator();
 	}
 	
 	public static void traverseTraceFile(TraceHandler handler, File traceFile, ProcessContext context) 

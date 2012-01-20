@@ -37,6 +37,7 @@ This file is part of Areca.
 
  */
 public final class ApplicationPreferences {
+    private static final String STARTUP_DISPLAY_LOGICAL_VIEW = "startup.display.logical.view";
     private static final String STARTUP_MODE = "startup.mode";
 	private static final String STARTUP_WORKSPACE = "startup.workspace";
 	private static final String LAST_WORKSPACE = "lastworkspace";
@@ -136,6 +137,15 @@ public final class ApplicationPreferences {
     
     public static boolean isDisplayMessage(String key) {
         return LocalPreferences.instance().getBoolean(key, true);
+    }
+    
+    public static boolean isDisplayLogicalViewOnStartup() {
+        return LocalPreferences.instance().getBoolean(STARTUP_DISPLAY_LOGICAL_VIEW, false);
+    }
+    
+    public static void setDisplayLogicalViewOnStartup(boolean show) {
+	    LocalPreferences.instance().set(STARTUP_DISPLAY_LOGICAL_VIEW, show);
+	    synchronizeClientConfigurations();
     }
 	
 	public static void setLastWorkspaceCopyLocation(String dir) {

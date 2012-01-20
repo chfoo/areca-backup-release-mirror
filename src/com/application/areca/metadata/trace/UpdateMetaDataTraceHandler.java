@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 import com.application.areca.context.ProcessContext;
-import com.application.areca.metadata.MetadataConstants;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.metadata.FileMetaData;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
@@ -59,22 +58,7 @@ public class UpdateMetaDataTraceHandler implements TraceHandler {
 		
 		File target = new File(destination, key);
 		if (FileSystemManager.exists(target)) {
-			FileMetaData atts;
-			if (type == MetadataConstants.T_DIR) {
-				// Directory
-				atts = ArchiveTraceParser.extractDirectoryAttributesFromTrace(hash, version);
-			} else if (type == MetadataConstants.T_FILE) {
-				// File
-				atts = ArchiveTraceParser.extractFileAttributesFromTrace(hash, version);
-			} else if (type == MetadataConstants.T_SYMLINK) {
-				// Symlink
-				atts = ArchiveTraceParser.extractSymLinkAttributesFromTrace(hash, version);
-			} else if (type == MetadataConstants.T_PIPE) {
-				// Pipe
-				atts = ArchiveTraceParser.extractPipeAttributesFromTrace(hash, version);
-			} else {
-				throw new FileMetaDataSerializationException("Unsupported type for " + key + " : " + type + " / " + hash);
-			}
+			FileMetaData atts = ArchiveTraceParser.extractAttributesFromEntry(key, type, hash, version);
 			
 			if (atts == null) {
 				Logger.defaultLogger().warn("Unable to retrieve metadata for '" + key + "'. This is probably because you are trying to read an archive that was created on a different operating system.");

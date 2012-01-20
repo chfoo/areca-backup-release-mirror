@@ -12,20 +12,20 @@ import java.util.Set;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
-import com.application.areca.ArecaFileList;
+import com.application.areca.ArecaRawFileList;
 import com.application.areca.CheckParameters;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.SimulationResult;
 import com.application.areca.TargetActions;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.context.StatusList;
+import com.application.areca.impl.copypolicy.AbstractCopyPolicy;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
 import com.application.areca.metadata.transaction.TransactionPoint;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
-import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.object.Duplicable;
@@ -303,12 +303,16 @@ implements TargetActions {
         return super.processSimulateImpl(context, returnDetailedResults);
     }
 
-    private File buildRecoveryFile(String destination) {
-        File f = new File(normalizeDestination(destination), RECOVERY_LOCATION_SUFFIX);
-        for (int i=0; FileSystemManager.exists(f); i++) {
-            f = new File(normalizeDestination(destination), RECOVERY_LOCATION_SUFFIX + i);
-        }
-        return f;
+    public static File buildRecoveryFile(String destination, boolean appendSuffix) {
+    	if (appendSuffix) {
+            File f = new File(normalizeDestination(destination), RECOVERY_LOCATION_SUFFIX);
+            for (int i=0; FileSystemManager.exists(f); i++) {
+                f = new File(normalizeDestination(destination), RECOVERY_LOCATION_SUFFIX + i);
+            }
+            return f;
+    	} else {
+    		return new File(destination);
+    	}
     }
 
     public void processArchiveCheck(
@@ -328,7 +332,7 @@ implements TargetActions {
     		}
 
 			// Set status
-			if (context.hasRecoveryProblem()) {
+			if (context.hasRecoveryIssues()) {
 				context.getReport().getStatus().addItem(StatusList.KEY_ARCHIVE_CHECK, "The archives were not successfully checked.");
 			} else {
 				context.getReport().getStatus().addItem(StatusList.KEY_ARCHIVE_CHECK);	
@@ -346,8 +350,9 @@ implements TargetActions {
      */
     public void processRecoverImpl(
     		String destination,
-    		ArecaFileList filters,
-			CopyPolicy policy,
+    		boolean appendSuffix,
+    		ArecaRawFileList filters,
+    		AbstractCopyPolicy policy,
     		GregorianCalendar date,
     		boolean keepDeletedEntries,
     		boolean checkRecoveredEntries,
@@ -355,7 +360,7 @@ implements TargetActions {
     ) throws ApplicationException {
         try {
 			this.medium.recover(
-			        buildRecoveryFile(destination),
+			        buildRecoveryFile(destination, appendSuffix),
 			        filters,
 					policy,
 			        date,
@@ -375,15 +380,15 @@ implements TargetActions {
     		String destination,
     		GregorianCalendar date,
     		String entry,
-			CopyPolicy policy,
+    		AbstractCopyPolicy policy,
     		boolean checkRecoveredEntries,
     		ProcessContext context
     ) throws ApplicationException {
-        File dest = buildRecoveryFile(destination);
+        File dest = buildRecoveryFile(destination, true);
         try {
 			this.medium.recover(
 			        dest,
-			        new ArecaFileList(entry),
+			        new ArecaRawFileList(entry),
 					policy,
 			        date,
 			        false,

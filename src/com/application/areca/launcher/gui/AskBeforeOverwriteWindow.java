@@ -49,7 +49,7 @@ extends AbstractWindow {
     private Button chkRemember;
     private File file;
     
-    private boolean remember = false;
+    private boolean remembered = false;
     private boolean overwrite = false;
 
 	public AskBeforeOverwriteWindow(File file) {
@@ -69,7 +69,7 @@ extends AbstractWindow {
         lblImage.setImage(this.getShell().getDisplay().getSystemImage(SWT.ICON_QUESTION));
         
         Label lblMessage = new Label(composite, SWT.NONE);
-        lblMessage.setText(RM.getLabel("common.message.overwrite", FileSystemManager.getAbsolutePath(file)));
+        lblMessage.setText(RM.getLabel("common.message.overwrite", new Object[] {FileSystemManager.getAbsolutePath(file)}));
         lblMessage.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
         new Label(composite, SWT.NONE);
@@ -78,7 +78,7 @@ extends AbstractWindow {
         chkRemember.setText(RM.getLabel("common.message.remember"));
         chkRemember.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
-        SavePanel pnlSave = new SavePanel(RM.getLabel("common.no.label"), this);
+        SavePanel pnlSave = new SavePanel(RM.getLabel("common.yes.label"), RM.getLabel("common.no.label"), this);
         pnlSave.setShowCancel(true);
         pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1));        
         
@@ -95,13 +95,13 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() {
-    	this.remember = chkRemember.getSelection();
+    	this.remembered = chkRemember.getSelection();
         this.overwrite = true;
         this.close();
     }
 
     protected void cancelChanges() {
-    	this.remember = chkRemember.getSelection();
+    	this.remembered = chkRemember.getSelection();
         this.overwrite = false;
         this.close();
 	}
@@ -109,12 +109,12 @@ extends AbstractWindow {
 	protected void updateState(boolean rulesSatisfied) {
     }
 
-	public boolean isRemember() {
-		return remember;
+	public boolean isRemembered() {
+		return remembered;
 	}
 
-	public void setRemember(boolean remember) {
-		this.remember = remember;
+	public void setRemembered(boolean remembered) {
+		this.remembered = remembered;
 	}
 
 	public boolean isOverwrite() {

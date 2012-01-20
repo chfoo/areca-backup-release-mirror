@@ -4,9 +4,10 @@ import java.io.File;
 
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.AskBeforeOverwriteWindow;
+import com.application.areca.launcher.gui.common.SecuredRunner;
+import com.myJava.util.log.Logger;
 
 /**
- *
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -34,34 +35,31 @@ This file is part of Areca.
 
  */
 public class AskBeforeOverwriteCopyPolicy extends OverwriteCopyPolicy {
-	private boolean rememberDecision = false;
+	private boolean decisionRemembered = false;
 	private boolean overwrite = false;
 
-
-
-	public boolean accept(File file) throws CopyPolicyException {
-		return true;
-		//to remove
-	}
-
 	protected boolean overrideExistingFile(File file) {
-		if (rememberDecision) {
+		if (decisionRemembered) {
 			return overwrite;
 		} else {
-			AskBeforeOverwriteWindow window = new AskBeforeOverwriteWindow(file);
-			// not thread safe !!!!
-			Application.getInstance().showDialog(window);
-			rememberDecision = window.isRemember();
-			if (rememberDecision) {
-				overwrite = window.isOverwrite();
-			}
-
+			final AskBeforeOverwriteWindow window = new AskBeforeOverwriteWindow(file);
+			SecuredRunner.execute(new Runnable() {
+				public void run() {
+					Application.getInstance().showDialog(window);
+					decisionRemembered = window.isRemembered();
+					if (decisionRemembered) {
+						overwrite = window.isOverwrite();
+						Logger.defaultLogger().fine("Override decision remembered : Further files " + (overwrite ? "will":"won't") + " be overriden.");
+					}
+				}
+			});
+			
 			return window.isOverwrite();
 		}
 	}
 
 	public void rememberDecision(boolean overwrite) {
 		this.overwrite = overwrite;
-		this.rememberDecision = true;
+		this.decisionRemembered = true;
 	}
 }

@@ -8,17 +8,15 @@ import java.util.List;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
-import com.application.areca.impl.copypolicy.ArecaCompositeCopyPolicy;
-import com.application.areca.impl.copypolicy.TraceFileFilter;
+import com.application.areca.impl.copypolicy.AbstractCopyPolicy;
 import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.trace.ArchiveTraceManager;
 import com.application.areca.metadata.transaction.TransactionPoint;
-import com.myJava.file.FileList;
+import com.myJava.file.FileList.FileListIterator;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.InvalidPathException;
-import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.file.driver.CompressedFileSystemDriver;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.iterator.FileNameComparator;
@@ -150,43 +148,42 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 
 	public File[] ensureLocalCopy(
 			File[] archivesToProcess, 
-			boolean overrideRecoveredFiles, 
+			boolean mergeRecoveredFiles, 
 			File destination, 
 			RecoveryFilterMap filesByArchive, 
-			CopyPolicy policy,
-			File referenceTrace,
+			AbstractCopyPolicy policy,
 			ProcessContext context
 	) throws IOException, ApplicationException, TaskCancelledException {
-		if (overrideRecoveredFiles) {
+		if (mergeRecoveredFiles) {
 			try {
 				context.getInfoChannel().print("Data recovery ...");
-				TraceFileFilter f = new TraceFileFilter(referenceTrace, FileSystemManager.getAbsolutePath(destination));
+
 				for (int i=0; i<archivesToProcess.length; i++) {
-					try {
-						if (filesByArchive == null) {
-							throw new ApplicationException("The file map passed as argument shall not be null.");
-						}
+					if (filesByArchive == null) {
+						throw new ApplicationException("The file map passed as argument shall not be null.");
+					}
 
-						FileList files = (FileList)filesByArchive.get(archivesToProcess[i]);
-						logRecoveryStep(filesByArchive, files, archivesToProcess[i], context);
+					com.application.areca.metadata.FileList files = (com.application.areca.metadata.FileList)filesByArchive.get(archivesToProcess[i]);
+					logRecoveryStep(filesByArchive, files, archivesToProcess[i], context);
 
-						// Copy current element
-						if (files != null) {
-							for (int j=0; j<files.size(); j++) {
-								File sourceFileOrDirectory = new File(archivesToProcess[i], files.get(j));
-								if (FileSystemManager.exists(sourceFileOrDirectory)) {
-									File targetDirectory = FileSystemManager.getParentFile(new File(destination, files.get(j)));
-									doAndRetry(new EnsureLocalCopyTask(sourceFileOrDirectory, targetDirectory, new ArecaCompositeCopyPolicy(f, policy), context), "An error was detected during recovery of " + archivesToProcess[i].getAbsolutePath());
+					// Copy current element
+					if (files != null) {
+						FileListIterator entries = files.iterator();
+						try {
+							while (entries.hasNext()) {
+								String entry = (String)entries.next();
+								File sourceFile = new File(archivesToProcess[i], entry);
+								if (FileSystemManager.exists(sourceFile)) {
+									File targetDirectory = FileSystemManager.getParentFile(new File(destination, entry));
+									doAndRetry(new EnsureLocalCopyTask(sourceFile, targetDirectory, policy, context), "An error was detected during recovery of " + archivesToProcess[i].getAbsolutePath());
 								}
 							}
-						}
-
-						context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, archivesToProcess.length);
-					} finally {
-						if (f != null) {
-							f.reset();
+						} finally {
+							entries.close();
 						}
 					}
+
+					context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(i+1, archivesToProcess.length);
 				}
 
 				return new File[] {destination};
@@ -209,9 +206,9 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 		private File destination;
 		private File sourceFileOrDirectory;
 		private ProcessContext context;
-		private CopyPolicy policy;
+		private AbstractCopyPolicy policy;
 
-		public EnsureLocalCopyTask(File sourceFileOrDirectory, File destination, CopyPolicy policy, ProcessContext context) {
+		public EnsureLocalCopyTask(File sourceFileOrDirectory, File destination, AbstractCopyPolicy policy, ProcessContext context) {
 			this.destination = destination;
 			this.sourceFileOrDirectory = sourceFileOrDirectory;
 			this.policy = policy;

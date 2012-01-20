@@ -40,16 +40,16 @@ This file is part of Areca.
 public class ArchiveContentParser implements MetadataConstants {
     
     protected static String serialize(FileSystemRecoveryEntry entry) {
-    	return MetadataEncoder.encode(entry.getKey()) + SEPARATOR + entry.getSize();
+    	return MetadataEncoder.getInstance().encode(entry.getKey()) + SEPARATOR + entry.getSize();
     }
     
     protected static String serialize(FileSystemRecoveryEntry entry, byte[] hash) {
-    	return MetadataEncoder.encode(entry.getKey()) + SEPARATOR + Util.base64Encode(hash);
+    	return MetadataEncoder.getInstance().encode(entry.getKey()) + SEPARATOR + Util.base64Encode(hash);
     }
     
     protected static String serialize(FileSystemRecoveryEntry entry, HashSequence sequence) {
     	byte[] serialized = SequenceAdapter.getInstance().serialize(sequence);
-    	return MetadataEncoder.encode(entry.getKey()) + SEPARATOR + Util.base64Encode(serialized);
+    	return MetadataEncoder.getInstance().encode(entry.getKey()) + SEPARATOR + Util.base64Encode(serialized);
     }
     
 	public static long interpretAsLength(String name, String data) {

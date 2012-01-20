@@ -1,13 +1,15 @@
-package com.myJava.file.archive;
+package com.application.areca.impl.tools;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import com.myJava.file.FileList;
+import com.myJava.file.FileList.FileListIterator;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.OutputStreamListener;
+import com.myJava.file.archive.ArchiveAdapter;
 import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
@@ -77,24 +79,16 @@ public class ArchiveReader {
     		TaskMonitor monitor, 
     		OutputStreamListener listener) 
     throws IOException, TaskCancelledException {
-        
-        String[] normalizedEntries = null;
-        boolean hasDirectories = false; /// Count the remaining entries only if there were only files to recover
-        if (entriesToRecover != null) {
-        	hasDirectories = entriesToRecover.containsDirectories();
-            normalizedEntries = new String[entriesToRecover.size()];
-            for (int i=0; i<entriesToRecover.size(); i++) {
-                normalizedEntries[i] = Util.trimSlashes(entriesToRecover.get(i));
-            }
-        }
-        
+        FileListIterator iter = (entriesToRecover == null) ? null : entriesToRecover.iterator();
+
         if (dir == null || (FileSystemManager.exists(dir) && (! FileSystemManager.isDirectory(dir)))) {
             throw new IllegalArgumentException("Invalid directory");
         }
         
         try {
             String fileName;
-            long remaining = (hasDirectories || entriesToRecover == null) ? -1 : entriesToRecover.size();
+            long remaining = (entriesToRecover == null) ? -1 : entriesToRecover.size();
+
             while((fileName = adapter.getNextEntry()) != null) {
                 try {
                     if (remaining == 0) {
@@ -107,7 +101,7 @@ public class ArchiveReader {
                     
                     File target = new File(dir, fileName);
                     if (
-                    		(normalizedEntries == null || Util.passFilter(Util.trimSlashes(fileName), normalizedEntries))
+                    		(Util.passFilter(Util.trimSlashes(fileName), iter))
                     		&& (policy == null || policy.accept(target))
                     ) {
                         remaining--;
@@ -131,7 +125,13 @@ public class ArchiveReader {
                 }
             }        
         } finally {
-            adapter.close();
+        	try {
+        		adapter.close();
+        	} finally {
+        		if (iter != null) {
+        			iter.close();
+        		}
+        	}
         }
     } 
     

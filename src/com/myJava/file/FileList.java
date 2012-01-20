@@ -1,10 +1,7 @@
 package com.myJava.file;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.io.IOException;
 
-import com.myJava.object.ToStringHelper;
 
 /**
  * <BR>
@@ -33,49 +30,15 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class FileList {
-	private List content = new ArrayList();
-	private boolean containsDirectories = false;
-	private boolean containsFiles = false;
-
-	public void add(String item) {
-		if (item.endsWith("/")) {
-			containsDirectories = true;
-		} else {
-			containsFiles = true;
-		}
-    	content.add(item);
-    }
-    
-    public Iterator iterator() {
-    	return content.iterator();
-    }
+public interface FileList {
+	public int size();
+	public FileListIterator iterator() throws IOException;
 	
-	public boolean containsDirectories() {
-		return containsDirectories;
-	}
-	
-	public boolean containsFiles() {
-		return containsFiles;
-	}
-	
-	public int size() {
-		return content.size();
-	}
-	
-	public String get(int i) {
-		return (String)content.get(i);
-	}
-	
-	public String[] toArray() {
-		return (String[])content.toArray(new String[content.size()]);
-	}
-
-	public String toString() {
-		StringBuffer sb = ToStringHelper.init(this);
-		ToStringHelper.append("ContainsDirs", containsDirectories, sb);
-		ToStringHelper.append("ContainsFiles", containsFiles, sb);
-		ToStringHelper.append("Filters", content.toString(), sb);
-		return ToStringHelper.close(sb);
+	public static interface FileListIterator {
+		public boolean fetch(String key) throws IOException;
+		public String current();
+		public boolean hasNext();
+		public String next() throws IOException;
+		public void close() throws IOException;
 	}
 }

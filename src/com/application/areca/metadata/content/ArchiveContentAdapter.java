@@ -63,7 +63,7 @@ public class ArchiveContentAdapter extends AbstractMetadataAdapter {
 
 	public void writeGenericEntry(String key, String data) throws IOException {
 		checkEntry(key);
-		write(MetadataEncoder.encode(key) + MetadataConstants.SEPARATOR + data);
+		write(MetadataEncoder.getInstance().encode(key) + MetadataConstants.SEPARATOR + data);
 	}
 
 	public void writeContentEntry(FileSystemRecoveryEntry entry) throws IOException {
@@ -110,10 +110,10 @@ public class ArchiveContentAdapter extends AbstractMetadataAdapter {
 		String key;
 		String data;
 		if (index == -1) {
-			key = MetadataEncoder.decode(serialized);
+			key = MetadataEncoder.getInstance().decode(serialized);
 			data = null;
 		} else {
-			key = MetadataEncoder.decode(serialized.substring(0, index));
+			key = MetadataEncoder.getInstance().decode(serialized.substring(0, index));
 			data = serialized.substring(index + MetadataConstants.SEPARATOR.length());
 		} 
 
@@ -131,7 +131,7 @@ public class ArchiveContentAdapter extends AbstractMetadataAdapter {
 		MetadataHeader hdr = getMetaData();
 		String encoding = hdr.getEncoding();
 		handler.setVersion(hdr.getVersion());
-		InputStream in = this.getInputStream();
+		InputStream in = this.buildInputStream();
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding));            
@@ -169,7 +169,7 @@ public class ArchiveContentAdapter extends AbstractMetadataAdapter {
 	private ContentFileIterator getIterator() throws IOException {
 		String encoding = getMetaData().getEncoding();
 
-		InputStream in = this.getInputStream();
+		InputStream in = this.buildInputStream();
 		BufferedReader reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding)); 
 
 		// Skip the header

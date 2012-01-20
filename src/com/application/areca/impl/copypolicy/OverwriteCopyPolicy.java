@@ -3,7 +3,6 @@ package com.application.areca.impl.copypolicy;
 import java.io.File;
 
 import com.myJava.file.FileSystemManager;
-import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.file.copypolicy.CopyPolicyException;
 
 /**
@@ -33,9 +32,9 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public abstract class OverwriteCopyPolicy implements CopyPolicy {
+public abstract class OverwriteCopyPolicy extends AbstractCopyPolicy {
 
-	public boolean accept(File file) throws CopyPolicyException {
+	public boolean acceptImpl(File file) throws CopyPolicyException {
 		boolean exist = FileSystemManager.exists(file);
 		return (! exist) || overrideExistingFile(file);
 	}

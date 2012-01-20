@@ -63,21 +63,21 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
     
     public MailSendProcessorComposite(Composite composite, Processor proc, ProcessorEditionWindow window) {
         super(composite, proc, window);
-        this.setLayout(new GridLayout(2, false));
+        this.setLayout(new GridLayout(3, false));
         
         // Title
         Label lblTitle = new Label(this, SWT.NONE);
         lblTitle.setText(RM.getLabel("procedition.mailtitle.label"));
         
         txtTitle = new Text(this, SWT.BORDER);
-        txtTitle.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        txtTitle.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         window.monitorControl(txtTitle);
         
         // Intro
         Label lblIntro = new Label(this, SWT.NONE);
         lblIntro.setText(RM.getLabel("procedition.mailintro.label"));
         txtIntro = new Text(this, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
-        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true);
+        GridData dt = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
         dt.heightHint = AbstractWindow.computeHeight(50);
         dt.widthHint = AbstractWindow.computeWidth(200);
         txtIntro.setLayoutData(dt);
@@ -87,21 +87,22 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         new Label(this, SWT.NONE);
         Label lblExample = new Label(this, SWT.NONE);
         lblExample.setText(RM.getLabel("procedition.dynparams.label"));
-        lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         
         // Append Statistics
         new Label(this, SWT.NONE);
         chkAppendStatistics = new Button(this, SWT.CHECK);
         chkAppendStatistics.setText(RM.getLabel("procedition.appendstats.label"));
         chkAppendStatistics.setToolTipText(RM.getLabel("procedition.appendstats.tt"));
+        chkAppendStatistics.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         window.monitorControl(chkAppendStatistics);
-        
+
         // Recipients
         Label lblRecipients = new Label(this, SWT.NONE);
         lblRecipients.setText(RM.getLabel("procedition.recipients.label"));
         
         txtRecipients = new Text(this, SWT.BORDER);
-        txtRecipients.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        txtRecipients.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         window.monitorControl(txtRecipients);
         
         // From
@@ -109,7 +110,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         lblFrom.setText(RM.getLabel("procedition.mailfrom.label"));
         
         txtFrom = new Text(this, SWT.BORDER);
-        txtFrom.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        txtFrom.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         window.monitorControl(txtFrom);
         
         // SMTP
@@ -117,14 +118,14 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         lblSmtp.setText(RM.getLabel("procedition.smtp.label"));
         
         txtSmtp = new Text(this, SWT.BORDER);
-        txtSmtp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        txtSmtp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         window.monitorControl(txtSmtp);
         
         // SMTPS
         new Label(this, SWT.NONE);
         btnSMTPS = new Button(this, SWT.CHECK);
         btnSMTPS.setText(RM.getLabel("procedition.smtps.label"));
-        btnSMTPS.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+        btnSMTPS.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
         window.monitorControl(btnSMTPS);
         
         // User
@@ -132,7 +133,7 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         lblUser.setText(RM.getLabel("procedition.user.label"));
         
         txtUser = new Text(this, SWT.BORDER);
-        txtUser.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        txtUser.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         window.monitorControl(txtUser);
         
         // Password
@@ -140,14 +141,32 @@ public class MailSendProcessorComposite extends AbstractProcessorComposite {
         lblPassword.setText(RM.getLabel("procedition.password.label"));
         
         txtPassword = new Text(this, SWT.BORDER);
+		txtPassword.setEchoChar('*');
         txtPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         window.monitorControl(txtPassword);
+        
+		final Button btnReveal = new Button(this, SWT.PUSH);
+		btnReveal.setText(RM.getLabel("targetedition.reveal.label"));
+		btnReveal.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+		btnReveal.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				if (txtPassword.getEchoChar() == '*') {
+					txtPassword.setEchoChar('\0');
+					btnReveal.setText(RM.getLabel("targetedition.mask.label"));
+					layout();
+				} else {
+					txtPassword.setEchoChar('*');
+					btnReveal.setText(RM.getLabel("targetedition.reveal.label"));
+					layout();
+				}
+			}
+		});
 
         // Test
         new Label(this, SWT.NONE);
         btnTest = new Button(this, SWT.PUSH);
         btnTest.setText(RM.getLabel("procedition.smtp.test"));
-        btnTest.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        btnTest.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         btnTest.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();

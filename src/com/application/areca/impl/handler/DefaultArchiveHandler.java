@@ -8,14 +8,10 @@ import java.io.OutputStream;
 import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.application.areca.impl.copypolicy.AbstractCopyPolicy;
 import com.application.areca.impl.tools.RecoveryFilterMap;
-import com.application.areca.metadata.content.ArchiveContentAdapter;
-import com.application.areca.metadata.content.ArchiveContentManager;
-import com.application.areca.metadata.content.ContentFileIterator;
 import com.application.areca.metadata.transaction.TransactionPoint;
-import com.myJava.file.FileList;
 import com.myJava.file.FileTool;
-import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.file.driver.DriverAlreadySetException;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.object.Duplicable;
@@ -60,7 +56,7 @@ extends AbstractArchiveHandler {
 	public void recoverRawData(
 			File[] archivesToRecover, 
 			RecoveryFilterMap filtersByArchive,
-            CopyPolicy policy,
+			AbstractCopyPolicy policy,
 			File referenceTrace,
 			short mode,
 			ProcessContext context
@@ -72,7 +68,6 @@ extends AbstractArchiveHandler {
 				context.getRecoveryDestination(), 
 				filtersByArchive, 
 				policy,
-				referenceTrace,
 				context
 		);
 	}
@@ -95,53 +90,9 @@ extends AbstractArchiveHandler {
 	public Duplicable duplicate() {
 		return new DefaultArchiveHandler();
 	}
-
-	public RecoveryFilterMap dispatchEntries(File[] archives, String[] entriesToRecover) 
-	throws ApplicationException, IOException {
-		RecoveryFilterMap entriesByArchive = new RecoveryFilterMap(true);
-
-		// Build content iterators
-		ContentFileIterator[] iters = new ContentFileIterator[archives.length];
-
-		try {
-			for (int i=0; i<archives.length; i++) {
-				iters[i] = ArchiveContentAdapter.buildIterator(
-						ArchiveContentManager.resolveContentFileForArchive(this.medium, archives[i])
-				);
-			}
-
-			// Build a list of entries to recover indexed by archive
-			for (int e=0; e<entriesToRecover.length; e++) {
-				int index = -1;
-				for (int i=archives.length-1; i>=0; i--) {
-					boolean found = iters[i].fetch(entriesToRecover[e]);
-					if (found) {
-						index = i;
-						break;
-					}
-				}
-				
-				if (index == -1) {
-					// This can happen if the user tries to recover a symbolic link
-					// throw new IllegalStateException(entriesToRecover[e] + " was not found in ANY archive.");
-				} else {
-					FileList entries = (FileList)entriesByArchive.get(archives[index]);
-					if (entries == null) {
-						entries = new FileList();
-						entriesByArchive.put(archives[index], entries);
-					}
-					entries.add(entriesToRecover[e]);
-				}
-			}
-		} finally {
-			for (int i=0; i<archives.length; i++) {
-				if (iters[i] != null) {
-					iters[i].close();
-				}
-			}
-		}
-
-		return entriesByArchive;
+	
+	public EntriesDispatcher buildEntriesDispatcher(File[] archives) {
+		return new DefaultEntriesDispatcher(archives, medium);
 	}
 
 	public boolean supportsImageBackup() {

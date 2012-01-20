@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
-import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import com.application.areca.AbstractTarget;
@@ -21,6 +20,7 @@ import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.impl.IOTask;
+import com.application.areca.impl.copypolicy.AbstractCopyPolicy;
 import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.content.ArchiveContentManager;
@@ -28,15 +28,12 @@ import com.application.areca.metadata.content.ContentEntry;
 import com.application.areca.metadata.content.ContentFileIterator;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
-import com.application.areca.metadata.trace.ArchiveTraceAdapter;
-import com.application.areca.metadata.trace.ArchiveTraceManager;
-import com.application.areca.metadata.trace.TraceFileIterator;
 import com.application.areca.metadata.transaction.TransactionPoint;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileList;
+import com.myJava.file.FileList.FileListIterator;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
-import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.file.delta.DeltaInputStream;
 import com.myJava.file.delta.DeltaMerger;
 import com.myJava.file.delta.DeltaProcessor;
@@ -50,7 +47,6 @@ import com.myJava.file.delta.sequence.HashSequence;
 import com.myJava.file.delta.sequence.SequenceAdapter;
 import com.myJava.file.driver.DriverAlreadySetException;
 import com.myJava.file.driver.FileSystemDriver;
-import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.object.Duplicable;
 import com.myJava.system.OSTool;
 import com.myJava.util.Util;
@@ -128,7 +124,7 @@ extends AbstractArchiveHandler {
 		FileSystemTarget target = (FileSystemTarget)medium.getTarget();
 		File file = new File(medium.getDataDirectory(context.getCurrentArchiveFile()), getSequenceFileName());
 		context.setSequenceAdapter(new ArchiveContentAdapter(file, target.getSourceDirectory()));  
-		
+
 		if (transactionPoint != null) {
 			context.getSequenceAdapter().bulkInit(transactionPoint.getSequenceFile());
 		}
@@ -156,7 +152,7 @@ extends AbstractArchiveHandler {
 		if (context.getBackupScheme().equals(AbstractTarget.BACKUP_SCHEME_FULL)) {
 			return null;
 		}
-		
+
 		Iterator contents = context.getContentIterators().iterator();
 		ContentFileIterator ctnIter = null;
 
@@ -196,14 +192,14 @@ extends AbstractArchiveHandler {
 			// Locate a new archive to load
 			lastArchive = null;
 			for (int i=previousArchives.length - 1; i>=0; i--) {
-				
+
 				// retrieve archive backup scheme
 				String archiveBackupScheme = AbstractTarget.BACKUP_SCHEME_FULL;
 				Manifest mf = ArchiveManifestCache.getInstance().getManifest(medium, previousArchives[i]);
 				if (mf != null) {
 					archiveBackupScheme = mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME);
 				}
-				
+
 				// Check archive scheme
 				boolean validated = true;
 				if (ignoreIncrementalAndDifferentialArchives) {
@@ -272,7 +268,7 @@ extends AbstractArchiveHandler {
 		}
 		return seq;
 	}
-	
+
 	private File[] listCandidatesForSequenceLookup(GregorianCalendar date, String backupScheme) throws ApplicationException {
 		File[] files = medium.listArchives(null, date, true);
 		return files;
@@ -357,7 +353,7 @@ extends AbstractArchiveHandler {
 		}
 	}
 	 */
-	
+
 	public void initializeSimulationDriverData(FileSystemDriver initialDriver, ProcessContext context) throws IOException, DriverAlreadySetException {
 		File workDirectory = buildRecoveryFile(context.getRecoveryDestination());
 		FileSystemManager.getInstance().registerDriver(workDirectory, initialDriver);
@@ -366,67 +362,70 @@ extends AbstractArchiveHandler {
 	public void recoverRawData(
 			File[] archivesToRecover, 
 			RecoveryFilterMap filtersByArchive,
-            CopyPolicy policy,
+			AbstractCopyPolicy policy,
 			File referenceTrace,
 			final short mode,
 			final ProcessContext context
 	) throws IOException, ApplicationException, TaskCancelledException {
 		// 1 : Ensure that there is a local copy of the files to recover
-		final File[] localFiles = medium.ensureLocalCopy(archivesToRecover, false, buildRecoveryFile(context.getRecoveryDestination()), filtersByArchive, policy, referenceTrace, context);
+		final File[] localFiles = medium.ensureLocalCopy(archivesToRecover, false, buildRecoveryFile(context.getRecoveryDestination()), filtersByArchive, policy, context);
 
 		// 2 : Process the files to recover
 		for (int i=0; i<localFiles.length; i++) {
 			File localArchive = localFiles[i];
+
 			String msg = "Processing archive " + i;
 			if (localArchive != null) {
 				msg += " (" + localArchive.getAbsolutePath() + ")";
 			}
+			FileList list = filtersByArchive.get(archivesToRecover[i]);
+			if (list != null) {
+				msg += " - " + list.size() + " entr" + (list.size() <= 1 ? "y" : "ies");
+			} else {
+				msg += " - No filter";
+			}
 			msg += " ...";
 			Logger.defaultLogger().info(msg);
-			if (localArchive != null) {
-				String[] filters = null;
-				if (filtersByArchive != null) {
-					FileList lstFilters = (FileList)filtersByArchive.get(archivesToRecover[i]);
-					if (lstFilters == null) {
-						lstFilters = new FileList();
-					}
-					if (DEBUG) {
-						Logger.defaultLogger().fine("Filter : " + lstFilters.toString());
-					}
-					filters = lstFilters.toArray();
-				}
+			if (localArchive != null && list != null) {
+				FileListIterator iter = list.iterator();
 
-				FileSystemIterator iter = new FileSystemIterator(localArchive, filters, false, true, true, true);
-				iter.setWarnDanglingLinks(false);
-				while (iter.hasNext()) {
-					context.getTaskMonitor().checkTaskState();
+				try {
+					while (iter.hasNext()) {
+						context.getTaskMonitor().checkTaskState();
+						final String localPath = iter.next();
+						final File f = new File(localArchive, localPath);
+						if (DEBUG) {
+							Logger.defaultLogger().fine("Processing entry : " + f.getAbsolutePath());
+						}
+						if (FileSystemManager.exists(f)) {
+							if (FileSystemManager.isFile(f)) {
+								final File target = new File(context.getRecoveryDestination(), localPath);
 
-					File f = (File)iter.next();
-					if (DEBUG) {
-						Logger.defaultLogger().fine("Processing entry : " + f.getAbsolutePath());
-					}
-					if (FileSystemManager.isFile(f)) {
-						final String localPath = FileSystemManager.getAbsolutePath(f).substring(FileSystemManager.getAbsolutePath(localArchive).length());
-						final File target = new File(context.getRecoveryDestination(), localPath);
-
-						if (! FileSystemManager.exists(target)) {
-							final int index = i;
-							final File file = f;
-							this.medium.doAndRetry(new IOTask() {
-								public void run() throws IOException,TaskCancelledException,ApplicationException {
-									recoverRawFile(file, target, localFiles, index, localPath, mode, context);
+								if (policy == null || policy.accept(target)) {
+									final int index = i;
+									this.medium.doAndRetry(new IOTask() {
+										public void run() throws IOException,TaskCancelledException,ApplicationException {
+											recoverRawFile(f, target, localFiles, index, localPath, mode, context);
+										}
+									}, "Error while recovering " + target.getAbsolutePath());
+								} else {
+									if (DEBUG) {
+										Logger.defaultLogger().fine(f.getAbsolutePath() + " : File refused by policy object.");
+									}
 								}
-							}, "Error while recovering " + target.getAbsolutePath());
+							} else {
+								if (DEBUG) {
+									Logger.defaultLogger().fine(f.getAbsolutePath() + " : Nothing to do (not a file)");
+								}
+							}
 						} else {
 							if (DEBUG) {
-								Logger.defaultLogger().fine(f.getAbsolutePath() + " : Nothing to recover or already processed.");
+								Logger.defaultLogger().fine(f.getAbsolutePath() + " : Nothing to do (already processed)");
 							}
 						}
-					} else {
-						if (DEBUG) {
-							Logger.defaultLogger().fine(f.getAbsolutePath() + " : Nothing to do (not a file)");
-						}
 					}
+				} finally {
+					iter.close();
 				}
 
 				// Destroy the local archive
@@ -434,7 +433,7 @@ extends AbstractArchiveHandler {
 			}
 		}
 	}
-	
+
 	protected void recoverRawFile(
 			File f,
 			File target,
@@ -444,7 +443,6 @@ extends AbstractArchiveHandler {
 			int mode,
 			ProcessContext context
 	) throws IOException, TaskCancelledException, ApplicationException {
-		 // do not recover if the target file already exists (which means that it has already been recovered)
 		ArrayList localCopies = new ArrayList();
 		localCopies.add(f);
 
@@ -471,7 +469,7 @@ extends AbstractArchiveHandler {
 						in.addInputStream(FileSystemManager.getCachedFileInputStream(f2), localPath);
 						if (DEBUG) {
 							Logger.defaultLogger().fine("   Adding diff file : " + f2.getAbsolutePath());
-						
+
 						}
 					}
 				}
@@ -494,7 +492,7 @@ extends AbstractArchiveHandler {
 				if (DEBUG) {
 					Logger.defaultLogger().fine("Merging ...");
 				}
-				
+
 				// merge
 				try {
 					((DeltaMerger)in).setProc(new LayerWriterDeltaProcessor(out));
@@ -527,63 +525,8 @@ extends AbstractArchiveHandler {
 		}
 	}
 
-	public RecoveryFilterMap dispatchEntries(File[] archives, String[] entriesToRecover) 
-	throws ApplicationException, IOException {
-		RecoveryFilterMap entriesByArchive = new RecoveryFilterMap(true);
-
-		// Build content iterators
-		ContentFileIterator[] citers = new ContentFileIterator[archives.length];
-		TraceFileIterator[] titers = new TraceFileIterator[archives.length];
-
-		try {
-			for (int i=0; i<archives.length; i++) {
-				citers[i] = ArchiveContentAdapter.buildIterator(ArchiveContentManager.resolveContentFileForArchive(this.medium, archives[i]));
-				titers[i] = ArchiveTraceAdapter.buildIterator(ArchiveTraceManager.resolveTraceFileForArchive(this.medium, archives[i]));
-			}
-
-			// Build a list of entries to recover indexed by archive
-			for (int e=0; e<entriesToRecover.length; e++) {
-				List indexes = new ArrayList();
-				for (int i=archives.length-1; i>=0; i--) {
-					boolean found = titers[i].fetch(entriesToRecover[e]);
-					if (! found) {
-						// Not found in trace anymore -> stop searching
-						break;
-					}
-
-					found = citers[i].fetch(entriesToRecover[e]);
-					if (found) {
-						indexes.add(new Integer(i));
-					}
-				}
-
-				// if indexes is empty, the file will not be recovered.
-				// this can happen during archive merges (partial recoveries)
-				if (! indexes.isEmpty()) {
-					Iterator iter = indexes.iterator();
-					while (iter.hasNext()) {
-						int index = ((Integer)iter.next()).intValue();
-						FileList entries = (FileList)entriesByArchive.get(archives[index]);
-						if (entries == null) {
-							entries = new FileList();
-							entriesByArchive.put(archives[index], entries);
-						}
-						entries.add(entriesToRecover[e]);
-					}
-				}
-			}
-		} finally {
-			for (int i=0; i<archives.length; i++) {
-				if (citers[i] != null) {
-					citers[i].close();
-				}
-				if (titers[i] != null) {
-					titers[i].close();
-				}
-			}
-		}
-
-		return entriesByArchive;
+	public EntriesDispatcher buildEntriesDispatcher(File[] archives) {
+		return new DeltaEntriesDispatcher(archives, medium);
 	}
 
 	public Duplicable duplicate() {

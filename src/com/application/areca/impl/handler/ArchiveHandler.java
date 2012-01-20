@@ -9,9 +9,9 @@ import com.application.areca.ApplicationException;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.application.areca.impl.copypolicy.AbstractCopyPolicy;
 import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.transaction.TransactionPoint;
-import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.file.driver.DriverAlreadySetException;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.object.Duplicable;
@@ -74,18 +74,11 @@ public interface ArchiveHandler extends Duplicable {
     public void recoverRawData(
             File[] archivesToRecover, 
             RecoveryFilterMap filtersByArchive, 
-            CopyPolicy policy,
+            AbstractCopyPolicy policy,
 			File referenceTrace,
             short mode,
             ProcessContext context
     ) throws IOException, ApplicationException, TaskCancelledException;
-    
-    /**
-     * Return, for the array of entries passed as argument, the archives that will have to be recovered among the archive list passed as argument.
-     * <BR>The returned map contains entries indexed by archive file.
-     * <BR>entriesToRecover MUST be sorted
-     */
-    public RecoveryFilterMap dispatchEntries(File[] archives, String[] entriesToRecover) throws ApplicationException, IOException;
     
     /**
      * Init the handler
@@ -117,6 +110,8 @@ public interface ArchiveHandler extends Duplicable {
 	 * Ugly but no time to do better
 	 */
 	public File getContentFile(File archive);
+	
+	public EntriesDispatcher buildEntriesDispatcher(File[] archives);
 	
 	/**
 	 * performs simulation-specific driver initializations

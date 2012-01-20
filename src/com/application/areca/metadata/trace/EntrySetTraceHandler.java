@@ -1,10 +1,12 @@
 package com.application.areca.metadata.trace;
 
 import java.io.IOException;
-import java.util.Set;
 
+import com.application.areca.ArecaRawFileList;
 import com.application.areca.context.ProcessContext;
+import com.application.areca.impl.handler.EntriesDispatcher;
 import com.application.areca.metadata.MetadataConstants;
+import com.myJava.file.FileNameUtil;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -38,16 +40,12 @@ This file is part of Areca.
  */
 public class EntrySetTraceHandler implements TraceHandler {
 	
-	private String[] filters;
-	private int maxSetSize;
-	private Set entries;
-	private int size = 0;
+	private ArecaRawFileList entries;
+	private EntriesDispatcher dispatcher;
 
-	public EntrySetTraceHandler(String[] filters, int maxSetSize, Set entries, int initialSize) {
-		this.filters = filters;
-		this.maxSetSize = maxSetSize;
+	public EntrySetTraceHandler(ArecaRawFileList entries, EntriesDispatcher dispatcher) {
+		this.dispatcher = dispatcher;
 		this.entries = entries;
-		this.size = initialSize;
 	}
 
 	public void close() {
@@ -59,14 +57,13 @@ public class EntrySetTraceHandler implements TraceHandler {
 			context.getTaskMonitor().checkTaskState();
 		}
 		if (type == MetadataConstants.T_FILE) {
-			for (int i=0; i<filters.length; i++) {
-				if (key.startsWith(filters[i])) {
-					size++;
-					entries.add(key);
-					if (maxSetSize != -1 && size >= maxSetSize) {
-						throw new IllegalStateException("Max size reached");
-					}
-					break;
+			for (int i=0; i<entries.length(); i++) {
+				if (
+						entries.get(i).length() == 0 
+						|| key.equals(entries.get(i)) 
+						|| (FileNameUtil.endsWithSeparator(entries.get(i)) && key.startsWith(entries.get(i)))
+				) {
+					dispatcher.dispatchEntry(key);
 				}
 			}
 		}

@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.UserInformationChannel;
+import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.content.ContentFileIterator;
 import com.application.areca.metadata.manifest.Manifest;
@@ -56,15 +57,14 @@ public class ProcessContext implements Externalizable {
 	 */
 	private static final long serialVersionUID = 102772337124247716L;
 
+	////////////////
+	// BACKUP
+	////////////////
+	
 	/**
      * Archive being written
      */
     protected File currentArchiveFile;
-    
-    /**
-     * Trace writer
-     */
-    protected ArchiveTraceAdapter traceAdapter;
     
     /**
      * Archive content adapter (used for read/write operations)
@@ -72,7 +72,7 @@ public class ProcessContext implements Externalizable {
     protected ArchiveContentAdapter contentAdapter;
     protected ArchiveContentAdapter hashAdapter;
     protected ArchiveContentAdapter sequenceAdapter;
-
+	
     /**
      * Read bytes
      */
@@ -84,14 +84,62 @@ public class ProcessContext implements Externalizable {
     protected TraceFileIterator referenceTrace;
     
     /**
-     * Tell whether the context have been initialized or not
-     */
-    protected boolean isInitialized;
-    
-    /**
      * Archive writer
      */
-    private ArchiveWriter archiveWriter;   
+    private ArchiveWriter archiveWriter; 
+    
+    /**
+     * Trace writer
+     */
+    protected ArchiveTraceAdapter traceAdapter;
+    
+    protected String backupScheme;
+    
+    /**
+     * Current transaction point (the one being written)
+     */
+    private TransactionPoint currentTransactionPoint;
+
+    /**
+     * Index used during backup
+     */
+    private long entryIndex;
+    
+    private long transactionBound;
+    
+	////////////////
+	// MERGE
+	////////////////
+	
+	
+	////////////////
+	// RECOVERY
+	////////////////
+    protected File recoveryDestination;
+    private List invalidRecoveredFiles = new ArrayList();
+    private List uncheckedRecoveredFiles = new ArrayList();
+    private List unrecoveredFiles = new ArrayList();
+    private long nbChecked = 0;
+	
+    /**
+     * Number of recovery errors that were explained in detail (used to limit the number of displayed messages)
+     */
+    private int detailedRecoveryErrors;
+    
+    /**
+     * Temporary variable set during recovery - used for logging purpose
+     */
+    private RecoveryFilterMap filesByArchive;
+    
+    /**
+     * Tracefile used for recovery : tells which files have to be recovered + contains some metadata
+     * (last modification date)
+     */
+    private File traceFile;
+    
+	////////////////
+	// ALL
+	////////////////
     
     /**
      * Manifest
@@ -105,14 +153,21 @@ public class ProcessContext implements Externalizable {
     
     private UserInformationChannel infoChannel;
     
+	////////////////
+	// ???
+	////////////////
+    
+    /**
+     * Tell whether the context have been initialized or not
+     */
+    protected boolean isInitialized;
+
     protected FileSystemIterator fileSystemIterator;  
     
     /**
      * Iterator used by delta handlers to locate the HashSequence
      */
     protected ArrayList contentIterators = new ArrayList();
-    
-    protected String backupScheme;
 
     protected MeteredOutputStreamListener outputStreamListener = new MeteredOutputStreamListener();
 
@@ -121,24 +176,6 @@ public class ProcessContext implements Externalizable {
      * <BR>See "prepareContext()" method.
      */
     private ContentFileIterator previousHashIterator;
-    
-    protected File recoveryDestination;
-    private List invalidRecoveredFiles = new ArrayList();
-    private List uncheckedRecoveredFiles = new ArrayList();
-    private List unrecoveredFiles = new ArrayList();
-    private long nbChecked = 0;
-    
-    /**
-     * Current transaction point (the one being written)
-     */
-    private TransactionPoint currentTransactionPoint;
-    
-    /**
-     * Index used during backup
-     */
-    private long entryIndex;
-    
-    private long transactionBound;
     
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     	entryIndex = in.readLong();
@@ -178,6 +215,9 @@ public class ProcessContext implements Externalizable {
 		//List unrecoveredFiles = new ArrayList(); -> Not used during backup
 		//out.writeObject(contentIterators);  -> Ignored because these iterators are already closed by the "rollback" method
 		//out.writeObject(recoveryDestination); -> Not used during backup
+		//filesByArchive
+		//detailedRecoveryErrors
+		//traceFile
 		
 		// Initialized afterwards
 	    //ArchiveTraceAdapter traceAdapter;
@@ -221,8 +261,11 @@ public class ProcessContext implements Externalizable {
         this.uncheckedRecoveredFiles.clear();
         this.unrecoveredFiles.clear();
         this.previousHashIterator = null;
+        this.detailedRecoveryErrors = 0;
+        this.traceFile = null;
         this.nbChecked = 0;
         this.inputBytes = 0;
+        this.filesByArchive = null;
         this.outputStreamListener = new MeteredOutputStreamListener();
         if (! operationalOnly) {
             this.getReport().reset();
@@ -231,6 +274,14 @@ public class ProcessContext implements Externalizable {
 
 	public long getTransactionBound() {
 		return transactionBound;
+	}
+	
+	public void addDetailedRecoveryError() {
+		detailedRecoveryErrors++;
+	}
+
+	public int getDetailedRecoveryErrors() {
+		return detailedRecoveryErrors;
 	}
 
 	public void setTransactionBound(long transactionBound) {
@@ -256,6 +307,14 @@ public class ProcessContext implements Externalizable {
 
 	public void setReport(ProcessReport currentReport) {
 		this.report = currentReport;
+	}
+	
+	public RecoveryFilterMap getFilesByArchive() {
+		return filesByArchive;
+	}
+
+	public void setFilesByArchive(RecoveryFilterMap filesByArchive) {
+		this.filesByArchive = filesByArchive;
 	}
 
 	public TransactionPoint getCurrentTransactionPoint() {
@@ -330,7 +389,7 @@ public class ProcessContext implements Externalizable {
 		return unrecoveredFiles;
 	}
 	
-	public boolean hasRecoveryProblem() {
+	public boolean hasRecoveryIssues() {
 		return 
 			(invalidRecoveredFiles != null && invalidRecoveredFiles.size() > 0)
 			|| (uncheckedRecoveredFiles != null && uncheckedRecoveredFiles.size() > 0)
@@ -467,5 +526,13 @@ public class ProcessContext implements Externalizable {
 
 	public void setOutputStreamListener(MeteredOutputStreamListener outputStreamListener) {
 		this.outputStreamListener = outputStreamListener;
+	}
+
+	public File getTraceFile() {
+		return traceFile;
+	}
+
+	public void setTraceFile(File traceFile) {
+		this.traceFile = traceFile;
 	}
 }

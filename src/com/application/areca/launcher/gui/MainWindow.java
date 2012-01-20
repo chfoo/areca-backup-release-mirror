@@ -18,8 +18,8 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.ApplicationPreferences;
+import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.launcher.gui.composites.AbstractTabComposite;
@@ -155,8 +155,10 @@ public class MainWindow extends AbstractWindow {
         addFolderItem(RM.getLabel("mainpanel.log.label"), ArecaImages.ICO_TAB_LOG, new LogComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.progress.label"), ArecaImages.ICO_CHANNEL, progressContainer);
 
-        tabs.setSelection(TAB_PHYSICAL);
-        application.getFolderMonitor().handleSelection(tabs.getItem(TAB_PHYSICAL));
+        int selectedTab = ApplicationPreferences.isDisplayLogicalViewOnStartup() ? TAB_LOGICAL : TAB_PHYSICAL;
+        tabs.setSelection(selectedTab);
+        application.getFolderMonitor().handleSelection(tabs.getItem(selectedTab));
+        
         mainSash.setWeights(new int[] {30, 70});
 
         // Force colors loading

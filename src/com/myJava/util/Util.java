@@ -37,6 +37,7 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.Vector;
 
+import com.myJava.file.FileList.FileListIterator;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.Logger;
@@ -484,6 +485,10 @@ public abstract class Util {
             }
         }
         return false;
+    }
+    
+    public static boolean passFilter(String s, FileListIterator iter) throws IOException {
+    	return iter == null || iter.fetch(s);
     }
     
     /**

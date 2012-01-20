@@ -65,9 +65,9 @@ public class RemoteFileOutputStream extends OutputStream {
         } else {
             try {
                 if (proxy.hasReconnectSince(this.lastConnectionId)) {
-                    Logger.defaultLogger().error("Unable to properly close the OutputStream since the remote connection has been reinitialized since the stream's creation.", "RemoteFileOutputStream.close()");
-                    proxy.debug("Unable to properly close the OutputStream since the remote connection has been reinitialized since the stream's creation.", "RemoteFileOutputStream.close()");                
-                    throw new IOException("Unable to properly close the OutputStream since the remote connection has been reinitialized since the stream's creation.");
+                    Logger.defaultLogger().error("Unable to properly close the OutputStream for " + fileName + " since the remote connection has been reinitialized since the stream's creation.", "RemoteFileOutputStream.close()");
+                    proxy.debug("Unable to properly close the OutputStream for " + fileName + " since the remote connection has been reinitialized since the stream's creation.", "RemoteFileOutputStream.close()");                
+                    throw new IOException("Unable to properly close the OutputStream for " + fileName + " since the remote connection has been reinitialized since the stream's creation.");
                 }
                 try {
                     flush();
@@ -85,9 +85,9 @@ public class RemoteFileOutputStream extends OutputStream {
                     	onClose.run();
                     }
                 } catch (FTPConnectionException e) {
-                    Logger.defaultLogger().error("Unable to complete the remote data transfert", e, "RemoteFileOutputStream.close()");
-                    proxy.debug("Unable to complete the remote data transfert", "RemoteFileOutputStream.close()");
-                    throw new IOException("Unable to complete the remote data transfert : " + e.getMessage());
+                    Logger.defaultLogger().error("Unable to complete the remote data transfert for " + fileName, e, "RemoteFileOutputStream.close()");
+                    proxy.debug("Unable to complete the remote data transfert for " + fileName, "RemoteFileOutputStream.close()");
+                    throw new IOException("Unable to complete the remote data transfert for " + fileName + " : " + e.getMessage());
                 } finally {
                     this.proxy.releaseLock(ownerId);
                     this.proxy.removeCachedFileInfos(fileName);

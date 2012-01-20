@@ -12,7 +12,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.ArecaConfiguration;
 import com.application.areca.ResourceManager;
 import com.application.areca.TranslationData;
 import com.application.areca.Utils;
@@ -51,7 +50,7 @@ This file is part of Areca.
 public class PreferencesWindow 
 extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
-    private static final boolean SHOW_VERSION_CHECK = ArecaConfiguration.get().isNewVersionCheckDisplayed();
+    private static final boolean SHOW_VERSION_CHECK = true;//ArecaConfiguration.get().isNewVersionCheckDisplayed();
     
     private Combo langCombo;
     private Button openLastWorkspace;
@@ -64,6 +63,7 @@ extends AbstractWindow {
     private Text dateFormat;
     private Button btnSave;
     private Button checkNewVersions;
+    private Button showLogical;
     private Button showWSPath;
     private Button showToolBar;
     private Label lblPrfPath;
@@ -175,6 +175,14 @@ extends AbstractWindow {
             }
         });
         
+        new Label(parent, SWT.NONE).setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
+        
+        showLogical = new Button(parent, SWT.CHECK);
+        showLogical.setText(RM.getLabel("preferences.show.logical.label"));
+        showLogical.setSelection(ApplicationPreferences.isDisplayLogicalViewOnStartup());
+        showLogical.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
+        monitorControl(showLogical);  
+        
         if (SHOW_VERSION_CHECK) {
 	        checkNewVersions = new Button(parent, SWT.CHECK);
 	        checkNewVersions.setText(RM.getLabel("preferences.checkversions.label"));
@@ -265,6 +273,7 @@ extends AbstractWindow {
         ApplicationPreferences.setDisplayReport(displayReport.getSelection());
         ApplicationPreferences.setEditionCommand(editor.getText());
         ApplicationPreferences.setInformationSynthetic(informationSynthetic.getSelection());
+        ApplicationPreferences.setDisplayLogicalViewOnStartup(showLogical.getSelection());
         ApplicationPreferences.setDateFormat(dateFormat.getText());
         if (SHOW_VERSION_CHECK) {
         	ApplicationPreferences.setCheckNewVersion(checkNewVersions.getSelection());

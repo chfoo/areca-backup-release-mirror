@@ -1,8 +1,10 @@
-package com.application.areca.impl.copypolicy;
+package com.application.areca.tests;
 
-import java.io.File;
+import java.util.Iterator;
 
-import com.myJava.file.copypolicy.CopyPolicyException;
+import com.application.areca.TargetGroup;
+import com.application.areca.WorkspaceItem;
+import com.application.areca.impl.FileSystemTarget;
 
 /**
  * 
@@ -32,9 +34,19 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class AlwaysOverwriteCopyPolicy extends AbstractCopyPolicy {
-
-	public boolean acceptImpl(File file) throws CopyPolicyException {
-		return true;
+public class WorkspaceProcessor {
+	public static void process(WorkspaceItem item, TargetHandler handler) throws Exception {
+		if (item instanceof FileSystemTarget) {
+			FileSystemTarget tg = (FileSystemTarget)item;
+			Test.CURRENT_TARGET = tg.getDescription();
+			handler.handle(tg);
+		} else {
+			Test.CURRENT_TARGET = "";
+			TargetGroup grp = (TargetGroup)item;
+			Iterator iter = grp.getIterator();
+			while(iter.hasNext()) {
+				process((WorkspaceItem)iter.next(), handler);
+			}
+		}
 	}
 }

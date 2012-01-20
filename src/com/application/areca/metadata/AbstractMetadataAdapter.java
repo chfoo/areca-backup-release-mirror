@@ -128,7 +128,7 @@ public abstract class AbstractMetadataAdapter {
 		if (writer == null) {
 			initOutputStream();
 			this.writer = new OutputStreamWriter(this.outputStream, DATA_CHARSET);
-			this.writer.write(VERSION + "\n" + GLOBAL_PREFIX_HEADER + MetadataEncoder.encode(this.globalPrefix) + "\n");
+			this.writer.write(VERSION + "\n" + GLOBAL_PREFIX_HEADER + MetadataEncoder.getInstance().encode(this.globalPrefix) + "\n");
 		}
 	}
 
@@ -184,7 +184,7 @@ public abstract class AbstractMetadataAdapter {
 		}
 	}
 
-	protected InputStream getInputStream() throws IOException {
+	protected InputStream buildInputStream() throws IOException {
 		if (isCompressed && FileSystemManager.length(file) != 0) {
 			return new GZIPInputStream(FileSystemManager.getCachedFileInputStream(file));
 		} else {
@@ -197,7 +197,7 @@ public abstract class AbstractMetadataAdapter {
 			long version = 0L;
 			String prefix = null;
 			FileTool tool = FileTool.getInstance();
-			String[] lines = tool.getInputStreamRows(getInputStream(), DATA_CHARSET, 2, true);
+			String[] lines = tool.getInputStreamRows(buildInputStream(), DATA_CHARSET, 2, true);
 			if (lines != null) {
 				if (lines.length > 0) {
 					if (lines[0].startsWith(VERSION_HEADER)) {
@@ -208,7 +208,7 @@ public abstract class AbstractMetadataAdapter {
 
 				if (version >= 6 && lines.length > 1) {
 					// Version 6 or newer : global prefix is written in file's header
-					prefix = MetadataEncoder.decode(lines[1].substring(GLOBAL_PREFIX_HEADER.length()).trim());
+					prefix = MetadataEncoder.getInstance().decode(lines[1].substring(GLOBAL_PREFIX_HEADER.length()).trim());
 				}
 			}
 
@@ -260,7 +260,7 @@ public abstract class AbstractMetadataAdapter {
 		
 		MetadataHeader hdr = source.getMetaData();
 		String encoding = hdr.getEncoding();
-		InputStream in = source.getInputStream();
+		InputStream in = source.buildInputStream();
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(encoding == null ? new InputStreamReader(in) : new InputStreamReader(in, encoding));            

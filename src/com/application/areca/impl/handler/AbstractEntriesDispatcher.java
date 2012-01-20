@@ -1,8 +1,9 @@
-package com.application.areca.impl.copypolicy;
+package com.application.areca.impl.handler;
 
 import java.io.File;
 
-import com.myJava.file.copypolicy.CopyPolicyException;
+import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
+import com.application.areca.impl.tools.RecoveryFilterMap;
 
 /**
  * 
@@ -32,9 +33,26 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class AlwaysOverwriteCopyPolicy extends AbstractCopyPolicy {
+public abstract class AbstractEntriesDispatcher implements EntriesDispatcher {
+	protected File[] archives;
+	protected AbstractIncrementalFileSystemMedium medium;
+	protected RecoveryFilterMap result = new RecoveryFilterMap();
+	protected long entries = 0;
+	
+	protected AbstractEntriesDispatcher(File[] archives, AbstractIncrementalFileSystemMedium medium) {
+		this.archives = archives;
+		this.medium = medium;
+	}
 
-	public boolean acceptImpl(File file) throws CopyPolicyException {
-		return true;
+	public RecoveryFilterMap getResult() {
+		return result;
+	}
+	
+	protected void incrementEntries() {
+		this.entries++;
+	}
+
+	public long getEntriesCount() {
+		return entries;
 	}
 }

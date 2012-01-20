@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 import com.application.areca.AbstractArecaLauncher;
+import com.application.areca.impl.tools.ArchiveReader;
 import com.application.areca.version.VersionInfos;
 import com.myJava.commandline.CmdLineParserException;
 import com.myJava.commandline.CommandLineParser;
@@ -12,7 +13,6 @@ import com.myJava.commandline.StringCmdLineOption;
 import com.myJava.file.CompressionArguments;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
-import com.myJava.file.archive.ArchiveReader;
 import com.myJava.file.archive.zip64.ZipArchiveAdapter;
 import com.myJava.file.archive.zip64.ZipVolumeStrategy;
 

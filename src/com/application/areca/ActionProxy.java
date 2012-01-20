@@ -3,12 +3,12 @@ package com.application.areca;
 import java.util.GregorianCalendar;
 
 import com.application.areca.context.ProcessContext;
+import com.application.areca.impl.copypolicy.AbstractCopyPolicy;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.transaction.TransactionHandler;
 import com.application.areca.metadata.transaction.TransactionPoint;
 import com.application.areca.version.VersionInfos;
-import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.util.log.Logger;
 import com.myJava.util.xml.AdapterException;
 
@@ -134,16 +134,17 @@ public class ActionProxy {
 	 */
 	public static void processRecoverOnTarget(
 			AbstractTarget target, 
-			ArecaFileList filters, 
-			CopyPolicy policy,
+			ArecaRawFileList filters, 
+			AbstractCopyPolicy policy,
 			String path, 
+			boolean appendSuffix,
 			GregorianCalendar date, 
 			boolean keepDeletedEntries,
 			boolean checkRecoveredEntries, 
 			ProcessContext context
 	) throws ApplicationException {
 		LogHelper.logTarget(target);
-		target.processRecover(path, filters, policy, date, keepDeletedEntries, checkRecoveredEntries, context);
+		target.processRecover(path, appendSuffix, filters, policy, date, keepDeletedEntries, checkRecoveredEntries, context);
 	}
 
 	public static void processRecoverOnTarget(
@@ -151,7 +152,7 @@ public class ActionProxy {
 			String path, 
 			GregorianCalendar date, 
 			String entry, 
-			CopyPolicy policy,
+			AbstractCopyPolicy policy,
 			boolean checkRecoveredEntries, 
 			ProcessContext context
 	) throws ApplicationException {

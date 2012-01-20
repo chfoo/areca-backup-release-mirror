@@ -78,6 +78,27 @@ public class ArchiveTraceParser {
 			return trace.substring(0, idx2);
 		}
 	}
+	
+	public static FileMetaData extractAttributesFromEntry(String key, char type, String hash, long version) throws FileMetaDataSerializationException {
+		FileMetaData atts;
+		if (type == MetadataConstants.T_DIR) {
+			// Directory
+			atts = ArchiveTraceParser.extractDirectoryAttributesFromTrace(hash, version);
+		} else if (type == MetadataConstants.T_FILE) {
+			// File
+			atts = ArchiveTraceParser.extractFileAttributesFromTrace(hash, version);
+		} else if (type == MetadataConstants.T_SYMLINK) {
+			// Symlink
+			atts = ArchiveTraceParser.extractSymLinkAttributesFromTrace(hash, version);
+		} else if (type == MetadataConstants.T_PIPE) {
+			// Pipe
+			atts = ArchiveTraceParser.extractPipeAttributesFromTrace(hash, version);
+		} else {
+			throw new FileMetaDataSerializationException("Unsupported type for " + key + " : " + type + " / " + hash);
+		}
+		
+		return atts;
+	}
 
 	// size;date[;attributes]
 	public static FileMetaData extractFileAttributesFromTrace(String trace, long version) throws FileMetaDataSerializationException {
@@ -182,7 +203,7 @@ public class ArchiveTraceParser {
 			} else {
 				p = trace.substring(1, idx);
 			}
-			return MetadataEncoder.decode(p);
+			return MetadataEncoder.getInstance().decode(p);
 		} catch (RuntimeException e) {
 			processException(trace, e);
 			throw e;
@@ -221,7 +242,7 @@ public class ArchiveTraceParser {
 		if (trackSymlinks && FileMetaDataAccessor.TYPE_LINK == type) {      
 			sb
 			.append(MetadataConstants.T_SYMLINK)                
-			.append(MetadataEncoder.encode(entry.getKey()))
+			.append(MetadataEncoder.getInstance().encode(entry.getKey()))
 			.append(MetadataConstants.SEPARATOR)
 			.append(hash(entry, true))
 			.append(MetadataConstants.SEPARATOR)
@@ -229,19 +250,19 @@ public class ArchiveTraceParser {
 		} else if (trackSymlinks && FileMetaDataAccessor.TYPE_PIPE == type) {      
 			sb
 			.append(MetadataConstants.T_PIPE)                
-			.append(MetadataEncoder.encode(entry.getKey()))
+			.append(MetadataEncoder.getInstance().encode(entry.getKey()))
 			.append(MetadataConstants.SEPARATOR)
 			.append(FileSystemManager.lastModified(entry.getFile())); 
 		} else if (FileSystemManager.isFile(entry.getFile())) {
 			sb
 			.append(MetadataConstants.T_FILE)
-			.append(MetadataEncoder.encode(entry.getKey()))
+			.append(MetadataEncoder.getInstance().encode(entry.getKey()))
 			.append(MetadataConstants.SEPARATOR)
 			.append(hash(entry, false));
 		} else {
 			sb
 			.append(MetadataConstants.T_DIR)
-			.append(MetadataEncoder.encode(entry.getKey()))
+			.append(MetadataEncoder.getInstance().encode(entry.getKey()))
 			.append(MetadataConstants.SEPARATOR)
 			.append(FileSystemManager.lastModified(entry.getFile()));
 		}
@@ -274,7 +295,7 @@ public class ArchiveTraceParser {
 			} else {
 				prefix = MetadataConstants.T_FILE;
 			}
-			return prefix + MetadataEncoder.encode(FileSystemManager.getCanonicalPath(fEntry.getFile()));
+			return prefix + MetadataEncoder.getInstance().encode(FileSystemManager.getCanonicalPath(fEntry.getFile()));
 		} else if (FileSystemManager.isFile(fEntry.getFile())) {
 			return new StringBuffer()
 			.append(fEntry.getSize())

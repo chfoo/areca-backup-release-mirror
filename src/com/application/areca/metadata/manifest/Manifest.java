@@ -1,10 +1,5 @@
 package com.application.areca.metadata.manifest;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -156,27 +151,5 @@ implements Duplicable, Serializable {
 		
 		// Properties are not cloned
 		return clone;
-	}
-	
-	public static void main(String[] args) {
-		try {
-			Manifest mf = new Manifest();
-			mf.setTitle("aaa");
-			mf.addProperty("zz1", "v1");
-			mf.addProperty("zz2", "v2");
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ObjectOutputStream out = new ObjectOutputStream(baos);
-			out.writeObject(mf);
-			byte[] data = baos.toByteArray();
-			ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(data));
-			Manifest clone = (Manifest)in.readObject();
-			System.out.println("");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 }

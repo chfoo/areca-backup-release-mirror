@@ -1,11 +1,14 @@
 package com.application.areca.impl.tools;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
-import com.myJava.file.FileList;
+import com.myJava.file.FileList.FileListIterator;
 
 /**
  * <BR>
@@ -36,47 +39,41 @@ This file is part of Areca.
  */
 public class RecoveryFilterMap {
 	private Map content = new HashMap();
-	private boolean optimized = false;
-
-    public RecoveryFilterMap(boolean optimized) {
-		this.optimized = optimized;
-	}
-
-	public void put(File archive, FileList filters) {
-    	content.put(archive, filters);
-    }
-
-    public int getFilterCount() {
-    	int filterCount = 0;
-    	Iterator iter = content.values().iterator();
-    	while (iter.hasNext()) {
-    		FileList list = (FileList)iter.next();
-        	filterCount += list.size();
-    	}
-    	return filterCount;
-	}
-
-	public FileList get(File archive) {
-    	return (FileList)content.get(archive);
-    }
-
-	public boolean isOptimized() {
-		return optimized;
-	}
-
-	public void setOptimized(boolean isOptimized) {
-		this.optimized = isOptimized;
-	}
 	
-	public boolean containsDirectories() {
+	public void add(File archive, String entry) throws IOException {
+		com.application.areca.metadata.FileList entries = (com.application.areca.metadata.FileList)get(archive);
+		if (entries == null) {
+			entries = new com.application.areca.metadata.FileList();
+			content.put(archive, entries);
+		}
+		entries.add(entry);
+    }
+
+	public com.application.areca.metadata.FileList get(File archive) {
+    	return (com.application.areca.metadata.FileList)content.get(archive);
+    }
+	
+	/**
+	 * Return the list of archives containing the given entry
+	 * @param entry
+	 * @return
+	 * @throws IOException
+	 */
+	public File[] lookupEntry(String entry) throws IOException {
 		Iterator iter = content.keySet().iterator();
+		List ret = new ArrayList();
 		while (iter.hasNext()) {
 			File archive = (File)iter.next();
-			FileList list = get(archive);
-			if (list.containsDirectories()) {
-				return true;
+			com.application.areca.metadata.FileList list = get(archive);
+			FileListIterator listIter = list.iterator();
+			try {
+				if (listIter.fetch(entry)) {
+					ret.add(archive);
+				}
+			} finally {
+				listIter.close();
 			}
 		}
-		return false;
+		return (File[])ret.toArray(new File[ret.size()]);
 	}
 }

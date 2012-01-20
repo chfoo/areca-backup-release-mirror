@@ -33,14 +33,8 @@ public interface MetadataConstants {
     public static final String DEPRECATED_SYMLINK_MARKER = "!S!";
     public static final char DEPRECATED_INTERNAL_SEP = '-';
     
-    public static final String SPEC_CHAR = "@";
     public static final String SEPARATOR = ";";
-    public static final char SEPARATOR_CHAR = ';';
-    public static final String SC_AROBASE = "@@";
     public static final String SC_SEMICOLON = "@P";
-    public static final String SC_R = "@R";
-    public static final String SC_N = "@N";
-    public static final String SC_RESERVED = "@>";
     public static final char T_DIR = 'd';
     public static final char T_FILE = 'f';
     public static final char T_SYMLINK = 's';

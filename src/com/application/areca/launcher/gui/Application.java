@@ -31,7 +31,7 @@ import com.application.areca.ActionProxy;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
 import com.application.areca.ArecaConfiguration;
-import com.application.areca.ArecaFileList;
+import com.application.areca.ArecaRawFileList;
 import com.application.areca.ArecaURLs;
 import com.application.areca.CheckParameters;
 import com.application.areca.EntryArchiveData;
@@ -51,7 +51,11 @@ import com.application.areca.context.ProcessContext;
 import com.application.areca.context.ReportingConfiguration;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemTarget;
+import com.application.areca.impl.copypolicy.AbstractCopyPolicy;
+import com.application.areca.impl.copypolicy.AlwaysOverwriteCopyPolicy;
 import com.application.areca.impl.copypolicy.AskBeforeOverwriteCopyPolicy;
+import com.application.areca.impl.copypolicy.NeverOverwriteCopyPolicy;
+import com.application.areca.impl.copypolicy.OverwriteIfNewerCopyPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ActionConstants;
 import com.application.areca.launcher.gui.common.ApplicationPreferences;
@@ -74,7 +78,6 @@ import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
-import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.system.NoBrowserFoundException;
 import com.myJava.system.OSTool;
 import com.myJava.system.viewer.ViewerHandlerHelper;
@@ -454,29 +457,42 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 				|| command.equals(CMD_RECOVER_WITH_FILTER_LATEST)) {
 			// RECOVER
 			RecoverWindow window = new RecoverWindow(true);
-			window.setRecoverDeletedEntries(this.currentFilter != null
-					&& this.currentFilter.isContainsDeletedDirectory());
+			window.setRecoverDeletedEntries(this.currentFilter != null && this.currentFilter.isContainsDeletedDirectory());
 			this.showDialog(window);
 			String path = window.getLocation();
 			final boolean checkRecoveredFiles = window.isCheckRecoveredFiles();
-			final boolean recoverDeletedEntries = window
-					.isRecoverDeletedEntries();
+			final boolean addSubdirectory = window.isAppendSubdirectory();
+			final boolean recoverDeletedEntries = window.isRecoverDeletedEntries();
 
 			if (path != null) {
 				if (FileSystemTarget.class.isAssignableFrom(this.getCurrentObject().getClass())) {
 					FileSystemTarget target = (FileSystemTarget) this.getCurrentObject();
 					TargetGroup process = target.getParent();
-					final CopyPolicy policy = new AskBeforeOverwriteCopyPolicy();
+					final AbstractCopyPolicy policy;
+					if (window.isNeverOverwrite()) {
+						policy = new NeverOverwriteCopyPolicy();
+					} else if (window.isAskBeforeOverwrite()) {
+						policy = new AskBeforeOverwriteCopyPolicy();
+					} else if (window.isOverwriteIfNewer()) {
+						policy = new OverwriteIfNewerCopyPolicy(FileSystemManager.getAbsolutePath(new File(path)));
+					} else {
+						policy = new AlwaysOverwriteCopyPolicy();
+					}
+					
 					ProcessRunner rn = new ProcessRunner(target) {
 						public void runCommand() throws ApplicationException {
+							policy.setContext(context);
+							
 							ActionProxy.processRecoverOnTarget(
 									rTarget,
-									argument == null ? null : new ArecaFileList(((UIRecoveryFilter) argument).getFilter()), 
+									argument == null ? null : new ArecaRawFileList(((UIRecoveryFilter) argument).getFilter()), 
 									policy,
 									rPath,
+									addSubdirectory,
 									rFromDate, 
 									recoverDeletedEntries,
-									checkRecoveredFiles, context);
+									checkRecoveredFiles, 
+									context);
 						}
 
 						protected void finishCommand() {
@@ -485,16 +501,12 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 					};
 					rn.rProcess = process;
 					rn.refreshAfterProcess = false;
-					rn.rName = RM
-							.getLabel("app.recoverfilesaction.process.message");
-					rn.rPath = FileSystemManager
-							.getAbsolutePath(new File(path));
-					if (command.equals(CMD_RECOVER)
-							|| command.equals(CMD_RECOVER_WITH_FILTER)) {
+					rn.rName = RM.getLabel("app.recoverfilesaction.process.message");
+					rn.rPath = FileSystemManager.getAbsolutePath(new File(path));
+					if (command.equals(CMD_RECOVER) || command.equals(CMD_RECOVER_WITH_FILTER)) {
 						rn.rFromDate = getCurrentDate();
 					}
-					if (command.equals(CMD_RECOVER_WITH_FILTER)
-							|| command.equals(CMD_RECOVER_WITH_FILTER_LATEST)) {
+					if (command.equals(CMD_RECOVER_WITH_FILTER) || command.equals(CMD_RECOVER_WITH_FILTER_LATEST)) {
 						rn.argument = this.currentFilter;
 					}
 					rn.launch();
@@ -561,7 +573,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 					FileSystemTarget target = (FileSystemTarget) this
 							.getCurrentObject();
 					TargetGroup process = target.getParent();
-					final CopyPolicy policy = new AskBeforeOverwriteCopyPolicy();
+					final AbstractCopyPolicy policy = new AskBeforeOverwriteCopyPolicy();
 					ProcessRunner rn = new ProcessRunner(target) {
 						private File recoveredFile;
 
@@ -697,7 +709,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 	private void showRecoveryResultWindow(final ProcessContext context) {
 		SecuredRunner.execute(new Runnable() {
 			public void run() {
-				if (context.hasRecoveryProblem()) {
+				if (context.hasRecoveryIssues()) {
 					showWarningDialog(
 							RM.getLabel("recover.check.invalid.label"),
 							RM.getLabel("recover.check.result.title"), false);

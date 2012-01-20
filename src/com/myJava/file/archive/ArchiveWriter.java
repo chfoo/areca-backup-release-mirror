@@ -2,6 +2,8 @@ package com.myJava.file.archive;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
@@ -46,7 +48,7 @@ public class ArchiveWriter {
         this.adapter = adapter;
     }
 
-    public void addFile(File file, String fullName, TaskMonitor monitor) 
+    public void addFile(File file, String fullName, Comparator comparator, TaskMonitor monitor) 
     throws IOException, TaskCancelledException {
         if (! FileSystemManager.exists(file)) {
             return;
@@ -68,43 +70,18 @@ public class ArchiveWriter {
             this.adapter.closeEntry();
         } else {
             File[] children = FileSystemManager.listFiles(file);
+			if (comparator != null) {
+				Arrays.sort(children, comparator);
+			}
             for (int i=0; i<children.length; i++) {
-                this.addFile(children[i], Util.replace(FileSystemManager.getCanonicalPath(children[i]), FileSystemManager.getCanonicalPath(file), fullName), monitor);
+                this.addFile(
+                		children[i], 
+                		Util.replace(FileSystemManager.getCanonicalPath(children[i]), FileSystemManager.getCanonicalPath(file), fullName), 
+                		comparator,
+                		monitor
+                );
             }
         }
-    }
-
-    public void addFile(File file, TaskMonitor monitor) 
-    throws IOException, TaskCancelledException {
-        this.addFile(file, FileSystemManager.getCanonicalPath(file), monitor);
-    }
-    
-    public void addFile(String file, String fullName) 
-    throws IOException {
-        try {
-            this.addFile(file, fullName, null);
-        } catch (TaskCancelledException e) {
-            // ignored
-        }
-    }
-
-    public void addFile(String file, String fullName, TaskMonitor monitor) 
-    throws IOException, TaskCancelledException {
-        this.addFile(new File(file), fullName, monitor);
-    }
-    
-    public void addFile(String file) 
-    throws IOException {
-        try {
-            this.addFile(file, (TaskMonitor)null);
-        } catch (TaskCancelledException e) {
-            // ignored
-        }
-    }
-    
-    public void addFile(String file, TaskMonitor monitor) 
-    throws IOException, TaskCancelledException {
-        this.addFile(new File(file), monitor);
     }
 
     public ArchiveAdapter getAdapter() {

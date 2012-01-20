@@ -13,6 +13,7 @@ import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.FilterGroup;
 import com.application.areca.impl.AbstractFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryEntry;
+import com.application.areca.impl.copypolicy.AbstractCopyPolicy;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
@@ -23,7 +24,6 @@ import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
-import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
@@ -424,7 +424,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 						Logger.defaultLogger().error("An error has been caught : ", e);
 						checkException = e;
 					}
-					if (checkException != null || context.hasRecoveryProblem()) {
+					if (checkException != null || context.hasRecoveryIssues()) {
 						String excMsg = "";
 						if (checkException != null) {
 							excMsg = " (got the following error : " + checkException.getMessage() + ")";
@@ -717,8 +717,9 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	 */
 	public void processRecover(
 			String destination, 
-			ArecaFileList filters, 
-			CopyPolicy policy,
+			boolean appendSuffix,
+			ArecaRawFileList filters, 
+			AbstractCopyPolicy policy,
 			GregorianCalendar date, 
 			boolean keepDeletedEntries,
 			boolean checkRecoveredFiles, 
@@ -741,6 +742,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 				sb.append("}");
 			}
 			Logger.defaultLogger().info(sb.toString());
+			Logger.defaultLogger().info("Override policy = " + policy.getClass().getSimpleName() + "," + (appendSuffix ? "" : " do not") + " append a subdirectory.");
 
 			if (date == null) {
 				date = new GregorianCalendar();
@@ -749,7 +751,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			HistoryHandler handler = medium.getHistoryHandler();
 			handler.addEntryAndFlush(new HistoryEntry(HISTO_RECOVER, "Recovery : " + Utils.formatDisplayDate(date) + "."));
 
-			this.processRecoverImpl(destination, filters, policy, date, keepDeletedEntries, checkRecoveredFiles, context);
+			this.processRecoverImpl(destination, appendSuffix, filters, policy, date, keepDeletedEntries, checkRecoveredFiles, context);
 		} finally {
 			context.getInfoChannel().print("Recovery completed.");
 			globalMonitor.enforceCompletion();
@@ -763,7 +765,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			String destination, 
 			GregorianCalendar date, 
 			String entry, 
-			CopyPolicy policy,
+			AbstractCopyPolicy policy,
 			boolean checkRecoveredFiles, 
 			ProcessContext context
 	) throws ApplicationException {
@@ -785,8 +787,9 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	 */
 	protected abstract void processRecoverImpl(
 			String destination, 
-			ArecaFileList filters, 
-			CopyPolicy policy,
+			boolean appendSuffix,
+			ArecaRawFileList filters, 
+			AbstractCopyPolicy policy,
 			GregorianCalendar date, 
 			boolean keepDeletedEntries,
 			boolean checkRecoveredFiles, 
@@ -809,7 +812,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			String destination, 
 			GregorianCalendar date, 
 			String name, 
-			CopyPolicy policy,
+			AbstractCopyPolicy policy,
 			boolean checkRecoveredFiles,
 			ProcessContext context
 	) throws ApplicationException;    

@@ -45,6 +45,7 @@ public interface CommandConstants {
     public static UserOption OPTION_DATE = new UserOption("-date", 2);    
     public static UserOption OPTION_CHECK_FILES = new UserOption("-c", 1);  
     public static UserOption OPTION_OVERWRITE = new UserOption("-o", 1);  
+    public static UserOption OPTION_NO_SUBDIR = new UserOption("-nosubdir", 1); 
     public static UserOption OPTION_SPEC_LOCATION = new UserOption("-wdir", 2);  
     public static UserOption OPTION_SYNC = new UserOption("-s", 1);  
     public static UserOption OPTION_RESUME = new UserOption("-resume", 1); 

@@ -30,8 +30,20 @@ This file is part of Areca.
 
  */
 public class MetadataEncoder implements MetadataConstants {
+    private static MetadataEncoder INSTANCE = new MetadataEncoder();
     
-    public static String encode(String in) {
+	public static MetadataEncoder getInstance() {
+		return INSTANCE;
+	}
+	
+    private static final String SPEC_CHAR = "@";
+    private static final String SC_AROBASE = "@@";
+    private static final String SC_R = "@R";
+    private static final String SC_N = "@N";
+    private static final String SC_RESERVED = "@>";
+
+    
+    public String encode(String in) {
     	String out = in;
     	out = Util.replace(out, SPEC_CHAR, SC_AROBASE);
     	out = Util.replace(out, SEPARATOR, SC_SEMICOLON);
@@ -40,7 +52,7 @@ public class MetadataEncoder implements MetadataConstants {
     	return out;
     }
     
-    public static String decode(String in) {
+    public String decode(String in) {
     	String out = in;
     	out = Util.replace(out, SC_AROBASE, SC_RESERVED);
     	out = Util.replace(out, SC_SEMICOLON, SEPARATOR);

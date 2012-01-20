@@ -1,5 +1,7 @@
 package com.application.areca.launcher.gui;
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -18,6 +20,7 @@ import com.application.areca.ResourceManager;
 import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
+import com.myJava.file.FileSystemManager;
 import com.myJava.system.OSTool;
 
 /**
@@ -52,15 +55,34 @@ extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
     
     private Text txtLocation;
+    private Group grpLocation;
+    private Group grpOptions;
     private Button chkCheckRecoveredFiles;
     private Button chkRecoverDeletedEntries;
     private Button btnSave;
+    private Button radRecoverInSubdirectory;
+    private Button radOverwrite;
+    private Button radDoNotOverwrite;
+    private Button radAskBeforeOverwrite;
+    private Button radOverwriteIfNewer;
+    private Label lblExisting;
     
     private String location;
     private boolean checkRecoveredFiles;
     private boolean recoverDeletedEntries;
+    private boolean appendSubdirectory;
+    private boolean alwaysOverwrite;
+    private boolean neverOverwrite;
+    private boolean askBeforeOverwrite;
+    private boolean overwriteIfNewer;
     private boolean fullMode;
 
+    /**
+     * FullMode controls the display : 
+     * <BR>true for full options (when recovering an entire archive)
+     * <BR>false for simple mode (when recovering a single entry)
+     * @param fullMode
+     */
     public RecoverWindow(boolean fullMode) {
 		this.fullMode = fullMode;
 	}
@@ -74,12 +96,15 @@ extends AbstractWindow {
         GridLayout layout = new GridLayout(1, false);
         composite.setLayout(layout);
 
-        final Group grpLocation = new Group(composite, SWT.NONE);
+        grpLocation = new Group(composite, SWT.NONE);
         grpLocation.setText(RM.getLabel("recover.location.label"));
-        grpLocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        GridLayout grpLayout = new GridLayout(2, false);
-        grpLayout.verticalSpacing = 0;
-        grpLocation.setLayout(grpLayout);
+        grpLocation.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        grpLocation.setLayout(new GridLayout(2, false));
+        
+        grpOptions =  new Group(composite, SWT.NONE);
+        grpOptions.setText(RM.getLabel("recover.options.label"));
+        grpOptions.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        grpOptions.setLayout(new GridLayout(1, false));
         
         txtLocation = new Text(grpLocation, SWT.BORDER);
         GridData mainData2 = new GridData(SWT.FILL, SWT.CENTER, true, false);
@@ -99,30 +124,61 @@ extends AbstractWindow {
         });
         btnBrowse.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
         
-        if (fullMode) {
-	        final Label lblLocation = new Label(grpLocation, SWT.NONE);
-	        GridData dtLocation = new GridData(SWT.RIGHT, SWT.CENTER, true, false);
-	        lblLocation.setLayoutData(dtLocation);
+        if (fullMode) {  
 	        txtLocation.addModifyListener(new ModifyListener() {
 	            public void modifyText(ModifyEvent e) {
-	                lblLocation.setText("(" + txtLocation.getText() + "/" + FileSystemTarget.RECOVERY_LOCATION_SUFFIX + ")");
-	                grpLocation.layout();
+	            	updateRecoveryLocation(checkExistingFiles());
 	            }
 	        });
 	        
-	        chkRecoverDeletedEntries = new Button(composite, SWT.CHECK);
+	        lblExisting = new Label(grpLocation, SWT.NONE);
+	        
+        	radRecoverInSubdirectory = new Button(grpLocation, SWT.RADIO);
+        	radRecoverInSubdirectory.setText(RM.getLabel("recover.appenddir.label"));
+        	radRecoverInSubdirectory.setToolTipText(RM.getLabel("recover.appenddir.tt"));
+        	radRecoverInSubdirectory.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+        	radRecoverInSubdirectory.setSelection(true);
+	        monitorControl(SWT.Selection, radRecoverInSubdirectory);
+	        radRecoverInSubdirectory.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event arg0) {
+	            	updateRecoveryLocation(true);
+				}
+			});
+
+        	radOverwrite = new Button(grpLocation, SWT.RADIO);
+        	radOverwrite.setText(RM.getLabel("recover.alwaysoverride.label"));
+        	radOverwrite.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+	        monitorControl(SWT.Selection, radOverwrite);
+	        
+        	radOverwriteIfNewer = new Button(grpLocation, SWT.RADIO);
+        	radOverwriteIfNewer.setText(RM.getLabel("recover.overwriteifnewer.label"));
+        	radOverwriteIfNewer.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+	        monitorControl(SWT.Selection, radOverwriteIfNewer);
+	        
+        	radAskBeforeOverwrite = new Button(grpLocation, SWT.RADIO);
+        	radAskBeforeOverwrite.setText(RM.getLabel("recover.askoverride.label"));
+        	radAskBeforeOverwrite.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+	        monitorControl(SWT.Selection, radAskBeforeOverwrite);
+	        
+        	radDoNotOverwrite = new Button(grpLocation, SWT.RADIO);
+        	radDoNotOverwrite.setText(RM.getLabel("recover.neveroverride.label"));
+        	radDoNotOverwrite.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+	        monitorControl(SWT.Selection, radDoNotOverwrite);
+	        
+	        chkRecoverDeletedEntries = new Button(grpOptions, SWT.CHECK);
 	        chkRecoverDeletedEntries.setText(RM.getLabel("recover.recoverdeleted.label"));
 	        chkRecoverDeletedEntries.setToolTipText(RM.getLabel("recover.recoverdeleted.tt"));
 	        chkRecoverDeletedEntries.setLayoutData(new GridData());
 	        chkRecoverDeletedEntries.setSelection(recoverDeletedEntries);
+
 	        monitorControl(SWT.Selection, chkRecoverDeletedEntries);
         }
         
-        chkCheckRecoveredFiles = new Button(composite, SWT.CHECK);
+        chkCheckRecoveredFiles = new Button(grpOptions, SWT.CHECK);
         chkCheckRecoveredFiles.setText(RM.getLabel("recover.check.label"));
         chkCheckRecoveredFiles.setToolTipText(RM.getLabel("recover.check.tt"));
         chkCheckRecoveredFiles.setLayoutData(new GridData());
-        chkCheckRecoveredFiles.setSelection(checkRecoveredFiles);
+        chkCheckRecoveredFiles.setSelection(true);
         monitorControl(SWT.Selection, chkCheckRecoveredFiles);
 
         SavePanel pnlSave = new SavePanel(RM.getLabel("common.ok.label"), RM.getLabel("common.cancel.label"), this);
@@ -135,6 +191,36 @@ extends AbstractWindow {
         composite.pack();
         return composite;
     }
+	
+	protected boolean checkExistingFiles() {
+		try {
+			File[] children = FileSystemManager.listFiles(new File(txtLocation.getText()));
+			return (children != null && children.length != 0);
+		} catch (Exception e) {
+			com.myJava.util.log.Logger.defaultLogger().warn("Error while checking recovery directory", e);
+			return true;
+		}
+	}
+	
+	protected void updateRecoveryLocation(boolean existingFiles) {
+		radAskBeforeOverwrite.setEnabled(existingFiles);
+		radDoNotOverwrite.setEnabled(existingFiles);
+		radOverwrite.setEnabled(existingFiles);
+		radRecoverInSubdirectory.setEnabled(existingFiles);
+		
+		String txt = "";
+		if (existingFiles) {
+			lblExisting.setText(RM.getLabel("recover.existingfiles.label"));
+			if (radRecoverInSubdirectory.getSelection()) {
+				txt = " (" + FileSystemTarget.buildRecoveryFile(txtLocation.getText(), radRecoverInSubdirectory.getSelection()) + ")";
+			}
+		} else {
+			lblExisting.setText(RM.getLabel("recover.empty.label"));
+		}
+
+    	radRecoverInSubdirectory.setText(RM.getLabel("recover.appenddir.label") + txt);
+        grpLocation.layout();
+	}
     
     public String getTitle() {
         return RM.getLabel("recover.dialog.title");
@@ -152,8 +238,24 @@ extends AbstractWindow {
 		return recoverDeletedEntries;
 	}
 
-	public void setCheckRecoveredFiles(boolean checkRecoveredFiles) {
-		this.checkRecoveredFiles = checkRecoveredFiles;
+	public boolean isAppendSubdirectory() {
+		return appendSubdirectory;
+	}
+	
+	public boolean isAlwaysOverwrite() {
+		return alwaysOverwrite;
+	}
+
+	public boolean isNeverOverwrite() {
+		return neverOverwrite;
+	}
+
+	public boolean isAskBeforeOverwrite() {
+		return askBeforeOverwrite;
+	}
+
+	public boolean isOverwriteIfNewer() {
+		return overwriteIfNewer;
 	}
 
 	protected boolean checkBusinessRules() {
@@ -169,6 +271,11 @@ extends AbstractWindow {
         this.location = this.txtLocation.getText();
         this.recoverDeletedEntries = this.chkRecoverDeletedEntries == null ? false : this.chkRecoverDeletedEntries.getSelection();
         this.checkRecoveredFiles = this.chkCheckRecoveredFiles.getSelection();
+        this.appendSubdirectory = this.radRecoverInSubdirectory.isEnabled() && this.radRecoverInSubdirectory.getSelection();
+        this.alwaysOverwrite = this.radOverwrite.isEnabled() && this.radOverwrite.getSelection();
+        this.neverOverwrite = (!this.radDoNotOverwrite.isEnabled()) || this.radDoNotOverwrite.getSelection();
+        this.askBeforeOverwrite = this.radAskBeforeOverwrite.isEnabled() && this.radAskBeforeOverwrite.getSelection();
+        this.overwriteIfNewer = this.radOverwriteIfNewer.isEnabled() && this.radOverwriteIfNewer.getSelection();
         this.hasBeenUpdated = false;
         this.close();
     }
