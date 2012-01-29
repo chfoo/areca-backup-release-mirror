@@ -90,6 +90,7 @@ public class ArchiveReader {
             long remaining = (entriesToRecover == null) ? -1 : entriesToRecover.size();
 
             while((fileName = adapter.getNextEntry()) != null) {
+                File target = new File(dir, fileName);
                 try {
                     if (remaining == 0) {
                         break;
@@ -99,7 +100,6 @@ public class ArchiveReader {
                         monitor.checkTaskState();
                     }
                     
-                    File target = new File(dir, fileName);
                     if (
                     		(Util.passFilter(Util.trimSlashes(fileName), iter))
                     		&& (policy == null || policy.accept(target))
@@ -117,10 +117,10 @@ public class ArchiveReader {
                     // Close entry only if all was successful
                     adapter.closeEntry();
                 } catch (IOException e) {
-                    Logger.defaultLogger().error(e);
+                    Logger.defaultLogger().error("Error copying " + fileName + " to " + target, e);
                     throw e;
                 } catch (RuntimeException e) {
-                    Logger.defaultLogger().error(e);
+                    Logger.defaultLogger().error("Error copying " + fileName + " to " + target, e);
                     throw e;
                 }
             }        

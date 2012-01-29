@@ -162,7 +162,7 @@ extends AbstractArchiveHandler {
 			ContentFileIterator currentCtnIter = (ContentFileIterator)contents.next();
 			lastArchive = currentCtnIter.getReferenceArchive();
 			if (DEBUG) {
-				Logger.defaultLogger().fine("Entry " + entry.getKey() + " : checking sequence file contained in " + FileSystemManager.getAbsolutePath(currentCtnIter.getReferenceArchive()));
+				Logger.defaultLogger().fine("Entry " + entry.getKey() + " : checking sequence file contained in " + FileSystemManager.getDisplayPath(currentCtnIter.getReferenceArchive()));
 			}
 			boolean found = currentCtnIter.fetch(entry.getKey());
 			if (found) {
@@ -227,7 +227,7 @@ extends AbstractArchiveHandler {
 
 			// Build an iterator
 			if (DEBUG) {
-				Logger.defaultLogger().fine("Opening hash file for : " + FileSystemManager.getAbsolutePath(lastArchive));
+				Logger.defaultLogger().fine("Opening hash file for : " + FileSystemManager.getDisplayPath(lastArchive));
 			}
 			File sequenceFile = ArchiveContentManager.resolveSequenceFileForArchive(medium, lastArchive);
 			ctnIter = ArchiveContentAdapter.buildIterator(sequenceFile);
@@ -250,7 +250,7 @@ extends AbstractArchiveHandler {
 
 		// Once a suitable iterator has bee found, extract the raw hash data
 		if (DEBUG) {
-			Logger.defaultLogger().fine("Entry " + entry.getKey() + " : using sequence file contained in " + FileSystemManager.getAbsolutePath(ctnIter.getReferenceArchive()));
+			Logger.defaultLogger().fine("Entry " + entry.getKey() + " : using sequence file contained in " + FileSystemManager.getDisplayPath(ctnIter.getReferenceArchive()));
 		}
 		ContentEntry hashEntry = ctnIter.current();
 		byte[] rawData = Util.base64Decode(hashEntry.getData());

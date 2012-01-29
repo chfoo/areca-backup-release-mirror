@@ -67,6 +67,10 @@ implements SelectionListener, Refreshable {
 	private Table table;
 	private TableViewer viewer;
 	private Application application = Application.getInstance();
+	//private Composite messageBox;
+	//private Composite messageMainContainer;
+	//private Label lblMessage;
+	//private Text txtPath;
 
 	public PhysicalViewComposite(final CTabFolder parent) {
 		super(parent, SWT.NONE);
@@ -109,6 +113,15 @@ implements SelectionListener, Refreshable {
 
 		table.setMenu(Application.getInstance().getActionContextMenu());
 
+		/*
+		messageMainContainer = new Composite(this, SWT.NONE);
+		messageMainContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 6, 1));
+		GridLayout lytMsg = new GridLayout(1, false);
+		lytMsg.marginHeight = 1;
+		lytMsg.marginWidth = 1;
+		messageMainContainer.setLayout(lytMsg);
+		 */
+
 		Label lblIncrementalImg = new Label(this, SWT.NONE);
 		lblIncrementalImg.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
 		lblIncrementalImg.setImage(ArecaImages.ICO_FS_FOLDER);
@@ -139,12 +152,59 @@ implements SelectionListener, Refreshable {
 			}
 		});
 	}
+	
+	/*
+	public void removeViewMessage() {
+		if (messageBox != null && (! messageBox.isDisposed())) {
+			messageBox.dispose();
+		}
+		layout(true);
+	}
+	
+	public void showViewMessage() {
+		if (messageBox == null || messageBox.isDisposed()) {
+			messageBox = new Composite(messageMainContainer, SWT.NONE);
+			messageBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+			messageBox.setLayout(new GridLayout(2, false));
+			
+			lblMessage = new Label(messageBox, SWT.NONE);
+			lblMessage.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+			
+			Button btnSearchArchives = new Button(messageBox, SWT.PUSH);
+			btnSearchArchives.setText(ResourceManager.instance().getLabel("mainpanel.lookuparchives.label"));
+			btnSearchArchives.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false));
+			btnSearchArchives.addListener(SWT.Selection, new Listener() {
+				
+				public void handleEvent(Event arg0) {
+					System.out.println("haha");
+					PhysicalViewComposite.this.removeViewMessage();
+				}
+			});
+		}
+		
+		lblMessage.setText(ResourceManager.instance().getLabel("mainpanel.noarchive.label", new Object[] {application.getCurrentTarget().getName(), ((AbstractFileSystemMedium)application.getCurrentTarget().getMedium()).getFileSystemPolicy().getDisplayableParameters(true)}));	
+		layout(true);
+	}
+	
+	public void searchArchives() {
+		AbstractIncrementalFileSystemMedium medium = (AbstractIncrementalFileSystemMedium)application.getCurrentTarget().getMedium();
+		if (txtPath != null && ! txtPath.isDisposed() && txtPath.getText() != null) {
+			File found = medium.lookupArchives(txtPath.getText());
+			if (found != null) {
+				application.getc
+				refresh();
+			}
+		}
+	}
+	*/
 
 	public void refresh() {
 		table.removeAll();
 
 		if (application.isCurrentObjectTarget()) {
 			fillTargetData(application.getCurrentTarget());
+		} else {
+			//removeViewMessage();
 		}
 	}
 
@@ -198,6 +258,14 @@ implements SelectionListener, Refreshable {
 				application.handleException(e);
 			}
 		}
+		
+		/*
+		if (archives.length == 0) {
+			showViewMessage();
+		} else {
+			removeViewMessage();
+		}
+		*/
 	}
 
 	private void initText(TableItem item, int column, Manifest manifest) {

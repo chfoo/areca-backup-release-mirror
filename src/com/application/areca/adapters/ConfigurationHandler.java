@@ -14,7 +14,6 @@ import org.w3c.dom.Element;
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ConfigurationSource;
-import com.application.areca.ResourceManager;
 import com.application.areca.TargetGroup;
 import com.application.areca.Workspace;
 import com.application.areca.WorkspaceItem;
@@ -24,7 +23,6 @@ import com.application.areca.adapters.write.AbstractXMLWriter;
 import com.application.areca.adapters.write.DefaultTargetGroupXMLWriter;
 import com.application.areca.adapters.write.TargetXMLWriter;
 import com.application.areca.impl.FileSystemTarget;
-import com.application.areca.launcher.gui.Application;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.log.Logger;
@@ -162,7 +160,7 @@ public class ConfigurationHandler {
 			String read = ("" + FileTool.getInstance().getFileContent(targetFile, AbstractXMLWriter.getEncoding())).trim();
 			if (! read.equals(XML)) {
 				// The written file is not OK
-				Logger.defaultLogger().warn("An error occured while writing the XML configuration on " + FileSystemManager.getAbsolutePath(targetFile) + " : Original content = [" + XML + "], written content = [" + read + "]");
+				Logger.defaultLogger().warn("An error occured while writing the XML configuration on " + FileSystemManager.getDisplayPath(targetFile) + " : Original content = [" + XML + "], written content = [" + read + "]");
 				return false;
 			}
 
@@ -186,11 +184,11 @@ public class ConfigurationHandler {
 			File file, 
 			com.application.areca.adapters.MissingDataListener listener, 
 			TargetGroup parent,
-			boolean installMedium) {
+			boolean installMedium) throws AdapterException {
 		try {
 			if (FileSystemManager.isFile(file)) {
 				if (FileSystemManager.getName(file).toLowerCase().endsWith(FileSystemTarget.CONFIG_FILE_EXT_DEPRECATED) && isDeprecatedGroupConfiguration(file)) {
-					Logger.defaultLogger().info("Reading configuration file (deprecated group format) : " + FileSystemManager.getAbsolutePath(file));
+					Logger.defaultLogger().info("Reading configuration file (deprecated group format) : " + FileSystemManager.getDisplayPath(file));
 					DeprecatedTargetGroupXMLReader reader = new DeprecatedTargetGroupXMLReader(file, installMedium);
 					TargetGroup group = reader.load();
 					if (parent != null) {
@@ -198,18 +196,18 @@ public class ConfigurationHandler {
 					}
 					return group;
 				} else if (FileSystemManager.getName(file).toLowerCase().endsWith(FileSystemTarget.CONFIG_FILE_EXT)) {
-					Logger.defaultLogger().info("Reading target configuration file : " + FileSystemManager.getAbsolutePath(file));
+					Logger.defaultLogger().info("Reading target configuration file : " + FileSystemManager.getDisplayPath(file));
 					AbstractTarget target = readTarget(file, listener, false, installMedium);
 					if (parent != null) {
 						parent.linkChild(target);
 					}
 					return target;
 				} else {
-					Logger.defaultLogger().info("Ignoring " + FileSystemManager.getAbsolutePath(file));
+					Logger.defaultLogger().info("Ignoring " + FileSystemManager.getDisplayPath(file));
 					return null;
 				}
 			} else if (! FileSystemManager.getName(file).startsWith(".")) {
-				Logger.defaultLogger().info("Reading content of " + FileSystemManager.getAbsolutePath(file));
+				Logger.defaultLogger().info("Reading content of " + FileSystemManager.getDisplayPath(file));
 				TargetGroup group = new TargetGroup(FileSystemManager.getName(file));
 				group.setLoadedFrom(new ConfigurationSource(false, file));
 				File[] children = FileSystemManager.listFiles(file);
@@ -228,16 +226,19 @@ public class ConfigurationHandler {
 				}
 				return group;
 			} else {
-				Logger.defaultLogger().info("Ignoring " + FileSystemManager.getAbsolutePath(file));
+				Logger.defaultLogger().info("Ignoring " + FileSystemManager.getDisplayPath(file));
 				return null;
 			}
 		} catch (AdapterException e) {
-			Logger.defaultLogger().error("Error detected in " + e.getSource());
+			Logger.defaultLogger().error("Error detected in " + e.getSource(), e);
+			throw e;
+			/*
 			Application.getInstance().handleException(
 					ResourceManager.instance().getLabel("error.loadworkspace.message", new Object[] {e.getMessage(), e.getSource()}),
 					e
 			);
 			return null;
+			*/
 		}
 	}
 }

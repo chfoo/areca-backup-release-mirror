@@ -62,7 +62,7 @@ public class Workspace {
 	}
 
 	public String toString() {
-		return "Workspace : " + FileSystemManager.getAbsolutePath(root);
+		return "Workspace : " + FileSystemManager.getDisplayPath(root);
 	}
 
 	public void remove(String id) {
@@ -119,12 +119,12 @@ public class Workspace {
 						try {
 							FileTool.getInstance().delete(deprecatedDirectoryLog);
 						} catch (IOException e) {
-							Logger.defaultLogger().warn("Error while trying to move " + FileSystemManager.getAbsolutePath(deprecatedDirectoryLog) + " to " + FileSystemManager.getAbsolutePath(directoryLog) + " : " + e.getMessage());
+							Logger.defaultLogger().warn("Error while trying to move " + FileSystemManager.getDisplayPath(deprecatedDirectoryLog) + " to " + FileSystemManager.getDisplayPath(directoryLog) + " : " + e.getMessage());
 						}
 					} else {
 						FileSystemManager.renameTo(deprecatedDirectoryLog, directoryLog);
 					}
-					Logger.defaultLogger().info("Backward compatibility : Log directory : " + FileSystemManager.getAbsolutePath(deprecatedDirectoryLog) + " moved to " + FileSystemManager.getAbsolutePath(directoryLog));
+					Logger.defaultLogger().info("Backward compatibility : Log directory : " + FileSystemManager.getDisplayPath(deprecatedDirectoryLog) + " moved to " + FileSystemManager.getDisplayPath(directoryLog));
 				}
 				// EOF Backward compatibility					
 

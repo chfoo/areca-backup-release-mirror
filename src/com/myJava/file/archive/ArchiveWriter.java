@@ -50,38 +50,42 @@ public class ArchiveWriter {
 
     public void addFile(File file, String fullName, Comparator comparator, TaskMonitor monitor) 
     throws IOException, TaskCancelledException {
-        if (! FileSystemManager.exists(file)) {
-            return;
-        }
-        
-        if (monitor != null) {
-            monitor.checkTaskState();
-        }
-        
-        if (FileSystemManager.isFile(file)) {
-            if (FileNameUtil.startsWithSeparator(fullName)) {
-                fullName = fullName.substring(1);
-            }
-            
-            long length = FileSystemManager.length(file);
-            
-            this.adapter.addEntry(fullName, length);            
-            this.tool.copyFile(file, this.adapter.getArchiveOutputStream(), false, monitor);
-            this.adapter.closeEntry();
-        } else {
-            File[] children = FileSystemManager.listFiles(file);
-			if (comparator != null) {
-				Arrays.sort(children, comparator);
+        try {
+			if (! FileSystemManager.exists(file)) {
+			    return;
 			}
-            for (int i=0; i<children.length; i++) {
-                this.addFile(
-                		children[i], 
-                		Util.replace(FileSystemManager.getCanonicalPath(children[i]), FileSystemManager.getCanonicalPath(file), fullName), 
-                		comparator,
-                		monitor
-                );
-            }
-        }
+			
+			if (monitor != null) {
+			    monitor.checkTaskState();
+			}
+			
+			if (FileSystemManager.isFile(file)) {
+			    if (FileNameUtil.startsWithSeparator(fullName)) {
+			        fullName = fullName.substring(1);
+			    }
+			    
+			    long length = FileSystemManager.length(file);
+			    
+			    this.adapter.addEntry(fullName, length);            
+			    this.tool.copyFile(file, this.adapter.getArchiveOutputStream(), false, monitor);
+			    this.adapter.closeEntry();
+			} else {
+			    File[] children = FileSystemManager.listFiles(file);
+				if (comparator != null) {
+					Arrays.sort(children, comparator);
+				}
+			    for (int i=0; i<children.length; i++) {
+			        this.addFile(
+			        		children[i], 
+			        		Util.replace(FileSystemManager.getCanonicalPath(children[i]), FileSystemManager.getCanonicalPath(file), fullName), 
+			        		comparator,
+			        		monitor
+			        );
+			    }
+			}
+		} catch (IOException e) {
+			throw new IOException("Error storing " + file + " under key : " + fullName, e);
+		}
     }
 
     public ArchiveAdapter getAdapter() {

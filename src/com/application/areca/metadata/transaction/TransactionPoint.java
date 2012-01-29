@@ -135,7 +135,7 @@ public class TransactionPoint implements Serializable {
 						return tp;
 					}
 				} catch (NumberFormatException e) {
-					Logger.defaultLogger().info("Ignoring " + FileSystemManager.getAbsolutePath(transactionPoints[i]));
+					Logger.defaultLogger().info("Ignoring " + FileSystemManager.getDisplayPath(transactionPoints[i]));
 				}
 			}
 		}

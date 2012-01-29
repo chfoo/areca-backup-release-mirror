@@ -84,7 +84,7 @@ implements FileSystemPolicy {
 		File parent = FileSystemManager.getParentFile(path);
 		if (! FileSystemManager.exists(parent)) {
 			ret.setReachable(false);
-			ret.setMessage(FileSystemManager.getAbsolutePath(parent) + " doesn't exist.");
+			ret.setMessage(FileSystemManager.getDisplayPath(parent) + " doesn't exist.");
 		}
 		return ret;
 	}

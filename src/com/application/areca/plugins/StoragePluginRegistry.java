@@ -13,8 +13,8 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 
 import com.application.areca.ApplicationException;
-import com.application.areca.ArecaFileConstants;
 import com.application.areca.ArecaConfiguration;
+import com.application.areca.ArecaFileConstants;
 import com.application.areca.Utils;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.Logger;
@@ -77,13 +77,13 @@ public class StoragePluginRegistry implements ArecaFileConstants {
     }
 
     public void load(File pluginsDirectory) {
-        Logger.defaultLogger().info("Looking for storage plugins in directory : " + FileSystemManager.getAbsolutePath(pluginsDirectory));
+        Logger.defaultLogger().info("Looking for storage plugins in directory : " + FileSystemManager.getDisplayPath(pluginsDirectory));
         File[] pluginFiles = FileSystemManager.listFiles(pluginsDirectory);
         if (pluginFiles != null) {
             for (int i=0; i<pluginFiles.length; i++) {
                 File pluginDirectory = pluginFiles[i];
                 if (FileSystemManager.isDirectory(pluginDirectory)) {
-                    Logger.defaultLogger().info("Attempting to load plugin directory : " + FileSystemManager.getAbsolutePath(pluginDirectory));
+                    Logger.defaultLogger().info("Attempting to load plugin directory : " + FileSystemManager.getDisplayPath(pluginDirectory));
                     File configFile = new File(pluginDirectory, FileSystemManager.getName(pluginDirectory) + ".properties");
                     StoragePlugin plugin = null;
                     try {
@@ -113,7 +113,7 @@ public class StoragePluginRegistry implements ArecaFileConstants {
     private StoragePlugin instanciate(File configFile) throws ApplicationException {
         try {
             if (FileSystemManager.exists(configFile)) {
-                Logger.defaultLogger().info("Reading plugin configuration file : " + FileSystemManager.getAbsolutePath(configFile));
+                Logger.defaultLogger().info("Reading plugin configuration file : " + FileSystemManager.getDisplayPath(configFile));
 
                 // Read plugin config file
                 InputStream is = null;
@@ -148,7 +148,7 @@ public class StoragePluginRegistry implements ArecaFileConstants {
                 	
                     // Load Jar
                     File jarFile = new File(FileSystemManager.getParentFile(configFile), path);
-                    Logger.defaultLogger().info("Loading jar file : " + FileSystemManager.getAbsolutePath(jarFile));
+                    Logger.defaultLogger().info("Loading jar file : " + FileSystemManager.getDisplayPath(jarFile));
                     urls[i] = new URL("file:" + FileSystemManager.getAbsolutePath(jarFile));
                 }
                 ClassLoader cl = new URLClassLoader(urls);

@@ -429,7 +429,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 						if (checkException != null) {
 							excMsg = " (got the following error : " + checkException.getMessage() + ")";
 						}
-						context.getInfoChannel().error("The created archive (" + FileSystemManager.getAbsolutePath(context.getCurrentArchiveFile()) + ") was not successfully checked" + excMsg + ". It will be deleted.");
+						context.getInfoChannel().error("The created archive - " + FileSystemManager.getDisplayPath(context.getCurrentArchiveFile()) + " - was not successfully checked" + excMsg + ". It will be deleted.");
 						context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.4, "deletion");  
 						this.processDeleteArchives(cal, context);
 					}

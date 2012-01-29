@@ -99,7 +99,7 @@ extends AbstractWindow {
         if (target != null) {
             AbstractFileSystemMedium medium = (AbstractFileSystemMedium)target.getMedium();
             File tgDir = medium.getFileSystemPolicy().getArchiveDirectory();
-            chkDeleteContent.setText(RM.getLabel("app.deletetargetaction.deletecontent.label", new Object[] {FileSystemManager.getAbsolutePath(tgDir)}));
+            chkDeleteContent.setText(RM.getLabel("app.deletetargetaction.deletecontent.label", new Object[] {FileSystemManager.getDisplayPath(tgDir)}));
         } else {
             chkDeleteContent.setText(RM.getLabel("app.deletegroupaction.deletecontent.label"));            
         }

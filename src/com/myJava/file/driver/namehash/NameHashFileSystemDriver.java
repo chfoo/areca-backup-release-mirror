@@ -266,7 +266,7 @@ extends AbstractLinkableFileSystemDriver {
 				return false;
 			}
 		} catch (IOException e) {
-			Logger.defaultLogger().error(e);
+			Logger.defaultLogger().error("Error raised while creating directory : " + FileSystemManager.getDisplayPath(file), e);
 			throw new IllegalArgumentException("IllegalArgumentException : " + e.getMessage());
 		}
 	}

@@ -74,8 +74,9 @@ public class LogHelper {
 				sb.append("<null>");
 			} else {
 				String ap = FileSystemManager.getAbsolutePath(f);
+				String dp = FileSystemManager.getDisplayPath(f);
 				String cp = FileSystemManager.getCanonicalPath(f);
-				sb.append("AbsolutePath = ").append(ap);
+				sb.append("Path = ").append(dp);
 				if (! ap.equals(cp)) {
 					sb.append(", CanonicalPath = ").append(cp);
 				}

@@ -53,8 +53,6 @@ This file is part of Areca.
 
  */
 public class SFTPFileSystemDriver extends AbstractRemoteFileSystemDriver {
-    protected String remoteRootDirectory;
-
     public SFTPFileSystemDriver(SFTPProxy sftpProxy, File localRoot, String remoteRoot) {
     	super(localRoot);
     	this.maxProxies = FrameworkConfiguration.getInstance().getMaxFTPProxies();
@@ -63,23 +61,6 @@ public class SFTPFileSystemDriver extends AbstractRemoteFileSystemDriver {
         this.proxy.setFileInfoCache(new RemoteFileInfoCache());
     } 
 
-    // Returns the normalized remote root
-    private String getNormalizedRemoteRoot() {
-        return remoteRootDirectory;
-    }
-
-    // Converts the local file name to a remote file name
-    protected String translateToRemote(File localFile) {
-        int l = this.getNormalizedLocalRoot().length();
-        String path = normalizeIfNeeded(localFile.getAbsolutePath()); 
-
-        if (l < path.length()) {
-            return this.getNormalizedRemoteRoot() + path.substring(l);
-        } else {
-            return this.getNormalizedRemoteRoot();
-        }
-    }
-
     public short getType(File file) throws IOException {
     	if (isFile(file)) {
     		return FileMetaDataAccessor.TYPE_FILE;
@@ -87,18 +68,6 @@ public class SFTPFileSystemDriver extends AbstractRemoteFileSystemDriver {
     		return FileMetaDataAccessor.TYPE_DIRECTORY;
     	}
 	}
-
-	// Converts the remote file name to a local file name    
-    protected String translateToLocal(String remoteFile) {
-        int l = getNormalizedRemoteRoot().length();
-
-        if (l < remoteFile.length()) {
-            String suffix = remoteFile.substring(l);
-            return this.getNormalizedLocalRoot() + suffix;
-        } else {
-            return this.getNormalizedLocalRoot();
-        }
-    }
     
     public int hashCode() {
         int h = HashHelper.initHash(this);
@@ -135,6 +104,25 @@ public class SFTPFileSystemDriver extends AbstractRemoteFileSystemDriver {
         ToStringHelper.append("LOGIN", ((SFTPProxy)this.proxy).getLogin(), sb);
         return ToStringHelper.close(sb);
     }
+    
+    public String getPhysicalPath(File file) {
+    	SFTPProxy pxy = (SFTPProxy)proxy;
+        StringBuffer sb = new StringBuffer();
+        sb.append("sftp://");
+        sb.append(pxy.getLogin()).append("@").append(pxy.getRemoteServer()).append(":").append(pxy.getRemotePort());
+        if (! FileNameUtil.startsWithSeparator(remoteRootDirectory)) {
+            sb.append("/");
+        }
+
+        sb.append(remoteRootDirectory);
+        String relativePath = getRemoteRelativePath(file);
+        if (! relativePath.startsWith("/") && ! remoteRootDirectory.endsWith("/")) {
+            sb.append("/");
+        }
+        sb.append(relativePath);
+        return sb.toString();
+	}
+    
     /*
     public static void main(String[] args) {
     	try {

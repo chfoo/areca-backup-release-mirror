@@ -111,9 +111,11 @@ public class MediumUtils {
 	private static void deleteRecur(File root, File current) {
 		if (FileSystemManager.delete(current)) {
 			File parent = FileSystemManager.getParentFile(current);
-			if (FileNameUtil.normalizePath(FileSystemManager.getAbsolutePath(parent))
-					.startsWith(FileNameUtil.normalizePath(FileSystemManager.getAbsolutePath(root)))) {
-				deleteRecur(root, parent); // The parent will be deleted only if it is empty
+			if (FileNameUtil.normalizePath(FileSystemManager.getAbsolutePath(parent)).startsWith(FileNameUtil.normalizePath(FileSystemManager.getAbsolutePath(root)))) {
+				String[] children = FileSystemManager.list(parent);
+				if (children == null || children.length == 0) { // The parent will be deleted only if it is empty
+					deleteRecur(root, parent); 
+				}
 			}
 		}
 	} 

@@ -125,9 +125,9 @@ public class FileTool {
 		File[] files = FileSystemManager.listFiles(sourceDirectory);
 		if (files == null) {
 			if (FileSystemManager.exists(sourceDirectory)) {
-				Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(sourceDirectory) + " : Directory exists but no children.");
+				Logger.defaultLogger().warn(FileSystemManager.getDisplayPath(sourceDirectory) + " : Directory exists but no children.");
 			} else {
-				Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(sourceDirectory) + " : Directory doesn't exist.");
+				Logger.defaultLogger().warn(FileSystemManager.getDisplayPath(sourceDirectory) + " : Directory doesn't exist.");
 			}
 		} else {
 			if (comparator != null) {
@@ -408,9 +408,7 @@ public class FileTool {
 		content = Util.replace(content, searchString, newString);
 		OutputStreamWriter fw = null;
 		try {
-			OutputStream fos = FileSystemManager
-			.getFileOutputStream(FileSystemManager
-					.getAbsolutePath(baseFile));
+			OutputStream fos = FileSystemManager.getFileOutputStream(FileSystemManager.getAbsolutePath(baseFile));
 			fw = new OutputStreamWriter(fos);
 			fw.write(content);
 			fw.flush();
@@ -535,9 +533,7 @@ public class FileTool {
 		}
 
 		File parent = FileSystemManager.getParentFile(tmp);
-		if (!  FileSystemManager.exists(parent)) {
-			FileSystemManager.mkdir(parent);
-		}
+		createDir(parent);
 
 		// register shutdown hook to destroy the created temporary file
 		if (registerDeleteHook) {

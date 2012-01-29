@@ -60,7 +60,7 @@ public class LockedFileFilter extends AbstractArchiveFilter {
             return true;
         } else {
         	if (! FileSystemManager.exists(entry)) { // dangling links are accepted 
-    		    Logger.defaultLogger().warn("The following file is a dangling link : " + FileSystemManager.getAbsolutePath(entry));
+    		    Logger.defaultLogger().warn("The following file is a dangling link : " + FileSystemManager.getDisplayPath(entry));
         		return logicalNot;
         	} else {
         		short type;
@@ -78,7 +78,7 @@ public class LockedFileFilter extends AbstractArchiveFilter {
 	        		if (res.isReadable()) {       		    
 	        			return logicalNot;                
 	        		} else {
-	        		    Logger.defaultLogger().warn("The following file is locked by the system : " + FileSystemManager.getAbsolutePath(entry));
+	        		    Logger.defaultLogger().warn("The following file is locked by the system : " + FileSystemManager.getDisplayPath(entry));
 	        		    if (res.getCause() != null) {
 	        		        Logger.defaultLogger().info("Cause : " + res.getCause());
 	        		    }

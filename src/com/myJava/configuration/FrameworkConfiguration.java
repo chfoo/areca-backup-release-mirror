@@ -236,6 +236,7 @@ public class FrameworkConfiguration {
      * Log level for the "ThreadLocal" log processor
      */
     public static String KEY_INLINE_LOG_LEVEL = "threadlocal.log.level"; 
+
     
     public static int DEF_ENCRYPTION_KG_ITER = 96731;
     public static String DEF_ENCRYPTION_KG_SALT = "ù%${{²]}}[|`è€$£^¤*!§:/..;;,,_?\"\\°à@@%µ";

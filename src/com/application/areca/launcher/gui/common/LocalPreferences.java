@@ -164,7 +164,7 @@ public class LocalPreferences implements ArecaFileConstants {
             preferences.store(fos, HEADER);
             fos.close();
         } catch (IOException ioex) {
-            Logger.defaultLogger().warn("Error while saving user preferences into file " + FileSystemManager.getAbsolutePath(getFile(false)), ioex, "");
+            Logger.defaultLogger().warn("Error while saving user preferences into file " + FileSystemManager.getDisplayPath(getFile(false)), ioex, "");
         }
     }
 
@@ -195,7 +195,7 @@ public class LocalPreferences implements ArecaFileConstants {
 	            }
             }
         } catch (IOException ioex) {
-            Logger.defaultLogger().warn("Error while loading user preferences from file " + FileSystemManager.getAbsolutePath(prefFile), ioex, "");
+            Logger.defaultLogger().warn("Error while loading user preferences from file " + FileSystemManager.getDisplayPath(prefFile), ioex, "");
         }
     }
     

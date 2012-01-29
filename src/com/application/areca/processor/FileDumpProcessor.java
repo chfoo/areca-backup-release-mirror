@@ -94,7 +94,7 @@ public class FileDumpProcessor extends AbstractProcessor {
 						context
 				)
 		);
-		Logger.defaultLogger().info("Writing backup report on : " + FileSystemManager.getAbsolutePath(destination));
+		Logger.defaultLogger().info("Writing backup report on : " + FileSystemManager.getDisplayPath(destination));
 
 		try {
 			ProcessReport report = context.getReport();
@@ -106,8 +106,8 @@ public class FileDumpProcessor extends AbstractProcessor {
 			writer = new ProcessReportWriter(FileSystemManager.getWriter(destination), appendStatistics);
 			writer.writeReport(report);
 		} catch (FileNotFoundException e) {
-			Logger.defaultLogger().error("The report filename is incorrect : " + FileSystemManager.getAbsolutePath(destination), e);            
-			throw new IllegalArgumentException("The report filename is incorrect : " + FileSystemManager.getAbsolutePath(destination));
+			Logger.defaultLogger().error("The report filename is incorrect : " + FileSystemManager.getDisplayPath(destination), e);            
+			throw new IllegalArgumentException("The report filename is incorrect : " + FileSystemManager.getDisplayPath(destination));
 		} catch (IOException e) {
 			Logger.defaultLogger().error("Exception caught during report generation", e);            
 			throw new ApplicationException("Exception caught during report generation", e);
@@ -134,7 +134,7 @@ public class FileDumpProcessor extends AbstractProcessor {
 
 	public void validate() throws ProcessorValidationException {
 		if (FileSystemManager.isFile(this.destinationFolder)) {
-			throw new ProcessorValidationException("Invalid argument : '" + FileSystemManager.getAbsolutePath(this.destinationFolder) + "' is a file - Please select a directory.");
+			throw new ProcessorValidationException("Invalid argument : '" + FileSystemManager.getDisplayPath(this.destinationFolder) + "' is a file - Please select a directory.");
 		}
 	}
 

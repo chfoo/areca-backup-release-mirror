@@ -102,7 +102,7 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 				}
 				return match ? !logicalNot : logicalNot;
 			} catch (IOException e) {
-				String msg = "Error reading file permissions for "+ FileSystemManager.getAbsolutePath(entry);
+				String msg = "Error reading file permissions for "+ FileSystemManager.getDisplayPath(entry);
 				Logger.defaultLogger().info(msg);
 				throw new IllegalArgumentException(msg);
 			}

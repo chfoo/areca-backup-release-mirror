@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 7464008258520651107L;
+		BUILD_ID = 3524359887604334410L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.2.5", new GregorianCalendar(2012, 0, 26), "Minor improvements & bugfixes."));
 		VERSIONS.add(new VersionData("7.2.4", new GregorianCalendar(2012, 0, 18), "Recovery optimization when handling large volume of data; Improved recovery options; Two merge bug fixes", "CAUTION : This new version of Areca fixes two bugs in the 'merge' function. It is recommended to check archives created by merging with previous (7.2.x) versions of Areca."));
 		VERSIONS.add(new VersionData("7.2.3", new GregorianCalendar(2011, 7, 20), "Minor bugfixes"));
 		VERSIONS.add(new VersionData("7.2.2", new GregorianCalendar(2011, 7, 28), "Statistics can now be added to backup reports; Recovery performance improvements when handling large number of files; Minor GUI enhancements and bugfixes."));

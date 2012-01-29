@@ -448,18 +448,13 @@ implements TargetActions, IndicatorTypes {
 
 	public void destroyRepository() throws ApplicationException {
 		File storage = fileSystemPolicy.getArchiveDirectory();
-		Logger.defaultLogger().info(
-				"Deleting repository : "
-						+ FileSystemManager.getAbsolutePath(storage) + " ...");
+		Logger.defaultLogger().info("Deleting repository : " + FileSystemManager.getDisplayPath(storage) + " ...");
 		try {
 			FileTool tool = FileTool.getInstance();
 			tool.delete(storage);
-			Logger.defaultLogger().info(
-					FileSystemManager.getAbsolutePath(storage) + " deleted.");
+			Logger.defaultLogger().info(FileSystemManager.getDisplayPath(storage) + " deleted.");
 		} catch (Exception e) {
-			throw new ApplicationException(
-					"Error trying to delete directory : "
-							+ FileSystemManager.getAbsolutePath(storage), e);
+			throw new ApplicationException("Error trying to delete directory : " + FileSystemManager.getDisplayPath(storage), e);
 		}
 	}
 
@@ -770,12 +765,9 @@ implements TargetActions, IndicatorTypes {
 
 	protected void destroyTemporaryFile(File archive) {
 		String name = FileSystemManager.isFile(archive) ? "file" : "directory";
-		Logger.defaultLogger().warn(
-				"Uncommited " + name + " detected : "
-						+ FileSystemManager.getAbsolutePath(archive));
+		Logger.defaultLogger().warn("Uncommited " + name + " detected : " + FileSystemManager.getDisplayPath(archive));
 
-		Logger.defaultLogger()
-				.displayApplicationMessage(
+		Logger.defaultLogger().displayApplicationMessage(
 						null,
 						"Temporary " + name + " detected.",
 						""
@@ -786,14 +778,11 @@ implements TargetActions, IndicatorTypes {
 								+ name
 								+ " or a temporary archive which has not been commited :"
 								+ "\n"
-								+ FileSystemManager.getAbsolutePath(archive)
+								+ FileSystemManager.getDisplayPath(archive)
 								+ "\n\nThis " + name + " will be deleted.");
 
 		try {
-			Logger.defaultLogger().info(
-					"Deleting temporary " + name + " ("
-							+ FileSystemManager.getAbsolutePath(archive)
-							+ ") ...");
+			Logger.defaultLogger().info("Deleting temporary " + name + " (" + FileSystemManager.getDisplayPath(archive) + ") ...");
 			this.deleteArchive(archive);
 			Logger.defaultLogger().info("Temporary " + name + " deleted.");
 		} catch (Exception e) {
@@ -854,35 +843,25 @@ implements TargetActions, IndicatorTypes {
 	protected void storeTargetConfigBackup(ProcessContext context)
 			throws ApplicationException {
 		if (this.target.isCreateSecurityCopyOnBackup()) {
-			File storageDir = FileSystemManager.getParentFile(context
-					.getCurrentArchiveFile());
+			File storageDir = FileSystemManager.getParentFile(context.getCurrentArchiveFile());
 			boolean ok = false;
 
 			if (storageDir != null && FileSystemManager.exists(storageDir)) {
 				File rootDir = FileSystemManager.getParentFile(storageDir);
 				if (rootDir != null && FileSystemManager.exists(rootDir)) {
-					File targetFile = new File(rootDir,
-							TARGET_BACKUP_FILE_PREFIX);
-					Logger.defaultLogger().info(
-							"Creating a XML backup copy of target \""
-									+ this.target.getName()
-									+ "\" on : "
-									+ FileSystemManager
-											.getAbsolutePath(targetFile));
+					File targetFile = new File(rootDir,TARGET_BACKUP_FILE_PREFIX);
+					Logger.defaultLogger().info("Creating a XML backup copy of target \""+ this.target.getName() + "\" on : " + FileSystemManager.getDisplayPath(targetFile));
 
 					// process.setComments("This group contains a backup copy of your target : \""
 					// + this.target.getName() +
 					// "\". It can be used if your configuration has been lost (for instance in case of computer crash).\nDo not modify it since it will be automatically updated during backups.");
-					ok = ConfigurationHandler.getInstance().serialize(
-							this.target, targetFile, true, true);
+					ok = ConfigurationHandler.getInstance().serialize(this.target, targetFile, true, true);
 				}
 			}
 
 			if (!ok) {
-				Logger.defaultLogger()
-						.warn("Could not create XML configuration backup for "
-								+ FileSystemManager.getAbsolutePath(context
-										.getCurrentArchiveFile())
+				Logger.defaultLogger().warn("Could not create XML configuration backup for "
+								+ FileSystemManager.getDisplayPath(context.getCurrentArchiveFile())
 								+ ". It is HIGHLY advisable to create a backup copy of your configuration !");
 			}
 		} else {

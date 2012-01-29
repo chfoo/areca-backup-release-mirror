@@ -621,34 +621,15 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 														.getViewerHandler()
 														.open(f);
 											} catch (Throwable e) {
-												if (ApplicationPreferences
-														.getEditionCommand() != null
-														&& ApplicationPreferences
-																.getEditionCommand()
-																.trim()
-																.length() != 0) {
-													Logger.defaultLogger()
-															.fine("No default viewer found for "
-																	+ FileSystemManager
-																			.getAbsolutePath(f)
-																	+ ". Launching text viewer.");
-													launchFileEditor(
-															FileSystemManager
-																	.getAbsolutePath(f),
-															true);
+												if (ApplicationPreferences.getEditionCommand() != null&& ApplicationPreferences.getEditionCommand().trim().length() != 0) {
+													Logger.defaultLogger().fine("No default viewer found for "+ FileSystemManager.getDisplayPath(f)+ ". Launching text viewer.");
+													launchFileEditor(FileSystemManager.getAbsolutePath(f),true);
 												} else {
 													Application.instance.showErrorDialog(
-															"An error occured while launching default viewer for "
-																	+ f.getAbsolutePath(),
-															"Error viewing "
-																	+ f.getAbsolutePath(),
+															"An error occured while launching default viewer for "+ FileSystemManager.getDisplayPath(f),
+															"Error viewing " + FileSystemManager.getDisplayPath(f),
 															false);
-													Logger.defaultLogger()
-															.error("Error viewing file "
-																	+ FileSystemManager
-																			.getAbsolutePath(f)
-																	+ " : "
-																	+ e.getMessage());
+													Logger.defaultLogger().error("Error viewing file "+ FileSystemManager.getDisplayPath(f)+ " : "+ e.getMessage());
 												}
 											}
 										}
@@ -766,11 +747,8 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			Runnable rn = new Runnable() {
 				public void run() {
 					try {
-						File configFile = ConfigurationListener.getInstance()
-								.ensureConfigurationFileAvailability(target,
-										workspace.getPathFile());
-						String path = FileSystemManager
-								.getAbsolutePath(configFile);
+						File configFile = ConfigurationListener.getInstance().ensureConfigurationFileAvailability(target,workspace.getPathFile());
+						String path = FileSystemManager.getAbsolutePath(configFile);
 						launchFileEditor(path, false);
 					} catch (Exception e) {
 						Application.getInstance().handleException(e);
@@ -1181,29 +1159,19 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 	}
 
 	public void createWorkspaceCopy(File root, boolean removeEncryptionData) {
-		String removeStr = removeEncryptionData ? " (Encryption data will be removed)"
-				: "";
-		Logger.defaultLogger().info(
-				"Creating a backup copy of current workspace ("
-						+ this.workspace.getPath() + ") in "
-						+ FileSystemManager.getAbsolutePath(root) + removeStr);
+		String removeStr = removeEncryptionData ? " (Encryption data will be removed)" : "";
+		Logger.defaultLogger().info("Creating a backup copy of current workspace (" + this.workspace.getPath() + ") in " + FileSystemManager.getDisplayPath(root) + removeStr);
 		try {
 			if (this.workspace != null) {
 				if (!FileSystemManager.exists(root)) {
 					fileTool.createDir(root);
 				}
 
-				Logger.defaultLogger().info(
-						"Creating a backup copy of \"" + workspace.getPath()
-								+ "\" : "
-								+ FileSystemManager.getAbsolutePath(root));
-				ConfigurationHandler.getInstance().serialize(workspace, root,
-						removeEncryptionData, true);
+				Logger.defaultLogger().info("Creating a backup copy of \"" + workspace.getPath() + "\" : " + FileSystemManager.getDisplayPath(root));
+				ConfigurationHandler.getInstance().serialize(workspace, root, removeEncryptionData, true);
 			}
 
-			Logger.defaultLogger().info(
-					"Backup copy of " + this.workspace.getPath()
-							+ " successfully created.");
+			Logger.defaultLogger().info("Backup copy of " + this.workspace.getPath()+ " successfully created.");
 		} catch (Throwable e) {
 			handleException(RM.getLabel("error.cpws.message"), e);
 		}
@@ -1278,10 +1246,8 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 				mf.setDate(currentFromDate);
 			}
 
-			mf.addProperty(ManifestKeys.CURRENT_ARCHIVE_PATH,
-					FileSystemManager.getAbsolutePath(archive));
-			ArchiveWindow frm = new ArchiveWindow(mf, currentFromDate,
-					target.getMedium());
+			mf.addProperty(ManifestKeys.CURRENT_ARCHIVE_PATH,FileSystemManager.getDisplayPath(archive));
+			ArchiveWindow frm = new ArchiveWindow(mf, currentFromDate,target.getMedium());
 
 			frm.setCurrentEntry(entry);
 

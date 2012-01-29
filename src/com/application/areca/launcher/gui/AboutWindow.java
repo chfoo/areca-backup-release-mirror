@@ -201,6 +201,7 @@ implements ArecaURLs {
         prps.put("areca-backup.path.length.limited", Boolean.toString(AbstractFileSystemDriver.CHECK_PATH));
         prps.put("delta.lookup.success", "" + DeltaReader.SUCCESS_COUNTER);
         prps.put("delta.lookup.failures", "" + DeltaReader.FAILURE_COUNTER);
+        prps.put("areca-backup.class.loader", ClassLoader.getSystemClassLoader().getClass().getName());
         
         FileLogProcessor proc = (FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class);
         if (proc != null) {

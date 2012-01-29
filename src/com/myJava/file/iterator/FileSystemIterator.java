@@ -259,7 +259,7 @@ public class FileSystemIterator implements Iterator, Serializable {
 			// The current source file has been completed ... handle the next source
 			File nextSource = (File)sourceFiles.get(sourceIndex++);
 			if (monitor != null) {
-				this.monitor.addNewSubTask(0.99/sourceCount, FileSystemManager.getAbsolutePath(nextSource));
+				this.monitor.addNewSubTask(0.99/sourceCount, FileSystemManager.getDisplayPath(nextSource));
 			}
 
 			this.currentFileSystemSubIterator = new FileSystemIterator(root, nextSource, followSymLinks, followSubdirectories, forceAllDirectories, sorted);
@@ -293,12 +293,12 @@ public class FileSystemIterator implements Iterator, Serializable {
 							this.fileSystemLevels.push(this.currentLevel);
 							// Progress information
 							if (monitor != null) {
-								monitor.getCurrentActiveSubTask().addNewSubTask(currentLevel.getCompletionIncrement(), FileSystemManager.getAbsolutePath(f));
+								monitor.getCurrentActiveSubTask().addNewSubTask(currentLevel.getCompletionIncrement(), FileSystemManager.getDisplayPath(f));
 							}
 
 							this.setCurrentLevel(new FileSystemLevel(f, this.currentLevel, sorted));
 							if (logProgress) {
-								Logger.defaultLogger().fine("Processing " + FileSystemManager.getAbsolutePath(f));
+								Logger.defaultLogger().fine("Processing " + FileSystemManager.getDisplayPath(f));
 							}
 							registeredAsDirectory = true;
 						}
@@ -367,8 +367,8 @@ public class FileSystemIterator implements Iterator, Serializable {
 			try {
 				return FileMetaDataAccessor.TYPE_LINK == FileSystemManager.getType(f) ? 1 : 0;
 			} catch (IOException e) {
-				Logger.defaultLogger().error("Unreadable file : " + FileSystemManager.getAbsolutePath(f), e);
-				throw new IllegalArgumentException("Unreadable file : " + FileSystemManager.getAbsolutePath(f));
+				Logger.defaultLogger().error("Unreadable file : " + FileSystemManager.getDisplayPath(f), e);
+				throw new IllegalArgumentException("Unreadable file : " + FileSystemManager.getDisplayPath(f));
 			}
 		}
 	}

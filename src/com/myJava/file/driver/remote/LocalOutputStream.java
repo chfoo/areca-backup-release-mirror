@@ -65,7 +65,7 @@ public class LocalOutputStream extends OutputStream {
         	driver.removeLocalInputFile(file);
             String remoteFile = driver.translateToRemote(file);
         	
-            Logger.defaultLogger().info("Flushing " + FileSystemManager.getAbsolutePath(localFile) + " to " + remoteFile);
+            Logger.defaultLogger().info("Flushing " + FileSystemManager.getDisplayPath(localFile) + " to " + FileSystemManager.getDisplayPath(new File(remoteFile)));
 
             String owner = driver.buildNewOwnerId("flush");
             AbstractProxy proxy = driver.getAvailableProxy(owner);

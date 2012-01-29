@@ -65,7 +65,7 @@ public class DefaultMetaDataAccessor implements FileMetaDataAccessor {
             if (str == null) {
                 errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                 String err = errorReader.readLine();
-                throw new IOException("Error during file permission reading for file [" + FileSystemManager.getAbsolutePath(f) + "] : " + err); 
+                throw new IOException("Error during file permission reading for file [" + FileSystemManager.getDisplayPath(f) + "] : " + err); 
             }
             
             // Permissions
@@ -99,7 +99,7 @@ public class DefaultMetaDataAccessor implements FileMetaDataAccessor {
             p.setLastmodified(f.lastModified());
         } catch (InterruptedException e) {
             Logger.defaultLogger().error(e);
-            throw new IOException("Unable to read attributes for file : " + FileSystemManager.getAbsolutePath(f));
+            throw new IOException("Unable to read attributes for file : " + FileSystemManager.getDisplayPath(f));
         } finally {
             str = null;
             

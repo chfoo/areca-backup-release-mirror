@@ -47,7 +47,7 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
         this.directory = new File(parameters);
         
         if (! FileSystemManager.exists(directory)) {
-            Logger.defaultLogger().warn("The filtered directory does not exist. (" + FileSystemManager.getAbsolutePath(directory) + ")");
+            Logger.defaultLogger().warn("The filtered directory does not exist. (" + FileSystemManager.getDisplayPath(directory) + ")");
         }
     }
 

@@ -53,7 +53,7 @@ public abstract class AbstractCopyPolicy implements CopyPolicy {
 	protected abstract boolean acceptImpl(File file) throws CopyPolicyException;
 	
 	protected void registerFilteredFile(File f) throws CopyPolicyException {
-		Logger.defaultLogger().fine(FileSystemManager.getAbsolutePath(f) + " has been excluded from recovery.");
+		Logger.defaultLogger().fine(FileSystemManager.getDisplayPath(f) + " has been excluded from recovery.");
 		try {
 			excludedFiles.add(FileSystemManager.getAbsolutePath(f));
 		} catch (IOException e) {

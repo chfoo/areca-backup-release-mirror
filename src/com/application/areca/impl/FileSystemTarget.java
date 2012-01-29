@@ -280,7 +280,7 @@ implements TargetActions {
         String root = this.getSourceDirectory();
         for (int i=0; i<sources.size(); i++) {
             File source = (File)iter.next();
-            Logger.defaultLogger().info("Registering source directory : " + FileSystemManager.getAbsolutePath(source));
+            Logger.defaultLogger().info("Registering source directory : " + FileSystemManager.getDisplayPath(source));
             sourceArray[i] = FileSystemManager.getAbsolutePath(source).substring(root.length());
         }
         File fRoot = null;
@@ -401,7 +401,7 @@ implements TargetActions {
         File recoveredFile = new File(dest, entry);
         File targetFile = new File(normalizeDestination(destination), FileSystemManager.getName(recoveredFile));
 
-        Logger.defaultLogger().info("Moving " + FileSystemManager.getAbsolutePath(recoveredFile) + " to " + FileSystemManager.getAbsolutePath(targetFile));
+        Logger.defaultLogger().info("Moving " + FileSystemManager.getDisplayPath(recoveredFile) + " to " + FileSystemManager.getDisplayPath(targetFile));
         FileSystemManager.renameTo(recoveredFile, targetFile);
         try {
             FileTool.getInstance().delete(dest);

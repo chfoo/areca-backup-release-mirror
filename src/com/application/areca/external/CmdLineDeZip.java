@@ -101,7 +101,7 @@ extends AbstractArecaLauncher {
         }
         
         if (! FileSystemManager.exists(archive)) {
-            System.out.println("Error ! Zip archive does not exist : " + FileSystemManager.getAbsolutePath(archive));
+            System.out.println("Error ! Zip archive does not exist : " + FileSystemManager.getDisplayPath(archive));
         } else {
             boolean multivolume = false;
             String name = FileSystemManager.getName(archive);
@@ -126,7 +126,7 @@ extends AbstractArecaLauncher {
             }
             
             if (! multivolume) {
-                System.out.println("Opening " + FileSystemManager.getAbsolutePath(archive) + " ...");
+                System.out.println("Opening " + FileSystemManager.getDisplayPath(archive) + " ...");
                 adapter = new ZipArchiveAdapter(FileSystemManager.getFileInputStream(archive));
             }
             

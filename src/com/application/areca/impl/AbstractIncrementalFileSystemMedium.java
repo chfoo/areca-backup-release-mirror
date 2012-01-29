@@ -252,7 +252,7 @@ implements TargetActions {
 					true
 			);
 
-			context.getInfoChannel().print("Checking archive (working directory : " + FileSystemManager.getAbsolutePath(destinationFile) + ") ...");
+			context.getInfoChannel().print("Checking archive (working directory : " + FileSystemManager.getDisplayPath(destinationFile) + ") ...");
 
 			// Get the trace file
 			File lastArchive = getLastArchive(null, date);
@@ -301,7 +301,7 @@ implements TargetActions {
 				if (context.getRecoveryDestination() == null) {
 					context.getInfoChannel().print("No archive to check.");
 				} else {
-					context.getInfoChannel().print("Deleting recovered files (" + FileSystemManager.getAbsolutePath(context.getRecoveryDestination()) + ") ...");
+					context.getInfoChannel().print("Deleting recovered files (" + FileSystemManager.getDisplayPath(context.getRecoveryDestination()) + ") ...");
 					if (FileSystemManager.exists(context.getRecoveryDestination())) {
 						FileTool.getInstance().delete(context.getRecoveryDestination());
 					}
@@ -321,7 +321,7 @@ implements TargetActions {
 
 	public void cleanMerge(ProcessContext context) throws IOException {
 		if (context.getCurrentArchiveFile() != null && context.getRecoveryDestination() != null && ! context.getCurrentArchiveFile().equals(context.getRecoveryDestination())) {
-			Logger.defaultLogger().info("Cleaning temporary data in " + FileSystemManager.getAbsolutePath(context.getRecoveryDestination()) + " ...");
+			Logger.defaultLogger().info("Cleaning temporary data in " + FileSystemManager.getDisplayPath(context.getRecoveryDestination()) + " ...");
 			AbstractFileSystemMedium.tool.delete(context.getRecoveryDestination());
 		}
 	}
@@ -490,7 +490,7 @@ implements TargetActions {
 				// Delete unprocessed archives
 				Logger.defaultLogger().info("Deleting unnecessary archives : " + ignoredFiles.length + " archives.");
 				for (int i=0; i<ignoredFiles.length; i++) {
-					Logger.defaultLogger().info("Deleting " + FileSystemManager.getAbsolutePath(ignoredFiles[i]) + " ...");
+					Logger.defaultLogger().info("Deleting " + FileSystemManager.getDisplayPath(ignoredFiles[i]) + " ...");
 					this.deleteArchive(ignoredFiles[i]);                       
 				}
 
@@ -498,7 +498,7 @@ implements TargetActions {
 					// Delete recovered archives
 					Logger.defaultLogger().info("Deleting recovered archives : " + recoveredFiles.length + " archives.");
 					for (int i=0; i<recoveredFiles.length; i++) {
-						Logger.defaultLogger().info("Deleting " + FileSystemManager.getAbsolutePath(recoveredFiles[i]) + " ...");
+						Logger.defaultLogger().info("Deleting " + FileSystemManager.getDisplayPath(recoveredFiles[i]) + " ...");
 						this.deleteArchive(recoveredFiles[i]);                       
 					}
 
@@ -553,10 +553,10 @@ implements TargetActions {
 			long prp = manifest.getLongProperty(ManifestKeys.ARCHIVE_SIZE, -1);
 			if (prp == -1 && (forceComputation || FileSystemManager.isFile(archive) || FileSystemManager.getAccessEfficiency(archive) > FileSystemDriver.ACCESS_EFFICIENCY_GOOD)) {
 				try {
-					Logger.defaultLogger().info("Computing size for " + FileSystemManager.getAbsolutePath(archive));
+					Logger.defaultLogger().info("Computing size for " + FileSystemManager.getDisplayPath(archive));
 					prp = FileTool.getInstance().getSize(archive);
 				} catch (FileNotFoundException e) {
-					Logger.defaultLogger().error("Error computing size for " + FileSystemManager.getAbsolutePath(archive), e);
+					Logger.defaultLogger().error("Error computing size for " + FileSystemManager.getDisplayPath(archive), e);
 				}
 				manifest.addProperty(ManifestKeys.ARCHIVE_SIZE, String.valueOf(prp));
 			}
@@ -674,27 +674,47 @@ implements TargetActions {
 			throw new ApplicationException("Incoherent configuration : image archives are not compatible with delta backup.");
 		}
 	}
-
+	
+	/*
+	public File lookupArchives(String root) {
+		String name = FileSystemManager.getName(fileSystemPolicy.getArchiveDirectory());
+		return lookupArchives(name, new File(root));
+	}
+	
+	private File lookupArchives(String name, File root) {
+		if (FileSystemManager.getName(root).equals(name)) {
+			return root;
+		} else {
+			File[] children = FileSystemManager.listFiles(root);
+			if (children == null) {
+				return null;
+			} else {
+				for (int i=0; i<children.length; i++) {
+					File found = lookupArchives(name, children[i]);
+					if (found != null) {
+						return found;
+					}
+				}
+				return null;
+			}
+		}
+	}
+	*/
+	
 	/**
 	 * Lists the medium's archives
 	 */
-	public File[] listArchives(GregorianCalendar fromDate, GregorianCalendar toDate, boolean committedOnly) throws ApplicationException {
-		AccessInformations accessInfos = getFileSystemPolicy().checkReachable();
-		if (! accessInfos.isReachable()) {
-			Logger.defaultLogger().error(accessInfos.getMessage(), accessInfos.getException());
-			throw new ApplicationException(accessInfos.getMessage(), accessInfos.getException());
-		}
-
+	public File[] listArchives(String root, GregorianCalendar fromDate, GregorianCalendar toDate, boolean committedOnly) throws ApplicationException {
 		File[] ret = null;
 		if (this.image) {
-			File f = new File(fileSystemPolicy.getArchivePath(), computeArchiveName(fromDate));
+			File f = new File(root, computeArchiveName(fromDate));
 			if (FileSystemManager.exists(f) && checkArchiveCompatibility(f, committedOnly)) {
 				ret = new File[] {f};                
 			} else {
 				ret = new File[] {};
 			}
 		} else {
-			File rootArchiveDirectory = fileSystemPolicy.getArchiveDirectory();
+			File rootArchiveDirectory = new File(root);
 			File[] elementaryArchives = FileSystemManager.listFiles(rootArchiveDirectory, new ArchiveNameFilter(fromDate, toDate, this, committedOnly));
 
 			if (elementaryArchives != null) {
@@ -707,6 +727,19 @@ implements TargetActions {
 		}
 
 		return ret;
+	}
+
+	/**
+	 * Lists the medium's archives
+	 */
+	public File[] listArchives(GregorianCalendar fromDate, GregorianCalendar toDate, boolean committedOnly) throws ApplicationException {
+		AccessInformations accessInfos = getFileSystemPolicy().checkReachable();
+		if (! accessInfos.isReachable()) {
+			Logger.defaultLogger().error(accessInfos.getMessage(), accessInfos.getException());
+			throw new ApplicationException(accessInfos.getMessage(), accessInfos.getException());
+		}
+
+		return listArchives(fileSystemPolicy.getArchivePath(), fromDate, toDate, committedOnly);
 	}
 
 	/**
@@ -742,7 +775,7 @@ implements TargetActions {
 					}
 				}
 			}
-			context.getInfoChannel().print("Recovering " + FileSystemManager.getPath(archive) + " (" + scope + ") ...");
+			context.getInfoChannel().print("Recovering " + FileSystemManager.getDisplayPath(archive) + " (" + scope + ") ...");
 		}
 	}
 
@@ -885,7 +918,7 @@ implements TargetActions {
 					}
 
 					if (lastArchive != null && FileSystemManager.exists(lastArchive)) {
-						Logger.defaultLogger().info("Using the following archive as reference : " + FileSystemManager.getAbsolutePath(lastArchive) + ".");
+						Logger.defaultLogger().info("Using the following archive as reference : " + FileSystemManager.getDisplayPath(lastArchive) + ".");
 						File trcFile = ArchiveTraceManager.resolveTraceFileForArchive(this, lastArchive);
 						File f;
 						if (image) {
@@ -1284,7 +1317,7 @@ implements TargetActions {
 					// The entry is stored if it has been modified
 					if (this.checkModified(fEntry, context)) {
 						if (DEBUG_MODE) {
-							Logger.defaultLogger().fine("[" + FileSystemManager.getAbsolutePath(fEntry.getFile()) + "] : Backup in progress ...");
+							Logger.defaultLogger().fine("[" + FileSystemManager.getDisplayPath(fEntry.getFile()) + "] : Backup in progress ...");
 						}
 
 						// Add a listener to the inputStream
@@ -1310,7 +1343,7 @@ implements TargetActions {
 						context.getReport().addSavedFile();
 					} else {
 						if (DEBUG_MODE) {
-							Logger.defaultLogger().fine("[" + FileSystemManager.getAbsolutePath(fEntry.getFile()) + "] : Unchanged.");
+							Logger.defaultLogger().fine("[" + FileSystemManager.getDisplayPath(fEntry.getFile()) + "] : Unchanged.");
 						}
 						this.registerUnstoredFile(fEntry, context);
 						context.getReport().addIgnoredFile();
@@ -1589,7 +1622,7 @@ implements TargetActions {
 			context.setRecoveryDestination(targetFile);
 			context.setTraceFile(traceFile);
 			FileTool.getInstance().createDir(targetFile);
-			Logger.defaultLogger().info("Files will be recovered in " + targetFile.getAbsolutePath());
+			Logger.defaultLogger().info("Files will be recovered in " + FileSystemManager.getDisplayPath(targetFile));
 
 			if (mode == ArchiveMedium.RECOVER_MODE_MERGE) {
 				computeMergedArchiveFile(context);
@@ -1827,20 +1860,20 @@ implements TargetActions {
 				Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, listedArchives[i]);
 				String prp = mf.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
 				if (prp.equals(AbstractTarget.BACKUP_SCHEME_FULL) && ! ignoreAllArchives) {
-					Logger.defaultLogger().info("Adding " + FileSystemManager.getAbsolutePath(listedArchives[i]) + " (" + prp + ") to recovery list.");
+					Logger.defaultLogger().info("Adding " + FileSystemManager.getDisplayPath(listedArchives[i]) + " (" + prp + ") to recovery list.");
 					result.getRecoveredArchives().add(0, listedArchives[i]);
 					ignoreAllArchives = true;
 					Logger.defaultLogger().info("Previous archives will be ignored.");
 				} else if (prp.equals(AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL)  && ! ignoreIncrementalAndDifferentialArchives && ! ignoreAllArchives) {
-					Logger.defaultLogger().info("Adding " + FileSystemManager.getAbsolutePath(listedArchives[i]) + " (" + prp + ") to recovery list.");
+					Logger.defaultLogger().info("Adding " + FileSystemManager.getDisplayPath(listedArchives[i]) + " (" + prp + ") to recovery list.");
 					result.getRecoveredArchives().add(0, listedArchives[i]);
 					ignoreIncrementalAndDifferentialArchives = true;
 					Logger.defaultLogger().info("Previous incremental and differential archives will be ignored.");                            
 				} else if (prp.equals(AbstractTarget.BACKUP_SCHEME_INCREMENTAL) && ! ignoreIncrementalAndDifferentialArchives && ! ignoreAllArchives) {
-					Logger.defaultLogger().info("Adding " + FileSystemManager.getAbsolutePath(listedArchives[i]) + " (" + prp + ") to recovery list.");
+					Logger.defaultLogger().info("Adding " + FileSystemManager.getDisplayPath(listedArchives[i]) + " (" + prp + ") to recovery list.");
 					result.getRecoveredArchives().add(0, listedArchives[i]);
 				} else {
-					Logger.defaultLogger().info("Adding " + FileSystemManager.getAbsolutePath(listedArchives[i]) + " (" + prp + ") to ignore list.");
+					Logger.defaultLogger().info("Adding " + FileSystemManager.getDisplayPath(listedArchives[i]) + " (" + prp + ") to ignore list.");
 					result.getIgnoredArchives().add(0, listedArchives[i]);
 				}
 			}
@@ -2278,7 +2311,7 @@ implements TargetActions {
 	}
 
 	private void searchWithinArchive(SearchCriteria criteria, File archive, TargetSearchResult result) throws ApplicationException, TaskCancelledException {
-		Logger.defaultLogger().info("Searching in " + FileSystemManager.getAbsolutePath(archive) + " ...");
+		Logger.defaultLogger().info("Searching in " + FileSystemManager.getDisplayPath(archive) + " ...");
 		TraceFileIterator iter = null;
 		criteria.getMonitor().checkTaskState();
 
@@ -2498,7 +2531,7 @@ implements TargetActions {
 				}
 			} catch (IOException e) {
 				Logger.defaultLogger().error(e);
-				throw new ApplicationException("Error writing merged content on " + FileSystemManager.getAbsolutePath(hashTarget), e);
+				throw new ApplicationException("Error writing merged content on " + FileSystemManager.getDisplayPath(hashTarget), e);
 			}
 		}
 	}

@@ -117,8 +117,8 @@ public class SpecialFileFilter extends AbstractArchiveFilter {
 					return logicalNot;
 				}
 			} catch (IOException e) {
-				Logger.defaultLogger().error("Error during filtering of " + FileSystemManager.getAbsolutePath(entry), e);
-				throw new IllegalArgumentException("Error during filtering of " + FileSystemManager.getAbsolutePath(entry));
+				Logger.defaultLogger().error("Error during filtering of " + FileSystemManager.getDisplayPath(entry), e);
+				throw new IllegalArgumentException("Error during filtering of " + FileSystemManager.getDisplayPath(entry));
 			}
 		}
 	}

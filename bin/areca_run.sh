@@ -94,4 +94,4 @@ fi
 
 #Launching Areca
 "${JAVA_PROGRAM_DIR}java" -version
-"${JAVA_PROGRAM_DIR}java" -Xmx256m -Xms64m -cp "${CLASSPATH}" -Duser.dir="${PROGRAM_DIR}" -Djava.library.path="${LIBRARY_PATH}" $1 "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
+"${JAVA_PROGRAM_DIR}java" -Xmx256m -Xms64m -cp "${CLASSPATH}" -Duser.dir="${PROGRAM_DIR}" -Djava.library.path="${LIBRARY_PATH}" -Djava.system.class.loader=com.application.areca.impl.tools.ArecaClassLoader $1 "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"

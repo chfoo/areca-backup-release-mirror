@@ -123,7 +123,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 			out = FileSystemManager.getFileOutputStream(targetFile, false, context.getOutputStreamListener());
 			this.handler.store(entry, in, out, context);
 		} catch (InvalidPathException e) {
-			throw new ApplicationException("Error storing file " + FileSystemManager.getAbsolutePath(entry.getFile()) + " : " + e.getMessage(), e);
+			throw new ApplicationException("Error storing file " + FileSystemManager.getDisplayPath(entry.getFile()) + " : " + e.getMessage(), e);
 		} catch (IOException e) {
 			Logger.defaultLogger().error(e);
 			throw e;
@@ -131,7 +131,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 			if (e instanceof TaskCancelledException) {
 				throw (TaskCancelledException)e;
 			} else {
-				throw new ApplicationException("Error storing file " + FileSystemManager.getAbsolutePath(entry.getFile()) + " - target=" + FileSystemManager.getAbsolutePath(targetFile), e);
+				throw new ApplicationException("Error storing file " + FileSystemManager.getDisplayPath(entry.getFile()) + " - target=" + FileSystemManager.getDisplayPath(targetFile), e);
 			}
 		} finally {
 			if (out != null) {

@@ -68,9 +68,42 @@ extends AbstractFileSystemDriver {
     protected AbstractProxy proxy;
     protected int maxProxies;
     protected ArrayList alternateProxies = new ArrayList();
+    protected String remoteRootDirectory;
     
-    protected abstract String translateToLocal(String remoteFile);
-    protected abstract String translateToRemote(File localFile);
+
+	// Converts the remote file name to a local file name    
+    protected String translateToLocal(String remoteFile) {
+        int l = getNormalizedRemoteRoot().length();
+
+        if (l < remoteFile.length()) {
+            String suffix = remoteFile.substring(l);
+            return this.getNormalizedLocalRoot() + suffix;
+        } else {
+            return this.getNormalizedLocalRoot();
+        }
+    }
+
+    // Returns the normalized remote root
+    protected String getNormalizedRemoteRoot() {
+        return remoteRootDirectory;
+    }
+    
+    protected String getRemoteRelativePath(File localFile) {
+        int l = this.getNormalizedLocalRoot().length();
+        String path = normalizeIfNeeded(localFile.getAbsolutePath()); 
+
+        if (l < path.length()) {
+            return path.substring(l);
+        } else {
+            return "";
+        }
+    }
+
+    // Converts the local file name to a remote file name
+    protected String translateToRemote(File localFile) {
+        return this.getNormalizedRemoteRoot() + getRemoteRelativePath(localFile);
+    }
+
 
     public AbstractRemoteFileSystemDriver(File localRootDirectory) {
 		super();
@@ -155,10 +188,6 @@ extends AbstractFileSystemDriver {
             return new FictiveFile(normalizeIfNeeded(file.getAbsolutePath()), this.translateToRemote(file), this);
         }
     } 
-    
-	public String getPhysicalPath(File file) {
-		return null;
-	}
     
     protected void initFictiveLocalFile(FictiveFile file) {
         String owner = this.buildNewOwnerId("initFictiveLocalFile");
@@ -430,6 +459,7 @@ extends AbstractFileSystemDriver {
         		res = true;
         	}
         } catch (RemoteConnectionException e) {
+        	Logger.defaultLogger().error("Error caught while deleting " + FileSystemManager.getDisplayPath(file), e);
             throw new UnexpectedConnectionException(e);
         } finally {
             this.releaseProxy(proxy, owner);
@@ -449,6 +479,7 @@ extends AbstractFileSystemDriver {
         try {
             res = proxy.mkdir(this.translateToRemote(file));
         } catch (RemoteConnectionException e) {
+        	Logger.defaultLogger().error("Error creating directory : " + FileSystemManager.getDisplayPath(file));
             throw new UnexpectedConnectionException(e);
         } finally {
             this.releaseProxy(proxy, owner);

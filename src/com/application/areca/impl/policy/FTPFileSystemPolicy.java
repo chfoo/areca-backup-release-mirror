@@ -59,7 +59,7 @@ implements FileSystemPolicy {
     public boolean isSecured() {
         return protocol != null && protocol.length() != 0;
     }
-    
+
     public String getDisplayableParameters(boolean fullPath) {
         StringBuffer sb = new StringBuffer();
         if (isSecured()) {

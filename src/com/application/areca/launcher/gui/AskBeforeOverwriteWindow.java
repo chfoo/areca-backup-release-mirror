@@ -69,7 +69,7 @@ extends AbstractWindow {
         lblImage.setImage(this.getShell().getDisplay().getSystemImage(SWT.ICON_QUESTION));
         
         Label lblMessage = new Label(composite, SWT.NONE);
-        lblMessage.setText(RM.getLabel("common.message.overwrite", new Object[] {FileSystemManager.getAbsolutePath(file)}));
+        lblMessage.setText(RM.getLabel("common.message.overwrite", new Object[] {FileSystemManager.getDisplayPath(file)}));
         lblMessage.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 
         new Label(composite, SWT.NONE);
@@ -87,7 +87,7 @@ extends AbstractWindow {
     }
     
     public String getTitle() {
-        return FileSystemManager.getAbsolutePath(file);
+        return FileSystemManager.getDisplayPath(file);
     }
 
     protected boolean checkBusinessRules() {

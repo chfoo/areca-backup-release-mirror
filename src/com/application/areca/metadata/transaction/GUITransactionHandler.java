@@ -61,7 +61,7 @@ public class GUITransactionHandler implements TransactionHandler {
 		}
 
 		public void run() {
-			answer = Application.getInstance().showConfirmDialog(RM.getLabel("common.transaction.message", new Object[] {FileSystemManager.getAbsolutePath(transactionPoint.getPath())}), RM.getLabel("common.transaction.title"));
+			answer = Application.getInstance().showConfirmDialog(RM.getLabel("common.transaction.message", new Object[] {FileSystemManager.getDisplayPath(transactionPoint.getPath())}), RM.getLabel("common.transaction.title"));
 		}
 	}
 }

@@ -414,6 +414,17 @@ public class FileSystemManager {
 	public static String getPhysicalPath(File file) {
 		return getInstance().getDriver(file).getPhysicalPath(file);
 	}
+	
+	public static String getDisplayPath(File file) {
+		String physical = getPhysicalPath(file);
+		String absolute = getAbsolutePath(file);
+		
+		if (! physical.equalsIgnoreCase(absolute)) {
+			return physical + " (" + absolute + ")";
+		} else {
+			return physical;
+		}
+	}
 
 	public static String getCanonicalPath(File file) throws IOException {
 		return getInstance().getDriver(file).getCanonicalPath(file);

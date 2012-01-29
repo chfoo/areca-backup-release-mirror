@@ -271,11 +271,11 @@ extends AbstractWindow {
         this.location = this.txtLocation.getText();
         this.recoverDeletedEntries = this.chkRecoverDeletedEntries == null ? false : this.chkRecoverDeletedEntries.getSelection();
         this.checkRecoveredFiles = this.chkCheckRecoveredFiles.getSelection();
-        this.appendSubdirectory = this.radRecoverInSubdirectory.isEnabled() && this.radRecoverInSubdirectory.getSelection();
-        this.alwaysOverwrite = this.radOverwrite.isEnabled() && this.radOverwrite.getSelection();
-        this.neverOverwrite = (!this.radDoNotOverwrite.isEnabled()) || this.radDoNotOverwrite.getSelection();
-        this.askBeforeOverwrite = this.radAskBeforeOverwrite.isEnabled() && this.radAskBeforeOverwrite.getSelection();
-        this.overwriteIfNewer = this.radOverwriteIfNewer.isEnabled() && this.radOverwriteIfNewer.getSelection();
+        this.appendSubdirectory = this.radRecoverInSubdirectory != null && this.radRecoverInSubdirectory.isEnabled() && this.radRecoverInSubdirectory.getSelection();
+        this.alwaysOverwrite = this.radOverwrite != null && this.radOverwrite.isEnabled() && this.radOverwrite.getSelection();
+        this.neverOverwrite = this.radDoNotOverwrite == null || (!this.radDoNotOverwrite.isEnabled()) || this.radDoNotOverwrite.getSelection();
+        this.askBeforeOverwrite = this.radAskBeforeOverwrite != null && this.radAskBeforeOverwrite.isEnabled() && this.radAskBeforeOverwrite.getSelection();
+        this.overwriteIfNewer = this.radOverwriteIfNewer != null && this.radOverwriteIfNewer.isEnabled() && this.radOverwriteIfNewer.getSelection();
         this.hasBeenUpdated = false;
         this.close();
     }

@@ -35,6 +35,7 @@ import com.myJava.util.log.ConsoleLogProcessor;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskMonitor;
+import com.myJava.util.xml.AdapterException;
 
 /**
  * Launcher
@@ -68,6 +69,7 @@ public class Launcher
 extends AbstractArecaLauncher
 implements CommandConstants {
 	private UserInformationChannel channel;
+	private static final int CURRENT_YEAR = VersionInfos.getLastVersion().getYear();
 
 	static {
 		AbstractArecaLauncher.setInstance(new Launcher());
@@ -160,7 +162,7 @@ implements CommandConstants {
 	/**
 	 * This method should be very simple, but ensuring backward compatibility makes it complicated :/
 	 */
-	private WorkspaceItem getItem(UserCommandLine command) throws InvalidCommandException {
+	private WorkspaceItem getItem(UserCommandLine command) throws InvalidCommandException, AdapterException {
 		File config = new File(command.getOption(OPTION_CONFIG));
 		String targetUID = null; // Backward compatibility
 
@@ -175,7 +177,7 @@ implements CommandConstants {
 				// - case 1 : New format configuration file and old format backup command
 				// => transcode the old configuration file name to the new format (configuration directory)
 				File newFormatConfig = new File(configPath.substring(0, configPath.length() - FileSystemTarget.CONFIG_FILE_EXT_DEPRECATED.length()));
-				channel.print(FileSystemManager.getAbsolutePath(config) + " has been migrated. Switching to " + FileSystemManager.getAbsolutePath(newFormatConfig) + ".");
+				channel.print(FileSystemManager.getDisplayPath(config) + " has been migrated. Switching to " + FileSystemManager.getDisplayPath(newFormatConfig) + ".");
 				config = newFormatConfig;
 
 			} else {
@@ -222,14 +224,14 @@ implements CommandConstants {
 		} else if (item != null){
 			return item;
 		} else {
-			throw new InvalidCommandException("Target or target group not found : " + FileSystemManager.getAbsolutePath(config));
+			throw new InvalidCommandException("Target or target group not found : " + FileSystemManager.getDisplayPath(config));
 		}
 	}
 
 	private void printHelp() {
 		channel.print(SEPARATOR);
 		channel.print(VersionInfos.APP_NAME);
-		channel.print("Copyright 2005-2011, Olivier PETRUCCI");
+		channel.print("Copyright 2005-" + CURRENT_YEAR + ", Olivier PETRUCCI");
 		channel.print("List of valid arguments :");
 		channel.print("");
 		channel.print("Describe targets :");

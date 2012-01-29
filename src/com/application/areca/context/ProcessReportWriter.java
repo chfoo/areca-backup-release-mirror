@@ -139,7 +139,10 @@ public class ProcessReportWriter {
 		}
 
 		writeSeparator();
-		write("See log file for more details : " + ((FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class)).getCurrentLogFile());
+		FileLogProcessor fileProc = (FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class);
+		if (fileProc != null) {
+			write("See log file for more details : " + fileProc.getCurrentLogFile());
+		}
 	}
 
 	private void write(String line) throws IOException {

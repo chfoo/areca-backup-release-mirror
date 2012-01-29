@@ -44,7 +44,7 @@ public class Launcher extends AbstractArecaLauncher {
 		AbstractArecaLauncher.setInstance(new Launcher());
 	}
 
-	public static void main(String[] args) {       
+	public static void main(String[] args) {   
     	getInstance().launch(args);
     	getInstance().exit();
     }
