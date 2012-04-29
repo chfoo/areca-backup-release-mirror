@@ -38,16 +38,17 @@ This file is part of Areca.
 public class FTPClient extends org.apache.commons.net.ftp.FTPClient {
 
 	private boolean ignorePasvErrors = false;
-	
+
 	public FTPClient(boolean ignorePasvErrors) {
 		super();
 		this.ignorePasvErrors = ignorePasvErrors;
 	}
 
 	public int pasv() throws IOException {
-		int ret = super.pasv();
+		int passiveReturnCode = super.pasv();
 
-		if (ret == FTPReply.ENTERING_PASSIVE_MODE) {
+		if (passiveReturnCode == FTPReply.ENTERING_PASSIVE_MODE) {
+
 			// Parse and display reply host and port in passive mode
 			// It's quite ugly but there is no entry point in apache's ftp library to perform this check.
 			String reply = getReplyStrings()[0];
@@ -87,8 +88,8 @@ public class FTPClient extends org.apache.commons.net.ftp.FTPClient {
 			index |= lastIndex;
 
 			String passvHost = host.toString();
-			int passvPort = index;
 
+			//int passvPort = index;
 			//Logger.defaultLogger().info("Passive host received from server : " + passvHost + ":" + passvPort);
 
 			InetAddress refAddress = InetAddress.getByName(passvHost);
@@ -101,6 +102,6 @@ public class FTPClient extends org.apache.commons.net.ftp.FTPClient {
 			}
 		}
 
-		return ret;
+		return passiveReturnCode;
 	}
 }

@@ -35,6 +35,7 @@ public interface ManifestKeys {
     public static final String FILTERED_ENTRIES = "Filtered entries";
     public static final String BACKUP_DURATION = "Backup duration";
     public static final String TARGET_ID = "Target ID";
+    public static final String CHECKED = "Checked";
     public static final String MERGE_START = "Merge start date";
     public static final String MERGE_END = "Merge end date";
     public static final String MERGED_ARCHIVES = "Merged archives";

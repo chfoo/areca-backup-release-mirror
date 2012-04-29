@@ -10,7 +10,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
@@ -54,6 +53,7 @@ extends AbstractWindow {
 	private static final String TITLE = RM.getLabel("sourceedition.dialog.title");
 
 	private Text location;
+	private Button chkDoNotCheckFile;
 
 	protected File source;  
 	protected FileSystemTarget currentTarget;
@@ -103,7 +103,11 @@ extends AbstractWindow {
 			}
 		});
 
-		new Label(grpLocation, SWT.NONE);
+		chkDoNotCheckFile = new Button(grpLocation, SWT.CHECK);
+		chkDoNotCheckFile.setText(RM.getLabel("targetedition.donotcheck.label"));
+		chkDoNotCheckFile.setToolTipText(RM.getLabel("targetedition.donotcheck.tt"));
+		chkDoNotCheckFile.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+		monitorControl(chkDoNotCheckFile);
 
 		Button btnBrowsef = new Button(grpLocation, SWT.PUSH);
 		btnBrowsef.setText(RM.getLabel("common.browsefileaction.label"));
@@ -142,7 +146,7 @@ extends AbstractWindow {
 			this.setInError(location, RM.getLabel("error.field.mandatory"));
 			return false;
 		} else {
-			if (! FileSystemManager.exists(new File(location.getText()))) {
+			if ((! chkDoNotCheckFile.getSelection()) && (! FileSystemManager.exists(new File(location.getText())))) {
 				this.setInError(location, RM.getLabel("error.file.does.not.exist"));
 				return false;
 			}

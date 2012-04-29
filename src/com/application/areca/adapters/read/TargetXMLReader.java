@@ -41,12 +41,14 @@ import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.plugins.FileSystemPolicyXMLHandler;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
+import com.application.areca.processor.AbstractMailSendProcessor;
 import com.application.areca.processor.AbstractProcessor;
 import com.application.areca.processor.DeleteProcessor;
 import com.application.areca.processor.FileDumpProcessor;
-import com.application.areca.processor.MailSendProcessor;
 import com.application.areca.processor.MergeProcessor;
 import com.application.areca.processor.Processor;
+import com.application.areca.processor.SendMailProcessor;
+import com.application.areca.processor.SendReportByMailProcessor;
 import com.application.areca.processor.ShellScriptProcessor;
 import com.application.areca.version.VersionInfos;
 import com.myJava.configuration.FrameworkConfiguration;
@@ -254,8 +256,10 @@ public class TargetXMLReader implements XMLTags {
 					}
 				} else if (child.equalsIgnoreCase(XML_PROCESSOR_DUMP)) {
 					addProcessor(children.item(i), this.readDumpProcessor(children.item(i)), target);                
+				} else if (child.equalsIgnoreCase(XML_PROCESSOR_EMAIL_REPORT)) {
+					addProcessor(children.item(i), this.readEmailProcessor(children.item(i), true), target);    
 				} else if (child.equalsIgnoreCase(XML_PROCESSOR_EMAIL)) {
-					addProcessor(children.item(i), this.readEmailProcessor(children.item(i)), target);                
+					addProcessor(children.item(i), this.readEmailProcessor(children.item(i), false), target); 
 				} else if (child.equalsIgnoreCase(XML_PROCESSOR_SHELL)) {
 					addProcessor(children.item(i), this.readShellProcessor(children.item(i)), target);                
 				} else if (child.equalsIgnoreCase(XML_PROCESSOR_MERGE)) {
@@ -441,8 +445,8 @@ public class TargetXMLReader implements XMLTags {
 		return pp;
 	}
 
-	protected Processor readEmailProcessor(Node node) throws AdapterException {
-		MailSendProcessor pp = new MailSendProcessor();
+	protected Processor readEmailProcessor(Node node, boolean appendReport) throws AdapterException {
+		AbstractMailSendProcessor pp = appendReport ? (AbstractMailSendProcessor)new SendReportByMailProcessor() : (AbstractMailSendProcessor)new SendMailProcessor();
 
 		Node recipientsNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_RECIPIENTS);
 		if (recipientsNode == null) {
@@ -476,7 +480,7 @@ public class TargetXMLReader implements XMLTags {
 
 		Node introNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_INTRO);
 		if (introNode != null) {
-			pp.setIntro(introNode.getNodeValue());
+			pp.setMessage(introNode.getNodeValue());
 		}
 
 		Node fromNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_FROM);
@@ -485,8 +489,8 @@ public class TargetXMLReader implements XMLTags {
 		}
 		
 		Node statsNode = node.getAttributes().getNamedItem(XML_PP_ADD_STATS);
-		if (statsNode != null) {
-			pp.setAppendStatistics(Boolean.valueOf(statsNode.getNodeValue()).booleanValue());
+		if (statsNode != null && appendReport) {
+			((SendReportByMailProcessor)pp).setAppendStatistics(Boolean.valueOf(statsNode.getNodeValue()).booleanValue());
 		}
 
 		pp.setRecipients(recipientsNode.getNodeValue());

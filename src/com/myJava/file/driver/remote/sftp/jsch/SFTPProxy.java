@@ -242,7 +242,7 @@ public class SFTPProxy extends AbstractProxy {
 			try {
 				if ((System.currentTimeMillis() - lastOpTime) >= TIME_BETWEEN_OPS) {
 					debug("checkConnection : getAttributes");
-					client.lstat(testFile);
+					client.lstat(encodeRemoteFile(testFile));
 					this.updateOpTime();
 					shallReconnect = false;
 					debug("checkConnection : connection successfully checked");
@@ -268,7 +268,7 @@ public class SFTPProxy extends AbstractProxy {
 	}
 
 	private void changeWorkingDirectory(String dir) throws SftpException {
-		this.client.cd(dir);
+		this.client.cd(encodeRemoteFile(dir));
 	}
 
 	private String resolveRemotePath(String path) {
@@ -282,7 +282,7 @@ public class SFTPProxy extends AbstractProxy {
 		try {
 			this.updateOpTime();
 			debug("deleteFile : ", remoteFile);
-			client.rm(resolveRemotePath(remoteFile));
+			client.rm(encodeRemoteFile(resolveRemotePath(remoteFile)));
 			return true;
 		} catch (SftpException e) {
 			resetClient(e);
@@ -302,7 +302,7 @@ public class SFTPProxy extends AbstractProxy {
 		try {
 			this.updateOpTime();
 			debug("deleteDir : ", remoteDir);
-			client.rmdir(resolveRemotePath(remoteDir));
+			client.rmdir(encodeRemoteFile(resolveRemotePath(remoteDir)));
 			return true;
 		} catch (SftpException e) {
 			resetClient(e);
@@ -325,7 +325,7 @@ public class SFTPProxy extends AbstractProxy {
 			this.changeWorkingDirectory(AbstractRemoteFileSystemDriver.normalizeIfNeeded(f.getParent()));
 			this.updateOpTime();
 			debug("mkdir : mkdir", remoteFile);
-			client.mkdir(f.getName());
+			client.mkdir(encodeRemoteFile(f.getName()));
 			FictiveFile existing = this.fileInfoCache.getCachedFileInfos(remoteFile);
 			if (existing != null) {
 				existing.init(0, true, true, 0);
@@ -348,7 +348,7 @@ public class SFTPProxy extends AbstractProxy {
 
 		try {
 			debug("renameTo : rename", source + "->" + destination);
-			client.rename(source, destination);
+			client.rename(encodeRemoteFile(source), encodeRemoteFile(destination));
 			this.updateOpTime();
 			return true;
 		} catch (SftpException e) {
@@ -374,7 +374,7 @@ public class SFTPProxy extends AbstractProxy {
 		this.checkConnection();
 		try {
 			debug("getFileInputStream : retrieveFileStream", file);
-			InputStream result = this.client.get(file);
+			InputStream result = this.client.get(encodeRemoteFile(file));
 
 			this.updateOpTime();
 			return new RemoteFileInputStream(this, result, ownerId);
@@ -394,7 +394,7 @@ public class SFTPProxy extends AbstractProxy {
 		OutputStream result = null;
 		try {
 			debug("getFileOutputStream : put", file);
-			result = client.put(file, ChannelSftp.OVERWRITE);
+			result = client.put(encodeRemoteFile(file), ChannelSftp.OVERWRITE);
 
 			this.updateOpTime();
 			return new RemoteFileOutputStream(this, result, ownerId, file);
@@ -412,7 +412,7 @@ public class SFTPProxy extends AbstractProxy {
 
 		try {
 			debug("listFiles : getAttrs", parentFile);
-			client.lstat(parentFile);
+			client.lstat(encodeRemoteFile(parentFile));
 		} catch (SftpException e) {
 			return new FictiveFile[0];
 		}
@@ -420,7 +420,7 @@ public class SFTPProxy extends AbstractProxy {
 		try {
 			// File lookup on server
 			debug("listFiles : listFiles", parentFile);
-			Iterator iter = client.ls(parentFile).iterator();
+			Iterator iter = client.ls(encodeRemoteFile(parentFile)).iterator();
 			this.updateOpTime();
 			ArrayList returned = new ArrayList();
 			while(iter.hasNext()) {
@@ -450,6 +450,10 @@ public class SFTPProxy extends AbstractProxy {
 	 * Filters the "." and ".." directories 
 	 */
 	private boolean acceptListedFile(LsEntry file) {
+		if (file == null || file.getFilename() == null) {
+			return false;
+		}
+		
 		String name = file.getFilename().trim().toLowerCase();
 		return (
 				! (
@@ -480,7 +484,7 @@ public class SFTPProxy extends AbstractProxy {
 		try {    
 			debug("getRemoteFileInfos : getAttributes", remoteFile);
 			try {
-				SftpATTRS attributes = this.client.lstat(remoteFile);
+				SftpATTRS attributes = this.client.lstat(encodeRemoteFile(remoteFile));
 				this.updateOpTime();
 				
 				// File lookup on server
@@ -565,5 +569,9 @@ public class SFTPProxy extends AbstractProxy {
 		ToStringHelper.append("Host", remoteServer, sb);
 		ToStringHelper.append("Port", remotePort, sb);
 		return ToStringHelper.close(sb);
+	}
+	
+	private String encodeRemoteFile(String path) {
+		return path;
 	}
 }

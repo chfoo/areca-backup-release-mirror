@@ -31,10 +31,14 @@ This file is part of Areca.
 
  */
 public interface FileSystemIteratorFilter {
+	public static short WILL_MATCH_TRUE = 2;
+	public static short WILL_MATCH_PERHAPS = 1;
+	public static short WILL_MATCH_FALSE = 0;
+	
 	/**
 	 * Tell whether the iterator will iterate into the directory provides as argument 
 	 */
-	public boolean acceptIteration(File directory);
+	public short acceptIteration(File directory);
 	
 	/**
 	 * Tell whether the iterator will return the element to the caller

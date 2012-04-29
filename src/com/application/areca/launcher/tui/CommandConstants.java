@@ -33,6 +33,7 @@ public interface CommandConstants {
     public static UserCommand COMMAND_RECOVER = new UserCommand("recover");
     public static UserCommand COMMAND_MERGE = new UserCommand("merge");
     public static UserCommand COMMAND_DESCRIBE = new UserCommand("describe");
+    public static UserCommand COMMAND_INFOS = new UserCommand("infos");
     public static UserCommand COMMAND_DELETE = new UserCommand("delete");  
     public static UserCommand COMMAND_CHECK = new UserCommand("check");    
     

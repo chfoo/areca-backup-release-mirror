@@ -108,6 +108,29 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 	public boolean retrySupported() {
 		return this.fileSystemPolicy.retrySupported();
 	}
+	
+	/*
+	private static void cloneDirs(File target, File source) throws IOException {
+		if (target == null || FileSystemManager.exists(target)) {
+			return;
+		} else {
+			File parentTarget = FileSystemManager.getParentFile(target);
+			File parentSource = FileSystemManager.getParentFile(source);
+			cloneDirs(parentTarget, parentSource);
+
+			FileSystemManager.mkdir(target);
+			long lm = source.lastModified();
+			target.setLastModified(lm);
+			long lm2 = target.lastModified();
+			
+			if (lm != lm2) {
+				System.out.println(target);
+			} else {
+				System.out.println("ok " + target);
+			}
+		}
+	}
+	*/
 
 	protected void storeFileInArchive(FileSystemRecoveryEntry entry, InputStream in, ProcessContext context) 
 	throws IOException, ApplicationException, TaskCancelledException {
@@ -116,9 +139,7 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 		File targetDirectory = FileSystemManager.getParentFile(targetFile);
 		OutputStream out = null;
 		try {
-			if (! FileSystemManager.exists(targetDirectory)) {
-				FileTool.getInstance().createDir(targetDirectory);
-			}
+			FileTool.getInstance().createDir(targetDirectory);
 
 			out = FileSystemManager.getFileOutputStream(targetFile, false, context.getOutputStreamListener());
 			this.handler.store(entry, in, out, context);

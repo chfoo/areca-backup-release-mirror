@@ -80,12 +80,16 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
 		setRegex(parameters);
     }
     
-    public boolean acceptIteration(File entry) {
+    public short acceptIteration(File entry) {
     	if (scheme.equals(SCHEME_PARENTDIR)) {
     		// Check that the directory itself is accepted by the filter
-    		return acceptStorage(entry.getAbsolutePath());
+			if (acceptElement(entry)) {
+				return WILL_MATCH_TRUE;
+			} else {
+				return WILL_MATCH_FALSE;
+			}
     	} else {
-    		return true;
+    		return WILL_MATCH_PERHAPS;
     	}
     }
 
@@ -97,7 +101,7 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
 		this.match = match;
 	}
 
-	public boolean acceptStorage(File entry) {
+	public boolean acceptElement(File entry) {
         if (entry == null) {
             return false;
         } else {

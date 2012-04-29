@@ -43,7 +43,6 @@ public class CHelper {
 		String b = " " + "Ba";
 		b = "vus" + b + "ck";
 		A = !ResourceManager.instance().checkKeyword("No" + b + "up");
-		A = false;
 	}
 
 	public static void handle(final ProcessContext e) {

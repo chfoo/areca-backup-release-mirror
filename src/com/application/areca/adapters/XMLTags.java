@@ -129,7 +129,8 @@ public interface XMLTags {
     public static final String XML_MEDIUM_FTP_REMOTEDIR= "ftp_remotedir";
     
     public static final String XML_PROCESSOR_SHELL = "shell_processor";
-    public static final String XML_PROCESSOR_EMAIL = "email_processor";
+    public static final String XML_PROCESSOR_EMAIL_REPORT = "email_processor";
+    public static final String XML_PROCESSOR_EMAIL = "email_pre_processor";
     public static final String XML_PROCESSOR_DUMP = "dump_processor";
     public static final String XML_PROCESSOR_MERGE = "merge_processor";
     public static final String XML_PROCESSOR_DELETE = "delete_processor";

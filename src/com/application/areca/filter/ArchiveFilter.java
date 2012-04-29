@@ -1,8 +1,8 @@
 package com.application.areca.filter;
 
-import java.io.File;
 import java.io.Serializable;
 
+import com.myJava.file.iterator.FileSystemIteratorFilter;
 import com.myJava.object.Duplicable;
 
 /**
@@ -34,12 +34,7 @@ This file is part of Areca.
 
  */
 public interface ArchiveFilter 
-extends Duplicable, Serializable {
-	
-    public boolean acceptIteration(File f);
-    
-    public boolean acceptStorage(File f);
-    
+extends Duplicable, Serializable, FileSystemIteratorFilter {
     public boolean isLogicalNot();
     
     public void setLogicalNot(boolean logicalNot);

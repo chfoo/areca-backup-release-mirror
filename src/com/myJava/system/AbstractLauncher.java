@@ -44,7 +44,7 @@ public abstract class AbstractLauncher {
         try {
             initialize();
             checkJavaVersion();
-            launchImpl(args);   
+            launchImpl(preprocessArguments(args));   
         } catch (Throwable e) {
             e.printStackTrace();
             Logger.defaultLogger().error("Unexpected error", e);
@@ -52,6 +52,10 @@ public abstract class AbstractLauncher {
         } finally {
         	exit();
         }
+    }
+    
+    protected String[] preprocessArguments(String[] args) {
+    	return args;
     }
     
     public void exit() {

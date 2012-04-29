@@ -23,12 +23,14 @@ import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
 import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.StoragePluginRegistry;
+import com.application.areca.processor.AbstractMailSendProcessor;
 import com.application.areca.processor.DeleteProcessor;
 import com.application.areca.processor.FileDumpProcessor;
-import com.application.areca.processor.MailSendProcessor;
 import com.application.areca.processor.MergeProcessor;
 import com.application.areca.processor.Processor;
 import com.application.areca.processor.ProcessorList;
+import com.application.areca.processor.SendMailProcessor;
+import com.application.areca.processor.SendReportByMailProcessor;
 import com.application.areca.processor.ShellScriptProcessor;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.xml.XMLTool;
@@ -147,8 +149,10 @@ public class TargetXMLWriter extends AbstractXMLWriter {
             Object pp = iter.next();
             if (FileDumpProcessor.class.isAssignableFrom(pp.getClass())) {
                 serializeProcessor((FileDumpProcessor)pp, preProcesses);
-            } else if (MailSendProcessor.class.isAssignableFrom(pp.getClass())) {
-                serializeProcessor((MailSendProcessor)pp, preProcesses);            
+            } else if (SendReportByMailProcessor.class.isAssignableFrom(pp.getClass())) {
+                serializeProcessor((SendReportByMailProcessor)pp, preProcesses);  
+            } else if (SendMailProcessor.class.isAssignableFrom(pp.getClass())) {
+                serializeProcessor((SendMailProcessor)pp, preProcesses);     
             } else if (ShellScriptProcessor.class.isAssignableFrom(pp.getClass())) {
                 serializeProcessor((ShellScriptProcessor)pp, preProcesses); 
             } else if (MergeProcessor.class.isAssignableFrom(pp.getClass())) {
@@ -198,8 +202,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("/>");        
     }
     
-    protected void serializeProcessor(MailSendProcessor pp, boolean postProcess) {
-        serializeProcessorHeader(XML_PROCESSOR_EMAIL, postProcess, pp);
+    private void serializeMailData(AbstractMailSendProcessor pp) {
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_RECIPIENTS, pp.getRecipients()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_SMTP, pp.getSmtpServer()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_USER, pp.getUser()));
@@ -207,8 +210,19 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_SMTPS, pp.isSmtps()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_TITLE, pp.getTitle()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_FROM, pp.getFrom()));
-        sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_INTRO, pp.getIntro())); 
+        sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_INTRO, pp.getMessage()));
+    }
+    
+    protected void serializeProcessor(SendReportByMailProcessor pp, boolean postProcess) {
+        serializeProcessorHeader(XML_PROCESSOR_EMAIL_REPORT, postProcess, pp);
+        serializeMailData(pp);
         sb.append(XMLTool.encodeProperty(XML_PP_ADD_STATS, pp.isAppendStatistics()));
+        sb.append("/>");        
+    }
+    
+    protected void serializeProcessor(SendMailProcessor pp, boolean postProcess) {
+        serializeProcessorHeader(XML_PROCESSOR_EMAIL_REPORT, postProcess, pp);
+        serializeMailData(pp);
         sb.append("/>");        
     }
     

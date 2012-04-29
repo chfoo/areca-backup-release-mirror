@@ -352,7 +352,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		} else if (command.equals(CMD_DELETE_ARCHIVES)) {
 			// DELETE ARCHIVES
 			int result = showConfirmDialog(RM.getLabel(
-					"app.deletearchivesaction.confirm.message",
+					"app.deletearchivesaction.confirmverbose.message",
 					new Object[] { Utils
 							.formatDisplayDate(this.currentFromDate) }),
 					RM.getLabel("app.deletearchivesaction.confirm.title"));

@@ -53,7 +53,7 @@ This file is part of Areca.
 
 public class FileTool {
 	private static final int BUFFER_SIZE = FrameworkConfiguration.getInstance().getFileToolBufferSize();
-	private static final String HASH_ALGORITHM = FrameworkConfiguration.getInstance().getFileHashAlgorithm();
+	public static final String HASH_ALGORITHM = FrameworkConfiguration.getInstance().getFileHashAlgorithm();
 
 	private static FileTool instance = new FileTool();
 

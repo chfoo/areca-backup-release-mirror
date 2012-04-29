@@ -102,11 +102,11 @@ public class SpecialFileFilter extends AbstractArchiveFilter {
 		throw new UnsupportedOperationException("Parameters are not supported by this implementation.");
 	}
 
-	public boolean acceptIteration(File entry) {
-		return acceptStorage(entry);
-	}
+    public short acceptIteration(File entry) {
+        return WILL_MATCH_PERHAPS;
+    }
 
-	public boolean acceptStorage(File entry) {   
+	public boolean acceptElement(File entry) {   
 		if (entry == null) {
 			return false;
 		} else {

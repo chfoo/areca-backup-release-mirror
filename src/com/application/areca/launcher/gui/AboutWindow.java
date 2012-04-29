@@ -73,7 +73,7 @@ implements ArecaURLs {
     private static final int heightHint = computeHeight(250);
     
     private static final ResourceManager RM = ResourceManager.instance();
-    private static final String CREDITS_TXT_WIN = RM.getLabel("about.creditswin.label", new Object[] {VersionInfos.APP_NAME});
+    private static final String CREDITS_TXT_WIN = RM.getLabel("about.creditswin2.label", new Object[] {VersionInfos.APP_NAME});
 
     protected Control createContents(Composite parent) {
         application.enableWaitCursor();
@@ -202,6 +202,7 @@ implements ArecaURLs {
         prps.put("delta.lookup.success", "" + DeltaReader.SUCCESS_COUNTER);
         prps.put("delta.lookup.failures", "" + DeltaReader.FAILURE_COUNTER);
         prps.put("areca-backup.class.loader", ClassLoader.getSystemClassLoader().getClass().getName());
+        prps.put("system.available.processors", "" + Runtime.getRuntime().availableProcessors());
         
         FileLogProcessor proc = (FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class);
         if (proc != null) {

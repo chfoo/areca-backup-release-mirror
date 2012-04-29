@@ -55,7 +55,7 @@ extends AbstractWindow {
     private Button chkDeleteContent;
     private boolean ok = false;
     private AbstractTarget target;
-    private TargetGroup process;
+    private TargetGroup group;
     
     public DeleteWindow(AbstractTarget target) {
         super();
@@ -64,7 +64,7 @@ extends AbstractWindow {
     
     public DeleteWindow(TargetGroup process) {
         super();
-        this.process = process;
+        this.group = process;
     }
 
     protected Control createContents(Composite parent) {
@@ -80,7 +80,7 @@ extends AbstractWindow {
         if (target != null) {
             lblAdvise.setText(RM.getLabel("app.deletetargetaction.confirm.message", new Object[] {target.getName()}));
         } else {
-            lblAdvise.setText(RM.getLabel("app.deletegroupaction.confirm.message", new Object[] {process.getName()}));
+            lblAdvise.setText(RM.getLabel("app.deletegroupactionverbose.confirm.message", new Object[] {group.getName(), group.getLoadedFrom().getSource()}));
         }
         GridData mainData1 = new GridData();
         mainData1.grabExcessHorizontalSpace = true;

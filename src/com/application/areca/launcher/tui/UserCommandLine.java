@@ -84,6 +84,7 @@ public class UserCommandLine implements CommandConstants {
         Launcher.COMMAND_DELETE.addOptionalArgument(Launcher.OPTION_DELAY);
         
         ACCEPTED_COMMANDS = new HashMap();
+        ACCEPTED_COMMANDS.put(Launcher.COMMAND_INFOS.getName(), Launcher.COMMAND_INFOS);
         ACCEPTED_COMMANDS.put(Launcher.COMMAND_BACKUP.getName(), Launcher.COMMAND_BACKUP);
         ACCEPTED_COMMANDS.put(Launcher.COMMAND_MERGE.getName(), Launcher.COMMAND_MERGE);
         ACCEPTED_COMMANDS.put(Launcher.COMMAND_RECOVER.getName(), Launcher.COMMAND_RECOVER);

@@ -216,7 +216,7 @@ public class FTPProxy extends AbstractProxy {
 
 	private boolean changeWorkingDirectory(String inst, String dir) throws IOException {
 		if ((!CACHE_ENABLED) || dir == null || (! (dir.equals(workingDirectory)))) {           
-			boolean res = client.changeWorkingDirectory(dir);
+			boolean res = client.changeWorkingDirectory(encodeRemoteFile(dir));
 			if (res) {
 				this.workingDirectory = dir;
 				debug(inst + " : changeWorkingDirectory - OK", dir);
@@ -291,7 +291,7 @@ public class FTPProxy extends AbstractProxy {
 					if (this.passivMode) {
 						Logger.defaultLogger().info("Switching to passive mode ...");
 
-						// PASSIV MODE REQUESTED
+						// PASSIVE MODE REQUESTED
 						debug("connect : pasv");
 						client.enterLocalPassiveMode();
 
@@ -299,7 +299,7 @@ public class FTPProxy extends AbstractProxy {
 						if( ! FTPReply.isPositiveCompletion(reply)) {
 							String msg = formatFTPReplyString(client.getReplyString());
 							this.disconnect();
-							throw new FTPConnectionException("Unable to switch to passiv mode. Received response : " + msg);
+							throw new FTPConnectionException("Unable to switch to passive mode. Received response : " + msg);
 						} else {
 							this.updateOpTime();
 						}
@@ -399,7 +399,7 @@ public class FTPProxy extends AbstractProxy {
 		try {
 			this.updateOpTime();
 			debug("deleteFile : ", remoteFile);
-			return client.deleteFile(remoteFile);
+			return client.deleteFile(encodeRemoteFile(remoteFile));
 		} catch (IOException e) {
 			resetClient(e);
 			resetContextData();
@@ -419,7 +419,7 @@ public class FTPProxy extends AbstractProxy {
 			this.updateOpTime();
 			debug("deleteDir : ", remoteDir);
 			resetContextData();
-			return FTPReply.isPositiveCompletion(client.rmd(remoteDir));
+			return FTPReply.isPositiveCompletion(client.rmd(encodeRemoteFile(remoteDir)));
 		} catch (IOException e) {
 			resetClient(e);
 			resetContextData();
@@ -441,7 +441,7 @@ public class FTPProxy extends AbstractProxy {
 			this.changeWorkingDirectory("mkdir", AbstractRemoteFileSystemDriver.normalizeIfNeeded(f.getParent()));
 			this.updateOpTime();
 			debug("mkdir : mkdir", remoteFile);
-			boolean result = client.makeDirectory(f.getName());
+			boolean result = client.makeDirectory(encodeRemoteFile(f.getName()));
 			FictiveFile existing = this.fileInfoCache.getCachedFileInfos(remoteFile);
 			if (result) {
 				if (existing != null) {
@@ -479,7 +479,7 @@ public class FTPProxy extends AbstractProxy {
 
 		try {
 			debug("renameTo : rename", source + "->" + destination);
-			boolean result = client.rename(source, destination);
+			boolean result = client.rename(encodeRemoteFile(source), encodeRemoteFile(destination));
 			this.updateOpTime();
 			return result;
 		} catch (IOException e) {
@@ -505,7 +505,7 @@ public class FTPProxy extends AbstractProxy {
 		this.checkConnection();
 		try {
 			debug("getFileInputStream : retrieveFileStream", file);
-			InputStream result = client.retrieveFileStream(file);
+			InputStream result = client.retrieveFileStream(encodeRemoteFile(file));
 
 			if (result == null) {
 				Logger.defaultLogger().error("Error trying to get an inputstream on " + file + " : got FTP return message : " + client.getReplyString(), "FTPProxy.getFileInputStream()");
@@ -530,10 +530,10 @@ public class FTPProxy extends AbstractProxy {
 		try {
 			if (append) {
 				debug("getFileOutputStream : appendFileStream", file);
-				result = client.appendFileStream(file);
+				result = client.appendFileStream(encodeRemoteFile(file));
 			} else {
 				debug("getFileOutputStream : storeFileStream", file);
-				result = client.storeFileStream(file);                
+				result = client.storeFileStream(encodeRemoteFile(file));                
 			}
 
 			if (result == null) {
@@ -587,6 +587,10 @@ public class FTPProxy extends AbstractProxy {
 	 * Filters the "." and ".." directories 
 	 */
 	private boolean acceptListedFile(FTPFile file) {
+		if (file == null || file.getName() == null) {
+			return false;
+		}
+		
 		String name = file.getName().trim().toLowerCase();
 		return (
 				! (
@@ -620,7 +624,8 @@ public class FTPProxy extends AbstractProxy {
 			
 			// File lookup on server
 			debug("getRemoteFileInfos : listFiles", remoteFile);
-			FTPFile[] files = client.listFiles(remoteFile);
+			String rmtfile = encodeRemoteFile(remoteFile);
+			FTPFile[] files = client.listFiles(rmtfile);
 
 			this.updateOpTime();
 			if (files.length == 1 && getFileName(files[0].getName()).equals(shortName)) {
@@ -696,5 +701,10 @@ public class FTPProxy extends AbstractProxy {
 
 	private static String formatFTPReplyString(String source) {
 		return source.replace('\n', ' ').replace('\r', ' ');
+	}
+	
+	private String encodeRemoteFile(String path) {
+		return path;
+		//return "\"" + path + "\"";
 	}
 }

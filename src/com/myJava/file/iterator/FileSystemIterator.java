@@ -223,11 +223,13 @@ public class FileSystemIterator implements Iterator, Serializable {
 	}
 
 	private boolean acceptIteration(File directory) {
-		boolean result = filter == null ? true : filter.acceptIteration(directory);
-		if (! result) {
+		short result = filter == null ? FileSystemIteratorFilter.WILL_MATCH_TRUE : filter.acceptIteration(directory);
+		if (result == FileSystemIteratorFilter.WILL_MATCH_FALSE) {
 			this.filtered++;
+			return false;
+		} else {
+			return true;
 		}
-		return result;
 	}
 
 	private boolean acceptElement(File directory) {

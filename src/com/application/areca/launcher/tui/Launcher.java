@@ -116,15 +116,19 @@ implements CommandConstants {
 				}
 				Logger.defaultLogger().addProcessor(proc);
 			}
+			
+			WorkspaceItem item = null;
+			
+			if (! command.getCommand().equalsIgnoreCase(COMMAND_INFOS.getName())) {
+				item = getItem(command);
 
-			WorkspaceItem item = getItem(command);
+				Logger.defaultLogger().info("Configuration path : " + command.getOption(OPTION_CONFIG));
+				channel.print("Configuration path : " + command.getOption(OPTION_CONFIG) );
 
-			Logger.defaultLogger().info("Configuration path : " + command.getOption(OPTION_CONFIG));
-			channel.print("Configuration path : " + command.getOption(OPTION_CONFIG) );
-
-			if (item instanceof AbstractTarget) {
-				Logger.defaultLogger().info("Target : " + item.getName());
-				channel.print("Target : " + item.getName());
+				if (item instanceof AbstractTarget) {
+					Logger.defaultLogger().info("Target : " + item.getName());
+					channel.print("Target : " + item.getName());
+				}
 			}
 
 			if (command.getCommand().equalsIgnoreCase(COMMAND_MERGE.getName())) {
@@ -135,6 +139,8 @@ implements CommandConstants {
 				processBackup(command, item);
 			} else if (command.getCommand().equalsIgnoreCase(COMMAND_DESCRIBE.getName())) {
 				processDescribe(command, item);
+			} else if (command.getCommand().equalsIgnoreCase(COMMAND_INFOS.getName())) {
+				processInfos(command);
 			} else if (command.getCommand().equalsIgnoreCase(COMMAND_DELETE.getName())) {
 				processDelete(command, item);
 			} else if (command.getCommand().equalsIgnoreCase(COMMAND_CHECK.getName())) {
@@ -233,6 +239,11 @@ implements CommandConstants {
 		channel.print(VersionInfos.APP_NAME);
 		channel.print("Copyright 2005-" + CURRENT_YEAR + ", Olivier PETRUCCI");
 		channel.print("List of valid arguments :");
+		
+		channel.print("");
+		channel.print("Show informations about Areca :");
+		channel.print("      infos");
+		
 		channel.print("");
 		channel.print("Describe targets :");
 		channel.print("      describe -config (xml configuration file or directory)");
@@ -627,6 +638,17 @@ implements CommandConstants {
 	private void processDescribe(UserCommandLine command, WorkspaceItem item) 
 	throws Exception {
 		channel.print("\n" + item.getDescription());
+	}
+	
+	/**
+	 * Infos
+	 */
+	private void processInfos(UserCommandLine command) 
+	throws Exception {
+		channel.print("Version : " + VersionInfos.getLastVersion().getVersionId());
+		channel.print("Build Id : " + VersionInfos.getBuildId());
+		channel.print("Maximum available memory (bytes) : " + Runtime.getRuntime().maxMemory());
+		channel.print("JRE : " + System.getProperty("sun.boot.library.path"));
 	}
 
 	private String normalizePath(String path) {

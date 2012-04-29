@@ -1,5 +1,6 @@
 package com.application.areca;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -90,5 +91,27 @@ extends AbstractLauncher {
     
     protected static void showLine() {
         System.out.println(SEPARATOR);
+    }
+    
+    protected String[] preprocessArguments(String[] args) {
+    	
+    	// Backward compatibility : former versions of Areca used "JSmooth" as exe wrapper.
+    	// Newer versions use Launch4J, which doesn't recognize JRE parameters such as JInitialheap or JMaxheap.
+    	// --> These parameters have to be removed.
+    	ArrayList ret = new ArrayList();
+    	boolean memWarning = false;
+    	for (int i=0; i<args.length; i++) {
+    		String arg = args[i].trim().toLowerCase();
+    		if (arg.startsWith("-jinitialheap=") || arg.startsWith("-jmaxheap=")) {
+    			memWarning = true;
+    		} else {
+    			ret.add(args[i]);
+    		}
+    	}
+    	
+    	if (memWarning) {
+    		System.out.println("parameters such as -jinitialheap or -jmaxheap should not be usefull anymore and will be ignored. If you wish to pass memory parameters to areca, please refer to online documentation on how to proceed.");
+    	}
+    	return (String[])ret.toArray(new String[ret.size()]);
     }
 }

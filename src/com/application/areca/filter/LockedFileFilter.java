@@ -45,15 +45,15 @@ public class LockedFileFilter extends AbstractArchiveFilter {
 	public void acceptParameters(String parameters) {
     }
     
-    public boolean acceptIteration(File entry) {
-        return true;
+    public short acceptIteration(File entry) {
+        return WILL_MATCH_PERHAPS;
     }
     
     /**
      * Cette condition ne s'applique que sur les fichiers (pour des raisons d'optimisation).
      * Les repertoires retournent systematiquement "true"
      */
-    public boolean acceptStorage(File entry) {
+    public boolean acceptElement(File entry) {
         if (entry == null) {
             return false;
         } else if (FileSystemManager.isDirectory(entry)) {

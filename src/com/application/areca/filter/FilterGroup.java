@@ -44,7 +44,7 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
 	
 	private boolean isAnd = true;
     private List filters = new ArrayList();
-    private boolean isExclude = false;
+    private boolean logicalNot = false;
     
     /**
      * Adds a filter and recomputes the cached values for
@@ -73,38 +73,52 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
 	/**
      * Accepts (or refuses) an entry
      */         
-    public boolean acceptIteration(File entry) {
-        boolean matchFilter;
+    public short acceptIteration(File entry) {
+        short matchFilter = WILL_MATCH_TRUE;
         
         Iterator iter = this.getFilterIterator();
         if (this.isAnd()) {
             // AND
-            matchFilter = true;
+            matchFilter = WILL_MATCH_TRUE;
             while (iter.hasNext()) {
                 ArchiveFilter filter = (ArchiveFilter)iter.next();
-                if (! filter.acceptIteration(entry)) {
-                    matchFilter = false;
+                short answer = filter.acceptIteration(entry);
+                if (answer == WILL_MATCH_FALSE) {
+                    matchFilter = WILL_MATCH_FALSE;
                     break;
+                } else if (answer == WILL_MATCH_PERHAPS) {
+                    matchFilter = WILL_MATCH_PERHAPS;
                 }
             }
         } else {
             // OR
-            matchFilter = false;            
+            matchFilter = WILL_MATCH_FALSE;            
             while (iter.hasNext()) {
                 ArchiveFilter filter = (ArchiveFilter)iter.next();
-                if (filter.acceptIteration(entry)) {
-                    matchFilter = true;
+                short answer = filter.acceptIteration(entry);
+                if (answer == WILL_MATCH_TRUE) {
+                    matchFilter = WILL_MATCH_TRUE;
                     break;
+                } else if (answer == WILL_MATCH_PERHAPS) {
+                    matchFilter = WILL_MATCH_PERHAPS;
                 }
             }
         }
-        return isExclude ? ! matchFilter : matchFilter;
+        
+        if (logicalNot) {
+        	if (matchFilter == WILL_MATCH_TRUE) {
+        		matchFilter = WILL_MATCH_FALSE;
+        	} else if (matchFilter == WILL_MATCH_FALSE) {
+        		matchFilter = WILL_MATCH_TRUE;
+        	}
+        }
+        return matchFilter;
     }
     
     /**
      * Accepts (or refuses) an entry
      */         
-    public boolean acceptStorage(File entry) {
+    public boolean acceptElement(File entry) {
         boolean matchFilter;
         
         Iterator iter = this.getFilterIterator();
@@ -113,7 +127,7 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
             matchFilter = true;
             while (iter.hasNext()) {
                 ArchiveFilter filter = (ArchiveFilter)iter.next();
-                if (! filter.acceptStorage(entry)) {
+                if (! filter.acceptElement(entry)) {
                     matchFilter = false;
                     break;
                 }
@@ -123,18 +137,14 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
             matchFilter = false;            
             while (iter.hasNext()) {
                 ArchiveFilter filter = (ArchiveFilter)iter.next();
-                if (filter.acceptStorage(entry)) {
+                if (filter.acceptElement(entry)) {
                     matchFilter = true;
                     break;
                 }
             }
         }
-        return isExclude ? ! matchFilter : matchFilter;
+        return logicalNot ? ! matchFilter : matchFilter;
     }
-    
-    public boolean acceptElement(File element) {
-    	return this.acceptStorage(element);
-	}
     
     public void remove(ArchiveFilter filter) {
         this.filters.remove(filter);
@@ -155,7 +165,7 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
     
     public int hashCode() {
         int hash = HashHelper.initHash(this);
-        hash = HashHelper.hash(hash, this.isExclude);
+        hash = HashHelper.hash(hash, this.logicalNot);
         hash = HashHelper.hash(hash, this.isAnd());
         Iterator iter = this.getFilterIterator();
         while (iter.hasNext()) {
@@ -167,7 +177,7 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
     public Duplicable duplicate() {
         FilterGroup other = new FilterGroup();
         other.setAnd(this.isAnd);
-        other.setLogicalNot(this.isExclude);
+        other.setLogicalNot(this.logicalNot);
         Iterator iter = this.getFilterIterator();
         while (iter.hasNext()) {
             ArchiveFilter filter = (ArchiveFilter)iter.next();
@@ -177,7 +187,7 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
     }
 
     public boolean isLogicalNot() {
-        return isExclude;
+        return logicalNot;
     }
 
     public boolean requiresParameters() {
@@ -193,6 +203,6 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
     }
 
     public void setLogicalNot(boolean exclude) {
-        isExclude = exclude;
+        logicalNot = exclude;
     }
 }

@@ -243,7 +243,7 @@ public class FrameworkConfiguration {
     public static String DEF_ENCRYPTION_KG_SALT_ENC = "UTF-8";
     public static String DEF_ENCRYPTION_KG_ALG = "PBKDF2WithHmacSHA1";
     public static boolean DEF_DELTA_DEBUG = false;
-    public static int DEF_FTP_MAX_PROXIES = 3;
+    public static int DEF_FTP_MAX_PROXIES = 5;
     public static long DEF_FTP_NOOP_DELAY = 20000;    
     public static boolean DEF_FTP_DEBUG =  false;
     public static int DEF_FT_DELAY = 200;

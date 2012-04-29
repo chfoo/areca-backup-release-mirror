@@ -41,22 +41,28 @@ This file is part of Areca.
 public class CreateData {
 	private static Set CURRENT_FILES = new HashSet();
 	
+	public static String FILTERED_DIR = "testfilter/dir/filtered";
+	public static String[] FILTERED_FILES = new String[] {FILTERED_DIR + "/file1.txt", "tutut/toto/33regexmeAA", "toytoy/thisfile.excludeme"};
+	
 	private static String[] CREATE = new String[] {
 		"src",
 		"name with space and 's",
 		"name with;semicolon",
 		"name with-s",
 		"azerty/name with_s",
-		"n[a]me wité",
+		//"n[a]me with é",
 		"n{am}e with #",
-		"n(am)e wità",
+		"n(am)e with à",
 		"src2",
 		"subdir1/srcooo",
 		"subdir1/src1.2",
 		"subdir2/src",
 		"subdir2/src2.2",
 		"subdir2/subdir2.1/src",
-		"subdir2/subdir2.2/src2.2"
+		"subdir2/subdir2.1/another name with spaces",
+		"subdir2/subdir2.2/src2.2",
+		"testfilter/dir/unfiltered/file2.txt",
+		"testfilter/dir/file3.txt"
 	};
 	
 	private static String[] CREATE2 = new String[] {
@@ -111,6 +117,12 @@ public class CreateData {
 	
 	public static void create(String root) throws IOException {
 		doCreate(CREATE, SIZES, root);
+		doCreate(FILTERED_FILES, SIZES, root);
+		
+		// this file is explicitely excluded from backup (target filter) - should not be checked
+		for (int i=0; i<FILTERED_FILES.length; i++) {
+			CURRENT_FILES.remove(FILTERED_FILES[i]);
+		}
 	}
 	
 	public static void create2(String root) throws IOException {

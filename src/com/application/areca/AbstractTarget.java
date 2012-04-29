@@ -372,6 +372,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 				    	
 						this.medium.getHistoryHandler().addEntryAndFlush(new HistoryEntry(HISTO_RESUME, "Resume backup."));
 					}
+					context.setChecked(checkParams.isCheck());
 
 					RecoveryEntry entry = this.nextElement(context);
 					while (entry != null) {
@@ -553,6 +554,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			context.getManifest().addProperty(ManifestKeys.FILTERED_ENTRIES, context.getReport().getFilteredEntries());
 			context.getManifest().addProperty(ManifestKeys.BACKUP_DURATION, Utils.formatDuration(System.currentTimeMillis() - context.getReport().getStartMillis()));     
 			context.getManifest().addProperty(ManifestKeys.TARGET_ID, this.getUid());
+			context.getManifest().addProperty(ManifestKeys.CHECKED, context.isChecked());
 			addBasicInformationsToManifest(context.getManifest());
 
 			medium.commitBackup(context);

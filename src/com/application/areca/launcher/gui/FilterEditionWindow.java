@@ -182,7 +182,7 @@ extends AbstractWindow {
 			ArchiveFilter filter = FilterRepository.buildFilter(this.cboFilterType.getSelectionIndex());
 			initFilter(filter);
 
-			boolean accepted = filter.acceptStorage(tg);
+			boolean accepted = filter.acceptElement(tg);
 			String message;
 			if (accepted) {
 				message = RM.getLabel("filteredition.test.ok.label"); 

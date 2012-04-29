@@ -55,13 +55,21 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
     	return FileSystemManager.exists(directory);
 	}
 
-	public boolean acceptIteration(File entry) {
-        return acceptStorage(entry);
+	public short acceptIteration(File entry) {
+        if (entry == null) {
+            return WILL_MATCH_FALSE; 
+        } else if (contains(directory, entry)) {
+            return ! logicalNot ? WILL_MATCH_TRUE : WILL_MATCH_FALSE;
+        } else if (contains(entry, directory)) {
+            return WILL_MATCH_PERHAPS;
+        } else {
+            return logicalNot ? WILL_MATCH_TRUE : WILL_MATCH_FALSE;
+        }
     }
     
     /**
      */
-    public boolean acceptStorage(File entry) {  
+    public boolean acceptElement(File entry) {  
         if (entry == null) {
             return false;
         } else if (FileSystemManager.isFile(entry)) {

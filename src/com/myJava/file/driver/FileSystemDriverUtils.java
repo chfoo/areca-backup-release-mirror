@@ -49,23 +49,37 @@ public class FileSystemDriverUtils {
 	 */
 	public static void forceDelete(File fileOrDirectory, FileSystemDriver driver, TaskMonitor monitor)
 	throws IOException,	TaskCancelledException {
-		if (monitor != null) {
-			monitor.checkTaskState();
-		}
-
-		if (driver.isDirectory(fileOrDirectory)) {
-			File[] files = driver.listFiles(fileOrDirectory);
-			if (files != null) {
-				for (int i = 0; i < files.length; i++) {
-					forceDelete(files[i], driver, monitor);
-				}
+/*
+		if (
+				(! forceDeleteImpl(fileOrDirectory, driver, monitor)) 
+				&& (driver.exists(fileOrDirectory))
+		) {			
+			Logger.defaultLogger().warn("Attempted to delete "+ driver.getAbsolutePath(fileOrDirectory)+ " but it seems to be locked; retrying. ("+Thread.currentThread().getId()+"-"+driver.getClass().getName()+")");
+						
+			System.gc(); // I know it's not very beautiful ...
+			// but it seems to be a bug with old
+			// file references (even if all streams
+			// are closed)
+			
+			try {
+				Thread.sleep(10*DEFAULT_DELETION_DELAY);
+			} catch (InterruptedException ignored) {
+			}
+			
+			if (
+					(! forceDeleteImpl(fileOrDirectory, driver, monitor)) 
+					&& (driver.exists(fileOrDirectory))
+			) {
+				String[] files = driver.list(fileOrDirectory);
+				throw new IOException("Unable to delete "+ driver.getAbsolutePath(fileOrDirectory) + " - isFile=" + driver.isFile(fileOrDirectory) + " - Exists=" + driver.exists(fileOrDirectory) + " - Children=" + (files == null ? 0 : files.length) + (files != null && files.length > 0 ? "(" + files[0] + " ...)" : ""));
 			}
 		}
+		*/
 
-		long retry = 0;
+		int retry = 0;
 		try {
 			while (
-					(! driver.delete(fileOrDirectory)) 
+					(! forceDeleteImpl(fileOrDirectory, driver, monitor)) 
 					&& (driver.exists(fileOrDirectory))
 			) {
 				retry++;
@@ -103,5 +117,26 @@ public class FileSystemDriverUtils {
 			}
 		} catch (InterruptedException ignored) {
 		}
+	}
+	
+	/**
+	 * Delete the directory / file and all its content.
+	 */
+	public static boolean forceDeleteImpl(File fileOrDirectory, FileSystemDriver driver, TaskMonitor monitor)
+	throws IOException,	TaskCancelledException {
+		if (monitor != null) {
+			monitor.checkTaskState();
+		}
+
+		if (driver.isDirectory(fileOrDirectory)) {
+			File[] filez = driver.listFiles(fileOrDirectory);
+			if (filez != null) {
+				for (int i = 0; i < filez.length; i++) {
+					forceDelete(filez[i], driver, monitor);
+				}
+			}
+		}
+
+		return driver.delete(fileOrDirectory);
 	}
 }

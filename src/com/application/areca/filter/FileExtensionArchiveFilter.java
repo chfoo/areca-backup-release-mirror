@@ -103,11 +103,11 @@ public class FileExtensionArchiveFilter extends AbstractArchiveFilter {
         return this.extensions.iterator();
     }
     
-    public boolean acceptIteration(File entry) { 
-        return true;
+    public short acceptIteration(File entry) {
+        return WILL_MATCH_PERHAPS;
     }
     
-    public boolean acceptStorage(File entry) {
+    public boolean acceptElement(File entry) {
         if (entry == null) {
             return false;
         } else {

@@ -2068,7 +2068,7 @@ implements TargetActions {
 					if (i != 0) {
 						ret += ", ";
 					}
-					ret += archives[i] + " (";
+					ret += archives[i] + " (cnt=";
 
 					// Add content data
 					ContentFileIterator ctnInter = ArchiveContentManager.buildIteratorForArchive(this, archives[i]);
@@ -2082,7 +2082,7 @@ implements TargetActions {
 						ctnInter.close();
 					}
 					
-					ret += " / ";
+					ret += " / trc=";
 					
 					// Add trace data
 					File traceFile = ArchiveTraceManager.resolveTraceFileForArchive(this, archives[i]);
@@ -2096,16 +2096,22 @@ implements TargetActions {
 					} finally {
 						trcIter.close();
 					}
-					
-					ret += " / ";
-					
+
 					// Add hash data
 					File hashFile = ArchiveContentManager.resolveHashFileForArchive(this, archives[i]);
 					ContentFileIterator hashInter = ArchiveContentAdapter.buildIterator(hashFile);
 					try {
 						if (hashInter.fetch(entry)) {
+							ret += " / hash64=";
 							ret += hashInter.current().getData();
+							ret += " / hash16=";
+							try {
+								ret += Util.base16Encode(Util.base64Decode(hashInter.current().getData()));
+							} catch (Exception e) {
+								Logger.defaultLogger().warn("Error decoding hashcode", e);
+							}
 						} else {
+							ret += " / hash=";
 							ret += "not found in hash file";
 						}
 					} finally {
@@ -2115,11 +2121,12 @@ implements TargetActions {
 					// Add manifest data
 					Manifest manifest = ArchiveManifestCache.getInstance().getManifest(this, archives[i]);
 					ret += 
-						" / " + manifest.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME, "unknown") + 
-						" / " + manifest.getStringProperty(ManifestKeys.VERSION, "unknown") + 
-						" / " + manifest.getStringProperty(ManifestKeys.IS_RESUMED, "false") + 
-						" / " + Utils.formatDisplayDate(manifest.getDate()) + 
-						" / " + (manifest.getType() == Manifest.TYPE_BACKUP ? "Backup" : "Merge"); 
+						" / scheme=" + manifest.getStringProperty(ManifestKeys.OPTION_BACKUP_SCHEME, "unknown") + 
+						" / version=" + manifest.getStringProperty(ManifestKeys.VERSION, "unknown") + 
+						" / resumed=" + manifest.getStringProperty(ManifestKeys.IS_RESUMED, "false") + 
+						" / date=" + Utils.formatDisplayDate(manifest.getDate()) + 
+						" / checked=" + manifest.getStringProperty(ManifestKeys.CHECKED, "unknown") + 
+						" / type=" + (manifest.getType() == Manifest.TYPE_BACKUP ? "Backup" : "Merge"); 
 					
 					ret += ")";
 				}

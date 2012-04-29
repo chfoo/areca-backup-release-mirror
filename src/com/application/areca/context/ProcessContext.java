@@ -95,6 +95,8 @@ public class ProcessContext implements Externalizable {
     
     protected String backupScheme;
     
+    protected boolean checked;
+    
     /**
      * Current transaction point (the one being written)
      */
@@ -218,6 +220,7 @@ public class ProcessContext implements Externalizable {
 		//filesByArchive
 		//detailedRecoveryErrors
 		//traceFile
+		//checked
 		
 		// Initialized afterwards
 	    //ArchiveTraceAdapter traceAdapter;
@@ -266,6 +269,7 @@ public class ProcessContext implements Externalizable {
         this.nbChecked = 0;
         this.inputBytes = 0;
         this.filesByArchive = null;
+        this.checked = false;
         this.outputStreamListener = new MeteredOutputStreamListener();
         if (! operationalOnly) {
             this.getReport().reset();
@@ -286,6 +290,14 @@ public class ProcessContext implements Externalizable {
 
 	public void setTransactionBound(long transactionBound) {
 		this.transactionBound = transactionBound;
+	}
+
+	public boolean isChecked() {
+		return checked;
+	}
+
+	public void setChecked(boolean checked) {
+		this.checked = checked;
 	}
 
 	public ProcessContext() {

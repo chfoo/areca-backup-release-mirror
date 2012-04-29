@@ -16,6 +16,11 @@ import com.application.areca.TargetGroup;
 import com.application.areca.WorkspaceItem;
 import com.application.areca.adapters.ConfigurationHandler;
 import com.application.areca.context.ProcessContext;
+import com.application.areca.filter.DirectoryArchiveFilter;
+import com.application.areca.filter.FileExtensionArchiveFilter;
+import com.application.areca.filter.FileSizeArchiveFilter;
+import com.application.areca.filter.FilterGroup;
+import com.application.areca.filter.RegexArchiveFilter;
 import com.application.areca.impl.AbstractFileSystemMedium;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemTarget;
@@ -23,6 +28,7 @@ import com.application.areca.impl.copypolicy.AlwaysOverwriteCopyPolicy;
 import com.application.areca.launcher.tui.LoggerUserInformationChannel;
 import com.application.areca.launcher.tui.MissingDataListener;
 import com.application.areca.metadata.transaction.YesTransactionHandler;
+import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.util.log.LogMessagesContainer;
 import com.myJava.util.log.Logger;
@@ -213,6 +219,43 @@ public class Test {
 		});
 	}
 	
+	private static void adjustWorkspace(final WorkspaceItem item, String sources) throws Exception {
+		File filtered = new File(sources, CreateData.FILTERED_DIR);
+		final String path = FileSystemManager.getAbsolutePath(filtered);
+		WorkspaceProcessor.process(item, new TargetHandler() {
+			public void handle(FileSystemTarget target) throws Exception {
+				FilterGroup exclusion = new FilterGroup();
+				exclusion.setAnd(false);
+				exclusion.setLogicalNot(true);
+				
+				DirectoryArchiveFilter filter = new DirectoryArchiveFilter();
+				filter.setLogicalNot(false);
+				filter.acceptParameters(path);
+				
+				RegexArchiveFilter filter2 = new RegexArchiveFilter();
+				filter2.setLogicalNot(false);
+				filter2.setScheme(RegexArchiveFilter.SCHEME_NAME);
+				filter2.setMatch(false);
+				filter2.setRegex("regexme");
+				
+				FileSizeArchiveFilter filter3 = new FileSizeArchiveFilter();
+				filter3.setLogicalNot(false);
+				filter3.acceptParameters(">999999999");
+				
+				FileExtensionArchiveFilter filter4 = new FileExtensionArchiveFilter();
+				filter4.setLogicalNot(false);
+				filter4.addExtension(".excludeme");
+				
+				exclusion.addFilter(filter);
+				exclusion.addFilter(filter2);
+				exclusion.addFilter(filter3);
+				exclusion.addFilter(filter4);
+				
+				target.getFilterGroup().addFilter(exclusion);
+			}
+		});
+	}
+	
 	public static void main(String[] args) {
 		String ws = args[0].replace('\\', '/');
 		String sources = ws + "/" + SOURCES_S;
@@ -233,6 +276,7 @@ public class Test {
 			
 			switchTo("Load Target");
 			TargetGroup workspace = load(ws, sources);
+			adjustWorkspace(workspace, sources);
 			showData(workspace);
 			
 			switchTo("Initial Clean");

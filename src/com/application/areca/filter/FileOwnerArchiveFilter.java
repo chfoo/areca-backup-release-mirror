@@ -65,9 +65,13 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 			this.group = params.substring(index + 1).trim();
 		}
 	}
-
-	public boolean acceptIteration(File entry) {
-		return acceptStorage(entry);
+	
+	public short acceptIteration(File entry) {
+		if (! acceptElement(entry)) {
+			return WILL_MATCH_FALSE;
+		} else {
+			return WILL_MATCH_PERHAPS;
+		}
 	}
 
 	public void setOwner(String owner) {
@@ -86,7 +90,7 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 		return group;
 	}
 
-	public boolean acceptStorage(File entry) {
+	public boolean acceptElement(File entry) {
 		if (entry == null) {
 			return false;
 		} else {
