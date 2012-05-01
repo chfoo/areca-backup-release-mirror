@@ -343,6 +343,7 @@ extends AbstractLinkableFileSystemDriver {
 	private Cipher buildNewCipher(int mode) {
 		try {
 			Cipher cipher = Cipher.getInstance(this.transformation);
+			
 			if (this.iv == null) {
 				cipher.init(mode, this.key);                
 			} else {

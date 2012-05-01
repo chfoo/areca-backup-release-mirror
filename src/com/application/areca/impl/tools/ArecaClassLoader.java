@@ -81,7 +81,7 @@ public class ArecaClassLoader extends URLClassLoader {
 								&& jarName.startsWith(PREFIX)
 								&& (! alreadyLoaded.contains(jars[i].getName()))
 						) {
-							list.add(new URL("file:" + jars[i].getAbsolutePath()));
+							list.add(jars[i].toURI().toURL());
 							dynamicList += ", " + jars[i].getName();
 						}
 					}

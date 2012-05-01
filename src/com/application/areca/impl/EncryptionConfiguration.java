@@ -48,23 +48,36 @@ public class EncryptionConfiguration {
 
 	public static final String KEYCONV_RAW = "RAW";
 	public static final String KEYCONV_HASH = "HASH";
+	public static final String MODE = "CBC";
+	public static final String PADDING = "PKCS5Padding";
+	
 
 	public static final String AES_HASH = "AES_HASH";
 	public static final String AES_RAW = "AES_RAW";
 
 	public static final String AES256_HASH = "AES256_HASH";
 	public static final String AES256_RAW = "AES256_RAW";
+	
+	public static final String AES_HASH_CBC = "AES_HASH_CBC";
+	public static final String AES_RAW_CBC = "AES_RAW_CBC";
+
+	public static final String AES256_HASH_CBC = "AES256_HASH_CBC";
+	public static final String AES256_RAW_CBC = "AES256_RAW_CBC";
 
 	private static Map DEFAULT_PARAMETERS;
 	public static final String RECOMMENDED_ALGORITHM = "AES_HASH"; // Recommended algorithm
 
-	private static void registerAESConfiguration(int keySize, String id, String keyConvention) {
+	private static void registerAESConfiguration(int keySize, String id, String mode, IvParameterSpec iv, String padding, String keyConvention) {
 		EncryptionConfiguration AESParam = new EncryptionConfiguration();
 		AESParam.setKeySize(keySize);
-		AESParam.setTransformation("AES");
+		String transformation = "AES";
+		if (mode != null && padding != null) {
+			transformation += "/" + mode + "/" + padding;
+		}
+		AESParam.setTransformation(transformation);
 		AESParam.setAlgorithm("AES");
 		AESParam.setId(id);
-		AESParam.setIV(null);
+		AESParam.setIV(iv);
 		AESParam.setKeyConvention(keyConvention);
 		registerConfiguration(AESParam);
 	}
@@ -79,12 +92,18 @@ public class EncryptionConfiguration {
 		DEFAULT_PARAMETERS = new HashMap();
 
 		// AES 128
-		registerAESConfiguration(16, AES_HASH, KEYCONV_HASH);
-		registerAESConfiguration(16, AES_RAW, KEYCONV_RAW);
+		registerAESConfiguration(16, AES_HASH, null, null, null, KEYCONV_HASH);
+		registerAESConfiguration(16, AES_RAW, null, null, null, KEYCONV_RAW);
+		
+		//registerAESConfiguration(16, AES_HASH_CBC, MODE, new IvParameterSpec(new byte[16]), PADDING, KEYCONV_HASH);
+		//registerAESConfiguration(16, AES_RAW_CBC, MODE, new IvParameterSpec(new byte[16]), PADDING, KEYCONV_RAW);
 
 		// AES 256
-		registerAESConfiguration(32, AES256_HASH, KEYCONV_HASH);
-		registerAESConfiguration(32, AES256_RAW, KEYCONV_RAW);
+		registerAESConfiguration(32, AES256_HASH, null, null, null, KEYCONV_HASH);
+		registerAESConfiguration(32, AES256_RAW, null, null, null, KEYCONV_RAW);
+		
+		//registerAESConfiguration(32, AES256_HASH_CBC, MODE, new IvParameterSpec(new byte[32]), PADDING, KEYCONV_HASH);
+		//registerAESConfiguration(32, AES256_RAW_CBC, MODE, new IvParameterSpec(new byte[32]), PADDING, KEYCONV_RAW);
 	}
 
 	private boolean isSupported() {
@@ -137,7 +156,7 @@ public class EncryptionConfiguration {
 	private IvParameterSpec IV;
 	private String fullName;
 	private String keyConvention;
-
+	
 	private EncryptionConfiguration() {
 		super();
 	}

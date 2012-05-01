@@ -56,6 +56,7 @@ public class OSTool {
     private static String FORMATTED_JAVA_VERSION;
     
     private static String JAVA_FILE_ENCODING;
+    private static int CODEPAGE = -1;
     private static String IANA_FILE_ENCODING;
     private static String USER_HOME;
     private static String USER_NAME;
@@ -66,6 +67,15 @@ public class OSTool {
     
     static {
         JAVA_FILE_ENCODING = System.getProperty("file.encoding");
+        
+        if (JAVA_FILE_ENCODING.toLowerCase().startsWith("cp")) {
+        	try {
+				CODEPAGE = Integer.parseInt(JAVA_FILE_ENCODING.substring(2));
+			} catch (NumberFormatException e) {
+				Logger.defaultLogger().fine("Non parsable charset : " + JAVA_FILE_ENCODING);
+			}
+        }
+        
         Charset cs = Charset.forName(JAVA_FILE_ENCODING);
         IANA_FILE_ENCODING = cs.name();
         
@@ -119,6 +129,10 @@ public class OSTool {
     
     public static String getJavaFileEncoding() {
         return JAVA_FILE_ENCODING;
+    }
+    
+    public static int getCodePage() {
+    	return CODEPAGE;
     }
     
     public static String getIANAFileEncoding() {

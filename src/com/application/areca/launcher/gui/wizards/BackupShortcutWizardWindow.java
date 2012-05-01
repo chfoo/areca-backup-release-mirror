@@ -166,6 +166,7 @@ extends AbstractWindow {
         chkCheckArchive.setText(RM.getLabel("archivedetail.checkarchive.label"));
         chkCheckArchive.setToolTipText(RM.getLabel("archivedetail.checkarchive.tooltip"));
         chkCheckArchive.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
+        chkCheckArchive.setSelection(true);
         monitorControl(chkCheckArchive);
         
         SavePanel pnlSave = new SavePanel(this);
