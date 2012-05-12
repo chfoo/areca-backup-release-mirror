@@ -211,7 +211,7 @@ implements CommandConstants {
 			}
 		}
 
-		WorkspaceItem item = ConfigurationHandler.getInstance().readObject(config, new MissingDataListener(), null, true);
+		WorkspaceItem item = ConfigurationHandler.getInstance().readObject(config, new MissingDataListener(), null, true, true);
 		if ((item instanceof TargetGroup) && command.hasOption(OPTION_TARGET)) {
 			String id = command.getOption(OPTION_TARGET);
 			AbstractTarget target = ((TargetGroup)item).getTarget(Integer.parseInt(id));
@@ -265,6 +265,8 @@ implements CommandConstants {
 		channel.print("      merge -config (xml configuration file) [-title (archive title)] [-k] -date (merged date : YYYY-MM-DD) / -from (nr of days - 0='-infinity') -to (nr of days - 0='today')");
 		channel.print("         -k to keep deleted files in the merged archive");    
 		channel.print("         -title to set a title to the archive");   
+		channel.print("         -c to check the archive consistency after merge");
+		channel.print("         -wdir to use a specific working directory");
 		channel.print("         -date to specify the reference date used for merging");
 		channel.print("         OR -from/-to (nr of days) to specify the archive range used for merging");
 
@@ -449,13 +451,6 @@ implements CommandConstants {
 			throw new InvalidCommandException("Merge can only be performed on individual targets.");
 		}
 
-		boolean keepDeletedEntries = (
-				command.getOption(OPTION_KEEP_DELETED_ENTRIES) != null
-				&& command.getOption(OPTION_KEEP_DELETED_ENTRIES).trim().length() != 0
-		);
-
-		MergeParameters params = new MergeParameters(keepDeletedEntries, false, null);
-
 		final Manifest manifest;
 		if (command.hasOption(OPTION_TITLE)) {
 			manifest = new Manifest(Manifest.TYPE_MERGE);
@@ -464,6 +459,23 @@ implements CommandConstants {
 			manifest = null;
 		}
 
+		String destination = normalizePath(command.getOption(OPTION_SPEC_LOCATION));
+
+		final CheckParameters checkParams = new CheckParameters(
+				command.getOption(OPTION_CHECK_FILES) != null && command.getOption(OPTION_CHECK_FILES).trim().length() != 0,
+				true,
+				true,
+				destination != null,
+				destination
+		);
+		
+		boolean keepDeletedEntries = (
+				command.getOption(OPTION_KEEP_DELETED_ENTRIES) != null
+				&& command.getOption(OPTION_KEEP_DELETED_ENTRIES).trim().length() != 0
+		);
+
+		MergeParameters params = new MergeParameters(keepDeletedEntries, destination != null, destination);
+		
 		if (strDelay != null || strFrom != null || strTo != null) {
 			// A delay (in days) is provided
 			int from = 0;
@@ -484,6 +496,7 @@ implements CommandConstants {
 					to,
 					manifest,
 					params, 
+					checkParams,
 					context
 			);
 		} else {
@@ -494,6 +507,7 @@ implements CommandConstants {
 					CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null),
 					manifest,
 					params, 
+					checkParams,
 					context
 			);
 		}

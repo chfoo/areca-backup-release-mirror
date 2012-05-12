@@ -15,6 +15,7 @@ import com.application.areca.MergeParameters;
 import com.application.areca.TargetGroup;
 import com.application.areca.WorkspaceItem;
 import com.application.areca.adapters.ConfigurationHandler;
+import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
@@ -27,9 +28,11 @@ import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.impl.copypolicy.AlwaysOverwriteCopyPolicy;
 import com.application.areca.launcher.tui.LoggerUserInformationChannel;
 import com.application.areca.launcher.tui.MissingDataListener;
+import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.transaction.YesTransactionHandler;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.util.CalendarUtils;
 import com.myJava.util.log.LogMessagesContainer;
 import com.myJava.util.log.Logger;
 import com.myJava.util.log.ThreadLocalLogProcessor;
@@ -75,7 +78,7 @@ public class Test {
 	
 	public static TargetGroup load(String path, String source) throws Exception {
 		log("Loading targets ...");
-		WorkspaceItem item = ConfigurationHandler.getInstance().readObject(new File(path), new MissingDataListener(), null, true);
+		WorkspaceItem item = ConfigurationHandler.getInstance().readObject(new File(path), new MissingDataListener(), null, true, true);
 		overrideSource(item, source);
 		return (TargetGroup)item;
 	}
@@ -136,31 +139,60 @@ public class Test {
 		WorkspaceProcessor.process(item, new TargetHandler() {
 			public void handle(FileSystemTarget target) throws Exception {
 				MergeParameters params = new MergeParameters(keepDeleted, false, null);
+				CheckParameters cp = new CheckParameters(true, true, true, false, null);
 				
-				ActionProxy.processMergeOnTarget(target, null, new GregorianCalendar(), null, params, buildContext(target));
+				ActionProxy.processMergeOnTarget(target, null, new GregorianCalendar(), null, params, cp, buildContext(target));
 			}
 		});
 	}
 	
-	private static void doRecover(final WorkspaceItem item, final String targetDir, String[] additionalFiles) throws Exception {
-		new File(targetDir).mkdirs();
+	private static void doRecover(final WorkspaceItem item, final String targetDir, final String[] additionalFiles, final boolean ignoreImageConfigs) throws Exception {
 		WorkspaceProcessor.process(item, new TargetHandler() {
 			public void handle(FileSystemTarget target) throws Exception {
+				FileTool.getInstance().delete(new File(targetDir));
+				new File(targetDir).mkdirs();
+				
+				GregorianCalendar date = new GregorianCalendar();
+				
 				ActionProxy.processRecoverOnTarget(
 						target, 
 						null, 
 						new AlwaysOverwriteCopyPolicy(), 
 						targetDir, 
 						false, 
-						new GregorianCalendar(), 
+						date, 
 						false, 
 						true, 
 						buildContext(target));
+				
+				try {
+					AbstractIncrementalFileSystemMedium fMedium = (AbstractIncrementalFileSystemMedium)target.getMedium();
+
+					String[] argAdditionalFiles;
+					if (fMedium.isImage() && ignoreImageConfigs) {
+						argAdditionalFiles = null;
+					} else {
+						argAdditionalFiles = additionalFiles;
+					}
+					
+					CreateData.checkPresentFiles(targetDir, argAdditionalFiles);
+				} catch (Exception e) {
+					AbstractIncrementalFileSystemMedium medium = (AbstractIncrementalFileSystemMedium)target.getMedium();
+					System.out.println(CalendarUtils.getFullDateToString(date));
+					File[] archives = medium.listArchives(null, date, true);
+					for (int i=0; i<archives.length; i++) {
+						System.out.println("----------------------------------------------------------");
+						System.out.println("- " + archives[i]);
+						System.out.println("----------------------------------------------------------");
+						Manifest mf = ArchiveManifestCache.getInstance().getManifest(medium, archives[i]);
+						System.out.println(mf.toString());
+					}
+
+					throw e;
+				}
+				FileTool.getInstance().delete(new File(targetDir));
 			}
 		});
-		
-		CreateData.check(targetDir, additionalFiles);
-		FileTool.getInstance().delete(new File(targetDir));
 	}
 	
 	private static void doCheck(final WorkspaceItem item) throws Exception {
@@ -291,7 +323,7 @@ public class Test {
 			doCheck(workspace);
 			
 			switchTo("Recover first backup");
-			doRecover(workspace, recoveryDir, null);
+			doRecover(workspace, recoveryDir, null, true);
 			
 			switchTo("Modify Data");
 			CreateData.append(sources);
@@ -305,7 +337,7 @@ public class Test {
 			doCheck(workspace);
 			
 			switchTo("Recover second backup");
-			doRecover(workspace, recoveryDir, null);
+			doRecover(workspace, recoveryDir, null, true);
 
 			switchTo("Modify Data (2)");
 			CreateData.append2(sources);
@@ -319,7 +351,7 @@ public class Test {
 			doCheck(workspace);
 			
 			switchTo("Recover third backup");
-			doRecover(workspace, recoveryDir, null);
+			doRecover(workspace, recoveryDir, null, true);
 	
 			switchTo("Merge archives");
 			doMerge(workspace, false);
@@ -329,7 +361,7 @@ public class Test {
 			doCheck(workspace);
 			
 			switchTo("Recover merged archive");
-			doRecover(workspace, recoveryDir, null);
+			doRecover(workspace, recoveryDir, null, true);
 
 			switchTo("Modify Data (3)");
 			CreateData.finalAppend(sources);
@@ -343,7 +375,7 @@ public class Test {
 			doCheck(workspace);
 			
 			switchTo("Recover fourth backup");
-			doRecover(workspace, recoveryDir, null);
+			doRecover(workspace, recoveryDir, null, true);
 			
 			switchTo("Merge archives (2)");
 			doMerge(workspace, true);
@@ -353,7 +385,7 @@ public class Test {
 			doCheck(workspace);
 			
 			switchTo("Recover merged archive (2)");
-			doRecover(workspace, recoveryDir, CreateData.FINAL_REMOVE);
+			doRecover(workspace, recoveryDir, CreateData.FINAL_REMOVE, true);
 
 			switchTo("Modify Data (4)");
 			CreateData.create(sources);
@@ -367,7 +399,7 @@ public class Test {
 			doCheck(workspace);
 			
 			switchTo("Recover fifth backup");
-			doRecover(workspace, recoveryDir, null);
+			doRecover(workspace, recoveryDir, null, true);
 	
 			switchTo("Merge archives (third)");
 			doMerge(workspace, false);
@@ -377,7 +409,7 @@ public class Test {
 			doCheck(workspace);
 			
 			switchTo("Recover (3rd) merged archive");
-			doRecover(workspace, recoveryDir, null);
+			doRecover(workspace, recoveryDir, null, true);
 
 			switchTo("Final Clean");
 			cleanArchives(workspace);

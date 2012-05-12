@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import com.application.areca.CheckParameters;
 import com.application.areca.MergeParameters;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
 import com.application.areca.launcher.gui.processors.AbstractProcessorComposite;
@@ -48,6 +49,7 @@ public class MergeProcessorComposite extends AbstractProcessorComposite {
     private Text txtFromDelay;
     private Text txtToDelay;
     private Button btnKeepDeletedEntries;
+    private Button chkCheckArchive;
     
     public MergeProcessorComposite(Composite composite, Processor proc, ProcessorEditionWindow window) {
         super(composite, proc, window);
@@ -73,11 +75,22 @@ public class MergeProcessorComposite extends AbstractProcessorComposite {
         btnKeepDeletedEntries.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
         window.monitorControl(btnKeepDeletedEntries);
         
+        // Check
+        chkCheckArchive = new Button(this, SWT.CHECK);
+        chkCheckArchive.setSelection(false);
+		chkCheckArchive.setText(RM.getLabel("archivedetail.checkmerged.label"));
+		chkCheckArchive.setToolTipText(RM.getLabel("archivedetail.checkmerged.tt"));
+        chkCheckArchive.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+        window.monitorControl(chkCheckArchive);
+        
         if (proc != null) {
             MergeProcessor fProc = (MergeProcessor)proc;
             txtFromDelay.setText("" + fProc.getFromDelay());
             txtToDelay.setText("" + fProc.getToDelay());
             btnKeepDeletedEntries.setSelection(fProc.getParams().isKeepDeletedEntries());
+            chkCheckArchive.setSelection(fProc.getCheckParams().isCheck());
+        } else {
+        	chkCheckArchive.setSelection(true);
         }
     }
 
@@ -97,6 +110,7 @@ public class MergeProcessorComposite extends AbstractProcessorComposite {
         fProc.setFromDelay(from);
         fProc.setToDelay(to);
         fProc.setParams(new MergeParameters(btnKeepDeletedEntries.getSelection(), false, null));
+        fProc.setCheckParams(new CheckParameters(chkCheckArchive.getSelection(), true, true, false, null));
     }
     
     public boolean validateParams() {       

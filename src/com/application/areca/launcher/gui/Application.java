@@ -62,7 +62,7 @@ import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.CTabFolderManager;
 import com.application.areca.launcher.gui.common.SecuredRunner;
-import com.application.areca.launcher.gui.composites.InfoChannel;
+import com.application.areca.launcher.gui.composites.GUIInformationChannel;
 import com.application.areca.launcher.gui.composites.LogComposite;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.application.areca.launcher.gui.menus.MenuBuilder;
@@ -959,7 +959,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			String configPath = FileSystemManager.getAbsolutePath(config);
 			String command = commandPrefix + "\""
 					+ FileSystemManager.getAbsolutePath(executable)
-					+ "\" merge -config \"" + configPath + "\"";
+					+ "\" merge -c -config \"" + configPath + "\"";
 
 			// Script generation
 			List parameters = win.getTimes();
@@ -1326,12 +1326,9 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		}
 	}
 
-	public void launchBackupOnTarget(AbstractTarget target, Manifest manifest,
-			String backupScheme, final boolean disablePreCheck,
-			final CheckParameters checkParams) {
+	public void launchBackupOnTarget(AbstractTarget target, Manifest manifest, String backupScheme, final boolean disablePreCheck, final CheckParameters checkParams) {
 		TargetGroup process = target.getParent();
-		final String resolvedBackupScheme = resolveBackupScheme(target,
-				backupScheme);
+		final String resolvedBackupScheme = resolveBackupScheme(target, backupScheme);
 		ProcessRunner rn = new ProcessRunner(target) {
 			public void runCommand() throws ApplicationException {
 				ActionProxy.processBackupOnTarget(rTarget, rManifest,
@@ -1347,8 +1344,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 				if (ReportingConfiguration.getInstance().isReportingEnabled()) {
 					SecuredRunner.execute(new Runnable() {
 						public void run() {
-							ReportWindow frm = new ReportWindow(context
-									.getReport());
+							ReportWindow frm = new ReportWindow(context.getReport());
 							showDialog(frm);
 						}
 					});
@@ -1378,7 +1374,9 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		}
 	}
 
-	public void launchMergeOnTarget(final MergeParameters params,
+	public void launchMergeOnTarget(
+			final MergeParameters params,
+			final CheckParameters checkParams,
 			Manifest manifest) {
 		// MERGE
 		FileSystemTarget target = (FileSystemTarget) this.getCurrentObject();
@@ -1386,7 +1384,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		ProcessRunner rn = new ProcessRunner(target) {
 			public void runCommand() throws ApplicationException {
 				ActionProxy.processMergeOnTarget(rTarget, rFromDate, rToDate,
-						rManifest, params, context);
+						rManifest, params, checkParams, context);
 			}
 		};
 		rn.rProcess = process;
@@ -1781,17 +1779,17 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		protected boolean refreshAfterProcess = true;
 		protected ProcessContext context;
 		protected Object argument;
-		protected InfoChannel channel;
+		protected GUIInformationChannel channel;
 
 		public abstract void runCommand() throws ApplicationException;
 
 		public ProcessRunner(AbstractTarget target) {
 			this.rTarget = target;
-			channel = new InfoChannel(rTarget, mainWindow.getProgressContainer().getMainPane());
+			channel = new GUIInformationChannel(rTarget, mainWindow.getProgressContainer().getMainPane());
 			mainWindow.focusOnProgress();
 		}
 
-		public InfoChannel getChannel() {
+		public GUIInformationChannel getChannel() {
 			return channel;
 		}
 
@@ -1814,13 +1812,10 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 				if (rTarget != null) {
 					taskName = rTarget.getName();
 				}
-				this.context = new ProcessContext(rTarget, channel,
-						new TaskMonitor(taskName));
+				this.context = new ProcessContext(rTarget, channel, new TaskMonitor(taskName));
 
 				// Activate message tracking for current thread.
-				this.context.getReport().setLogMessagesContainer(
-						Logger.defaultLogger().getTlLogProcessor()
-								.activateMessageTracking());
+				this.context.getReport().setLogMessagesContainer(Logger.defaultLogger().getTlLogProcessor().activateMessageTracking());
 
 				channel.startRunning();
 				registerState(true);

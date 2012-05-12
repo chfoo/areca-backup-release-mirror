@@ -6,8 +6,9 @@ import java.util.List;
 
 /**
  * <BR>
- * @author Olivier PETRUCCI
- * <BR>
+ * 
+ * @author Olivier PETRUCCI <BR>
+ *         
  *
  */
 
@@ -32,41 +33,46 @@ This file is part of Areca.
 
  */
 public class RecoveryResult {
-    protected List processedArchives = new ArrayList();
-    protected List recoveredArchives = new ArrayList();
-    protected List ignoredArchives = new ArrayList();
-    
-    public List getIgnoredArchives() {
-        return ignoredArchives;
-    }
-    public List getProcessedArchives() {
-        return processedArchives;
-    }
-    public List getRecoveredArchives() {
-        return recoveredArchives;
-    }
-    
-    public File[] getIgnoredArchivesAsArray() {
-        return (File[])ignoredArchives.toArray(new File[ignoredArchives.size()]);
-    }
-    
-    public File[] getRecoveredArchivesAsArray() {
-        return (File[])recoveredArchives.toArray(new File[recoveredArchives.size()]);
-    }
-    
-    public File[] getProcessedArchivesAsArray() {
-        return (File[])processedArchives.toArray(new File[processedArchives.size()]);
-    }
-    
-    public void addProcessedArchives(File[] archives) {
-        for (int i=0; i<archives.length; i++) {
-            this.processedArchives.add(archives[i]);
-        }
-    }
-    
-    public void addRecoveredArchives(File[] archives) {
-        for (int i=0; i<archives.length; i++) {
-            this.recoveredArchives.add(archives[i]);
-        }
-    }
+	protected List processedArchives = new ArrayList();
+	protected List recoveredArchives = new ArrayList();
+	protected List ignoredArchives = new ArrayList();
+
+	public List getIgnoredArchives() {
+		return ignoredArchives;
+	}
+
+	public List getProcessedArchives() {
+		return processedArchives;
+	}
+
+	public List getRecoveredArchives() {
+		return recoveredArchives;
+	}
+
+	public File[] getIgnoredArchivesAsArray() {
+		return (File[]) ignoredArchives
+				.toArray(new File[ignoredArchives.size()]);
+	}
+
+	public File[] getRecoveredArchivesAsArray() {
+		return (File[]) recoveredArchives.toArray(new File[recoveredArchives
+				.size()]);
+	}
+
+	public File[] getProcessedArchivesAsArray() {
+		return (File[]) processedArchives.toArray(new File[processedArchives
+				.size()]);
+	}
+
+	public void addProcessedArchives(File[] archives) {
+		for (int i = 0; i < archives.length; i++) {
+			this.processedArchives.add(archives[i]);
+		}
+	}
+
+	public void addRecoveredArchives(File[] archives) {
+		for (int i = 0; i < archives.length; i++) {
+			this.recoveredArchives.add(archives[i]);
+		}
+	}
 }

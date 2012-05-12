@@ -7,6 +7,9 @@ import java.util.Iterator;
 import com.application.areca.Utils;
 import com.application.areca.indicator.Indicator;
 import com.application.areca.indicator.IndicatorMap;
+import com.application.areca.metadata.content.ArchiveContentAdapter;
+import com.application.areca.metadata.content.ContentEntry;
+import com.application.areca.metadata.content.ContentFileIterator;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.LogHelper;
@@ -43,12 +46,18 @@ This file is part of Areca.
 
  */
 public class ProcessReportWriter {
+	public static final long MAX_LISTED_FILES = 1000L;
+	
 	private Writer writer;
 	private boolean appendStatistics;
-	
-	public ProcessReportWriter(Writer writer, boolean appendStatistics) {
+	private boolean appendStoredFiles;
+	private long maxFileNumber = -1;
+
+	public ProcessReportWriter(Writer writer, boolean appendStatistics, boolean appendStoredFiles, long maxFileNumber) {
 		this.writer = writer;
 		this.appendStatistics = appendStatistics;
+		this.maxFileNumber = maxFileNumber;
+		this.appendStoredFiles = appendStoredFiles;
 	}
 
 	private void writeStatusItem(StatusItem itm) throws IOException {
@@ -74,7 +83,7 @@ public class ProcessReportWriter {
 				writeStatusItem(itm);
 				detailedErrors |= itm.isHasErrors();
 			}
-			
+
 			if ((! detailedErrors) && report.hasError()) {
 				StatusItem itm = new StatusItem();
 				itm.setHasErrors(true);
@@ -91,7 +100,7 @@ public class ProcessReportWriter {
 				(report.getStatus().hasItem(StatusList.KEY_BACKUP) || report.getStatus().hasItem(StatusList.KEY_SIMULATE) ) 
 				&& (! report.getStatus().hasError(StatusList.KEY_BACKUP))
 				&& (! report.getStatus().hasError(StatusList.KEY_SIMULATE))
-		) {
+				) {
 			write("Written kbytes : " + report.getWrittenKBytes());
 			writeSeparator();
 			write("Processed directories and files : " + report.getProcessedEntries());
@@ -100,11 +109,11 @@ public class ProcessReportWriter {
 			write("Unfiltered files : " + report.getUnfilteredFiles());
 			write("Ignored files (not modified) : " + report.getIgnoredFiles());
 			write("Saved files : " + report.getSavedFiles());
-			
+
 			if (this.appendStatistics) {
 				writeSeparator();
 				write("Archive statictics :");
-				
+
 				IndicatorMap indicators = report.getIndicators();
 				if (indicators == null) {
 					write("<no statictics available>");
@@ -115,6 +124,29 @@ public class ProcessReportWriter {
 						Indicator indicator = indicators.getIndicator(id);
 						write(indicator.getName() + " = " + indicator.getStringValue());
 					}
+				}
+			}
+
+			if (this.appendStoredFiles) {
+				writeSeparator();
+				write("Stored files :");
+				write("[Beginning]");
+				ContentFileIterator iter = ArchiveContentAdapter.buildIterator(report.getContentFile());
+				try {
+					long count = 0;
+					while (iter.hasNext()) {
+						ContentEntry entry = iter.next();
+						if (++count == maxFileNumber+1) {
+							break;
+						}
+						write(entry.getKey());
+					}
+					write("[End]");
+					if (count != 0 && count == maxFileNumber+1) {
+						write("... (File list truncated to " + maxFileNumber + " files)");
+					}
+				} finally {
+					iter.close();
 				}
 			}
 		}

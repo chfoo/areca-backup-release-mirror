@@ -72,7 +72,7 @@ public class DeleteProcessorComposite extends AbstractProcessorComposite {
         window.resetErrorState(txtDelay);
         if (
                 txtDelay.getText() == null
-                || txtDelay.getText().trim().length() < 0
+                || txtDelay.getText().trim().length() == 0
                 || (! CommonRules.checkInteger(txtDelay.getText(), true))
         ) {
             window.setInError(txtDelay, RM.getLabel("error.numeric.value.expected"));

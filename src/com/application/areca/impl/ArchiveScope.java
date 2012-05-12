@@ -1,10 +1,12 @@
-package com.application.areca.launcher;
+package com.application.areca.impl;
 
-import com.application.areca.UserInformationChannel;
-import com.application.areca.context.ProcessContext;
-import com.myJava.util.taskmonitor.TaskMonitor;
+import java.io.File;
+import java.util.Set;
+
+import com.application.areca.ApplicationException;
 
 /**
+ * Defines a scope of archives that will be recovered
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -31,19 +33,9 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public abstract class AbstractInformationChannel implements UserInformationChannel {
-    protected TaskMonitor taskMonitor;
+public interface ArchiveScope {
 
-    public TaskMonitor getTaskMonitor() {
-        return taskMonitor;
-    }
-
-    public void setTaskMonitor(TaskMonitor taskMonitor) {
-        this.taskMonitor = taskMonitor;
-        taskMonitor.addListener(this);
-    }
-
-	public void setContext(ProcessContext context) {
-		// does nothing
-	}
+	public String displayScope();
+	public File[] buildArchiveList(AbstractIncrementalFileSystemMedium medium) throws ApplicationException;
+	public void setIgnoredArchives(Set ignoredArchives);
 }

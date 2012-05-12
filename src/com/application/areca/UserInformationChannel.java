@@ -41,6 +41,6 @@ public interface UserInformationChannel extends TaskMonitorListener {
     public void stopRunning();
     
     public void setTaskMonitor(TaskMonitor tm);
-    public void setContext(ProcessContext context);
     public TaskMonitor getTaskMonitor();
+    public void setContext(ProcessContext context);
 }

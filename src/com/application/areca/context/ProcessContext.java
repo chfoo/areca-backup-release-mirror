@@ -248,6 +248,19 @@ public class ProcessContext implements Externalizable {
 		String tracePath = referenceTrace == null ? null : FileSystemManager.getAbsolutePath(referenceTrace.getSource());
 		out.writeObject(tracePath);
 	}
+	
+	/**
+	 * Create a subcontext for the current context
+	 * <BR>parent and child will share the same information channel and status list to allow proper error / warning management
+	 * @return
+	 */
+	public ProcessContext createSubContext() {
+		// Do not override the channel's context (keep the parent context)
+		ProcessContext context = new ProcessContext(this.getReport().getTarget(), this.infoChannel, null, false);
+		StatusList status = this.getReport().status;
+		context.getReport().overrideStatus(status);
+		return context;
+	}
 
 	public void reset(boolean operationalOnly) {
 		this.entryIndex = 0;
@@ -307,13 +320,19 @@ public class ProcessContext implements Externalizable {
     public ProcessContext(AbstractTarget target, UserInformationChannel channel) {
         this(target, channel, null);
     }
-
+    
 	public ProcessContext(AbstractTarget target, UserInformationChannel channel, TaskMonitor taskMonitor) {
+		this(target, channel, taskMonitor, true);
+	}
+
+	public ProcessContext(AbstractTarget target, UserInformationChannel channel, TaskMonitor taskMonitor, boolean forceChannelContext) {
         this.report = new ProcessReport(target);
         this.infoChannel = channel;
+        if (forceChannelContext) {
+        	this.infoChannel.setContext(this);
+        }
         if (taskMonitor != null) {
             this.infoChannel.setTaskMonitor(taskMonitor);
-            this.infoChannel.setContext(this);
         }
     }
 

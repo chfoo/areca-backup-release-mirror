@@ -12,12 +12,14 @@ import org.w3c.dom.NodeList;
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
+import com.application.areca.CheckParameters;
 import com.application.areca.ConfigurationSource;
 import com.application.areca.MergeParameters;
 import com.application.areca.Utils;
 import com.application.areca.adapters.MissingDataListener;
 import com.application.areca.adapters.XMLTags;
 import com.application.areca.adapters.write.XMLVersions;
+import com.application.areca.context.ProcessReportWriter;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.filter.FileDateArchiveFilter;
@@ -381,6 +383,18 @@ public class TargetXMLReader implements XMLTags {
 		if (statsNode != null) {
 			pp.setAppendStatistics(Boolean.valueOf(statsNode.getNodeValue()).booleanValue());
 		}
+		
+		Node listStoredFilesNode = node.getAttributes().getNamedItem(XML_PP_LIST_STORED_FILES);
+		if (listStoredFilesNode != null) {
+			pp.setAppendStoredFiles(Boolean.valueOf(listStoredFilesNode.getNodeValue()).booleanValue());
+		}
+		
+		Node maxListedFilesNode = node.getAttributes().getNamedItem(XML_PP_MAX_LISTED_FILES);
+		if (maxListedFilesNode != null) {
+			pp.setMaxStoredFiles(Long.parseLong(maxListedFilesNode.getNodeValue()));
+		} else {
+			pp.setMaxStoredFiles(ProcessReportWriter.MAX_LISTED_FILES);
+		}
 
 		return pp;
 	}
@@ -429,6 +443,14 @@ public class TargetXMLReader implements XMLTags {
 			keepDeletedEntries = Boolean.valueOf(keepNode.getNodeValue()).booleanValue();
 		}
 		pp.setParams(new MergeParameters(keepDeletedEntries, false, null));
+		
+		//CHECK ARCHIVE
+		Node checkNode = node.getAttributes().getNamedItem(XML_PP_MERGE_CHECK);
+		boolean check = true;
+		if (checkNode != null) {
+			check = Boolean.valueOf(checkNode.getNodeValue()).booleanValue();
+		}
+		pp.setCheckParams(new CheckParameters(check, true, true, false, null));
 
 		readProcessorAttributes(node, pp);
 		return pp;
@@ -488,10 +510,27 @@ public class TargetXMLReader implements XMLTags {
 			pp.setFrom(fromNode.getNodeValue());
 		}
 		
-		Node statsNode = node.getAttributes().getNamedItem(XML_PP_ADD_STATS);
-		if (statsNode != null && appendReport) {
-			((SendReportByMailProcessor)pp).setAppendStatistics(Boolean.valueOf(statsNode.getNodeValue()).booleanValue());
+		if (appendReport) {
+			SendReportByMailProcessor smpp = (SendReportByMailProcessor)pp;
+			
+			Node statsNode = node.getAttributes().getNamedItem(XML_PP_ADD_STATS);
+			if (statsNode != null) {
+				smpp.setAppendStatistics(Boolean.valueOf(statsNode.getNodeValue()).booleanValue());
+			}
+			
+			Node listStoredFilesNode = node.getAttributes().getNamedItem(XML_PP_LIST_STORED_FILES);
+			if (listStoredFilesNode != null) {
+				smpp.setAppendStoredFiles(Boolean.valueOf(listStoredFilesNode.getNodeValue()).booleanValue());
+			}
+			
+			Node maxListedFilesNode = node.getAttributes().getNamedItem(XML_PP_MAX_LISTED_FILES);
+			if (maxListedFilesNode != null) {
+				smpp.setMaxStoredFiles(Long.parseLong(maxListedFilesNode.getNodeValue()));
+			} else {
+				smpp.setMaxStoredFiles(ProcessReportWriter.MAX_LISTED_FILES);
+			}
 		}
+
 
 		pp.setRecipients(recipientsNode.getNodeValue());
 		pp.setSmtpServer(smtpNode.getNodeValue());        

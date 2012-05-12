@@ -156,6 +156,9 @@ public class CalendarUtils {
         return date;
     }
     
+    /**
+     * Return YYYYMMDD [HH]h[mm]-[ss]-[ms]
+     */
     public static String getFullDateToString(GregorianCalendar cal) {
         return getDateToString(cal) + " " + getFullTimeToString(cal);
     }

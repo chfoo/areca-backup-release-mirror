@@ -1,10 +1,13 @@
-package com.application.areca.launcher;
+package com.application.areca.impl;
 
-import com.application.areca.UserInformationChannel;
-import com.application.areca.context.ProcessContext;
-import com.myJava.util.taskmonitor.TaskMonitor;
+import java.io.File;
+import java.util.Set;
+
+import com.application.areca.ApplicationException;
+import com.myJava.file.FileSystemManager;
 
 /**
+ * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -31,19 +34,22 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public abstract class AbstractInformationChannel implements UserInformationChannel {
-    protected TaskMonitor taskMonitor;
+public class FileScopePerimeter implements ArchiveScope {
+	private File archive;
 
-    public TaskMonitor getTaskMonitor() {
-        return taskMonitor;
-    }
+	public FileScopePerimeter(File archive) {
+		this.archive = archive;
+	}
 
-    public void setTaskMonitor(TaskMonitor taskMonitor) {
-        this.taskMonitor = taskMonitor;
-        taskMonitor.addListener(this);
-    }
+	public String displayScope() {
+		return FileSystemManager.getAbsolutePath(archive);
+	}
 
-	public void setContext(ProcessContext context) {
+	public File[] buildArchiveList(AbstractIncrementalFileSystemMedium medium) throws ApplicationException {
+		return new File[] {archive};
+	}
+
+	public void setIgnoredArchives(Set ignoredArchives) {
 		// does nothing
 	}
 }

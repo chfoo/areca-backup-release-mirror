@@ -37,9 +37,11 @@ public class StatusList implements Serializable {
 	
 	public static String KEY_ARCHIVE_CHECK = "Check Archive";
 	public static String KEY_BACKUP = "Backup";
-	public static String KEY_MERGE = "Merge Archives";
+	public static String KEY_INITIATE_MERGE = "Initiate Merge";
+	public static String KEY_FINALIZE_MERGE = "Finalize Merge";
 	public static String KEY_SIMULATE = "Simulate Backup";
 	public static String KEY_DELETE = "Delete Archives";
+	public static String KEY_MERGED_DELETE = "Delete Merged Archive";
 	public static String KEY_PREPARE = "Pre/Post Backup Operations";
 	
 	private ArrayList content = new ArrayList();

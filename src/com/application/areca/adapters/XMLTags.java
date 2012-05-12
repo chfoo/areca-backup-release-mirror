@@ -138,6 +138,8 @@ public interface XMLTags {
     public static final String XML_PP_DUMP_DIRECTORY = "directory";
     public static final String XML_PP_DUMP_NAME = "filename";
     public static final String XML_PP_ADD_STATS = "statistics";
+    public static final String XML_PP_LIST_STORED_FILES = "list_stored_files";
+    public static final String XML_PP_MAX_LISTED_FILES = "max_listed_files";
     public static final String XML_PP_EMAIL_RECIPIENTS = "recipients";
     public static final String XML_PP_EMAIL_SMTP = "smtp_host";
     public static final String XML_PP_EMAIL_TITLE = "title";    
@@ -152,6 +154,7 @@ public interface XMLTags {
     public static final String XML_PP_MERGE_FROM_DELAY = "from_delay";  
     public static final String XML_PP_MERGE_TO_DELAY = "to_delay";     
     public static final String XML_PP_MERGE_KEEP_DELETED = "keep_deleted";
+    public static final String XML_PP_MERGE_CHECK = "check_archive";
     public static final String XML_PP_ONLY_IF_ERROR = "failure_only"; // deprecated since 7.1.1
     public static final String XML_PP_RUN_SCHEME = "run_scheme";		// deprecated since 7.1.5
     public static final String XML_PP_RUN_SCHEME_ALWAYS = "always";		// deprecated since 7.1.5

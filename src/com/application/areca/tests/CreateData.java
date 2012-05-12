@@ -196,7 +196,7 @@ public class CreateData {
 		}
 	}
 	
-	public static void check(String dir, String[] additionalFiles) throws Exception {
+	public static void checkPresentFiles(String dir, String[] additionalFiles) throws Exception {
 		HashSet content = new HashSet();
 		Iterator iter = CURRENT_FILES.iterator();
 		while (iter.hasNext()) {
@@ -209,7 +209,7 @@ public class CreateData {
 			}
 		}
 		
-		doCheck(new File(dir), dir, content);
+		doCheckPresentFiles(new File(dir), dir, content);
 		
 		if (! content.isEmpty()) {
 			String err = "The following files should have been recovered :";
@@ -221,7 +221,7 @@ public class CreateData {
 		}
 	}
 	
-	private static void doCheck(File dir, String root, Set content) throws Exception {
+	private static void doCheckPresentFiles(File dir, String root, Set content) throws Exception {
 		File[] children = dir.listFiles();
 		for (int i=0; i<children.length; i++) {
 			if (children[i].isFile()) {
@@ -234,13 +234,13 @@ public class CreateData {
 					if (content.contains(suffix)) {
 						content.remove(suffix);
 					} else {
-						throw new IllegalArgumentException("The following file should not be recovered : " + suffix);
+						throw new IllegalArgumentException("The following file should not be recovered : " + suffix + " - root=" + root);
 					}
 				} else {
 					throw new IllegalArgumentException("Invalid file name : " + children[i] + " / " + root);
 				}
 			} else {
-				doCheck(children[i], root, content);
+				doCheckPresentFiles(children[i], root, content);
 			}
 		}
 	}

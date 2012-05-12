@@ -1,5 +1,6 @@
 package com.application.areca.context;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -114,6 +115,11 @@ public class ProcessReport implements Serializable {
     
     private transient IndicatorMap indicators;
     
+    /**
+     * Content file of the created archive
+     */
+    private transient File contentFile;
+    
     private ProcessReport() {
         this.logMessagesContainer = Logger.defaultLogger().getTlLogProcessor().getMessageContainer();
     }
@@ -130,6 +136,10 @@ public class ProcessReport implements Serializable {
 	public AbstractTarget getTarget() {
         return target;
     }
+	
+	public void overrideStatus(StatusList sl) {
+		this.status = sl;
+	}
     
     /**
      * Resets all counters ... except the duration counter
@@ -284,5 +294,13 @@ public class ProcessReport implements Serializable {
 	
 	public boolean hasWarnings() {
 		return this.logMessagesContainer.hasWarnings();
+	}
+
+	public File getContentFile() {
+		return contentFile;
+	}
+
+	public void setContentFile(File contentFile) {
+		this.contentFile = contentFile;
 	}
 }

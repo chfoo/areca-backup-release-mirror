@@ -1,7 +1,10 @@
 package com.application.areca;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Set;
 
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.AggregatedViewContext;
@@ -108,6 +111,7 @@ public interface ArchiveMedium extends Duplicable {
 			boolean checkOnlyArchiveContent, 
 			boolean simulateRecovery,
 			GregorianCalendar date, 
+			Set ignoreList,
 			ProcessContext context) 
 	throws ApplicationException, TaskCancelledException;
     
@@ -148,8 +152,11 @@ public interface ArchiveMedium extends Duplicable {
     /**
      * Validate the "merge"
      */
-    public void commitMerge(ProcessContext context) 
+    public void preCommitMerge(ProcessContext context) 
     throws ApplicationException;
+    
+	public void finalizeMerge(ProcessContext context)
+	throws ApplicationException;
     
     /**
      * Cancel the "merge"
@@ -236,6 +243,8 @@ public interface ArchiveMedium extends Duplicable {
      */
     public void install() 
     throws ApplicationException;
+    
+	public void deleteArchive(File archive) throws IOException;
     
     /**
      * Set the medium's target

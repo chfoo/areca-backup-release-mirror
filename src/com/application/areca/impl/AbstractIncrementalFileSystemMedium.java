@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
@@ -241,6 +242,7 @@ implements TargetActions {
 			boolean checkOnlyArchiveContent, 
 			boolean simulateRecovery,
 			GregorianCalendar date, 
+			Set ignoreList,
 			ProcessContext context) 
 	throws ApplicationException, TaskCancelledException {
 		try {
@@ -255,33 +257,24 @@ implements TargetActions {
 			context.getInfoChannel().print("Checking archive (working directory : " + FileSystemManager.getDisplayPath(destinationFile) + ") ...");
 
 			// Get the trace file
-			File lastArchive = getLastArchive(null, date);
+			File lastArchive = getLastArchive(null, ignoreList, date);
 			File traceFile = ArchiveTraceManager.resolveTraceFileForArchive(this, lastArchive);
 
 			// Recover at a temporary location - activate the archive check option
-			GregorianCalendar fromDate = null;
+			ArchiveScope perimeter;
 			if (checkOnlyArchiveContent && handler.autonomousArchives()) {
-				if (date == null) {
-					// No date passed as argument -> use last archive
-					Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, lastArchive);
-					if (mf != null) {
-						date = mf.getDate();
-					}
-				}
-
-				if (date != null) {
-					fromDate = (GregorianCalendar)date.clone();
-					fromDate.add(GregorianCalendar.MILLISECOND, -1);
-				}
+				perimeter = new FileScopePerimeter(lastArchive);
+			} else {
+				perimeter = new DateArchiveScope(null, date);
 			}
+			perimeter.setIgnoredArchives(ignoreList);
 			recover(
 					destinationFile, 
 					null,
 					null, 
 					null,
 					1, 
-					fromDate, 
-					date, 
+					perimeter,
 					traceFile, 
 					ArchiveMedium.RECOVER_MODE_RECOVER,
 					false,
@@ -360,6 +353,7 @@ implements TargetActions {
 
 			// Close the content file
 			context.getContentAdapter().close();
+			context.getReport().setContentFile(context.getContentAdapter().getFile());
 			context.setContentAdapter(null);
 
 			// Close the hash file
@@ -472,10 +466,10 @@ implements TargetActions {
 		}
 	}
 
-	public void commitMerge(ProcessContext context) throws ApplicationException {
+	public void preCommitMerge(ProcessContext context) throws ApplicationException {
 		if (! this.image) {
 			this.target.secureUpdateCurrentTask("Committing merge ...", context);
-			super.commitMerge(context);
+			super.preCommitMerge(context);
 
 			try {
 				// Clean temporary data
@@ -484,6 +478,27 @@ implements TargetActions {
 				// Close the archive
 				this.closeArchive(context); 
 
+				// Commit the archive
+				if (context.getCurrentArchiveFile() != null) {
+					this.convertArchiveToFinal(context);
+				}
+				
+				this.target.secureUpdateCurrentTask("Merge completed", context);
+			} catch (IOException e) {		
+				Logger.defaultLogger().error("Exception caught during merge commit.", e);
+				this.rollbackMerge(context);
+				throw new ApplicationException(e);
+			}
+		}
+	}
+	
+	public void finalizeMerge(ProcessContext context) throws ApplicationException {
+		if (! this.image) {
+			this.target.secureUpdateCurrentTask("Cleaning old archives ...", context);
+			context.getInfoChannel().print("Cleaning old archives ...");
+
+			try {
+				// Delete recovered archives
 				File[] recoveredFiles = context.getReport().getRecoveryResult().getRecoveredArchivesAsArray();
 				File[] ignoredFiles = context.getReport().getRecoveryResult().getIgnoredArchivesAsArray();
 
@@ -502,15 +517,13 @@ implements TargetActions {
 						this.deleteArchive(recoveredFiles[i]);                       
 					}
 
-					// Commit the archive
-					this.convertArchiveToFinal(context);
-					this.target.secureUpdateCurrentTask("Merge completed - " + context.getReport().getRecoveryResult().getProcessedArchives().size() + " archives merged.", context);
+					this.target.secureUpdateCurrentTask("" + context.getReport().getRecoveryResult().getProcessedArchives().size() + " archives merged.", context);
 				} else {
-					this.target.secureUpdateCurrentTask("Merge completed - No archive merged.", context);
+					this.target.secureUpdateCurrentTask("No archive merged.", context);
 				}
 
 			} catch (IOException e) {		
-				Logger.defaultLogger().error("Exception caught during merge commit.", e);
+				Logger.defaultLogger().error("Exception caught during merge finalization.", e);
 				this.rollbackMerge(context);
 				throw new ApplicationException(e);
 			}
@@ -595,13 +608,20 @@ implements TargetActions {
 	 * Returns the last archive for a given date.
 	 */
 	public File getLastArchive(String backupScheme, GregorianCalendar date) throws ApplicationException {
+		return getLastArchive(backupScheme, null, date);
+	}
+	
+	/**
+	 * Returns the last archive for a given date.
+	 */
+	public File getLastArchive(String backupScheme, Set exclusionList, GregorianCalendar date) throws ApplicationException {
 		String defaultName = computeArchivePath(date);
 		File defaultFile = new File(defaultName);
 
-		if (FileSystemManager.exists(defaultFile) && hasBackupScheme(defaultFile, backupScheme) && isCommitted(defaultFile)) {
+		if ((exclusionList == null || ! exclusionList.contains(defaultFile)) && FileSystemManager.exists(defaultFile) && hasBackupScheme(defaultFile, backupScheme) && isCommitted(defaultFile)) {
 			return defaultFile;
 		} else {
-			File[] archives = listArchives(null, date, true);
+			File[] archives = listArchives(null, null, date, exclusionList, true);
 			if (archives == null || archives.length == 0) {
 				return null;
 			} else {
@@ -704,11 +724,15 @@ implements TargetActions {
 	/**
 	 * Lists the medium's archives
 	 */
-	public File[] listArchives(String root, GregorianCalendar fromDate, GregorianCalendar toDate, boolean committedOnly) throws ApplicationException {
+	public File[] listArchives(String root, GregorianCalendar fromDate, GregorianCalendar toDate, Set excludeList, boolean committedOnly) throws ApplicationException {
+		if (root == null) {
+			root = fileSystemPolicy.getArchivePath();
+		}
+		
 		File[] ret = null;
 		if (this.image) {
 			File f = new File(root, computeArchiveName(fromDate));
-			if (FileSystemManager.exists(f) && checkArchiveCompatibility(f, committedOnly)) {
+			if (FileSystemManager.exists(f) && checkArchiveCompatibility(f, committedOnly) && (excludeList == null || ! excludeList.contains(f))) {
 				ret = new File[] {f};                
 			} else {
 				ret = new File[] {};
@@ -718,6 +742,16 @@ implements TargetActions {
 			File[] elementaryArchives = FileSystemManager.listFiles(rootArchiveDirectory, new ArchiveNameFilter(fromDate, toDate, this, committedOnly));
 
 			if (elementaryArchives != null) {
+				List filtered = new ArrayList();
+				
+				for (int i=0; i<elementaryArchives.length; i++) {
+					if (excludeList == null || ! excludeList.contains(elementaryArchives[i])) {
+						filtered.add(elementaryArchives[i]);
+					}
+				}
+				
+				elementaryArchives = (File[])filtered.toArray(new File[filtered.size()]);
+
 				Arrays.sort(elementaryArchives, new ArchiveComparator(this));
 			} else {
 				elementaryArchives = new File[0];
@@ -739,7 +773,7 @@ implements TargetActions {
 			throw new ApplicationException(accessInfos.getMessage(), accessInfos.getException());
 		}
 
-		return listArchives(fileSystemPolicy.getArchivePath(), fromDate, toDate, committedOnly);
+		return listArchives(null, fromDate, toDate, null, committedOnly);
 	}
 
 	/**
@@ -827,8 +861,7 @@ implements TargetActions {
 								null, 
 								null,
 								2,
-								fromDate, 
-								toDate, 
+								new DateArchiveScope(fromDate, toDate),
 								traceFile, 
 								ArchiveMedium.RECOVER_MODE_MERGE,
 								params.isKeepDeletedEntries(),
@@ -862,7 +895,8 @@ implements TargetActions {
 					context.getManifest().addProperty(ManifestKeys.MERGED_ARCHIVES, processedFiles.length);
 					context.getManifest().addProperty(ManifestKeys.ARCHIVE_SIZE, context.getOutputStreamListener().getWritten());					
 					context.getManifest().addProperty(ManifestKeys.ARCHIVE_NAME, FileSystemManager.getName(context.getCurrentArchiveFile()));
-
+					context.getManifest().addProperty(ManifestKeys.CHECKED, context.isChecked());
+					
 					AbstractTarget.addBasicInformationsToManifest(context.getManifest());
 					this.storeManifest(context);
 
@@ -1038,8 +1072,7 @@ implements TargetActions {
 					filter, 
 					policy,
 					1, 
-					null, 
-					date, 
+					new DateArchiveScope(null, date),
 					traceFile, 
 					ArchiveMedium.RECOVER_MODE_RECOVER, 
 					recoverDeletedEntries, 
@@ -1504,10 +1537,11 @@ implements TargetActions {
 	/**
 	 * Deletes the archive - WHETHER IT IS COMMITTED OR NOT
 	 */
-	protected void deleteArchive(File archive) throws IOException {
+	public void deleteArchive(File archive) throws IOException {
 		AbstractFileSystemMedium.tool.delete(archive);
 		AbstractFileSystemMedium.tool.delete(getDataDirectory(archive));
 		handler.archiveDeleted(archive);
+		ArchiveManifestCache.getInstance().removeManifest(this, archive);
 	}
 
 	protected EntryArchiveData getArchiveData(String entry, File archive) throws ApplicationException {
@@ -1688,8 +1722,7 @@ implements TargetActions {
 			ArecaRawFileList argFilter,                         // Filters the recovered entries
 			AbstractCopyPolicy policy,
 			int minimumArchiveNumber,           		// The recovery is done only if there are at least this number of archives to recover
-			GregorianCalendar fromDate,          		// Recovery from date
-			GregorianCalendar toDate,             		// Recovery to date
+			ArchiveScope perimeter,
 			File traceFile,                       	    // Optional trace to apply to the recovered data
 			short mode,                                 // Recovery mode : see ArchiveMedium.RECOVER_MODE_MERGE / RECOVER_MODE_RECOVER
 			boolean recoverDeletedEntries,				// Also recover deleted entries
@@ -1700,18 +1733,10 @@ implements TargetActions {
 		RecoveryResult result = new RecoveryResult();
 		context.getReport().setRecoveryResult(result);
 
-		if (toDate != null) {
-			toDate = (GregorianCalendar)toDate.clone();
-			toDate.add(GregorianCalendar.MILLISECOND, 1);
-		}
-		if (fromDate != null) {
-			fromDate = (GregorianCalendar)fromDate.clone();
-			fromDate.add(GregorianCalendar.MILLISECOND, -1);
-		}
-		Logger.defaultLogger().info("Recovering from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate) + ".");
+		Logger.defaultLogger().info("Recovering " + perimeter.displayScope() + ".");
 
 		// List archives to be recovered
-		buildArchiveListToRecover(result, fromDate, toDate, recoverDeletedEntries);
+		buildArchiveListToRecover(result, perimeter, recoverDeletedEntries);
 		File[] optimizedArchives = result.getRecoveredArchivesAsArray();
 
 		if (result.getRecoveredArchives().size() >= minimumArchiveNumber) {
@@ -1843,11 +1868,10 @@ implements TargetActions {
 	 */
 	private void buildArchiveListToRecover(
 			RecoveryResult result, 
-			GregorianCalendar fromDate,
-			GregorianCalendar toDate,
+			ArchiveScope perimeter,
 			boolean recoverDeletedEntries
 	) throws ApplicationException {
-		File[] listedArchives = this.listArchives(fromDate, toDate, true);
+		File[] listedArchives = perimeter.buildArchiveList(this);
 		result.addProcessedArchives(listedArchives);
 
 		if (recoverDeletedEntries) {
@@ -2043,7 +2067,7 @@ implements TargetActions {
 				}
 			}
 		} finally {
-			context.getInfoChannel().print("Check completed - " + context.getNbChecked() + " files successfully checked.");
+			context.getInfoChannel().print("Check completed - " + context.getNbChecked() + " files checked.");
 
 			// Close iterators
 			try {

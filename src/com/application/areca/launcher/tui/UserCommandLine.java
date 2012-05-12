@@ -60,6 +60,7 @@ public class UserCommandLine implements CommandConstants {
         Launcher.COMMAND_MERGE.addOptionalArgument(Launcher.OPTION_KEEP_DELETED_ENTRIES);
         Launcher.COMMAND_MERGE.addOptionalArgument(Launcher.OPTION_TITLE);
         Launcher.COMMAND_MERGE.addOptionalArgument(Launcher.OPTION_SPEC_LOCATION);
+        Launcher.COMMAND_MERGE.addOptionalArgument(Launcher.OPTION_CHECK_FILES);
         
         Launcher.COMMAND_RECOVER.addMandatoryArgument(Launcher.OPTION_CONFIG);
         Launcher.COMMAND_RECOVER.addMandatoryArgument(Launcher.OPTION_DESTINATION);

@@ -53,7 +53,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class InfoChannel 
+public class GUIInformationChannel 
 extends Composite
 implements UserInformationChannel, Colors, Listener {
 	private static final ResourceManager RM = ResourceManager.instance();
@@ -73,7 +73,7 @@ implements UserInformationChannel, Colors, Listener {
 	private boolean synthetic = ApplicationPreferences.isInformationSynthetic();
 	private String action;
 
-	public InfoChannel(AbstractTarget target, Composite parent) {
+	public GUIInformationChannel(AbstractTarget target, Composite parent) {
 		super(parent, SWT.BORDER);
 		this.parent = parent;
 		this.target = target;
@@ -225,7 +225,7 @@ implements UserInformationChannel, Colors, Listener {
 				btnCancel.dispose();
 				pgbProgress.dispose();
 
-				Link lnkShowReport = new Link(InfoChannel.this, SWT.NONE);
+				Link lnkShowReport = new Link(GUIInformationChannel.this, SWT.NONE);
 				lnkShowReport.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
 				lnkShowReport.addListener (SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
@@ -241,7 +241,7 @@ implements UserInformationChannel, Colors, Listener {
 				lnkShowReport.setBackground(Colors.C_WHITE);
 				
 
-				Link lnkRemove = new Link(InfoChannel.this, SWT.NONE);
+				Link lnkRemove = new Link(GUIInformationChannel.this, SWT.NONE);
 				lnkRemove.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
 				lnkRemove.addListener (SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {

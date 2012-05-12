@@ -537,20 +537,7 @@ public class FileTool {
 
 		// register shutdown hook to destroy the created temporary file
 		if (registerDeleteHook) {
-			final File toRemove = tmp;
-			Runnable rn = new Runnable() {
-				public void run() {
-					try {
-						FileTool.getInstance().delete(toRemove);
-					} catch (IOException e) {
-						Logger.defaultLogger().error(e);
-					}
-				}
-			};
-			Thread th = new Thread(rn);
-			th.setDaemon(false);
-			th.setName("Remove temporary file or directory : "+ toRemove.getAbsolutePath());
-			Runtime.getRuntime().addShutdownHook(th);
+			FileCleaningShutdownHook.getInstance().addFile(tmp);
 		}
 		return tmp;
 	}

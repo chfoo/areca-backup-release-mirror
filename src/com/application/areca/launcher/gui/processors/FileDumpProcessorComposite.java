@@ -14,10 +14,10 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
-import com.application.areca.launcher.gui.processors.AbstractProcessorComposite;
 import com.application.areca.processor.FileDumpProcessor;
 import com.application.areca.processor.Processor;
 import com.myJava.file.FileSystemManager;
+import com.myJava.util.CommonRules;
 
 /**
  * <BR>
@@ -51,6 +51,8 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
     private Text txtDir;
     private Text txtName;
     private Button chkAppendStatistics;
+	private Button chkListStoredFiles;
+	private Text txtMaxListedFiles;
     
     public FileDumpProcessorComposite(Composite composite, Processor proc, final ProcessorEditionWindow window) {
         super(composite, proc, window);
@@ -92,13 +94,33 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
         chkAppendStatistics = new Button(this, SWT.CHECK);
         chkAppendStatistics.setText(RM.getLabel("procedition.appendstats.label"));
         chkAppendStatistics.setToolTipText(RM.getLabel("procedition.appendstats.tt"));
+        chkAppendStatistics.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         window.monitorControl(chkAppendStatistics);
+        
+		// List stored files
+		new Label(this, SWT.NONE);
+		chkListStoredFiles = new Button(this, SWT.CHECK);
+		chkListStoredFiles.setText(RM.getLabel("procedition.liststoredfiles.label"));
+		chkListStoredFiles.setToolTipText(RM.getLabel("procedition.liststoredfiles.tt"));
+		chkListStoredFiles.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		window.monitorControl(chkListStoredFiles);
+
+        new Label(this, SWT.NONE);
+		Label lblMaxListedFiles = new Label(this, SWT.NONE);
+		lblMaxListedFiles.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+		lblMaxListedFiles.setText(RM.getLabel("procedition.maxStoredFiles.label"));
+
+		txtMaxListedFiles = new Text(this, SWT.BORDER);
+		txtMaxListedFiles.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+		window.monitorControl(txtMaxListedFiles);
         
         if (proc != null) {
             FileDumpProcessor sProc = (FileDumpProcessor)proc;
             txtDir.setText(FileSystemManager.getAbsolutePath(sProc.getDestinationFolder()));
             txtName.setText(sProc.getReportName());
             chkAppendStatistics.setSelection(sProc.isAppendStatistics());
+			chkListStoredFiles.setSelection(sProc.isAppendStoredFiles());
+			txtMaxListedFiles.setText("" + sProc.getMaxStoredFiles());
         }
     }
 
@@ -107,11 +129,15 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
         fProc.setDestinationFolder(new File(txtDir.getText()));
         fProc.setReportName(txtName.getText());
         fProc.setAppendStatistics(chkAppendStatistics.getSelection());
+        fProc.setAppendStoredFiles(chkListStoredFiles.getSelection());
+        fProc.setMaxStoredFiles(Long.parseLong(txtMaxListedFiles.getText()));
+	
     }
     
     public boolean validateParams() {
         window.resetErrorState(txtDir);
         window.resetErrorState(txtName);
+        window.resetErrorState(txtMaxListedFiles);
         
         // DIRECTORY
         if (
@@ -131,6 +157,15 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
             window.setInError(txtName, RM.getLabel("error.field.mandatory"));
             return false;
         }
+        
+		if (
+				txtMaxListedFiles == null 
+				|| txtMaxListedFiles.getText().trim().length() == 0
+				|| (! CommonRules.checkInteger(txtMaxListedFiles.getText(), true))
+		) {
+			this.window.setInError(txtMaxListedFiles, RM.getLabel("error.numeric.value.expected"));
+			return false;
+		}
 
         return true;
     }

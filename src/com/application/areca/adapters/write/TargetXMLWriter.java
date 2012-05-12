@@ -185,6 +185,8 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XMLTool.encodeProperty(XML_PP_DUMP_DIRECTORY, FileSystemManager.getAbsolutePath(pp.getDestinationFolder())));
         sb.append(XMLTool.encodeProperty(XML_PP_DUMP_NAME, pp.getReportName()));
         sb.append(XMLTool.encodeProperty(XML_PP_ADD_STATS, pp.isAppendStatistics()));
+        sb.append(XMLTool.encodeProperty(XML_PP_LIST_STORED_FILES, pp.isAppendStoredFiles()));
+        sb.append(XMLTool.encodeProperty(XML_PP_MAX_LISTED_FILES, pp.getMaxStoredFiles()));
         sb.append("/>");        
     }
     
@@ -193,6 +195,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XMLTool.encodeProperty(XML_PP_MERGE_FROM_DELAY, pp.getFromDelay()));
         sb.append(XMLTool.encodeProperty(XML_PP_MERGE_TO_DELAY, pp.getToDelay()));
         sb.append(XMLTool.encodeProperty(XML_PP_MERGE_KEEP_DELETED, pp.getParams().isKeepDeletedEntries()));
+        sb.append(XMLTool.encodeProperty(XML_PP_MERGE_CHECK, pp.getCheckParams().isCheck()));
         sb.append("/>");        
     }
     
@@ -217,6 +220,8 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         serializeProcessorHeader(XML_PROCESSOR_EMAIL_REPORT, postProcess, pp);
         serializeMailData(pp);
         sb.append(XMLTool.encodeProperty(XML_PP_ADD_STATS, pp.isAppendStatistics()));
+        sb.append(XMLTool.encodeProperty(XML_PP_LIST_STORED_FILES, pp.isAppendStoredFiles()));
+        sb.append(XMLTool.encodeProperty(XML_PP_MAX_LISTED_FILES, pp.getMaxStoredFiles()));
         sb.append("/>");        
     }
     

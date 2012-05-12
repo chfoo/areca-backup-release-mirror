@@ -126,7 +126,7 @@ public class ActionProxy {
 			ProcessContext context
 	) throws ApplicationException {
 		LogHelper.logTarget(target);
-		target.processArchiveCheck(checkParams, date, context);
+		target.processArchiveCheck(checkParams, date, null, context);
 	}
 
 	/**
@@ -169,9 +169,10 @@ public class ActionProxy {
 			GregorianCalendar toDate, 
 			Manifest manifest, 
 			MergeParameters params, 
+			CheckParameters checkParams,
 			ProcessContext context
 	) throws ApplicationException {  
-		target.processMerge(fromDate, toDate, manifest, params, context);
+		target.processMerge(fromDate, toDate, manifest, params, checkParams, context);
 	}  
 
 	public static void processMergeOnTarget(
@@ -180,10 +181,11 @@ public class ActionProxy {
 			int toDelay, 
 			Manifest manifest, 
 			MergeParameters params, 
+			CheckParameters checkParams,
 			ProcessContext context
 	) throws ApplicationException {
 		LogHelper.logTarget(target);
-		processMergeOnTargetImpl(target, fromDelay, toDelay, manifest, params, context);
+		processMergeOnTargetImpl(target, fromDelay, toDelay, manifest, params, checkParams, context);
 	}  
 
 	public static void processMergeOnTargetImpl(
@@ -192,10 +194,11 @@ public class ActionProxy {
 			int toDelay, 
 			Manifest manifest, 
 			MergeParameters params, 
+			CheckParameters checkParams,
 			ProcessContext context
 	) throws ApplicationException { 
 		LogHelper.logTarget(target);
-		target.processMerge(fromDelay, toDelay, manifest, params, context);
+		target.processMerge(fromDelay, toDelay, manifest, params, checkParams, context);
 	}
 
 	/**

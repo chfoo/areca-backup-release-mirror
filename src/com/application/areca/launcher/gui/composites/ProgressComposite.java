@@ -80,7 +80,7 @@ implements Refreshable {
 			public void handleEvent(Event arg0) {
 				Control[] children = ProgressComposite.this.getMainPane().getChildren();
 				for (int i=0; i<children.length; i++) {
-					((InfoChannel)children[i]).removeIfPossible();
+					((GUIInformationChannel)children[i]).removeIfPossible();
 				}
 			}
 		});
@@ -102,7 +102,7 @@ implements Refreshable {
 		Control[] children = ProgressComposite.this.getMainPane().getChildren();
 		boolean rn = false;
 		for (int i=0; i<children.length; i++) {
-			if (((InfoChannel)children[i]).isRunning()) {
+			if (((GUIInformationChannel)children[i]).isRunning()) {
 				rn = true;
 				break;
 			}

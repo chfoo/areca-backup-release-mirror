@@ -249,7 +249,7 @@ implements TargetActions, IndicatorTypes {
 		return result;
 	}
 
-	public void commitMerge(ProcessContext context) throws ApplicationException {
+	public void preCommitMerge(ProcessContext context) throws ApplicationException {
 		clearRelatedCaches();
 	}
 
@@ -760,8 +760,6 @@ implements TargetActions, IndicatorTypes {
 		other.transactionSize = this.transactionSize;
 		other.useTransactions = this.useTransactions;
 	}
-
-	protected abstract void deleteArchive(File archive) throws IOException;
 
 	protected void destroyTemporaryFile(File archive) {
 		String name = FileSystemManager.isFile(archive) ? "file" : "directory";

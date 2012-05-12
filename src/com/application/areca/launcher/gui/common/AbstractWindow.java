@@ -50,227 +50,227 @@ This file is part of Areca.
 public abstract class AbstractWindow 
 extends ApplicationWindow {
 	protected static final String KEY_TT = "original.tt";
-	
-    protected static final ResourceManager RM = ResourceManager.instance();
-    protected Application application = Application.getInstance(); 
-    protected boolean hasBeenUpdated = false;
-    protected boolean initialized = false;
-    protected Point size;
-    
-    /**
-     * @param parentShell
-     */
-    public AbstractWindow() {
-        super(null);
-    	EncryptionUtil.registerRandomSeed();
-    }
-    
-    public static Point computeSize(int linuxW, int linuxH) {
-        return new Point(computeWidth(linuxW), computeHeight(linuxH));
-    }
-    
-    public static int computeWidth(int linuxW) {
-        if (OSTool.isSystemWindows()) {
-            return (int)(linuxW * 0.8);
-        } else {
-            return linuxW;
-        }
-    }
-    
-    public static int computeHeight(int linuxH) {
-        if (OSTool.isSystemWindows()) {
-            return (int)(linuxH * 0.8);
-        } else {
-            return linuxH;
-        }
-    }
-    
-    protected void configureShell(final Shell shell) {
-        super.configureShell(shell);
 
-        if (size != null) {
-            shell.setSize(size);
-        }
-        shell.setText(getFullWindowTitle());
-        shell.setImage(ArecaImages.ICO_SMALL);
-    }
+	protected static final ResourceManager RM = ResourceManager.instance();
+	protected Application application = Application.getInstance(); 
+	protected boolean hasBeenUpdated = false;
+	protected boolean initialized = false;
+	protected Point size;
 
-    public boolean close() {
-    	EncryptionUtil.registerRandomSeed();
-        boolean close = true;
-        
-        if (hasBeenUpdated) {
-            if (checkBusinessRules()) {
-                int result = application.showConfirmDialog(
-                        RM.getLabel("appdialog.confirmclose.message"),
-                        RM.getLabel("appdialog.confirmclose.title"),
-                        SWT.YES | SWT.NO | SWT.CANCEL);
-   
-                if (result == SWT.YES) {
-                    saveChanges();
-                } else if (result == SWT.CANCEL) {
-                    close = false;
-                }
-            } else {
-                if (showCancelMessage() == SWT.NO) {
-                    close = false;
-                }
-            }
-        }
-        
-        if (close) {
-            return super.close();
-        } else {
-            return false;
-        }
-    }
+	/**
+	 * @param parentShell
+	 */
+	public AbstractWindow() {
+		super(null);
+		EncryptionUtil.registerRandomSeed();
+	}
 
-    protected String getFullWindowTitle() {
-        String title = getTitle();
-        if (title != null) {
-            title = VersionInfos.APP_NAME + " - " + title;
-        } else {
-            title = VersionInfos.APP_NAME;      
-        }
+	public static Point computeSize(int linuxW, int linuxH) {
+		return new Point(computeWidth(linuxW), computeHeight(linuxH));
+	}
 
-        if (hasBeenUpdated) {
-            title += " [" + ResourceManager.instance().getLabel("appdialog.modified.label") + "]";
-        }
-        
-        return title;
-    }
-    
-    public void monitorControl(Text ctrl) {
-        ctrl.addModifyListener(new ModifyListener() {
-            public void modifyText(ModifyEvent e) {
-            	EncryptionUtil.registerRandomSeed();
-                registerUpdate();
-            }
-        });
-    }
-    
-    public void monitorControl(Button ctrl) {
-        monitorControl(SWT.Selection, ctrl);
-    }
-    
-    public void monitorControl(Combo ctrl) {
-        monitorControl(SWT.Selection, ctrl);
-    }
-    
-    protected void monitorControl(int swtEventType, Control ctrl) {
-        ctrl.addListener(swtEventType, new Listener() {
-            public void handleEvent(Event event) {
-            	EncryptionUtil.registerRandomSeed();
-                registerUpdate();
-            }
-        });
-    }
-    
-    public void resetErrorState(Control ctrl) {
-    	String tt = (String)ctrl.getData(KEY_TT);
-    	if (tt != null) {
-    		ctrl.setToolTipText(tt);
-    	}
-        ctrl.setBackground(null);
-    }
-    
-    public void setInError(Control ctrl, String errorMessage) {
-    	String tt = (String)ctrl.getData(KEY_TT);
-    	if (tt == null) {
-        	tt = ctrl.getToolTipText();
-        	ctrl.setData(KEY_TT, tt);
-    	}
-    	if (errorMessage != null && errorMessage.trim().length() != 0) {
-    		String root = tt == null ? "" : tt + "\n\n";
-    		ctrl.setToolTipText(root + RM.getLabel("error.label.prefix") + errorMessage);
-    	}
-        ctrl.setBackground(Colors.C_FLD_ERROR);        
-    }
+	public static int computeWidth(int linuxW) {
+		if (OSTool.isSystemWindows()) {
+			return (int)(linuxW * 0.8);
+		} else {
+			return linuxW;
+		}
+	}
 
-    protected void constrainShellSize() {
-        super.constrainShellSize();
-        initialized = true;
-        this.updateState(checkBusinessRules());
-    }
+	public static int computeHeight(int linuxH) {
+		if (OSTool.isSystemWindows()) {
+			return (int)(linuxH * 0.8);
+		} else {
+			return linuxH;
+		}
+	}
 
-    protected void registerUpdate() {
-        if (this.initialized) {
+	protected void configureShell(final Shell shell) {
+		super.configureShell(shell);
 
-            hasBeenUpdated = true;
-            getShell().setText(getFullWindowTitle());
-            
-            // Update the state of the "save" button
-            this.updateState(checkBusinessRules());
-        }
-    }  
+		if (size != null) {
+			shell.setSize(size);
+		}
+		shell.setText(getFullWindowTitle());
+		shell.setImage(ArecaImages.ICO_SMALL);
+	}
 
-    public void shellActivated(ShellEvent e) {
-        // Nothing
-    }
+	public boolean close() {
+		EncryptionUtil.registerRandomSeed();
+		boolean close = true;
 
-    public void shellClosed(ShellEvent e) {
+		if (hasBeenUpdated) {
+			if (checkBusinessRules()) {
+				int result = application.showConfirmDialog(
+						RM.getLabel("appdialog.confirmclose.message"),
+						RM.getLabel("appdialog.confirmclose.title"),
+						SWT.YES | SWT.NO | SWT.CANCEL);
 
-    }
-    
-    protected void cancelChanges() {
-        boolean close = true;
-        if (hasBeenUpdated) {
-            if (showCancelMessage() == SWT.NO) {
-                close = false;
-            }
-        }
-        
-        if (close) {
-            hasBeenUpdated = false;
-            this.close();
-        }
-    }
+				if (result == SWT.YES) {
+					saveChanges();
+				} else if (result == SWT.CANCEL) {
+					close = false;
+				}
+			} else {
+				if (showCancelMessage() == SWT.NO) {
+					close = false;
+				}
+			}
+		}
 
-    public void shellDeactivated(ShellEvent e) {
-        // Nothing
-    }
+		if (close) {
+			return super.close();
+		} else {
+			return false;
+		}
+	}
 
-    public void shellDeiconified(ShellEvent e) {
-        // Nothing
-    }
+	protected String getFullWindowTitle() {
+		String title = getTitle();
+		if (title != null) {
+			title = VersionInfos.APP_NAME + " - " + title;
+		} else {
+			title = VersionInfos.APP_NAME;      
+		}
 
-    public void shellIconified(ShellEvent e) {
-        // Nothing
-    }
-    
-    protected int showCancelMessage() {
-        return application.showConfirmDialog(
-                RM.getLabel("appdialog.confirmcancel.message"),
-                RM.getLabel("appdialog.confirmcancel.title"));
-    }
-    
-    public void setModal(AbstractWindow window) {
-        setParentShell(window.getShell());
-        setShellStyle(SWT.SHELL_TRIM);
-    }
- 
-    public Point getSize() {
-        return size;
-    }
+		if (hasBeenUpdated) {
+			title += " [" + ResourceManager.instance().getLabel("appdialog.modified.label") + "]";
+		}
 
-    public void setSize(Point size) {
-        this.size = size;
-    }
-    
-    public static boolean getTableLinesVisible() {
-        return ! OSTool.isSystemWindows();
-    }
+		return title;
+	}
 
-    public abstract String getTitle();
-    protected abstract boolean checkBusinessRules();  
-    protected abstract void updateState(boolean rulesSatisfied);
-    protected abstract void saveChanges();
-    
-    public static String configureForTable(String text) {
-        if (OSTool.isSystemWindows()) {
-            return text.replace('\n', ' ').replace('\r', ' ');
-        } else {
-            return text;
-        }
-    }
+	public void monitorControl(Text ctrl) {
+		ctrl.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
+				EncryptionUtil.registerRandomSeed();
+				registerUpdate();
+			}
+		});
+	}
+
+	public void monitorControl(Button ctrl) {
+		monitorControl(SWT.Selection, ctrl);
+	}
+
+	public void monitorControl(Combo ctrl) {
+		monitorControl(SWT.Selection, ctrl);
+	}
+
+	protected void monitorControl(int swtEventType, Control ctrl) {
+		ctrl.addListener(swtEventType, new Listener() {
+			public void handleEvent(Event event) {
+				EncryptionUtil.registerRandomSeed();
+				registerUpdate();
+			}
+		});
+	}
+
+	public void resetErrorState(Control ctrl) {
+		String tt = (String)ctrl.getData(KEY_TT);
+		if (tt != null) {
+			ctrl.setToolTipText(tt);
+		}
+		ctrl.setBackground(null);
+	}
+
+	public void setInError(Control ctrl, String errorMessage) {
+		String tt = (String)ctrl.getData(KEY_TT);
+		if (tt == null) {
+			tt = ctrl.getToolTipText();
+			ctrl.setData(KEY_TT, tt);
+		}
+		if (errorMessage != null && errorMessage.trim().length() != 0) {
+			String root = tt == null ? "" : tt + "\n\n";
+			ctrl.setToolTipText(root + RM.getLabel("error.label.prefix") + errorMessage);
+		}
+		ctrl.setBackground(Colors.C_FLD_ERROR);        
+	}
+
+	protected void constrainShellSize() {
+		super.constrainShellSize();
+		initialized = true;
+		this.updateState(checkBusinessRules());
+	}
+
+	protected void registerUpdate() {
+		if (this.initialized) {
+
+			hasBeenUpdated = true;
+			getShell().setText(getFullWindowTitle());
+
+			// Update the state of the "save" button
+			this.updateState(checkBusinessRules());
+		}
+	}  
+
+	public void shellActivated(ShellEvent e) {
+		// Nothing
+	}
+
+	public void shellClosed(ShellEvent e) {
+
+	}
+
+	protected void cancelChanges() {
+		boolean close = true;
+		if (hasBeenUpdated) {
+			if (showCancelMessage() == SWT.NO) {
+				close = false;
+			}
+		}
+
+		if (close) {
+			hasBeenUpdated = false;
+			this.close();
+		}
+	}
+
+	public void shellDeactivated(ShellEvent e) {
+		// Nothing
+	}
+
+	public void shellDeiconified(ShellEvent e) {
+		// Nothing
+	}
+
+	public void shellIconified(ShellEvent e) {
+		// Nothing
+	}
+
+	protected int showCancelMessage() {
+		return application.showConfirmDialog(
+				RM.getLabel("appdialog.confirmcancel.message"),
+				RM.getLabel("appdialog.confirmcancel.title"));
+	}
+
+	public void setModal(AbstractWindow window) {
+		setParentShell(window.getShell());
+		setShellStyle(SWT.SHELL_TRIM);
+	}
+
+	public Point getSize() {
+		return size;
+	}
+
+	public void setSize(Point size) {
+		this.size = size;
+	}
+
+	public static boolean getTableLinesVisible() {
+		return ! OSTool.isSystemWindows();
+	}
+
+	public abstract String getTitle();
+	protected abstract boolean checkBusinessRules();  
+	protected abstract void updateState(boolean rulesSatisfied);
+	protected abstract void saveChanges();
+
+	public static String configureForTable(String text) {
+		if (OSTool.isSystemWindows()) {
+			return text.replace('\n', ' ').replace('\r', ' ');
+		} else {
+			return text;
+		}
+	}
 }

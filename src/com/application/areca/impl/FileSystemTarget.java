@@ -318,6 +318,7 @@ implements TargetActions {
     public void processArchiveCheck(
     		CheckParameters checkParams,
     		GregorianCalendar date,
+    		Set ignoreList,
     		ProcessContext context) throws ApplicationException {
     	try {
     		validateTargetState(ACTION_RECOVER, context);
@@ -326,7 +327,7 @@ implements TargetActions {
     			if (checkParams.isUseSpecificLocation()) {
     				destination = checkParams.getSpecificLocation();
     			}
-    			this.medium.checkArchives(destination, checkParams.isCheckLastArchiveOnly(),checkParams.isSimulateRecovery(), date, context);
+    			this.medium.checkArchives(destination, checkParams.isCheckLastArchiveOnly(),checkParams.isSimulateRecovery(), date, ignoreList, context);
     		} catch (TaskCancelledException e) {
     			throw new ApplicationException(e);
     		}

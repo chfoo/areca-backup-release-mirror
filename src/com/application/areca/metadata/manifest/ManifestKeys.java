@@ -51,6 +51,8 @@ public interface ManifestKeys {
     public static final String ENCODING = "File encoding";
     public static final String OS_NAME = "Operating system";
     public static final String IS_RESUMED = "Resumed";
+    public static final String JRE = "JRE";
+    public static final String ARECA_HOME = "Areca Home";
     
     public static final String OPTION_PREFIX = "Option [";
     public static final String OPTION_SUFFIX = "]";

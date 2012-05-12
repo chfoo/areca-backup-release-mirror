@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.myJava.object.Duplicable;
+import com.myJava.object.ToStringHelper;
+import com.myJava.util.CalendarUtils;
 import com.myJava.util.collections.CollectionTools;
 
 /**
@@ -151,5 +153,20 @@ implements Duplicable, Serializable {
 		
 		// Properties are not cloned
 		return clone;
+	}
+	
+	public String toString() {
+		StringBuffer sb = ToStringHelper.init(this);
+		ToStringHelper.append("Title", this.title, sb);
+		ToStringHelper.append("Date", CalendarUtils.getFullDateToString(this.date), sb);
+		ToStringHelper.append("Type", this.type, sb);
+		Iterator iter = this.propertyIterator();
+		while (iter.hasNext()) {
+			String prop = (String)iter.next();
+			String value = this.getStringProperty(prop);
+			ToStringHelper.append(prop, value, sb);
+		}
+		
+		return sb.toString();
 	}
 }

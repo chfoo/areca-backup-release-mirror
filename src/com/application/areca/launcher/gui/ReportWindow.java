@@ -69,7 +69,7 @@ extends AbstractWindow {
 		ProcessReportWriter writer = null;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			writer = new ProcessReportWriter(new OutputStreamWriter(baos), false);
+			writer = new ProcessReportWriter(new OutputStreamWriter(baos), false, false, -1);
 			writer.writeReport(report);
 		} catch (IOException e) {
 			Logger.defaultLogger().error(e);

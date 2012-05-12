@@ -95,15 +95,15 @@ public class EncryptionConfiguration {
 		registerAESConfiguration(16, AES_HASH, null, null, null, KEYCONV_HASH);
 		registerAESConfiguration(16, AES_RAW, null, null, null, KEYCONV_RAW);
 		
-		//registerAESConfiguration(16, AES_HASH_CBC, MODE, new IvParameterSpec(new byte[16]), PADDING, KEYCONV_HASH);
-		//registerAESConfiguration(16, AES_RAW_CBC, MODE, new IvParameterSpec(new byte[16]), PADDING, KEYCONV_RAW);
+		registerAESConfiguration(16, AES_HASH_CBC, MODE, new IvParameterSpec(new byte[16]), PADDING, KEYCONV_HASH);
+		registerAESConfiguration(16, AES_RAW_CBC, MODE, new IvParameterSpec(new byte[16]), PADDING, KEYCONV_RAW);
 
 		// AES 256
 		registerAESConfiguration(32, AES256_HASH, null, null, null, KEYCONV_HASH);
 		registerAESConfiguration(32, AES256_RAW, null, null, null, KEYCONV_RAW);
 		
-		//registerAESConfiguration(32, AES256_HASH_CBC, MODE, new IvParameterSpec(new byte[32]), PADDING, KEYCONV_HASH);
-		//registerAESConfiguration(32, AES256_RAW_CBC, MODE, new IvParameterSpec(new byte[32]), PADDING, KEYCONV_RAW);
+		registerAESConfiguration(32, AES256_HASH_CBC, MODE, new IvParameterSpec(new byte[16]), PADDING, KEYCONV_HASH);
+		registerAESConfiguration(32, AES256_RAW_CBC, MODE, new IvParameterSpec(new byte[16]), PADDING, KEYCONV_RAW);
 	}
 
 	private boolean isSupported() {

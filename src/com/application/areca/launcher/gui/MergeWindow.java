@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.CheckParameters;
 import com.application.areca.MergeParameters;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ApplicationPreferences;
@@ -60,6 +61,8 @@ extends AbstractWindow {
     private Button btnBrowse;
     private Button radUseDefaultLocation;
     private Button radUseSpecificLocation;
+    
+    private Button chkCheckArchive;
 
     public MergeWindow(Manifest manifest, AbstractTarget target) {
         super();
@@ -78,6 +81,15 @@ extends AbstractWindow {
         btnKeepDeletedEntries.setToolTipText(RM.getLabel("archivedetail.keepdeletedentries.tt"));
         btnKeepDeletedEntries.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
         monitorControl(btnKeepDeletedEntries);
+        
+        // Check
+        chkCheckArchive = new Button(composite, SWT.CHECK);
+        chkCheckArchive.setSelection(false);
+		chkCheckArchive.setText(RM.getLabel("archivedetail.checkmerged.label"));
+		chkCheckArchive.setToolTipText(RM.getLabel("archivedetail.checkmerged.tt"));
+        chkCheckArchive.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+        chkCheckArchive.setSelection(true);
+        monitorControl(chkCheckArchive);
         
 		new Label(composite, SWT.NONE);
         
@@ -206,7 +218,16 @@ extends AbstractWindow {
         		radUseSpecificLocation.getSelection(), 
         		txtLocation.getText()
         );
-        this.application.launchMergeOnTarget(params, this.manifest);
+        
+        CheckParameters checkParams = new CheckParameters(
+        		chkCheckArchive.getSelection(),  
+        		true, 
+        		true, 
+        		radUseSpecificLocation.getSelection(), 
+        		txtLocation.getText()
+        );
+        
+        this.application.launchMergeOnTarget(params, checkParams, this.manifest);
         this.hasBeenUpdated = false;
         this.close();
     }

@@ -49,6 +49,8 @@ public class FileDumpProcessor extends AbstractProcessor {
 	private File destinationFolder;
 	private String reportName = "%TARGET_UID%_%ARCHIVE_NAME%.report";
 	private boolean appendStatistics;
+	private boolean appendStoredFiles;
+	private long maxStoredFiles = -1;
 
 	/**
 	 * @param target
@@ -77,6 +79,22 @@ public class FileDumpProcessor extends AbstractProcessor {
 		this.appendStatistics = appendStatistics;
 	}
 
+	public boolean isAppendStoredFiles() {
+		return appendStoredFiles;
+	}
+
+	public void setAppendStoredFiles(boolean appendStoredFiles) {
+		this.appendStoredFiles = appendStoredFiles;
+	}
+
+	public long getMaxStoredFiles() {
+		return maxStoredFiles;
+	}
+
+	public void setMaxStoredFiles(long maxStoredFiles) {
+		this.maxStoredFiles = maxStoredFiles;
+	}
+
 	public String getReportName() {
 		return reportName;
 	}
@@ -92,8 +110,8 @@ public class FileDumpProcessor extends AbstractProcessor {
 				TagHelper.replaceParamValues(
 						TagHelper.replaceTag(reportName, TagHelper.PARAM_ARCHIVE_PATH, TagHelper.PARAM_ARCHIVE_NAME), // The %ARCHIVE% tag cannot be used here !
 						context
-				)
-		);
+						)
+				);
 		Logger.defaultLogger().info("Writing backup report on : " + FileSystemManager.getDisplayPath(destination));
 
 		try {
@@ -103,7 +121,7 @@ public class FileDumpProcessor extends AbstractProcessor {
 				FileTool tool = FileTool.getInstance();
 				tool.createDir(parent);
 			}
-			writer = new ProcessReportWriter(FileSystemManager.getWriter(destination), appendStatistics);
+			writer = new ProcessReportWriter(FileSystemManager.getWriter(destination), appendStatistics, appendStoredFiles, maxStoredFiles);
 			writer.writeReport(report);
 		} catch (FileNotFoundException e) {
 			Logger.defaultLogger().error("The report filename is incorrect : " + FileSystemManager.getDisplayPath(destination), e);            
@@ -129,6 +147,8 @@ public class FileDumpProcessor extends AbstractProcessor {
 		copyAttributes(pro);
 		pro.destinationFolder = this.destinationFolder;
 		pro.reportName = this.reportName;
+		pro.appendStoredFiles = this.appendStoredFiles;
+		pro.maxStoredFiles = this.maxStoredFiles;
 		return pro;
 	}
 
@@ -144,10 +164,12 @@ public class FileDumpProcessor extends AbstractProcessor {
 		} else {
 			FileDumpProcessor other = (FileDumpProcessor)obj;
 			return                 
-			super.equals(other)
-			&& EqualsHelper.equals(this.destinationFolder, other.destinationFolder)
-			&& EqualsHelper.equals(this.reportName, other.reportName)
-			;
+					super.equals(other)
+					&& EqualsHelper.equals(this.destinationFolder, other.destinationFolder)
+					&& EqualsHelper.equals(this.reportName, other.reportName)
+					&& this.appendStoredFiles == other.appendStoredFiles
+					&& this.maxStoredFiles == other.maxStoredFiles
+					;
 		}
 	}
 
@@ -156,9 +178,11 @@ public class FileDumpProcessor extends AbstractProcessor {
 		h = HashHelper.hash(h, super.hashCode());
 		h = HashHelper.hash(h, FileSystemManager.getAbsolutePath(this.destinationFolder));
 		h = HashHelper.hash(h, this.reportName);
+		h = HashHelper.hash(h, this.appendStoredFiles);  
+		h = HashHelper.hash(h, this.maxStoredFiles);  
 		return h;
 	}
-	
+
 	public String getKey() {
 		return "Write report";
 	}

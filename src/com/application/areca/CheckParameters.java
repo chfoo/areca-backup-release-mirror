@@ -1,5 +1,9 @@
 package com.application.areca;
 
+import com.myJava.object.Duplicable;
+import com.myJava.object.EqualsHelper;
+import com.myJava.object.HashHelper;
+
 /**
  * 
  * <BR>
@@ -28,7 +32,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class CheckParameters {
+public class CheckParameters implements Duplicable {
 	private boolean check = true;
 	private boolean useSpecificLocation = false;
 	private boolean simulateRecovery = false;
@@ -78,5 +82,36 @@ public class CheckParameters {
 	}
 	public void setSimulateRecovery(boolean simulateRecovery) {
 		this.simulateRecovery = simulateRecovery;
+	}
+	
+    public Duplicable duplicate() {
+    	CheckParameters p = new CheckParameters(this.check, this.checkLastArchiveOnly, this.simulateRecovery, this.useSpecificLocation, this.specificLocation);
+        return p;
+    }
+    
+	public boolean equals(Object obj) {
+        if (obj == null || (! (obj instanceof CheckParameters)) ) {
+            return false;
+        } else {
+        	CheckParameters other = (CheckParameters)obj;
+            return 
+            	super.equals(other)
+            	&& EqualsHelper.equals(this.specificLocation, other.specificLocation)
+                && EqualsHelper.equals(this.useSpecificLocation, other.useSpecificLocation)
+                && EqualsHelper.equals(this.check, other.check)
+                && EqualsHelper.equals(this.checkLastArchiveOnly, other.checkLastArchiveOnly)
+                && EqualsHelper.equals(this.simulateRecovery, other.simulateRecovery);
+        }
+	}
+
+	public int hashCode() {
+        int h = HashHelper.initHash(this);
+        h = HashHelper.hash(h, super.hashCode());
+        h = HashHelper.hash(h, this.specificLocation);
+        h = HashHelper.hash(h, this.useSpecificLocation);
+        h = HashHelper.hash(h, this.check);
+        h = HashHelper.hash(h, this.checkLastArchiveOnly);
+        h = HashHelper.hash(h, this.simulateRecovery);
+        return h;
 	}
 }

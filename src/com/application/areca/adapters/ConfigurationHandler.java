@@ -72,7 +72,7 @@ public class ConfigurationHandler {
 			com.application.areca.adapters.MissingDataListener listener,
 			boolean installMedium) 
 	throws AdapterException {
-		return (TargetGroup)readObject(file, listener, null, installMedium);
+		return (TargetGroup)readObject(file, listener, null, installMedium, true);
 	}
 
 	public AbstractTarget readTarget(
@@ -184,7 +184,9 @@ public class ConfigurationHandler {
 			File file, 
 			com.application.areca.adapters.MissingDataListener listener, 
 			TargetGroup parent,
-			boolean installMedium) throws AdapterException {
+			boolean installMedium,
+			boolean forceRead
+		) throws AdapterException {
 		try {
 			if (FileSystemManager.isFile(file)) {
 				if (FileSystemManager.getName(file).toLowerCase().endsWith(FileSystemTarget.CONFIG_FILE_EXT_DEPRECATED) && isDeprecatedGroupConfiguration(file)) {
@@ -206,14 +208,14 @@ public class ConfigurationHandler {
 					Logger.defaultLogger().info("Ignoring " + FileSystemManager.getDisplayPath(file));
 					return null;
 				}
-			} else if (! FileSystemManager.getName(file).startsWith(".")) {
+			} else if (forceRead || ! FileSystemManager.getName(file).startsWith(".")) {
 				Logger.defaultLogger().info("Reading content of " + FileSystemManager.getDisplayPath(file));
 				TargetGroup group = new TargetGroup(FileSystemManager.getName(file));
 				group.setLoadedFrom(new ConfigurationSource(false, file));
 				File[] children = FileSystemManager.listFiles(file);
 				if (children != null) {
 					for (int i=0; i<children.length; i++) {
-						WorkspaceItem childItem = readObject(children[i], listener, group, installMedium);
+						WorkspaceItem childItem = readObject(children[i], listener, group, installMedium, false);
 						if (childItem != null) {
 							if (childItem.getLoadedFrom().isBackupCopy()) {
 								group.getLoadedFrom().setBackupCopy(true);
