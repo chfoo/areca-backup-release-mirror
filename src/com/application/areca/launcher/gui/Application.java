@@ -758,7 +758,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 
 			Thread th = new Thread(rn);
 			th.setDaemon(true);
-			th.setName("Group XML edition");
+			th.setName("Target XML edition");
 			th.start();
 		}
 	}

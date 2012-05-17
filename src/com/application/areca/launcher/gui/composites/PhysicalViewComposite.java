@@ -225,6 +225,8 @@ implements SelectionListener, Refreshable {
 		if (archives == null) {
 			archives = new File[0];
 		}
+		
+		medium.checkArchivesEncoding(archives);
 
 		for (int i=archives.length-1; i>=0; i--) {
 			TableItem item = new TableItem(table, SWT.NONE);

@@ -1,5 +1,6 @@
 package com.application.areca.launcher.gui.composites;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,6 +16,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 
@@ -27,7 +29,9 @@ import com.application.areca.launcher.gui.common.Refreshable;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.file.driver.remote.RemoteConnectionMonitor;
 import com.myJava.system.OSTool;
+import com.myJava.system.viewer.ViewerHandlerHelper;
 import com.myJava.util.Util;
+import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.LogHelper;
 import com.myJava.util.log.LogProcessor;
 import com.myJava.util.log.Logger;
@@ -78,6 +82,7 @@ implements LogProcessor, Refreshable {
 	private Button btnLock;
 	private Combo cboLogLevel;
 	private Composite panel;
+    private Link lblPath;
 
 	private Font warningFont;
 	private int currentMinLevel = MAX_LEVEL;
@@ -126,6 +131,9 @@ implements LogProcessor, Refreshable {
 	private Composite buildBottomComposite(Composite parent) {
 		panel = new Composite(parent, SWT.NONE);
 		panel.setLayout(new GridLayout(5, false));
+
+        lblPath = new Link(panel, SWT.NONE);
+        lblPath.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 5, 1));
 
 		Label lblLevel = new Label(panel, SWT.NONE);
 		lblLevel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
@@ -305,7 +313,24 @@ implements LogProcessor, Refreshable {
 	}
 
 	public void refresh() {
-		// Does nothing
+		FileLogProcessor fileProc = (FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class);
+		if (fileProc != null) {
+	        final String path = fileProc.getCurrentLogFile();
+	        lblPath.setText("<A HREF=\"\">" + path + "</A>");
+	        Listener[] listeners = lblPath.getListeners(SWT.Selection);
+	        for (int i=0; i<listeners.length; i++) {
+	        	lblPath.removeListener(SWT.Selection, listeners[i]);
+	        }
+	        lblPath.addListener (SWT.Selection, new Listener() {
+	            public void handleEvent(Event event) {
+	                try {
+	                    ViewerHandlerHelper.getViewerHandler().open(new File(path));
+	                } catch (Exception e) {
+	                    Logger.defaultLogger().error(e);
+	                }
+	            }
+	        });
+		}
 	}
 
 	public void displayApplicationMessage(final String messageKey, final String title, final String message) {

@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 4408145301164483862L;
+		BUILD_ID = 2890964742659889522L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.2.9", new GregorianCalendar(2012, 4, 17), "Added filename encoding verifications when recovering or merging archives; Minor GUI improvements."));
 		VERSIONS.add(new VersionData("7.2.8", new GregorianCalendar(2012, 4, 5), "Added a 'check archive' option after merge; CBC mode added to encryption parameters; Stored file list can be included in backup reports."));
 		VERSIONS.add(new VersionData("7.2.7", new GregorianCalendar(2012, 3, 29), "Minor backup shortcut codepage bug fix; Classpath bug fix."));
 		VERSIONS.add(new VersionData("7.2.6", new GregorianCalendar(2012, 3, 9), "New email preprocessor; Translation fix on German language pack; File filtering bugfix; Errorcode management bugfix (Windows); Minor GUI enhancements", "This version changes the way memory settings can be overriden. Please refer to the online help for more informations."));

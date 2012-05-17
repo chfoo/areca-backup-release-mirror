@@ -63,6 +63,7 @@ public abstract class AbstractLauncher {
     }
     
     public void exit(boolean force) {
+    	Logger.defaultLogger().info("Closing Areca (force=" + force + ")");
     	Iterator iter = closeCallBacks.iterator();
     	while (iter.hasNext()) {
     		Runnable rn = (Runnable)iter.next();

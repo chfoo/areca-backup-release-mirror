@@ -55,13 +55,11 @@ public class RecoveryResult {
 	}
 
 	public File[] getRecoveredArchivesAsArray() {
-		return (File[]) recoveredArchives.toArray(new File[recoveredArchives
-				.size()]);
+		return (File[]) recoveredArchives.toArray(new File[recoveredArchives.size()]);
 	}
 
 	public File[] getProcessedArchivesAsArray() {
-		return (File[]) processedArchives.toArray(new File[processedArchives
-				.size()]);
+		return (File[]) processedArchives.toArray(new File[processedArchives.size()]);
 	}
 
 	public void addProcessedArchives(File[] archives) {

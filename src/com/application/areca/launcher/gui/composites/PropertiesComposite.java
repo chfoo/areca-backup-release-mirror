@@ -1,10 +1,15 @@
 package com.application.areca.launcher.gui.composites;
 
+import java.io.File;
+
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -17,7 +22,10 @@ import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.impl.handler.DefaultArchiveHandler;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
+import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.myJava.file.FileSystemManager;
+import com.myJava.system.viewer.ViewerHandlerHelper;
+import com.myJava.util.log.Logger;
 
 /**
  * <BR>
@@ -53,6 +61,7 @@ extends Composite {
     private Table table;
     private TableViewer viewer;
     private Application application = Application.getInstance();
+    private Link lnk;
     
     public PropertiesComposite(Composite parent) {
         super(parent, SWT.NONE);
@@ -74,27 +83,26 @@ extends Composite {
         TableColumn col2 = new TableColumn (table, SWT.NONE);
         col2.setWidth(AbstractWindow.computeWidth(250));
         col2.setMoveable(true);
-        /*
-        Link lnk = new Link(this, SWT.NONE);
-        lnk.setText("<A>Configure</A>");
-        lnk.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-        lnk.addListener (SWT.Selection, new Listener () {
-			public void handleEvent(Event event) {
-				if (application.isCurrentObjectTargetGroup()) {
-					Application.getInstance().processCommand(AppActionReferenceHolder.CMD_EDIT_PROCESS);
-				} else if (application.isCurrentObjectTarget()) {
-					Application.getInstance().processCommand(AppActionReferenceHolder.CMD_EDIT_TARGET);
-				}
-			}
-		});
-	*/
+
+        lnk = new Link(this, SWT.NONE);
+        lnk.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
         // REFRESH DATA
         this.refresh();
     }
     
     public void refresh() {
+    	// reset properties table
         table.removeAll();
+        
+        // Reset edition link
+        lnk.setText("");
+        Listener[] listeners = lnk.getListeners(SWT.Selection);
+        for (int i=0; i<listeners.length; i++) {
+        	lnk.removeListener(SWT.Selection, listeners[i]);
+        }
+        
+        // Fill data
         if (application.isCurrentObjectTarget()) {
             fillData((FileSystemTarget)application.getCurrentTarget());
         } else if (application.isCurrentObjectTargetGroup()) {
@@ -103,15 +111,35 @@ extends Composite {
     }
     
     private void fillGenericData(WorkspaceItem item) {
-    	String conf = 
+    	final String conf = 
     		item.getLoadedFrom() == null ? 
     		FileSystemManager.getAbsolutePath(item.computeConfigurationFile(application.getWorkspace().getPathFile())) : 
     		item.getLoadedFrom().toString();
         this.addProperty(RM.getLabel("property.conf.label"), conf);
-
+        
         if (item.getLoadedFrom().isBackupCopy()) {
         	this.addProperty(RM.getLabel("property.backup.label"), "true");
         }
+        
+        // Add link to configuration file
+        lnk.setText("<A HREF=\"\">" + conf + "</A>");
+        lnk.addListener (SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+                try {
+                    try {
+						ViewerHandlerHelper.getViewerHandler().open(new File(conf));
+					} catch (Exception e) {
+						if (Application.getInstance().isCurrentObjectTarget()) {
+							Application.getInstance().showEditTargetXML(application.getInstance().getCurrentTarget());
+						} else {
+							throw e;
+						}
+					}
+                } catch (Exception e) {
+                    Logger.defaultLogger().error(e);
+                }
+            }
+        });
     }
     
     private void fillData(TargetGroup group) {

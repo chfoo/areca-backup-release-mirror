@@ -77,6 +77,7 @@ import com.myJava.file.driver.contenthash.ContentHashFileSystemDriver;
 import com.myJava.file.iterator.FilePathComparator;
 import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
+import com.myJava.system.OSTool;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
@@ -952,6 +953,10 @@ implements TargetActions {
 					}
 
 					if (lastArchive != null && FileSystemManager.exists(lastArchive)) {
+						// Check file encoding
+						this.checkArchivesEncoding(new File[] {lastArchive});
+						
+						// Resolve trace file
 						Logger.defaultLogger().info("Using the following archive as reference : " + FileSystemManager.getDisplayPath(lastArchive) + ".");
 						File trcFile = ArchiveTraceManager.resolveTraceFileForArchive(this, lastArchive);
 						File f;
@@ -1707,6 +1712,24 @@ implements TargetActions {
 			context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1);  
 		}
 	}
+	
+	public void checkArchivesEncoding(File[] archives) {
+		try {
+			String currentEncoding = OSTool.getIANAFileEncoding();
+			for (int i=0; i<archives.length; i++) {
+				Manifest mf = ArchiveManifestCache.getInstance().getManifest(this, archives[i]);
+				if (mf != null) {
+					String archiveEncoding = mf.getStringProperty(ManifestKeys.ENCODING);
+					if (archiveEncoding != null && ! archiveEncoding.equalsIgnoreCase(currentEncoding)) {
+						Logger.defaultLogger().warn("The filename encoding used for " + FileSystemManager.getAbsolutePath(archives[i]) + "(" + FileSystemManager.getDisplayPath(archives[i]) + ") is " + archiveEncoding + ", which is different from your current encoding (" + currentEncoding + ").\nThis can result in recovery or merge issues if some of your filenames contain non-ASCII characters.\nIf you are running Linux, this can be an issue related to the value of the LANG, LANGUAGE or LC_CTYPE variables in your environment\n(Important : these variables may have to be set explicitely for crontab)");
+					}
+				}
+			}
+		} catch (Exception e) {
+			// shall throw no exception - informational only - we do not want this check to disturb the behaviour
+			Logger.defaultLogger().error("Error caught while checking archive encoding.", e);
+		}
+	}
 
 	/**
 	 * Recovers the files at the requested recovery location, according to the recovery dates passed as argument.
@@ -1739,7 +1762,12 @@ implements TargetActions {
 		buildArchiveListToRecover(result, perimeter, recoverDeletedEntries);
 		File[] optimizedArchives = result.getRecoveredArchivesAsArray();
 
-		if (result.getRecoveredArchives().size() >= minimumArchiveNumber) {
+		if (optimizedArchives.length >= minimumArchiveNumber) {
+			
+			// Check archives (encoding)
+			checkArchivesEncoding(optimizedArchives);
+			
+			// Recover
 			recoverImpl(
 					targetFile, 
 					workingDirectory, 

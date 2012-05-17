@@ -1,5 +1,8 @@
 package com.application.areca.launcher.gui;
 
+import java.io.File;
+import java.net.URL;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -9,6 +12,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
@@ -19,6 +23,8 @@ import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.SavePanel;
+import com.myJava.system.viewer.ViewerHandlerHelper;
+import com.myJava.util.log.Logger;
 
 /**
  * <BR>
@@ -66,7 +72,7 @@ extends AbstractWindow {
     private Button showLogical;
     private Button showWSPath;
     private Button showToolBar;
-    private Label lblPrfPath;
+    private Link lblPrfPath;
 
     protected Control createContents(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
@@ -90,10 +96,18 @@ extends AbstractWindow {
         grpArchives.setLayout(new GridLayout(3, false));
         buildArchivesComposite(grpArchives);
         
-        lblPrfPath = new Label(composite, SWT.NONE);
+        lblPrfPath = new Link(composite, SWT.NONE);
         lblPrfPath.setLayoutData(new GridData(SWT.CENTER, SWT.FILL, true, false));
-        lblPrfPath.setEnabled(false);
-        lblPrfPath.setText(ApplicationPreferences.getPath());
+        lblPrfPath.setText("<A HREF=\"\">" + ApplicationPreferences.getPath() + "</A>");
+        lblPrfPath.addListener (SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+                try {
+                    ViewerHandlerHelper.getViewerHandler().open(new File(ApplicationPreferences.getPath()));
+                } catch (Exception e) {
+                    Logger.defaultLogger().error(e);
+                }
+            }
+        });
         
         SavePanel pnlSave = new SavePanel(this);
         pnlSave.buildComposite(composite).setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
@@ -139,7 +153,6 @@ extends AbstractWindow {
         showWSPath.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
         showWSPath.setSelection(ApplicationPreferences.isDisplayWSAddress());
         monitorControl(showWSPath);
-        
     }
     
     private void buildStartupComposite(Composite parent) {

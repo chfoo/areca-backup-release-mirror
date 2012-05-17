@@ -144,7 +144,7 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
 			hash = serialized.substring(index + MetadataConstants.SEPARATOR.length());
 		}
 		//handle current directory
-		entry.setType(key.charAt(0));  	// register the type marker
+		entry.setType(key.charAt(0));  			// register the type marker
 		entry.setKey(key.substring(1)); 		// remove the type marker
 		entry.setData(hash);
 

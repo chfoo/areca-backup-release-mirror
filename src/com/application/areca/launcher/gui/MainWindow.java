@@ -308,6 +308,7 @@ public class MainWindow extends AbstractWindow {
 
     public boolean close(boolean force) {
         if (force) {
+        	Logger.defaultLogger().info("Closing Areca's main window ...");
             return super.close();
         } else {
             application.processExit();
