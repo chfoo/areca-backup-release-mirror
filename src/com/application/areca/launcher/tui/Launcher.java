@@ -634,7 +634,7 @@ implements CommandConstants {
 				context
 		);
 
-		if (context.hasRecoveryIssues()) {
+		if (context.getReport().hasRecoveryIssues()) {
 			context.getInfoChannel().warn("Some errors were found (see above).");
 			setErrorCode(ERR_INVALID_ARCHIVE); 
 		} else if (context.getRecoveryDestination() != null) {

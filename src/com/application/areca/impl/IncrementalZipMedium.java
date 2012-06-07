@@ -1,5 +1,6 @@
 package com.application.areca.impl;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,8 +28,10 @@ import com.myJava.file.archive.zip64.ZipArchiveAdapter;
 import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.file.archive.zip64.ZipVolumeStrategy;
 import com.myJava.file.iterator.FileNameComparator;
+import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.file.multivolumes.VolumeStrategy;
 import com.myJava.object.Duplicable;
+import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -86,6 +89,20 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 
 	public String checkResumeSupported() {
 		return "Backup as single zip archive";
+	}
+	
+	protected void dbgBuildArchiveFileList(File archive, BufferedWriter writer) throws IOException, ApplicationException {
+		ArchiveAdapter adapter = this.buildArchiveAdapter(archive, false, null);
+		try {
+			String fileName;
+			while((fileName = adapter.getNextEntry()) != null) {
+				writer.write("\n"+fileName);
+				Logger.defaultLogger().fine("File : " + fileName);
+				adapter.closeEntry();
+			}        
+		} finally {
+			adapter.close();
+		}
 	}
 
 	protected void storeFileInArchive(FileSystemRecoveryEntry entry, InputStream in, ProcessContext context) 
@@ -188,7 +205,9 @@ public class IncrementalZipMedium extends AbstractIncrementalFileSystemMedium {
 			AbstractFileSystemMedium.tool.createDir(f);
 		}
 		ZipVolumeStrategy strat = new ZipVolumeStrategy(new File(f, MV_ARCHIVE_NAME), compressionArguments.getNbDigits());
-		strat.setListener(context.getOutputStreamListener());
+		if (context != null) {
+			strat.setListener(context.getOutputStreamListener());
+		}
 		return strat;
 	}
 

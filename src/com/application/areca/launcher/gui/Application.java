@@ -667,9 +667,9 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			}
 
 			protected void finishCommand() {
-				window.setResult(context.getInvalidRecoveredFiles(),
-						context.getUncheckedRecoveredFiles(),
-						context.getUnrecoveredFiles(), context.getNbChecked());
+				window.setResult(context.getReport().getInvalidRecoveredFiles(),
+						context.getReport().getUncheckedRecoveredFiles(),
+						context.getReport().getUnrecoveredFiles(), context.getReport().getNbChecked());
 			}
 
 			protected void finishCommandInError(Exception e) {
@@ -690,7 +690,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 	private void showRecoveryResultWindow(final ProcessContext context) {
 		SecuredRunner.execute(new Runnable() {
 			public void run() {
-				if (context.hasRecoveryIssues()) {
+				if (context.getReport().hasRecoveryIssues()) {
 					showWarningDialog(
 							RM.getLabel("recover.check.invalid.label"),
 							RM.getLabel("recover.check.result.title"), false);
@@ -726,8 +726,21 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			this.mainWindow.refresh(true, true);
 		}
 	}
+	
+	/**
+	 * Try to open the file with the system editor.
+	 * <br>Switch to the configured text editor in case of failure
+	 * @param path
+	 */
+	public void secureOpenFile(String path) {
+        try {
+            ViewerHandlerHelper.getViewerHandler().open(new File(path));
+		} catch (Exception e) {
+			launchFileEditor(path, true);
+		}
+	}
 
-	private void launchFileEditor(String path, boolean async) {
+	public void launchFileEditor(String path, boolean async) {
 		path = path.replace('\\', '/');
 		try {
 			String editCommand = ApplicationPreferences.getEditionCommand();

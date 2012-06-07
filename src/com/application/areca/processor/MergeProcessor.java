@@ -102,6 +102,7 @@ public class MergeProcessor extends AbstractProcessor {
 				null, 
 				params,
 				checkParams,
+				false, 
 				subContext
 				);
 	}

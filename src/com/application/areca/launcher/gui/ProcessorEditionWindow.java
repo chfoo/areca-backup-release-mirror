@@ -65,6 +65,10 @@ extends AbstractWindow {
     protected Button chkError;
     protected Button chkWarning;
     protected Button chkOK;
+    
+    protected Button chkBackup;
+    protected Button chkMerge;
+    protected Button chkCheck;
 
     protected AbstractProcessor proc;  
     protected FileSystemTarget currentTarget;
@@ -111,7 +115,7 @@ extends AbstractWindow {
         Group pnlRunContainer = new Group(composite, SWT.NONE);
         pnlRunContainer.setText(RM.getLabel("procedition.run.label"));
         pnlRunContainer.setLayout(new GridLayout(1, false));
-        pnlRunContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+        pnlRunContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
     	
         chkOK = new Button(pnlRunContainer, SWT.CHECK);
         chkOK.setText(RM.getLabel("procedition.run.ok.label"));
@@ -128,14 +132,42 @@ extends AbstractWindow {
         chkError.setToolTipText(RM.getLabel("procedition.run.error.tt"));
         this.monitorControl(chkError);
         
+        Group pnlActionContainer = new Group(composite, SWT.NONE);
+        pnlActionContainer.setText(RM.getLabel("procedition.context.label"));
+        pnlActionContainer.setLayout(new GridLayout(1, false));
+        pnlActionContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+    	
+        chkBackup = new Button(pnlActionContainer, SWT.CHECK);
+        chkBackup.setText(RM.getLabel("procedition.run.backup.label"));
+        chkBackup.setToolTipText(RM.getLabel("procedition.run.backup.tt"));
+        this.monitorControl(chkBackup);
+        
+        chkMerge = new Button(pnlActionContainer, SWT.CHECK);
+        chkMerge.setText(RM.getLabel("procedition.run.merge.label"));
+        chkMerge.setToolTipText(RM.getLabel("procedition.run.merge.tt"));
+        this.monitorControl(chkMerge);
+        
+        chkCheck = new Button(pnlActionContainer, SWT.CHECK);
+        chkCheck.setText(RM.getLabel("procedition.run.check.label"));
+        chkCheck.setToolTipText(RM.getLabel("procedition.run.check.tt"));
+        this.monitorControl(chkCheck);
+        
         if (proc != null) {
         	chkOK.setSelection(proc.isRunIfOK());
         	chkWarning.setSelection(proc.isRunIfWarning());
         	chkError.setSelection(proc.isRunIfError());
+        	
+        	chkBackup.setSelection(proc.isRunBackup());
+        	chkMerge.setSelection(proc.isRunMerge());
+        	chkCheck.setSelection(proc.isRunCheck());
         } else {
         	chkOK.setSelection(true);
         	chkWarning.setSelection(true);
         	chkError.setSelection(true);
+        	
+        	chkBackup.setSelection(true);
+        	chkMerge.setSelection(false);
+        	chkCheck.setSelection(false);
         }
         
         // CONTAINER
@@ -178,6 +210,10 @@ extends AbstractWindow {
     	this.proc.setRunIfError(chkError.getSelection());
     	this.proc.setRunIfWarning(chkWarning.getSelection());
     	this.proc.setRunIfOK(chkOK.getSelection());
+    	
+    	this.proc.setRunBackup(chkBackup.getSelection());
+    	this.proc.setRunMerge(chkMerge.getSelection());
+    	this.proc.setRunCheck(chkCheck.getSelection());
         
         this.hasBeenUpdated = false;
         this.close();

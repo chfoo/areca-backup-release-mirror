@@ -491,8 +491,7 @@ implements TargetActions, IndicatorTypes {
 
 	public synchronized HistoryHandler getHistoryHandler() {
 		if (this.historyHandler == null) {
-			File historyFile = new File(fileSystemPolicy.getArchiveDirectory(),
-					this.getHistoryName());
+			File historyFile = new File(fileSystemPolicy.getArchiveDirectory(), this.getHistoryName());
 			this.historyHandler = new HistoryHandler(historyFile);
 		}
 

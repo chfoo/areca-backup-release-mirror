@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 
 import com.application.areca.context.ProcessContext;
+import com.application.areca.metadata.FileList;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.FileList.FileListIterator;
 import com.myJava.file.metadata.FileMetaData;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.util.log.Logger;
@@ -39,6 +41,9 @@ This file is part of Areca.
  */
 public class UpdateMetaDataTraceHandler implements TraceHandler {
 	private File destination;
+	private FileList excludedFiles;
+	private FileListIterator excludedFilesIterator;
+	
 	private long version;
 
 	public File getDestination() {
@@ -49,24 +54,38 @@ public class UpdateMetaDataTraceHandler implements TraceHandler {
 		this.destination = destination;
 	}
 
-	public void close() {
+	public FileList getExcludedFiles() {
+		return excludedFiles;
+	}
+
+	public void setExcludedFiles(FileList excludedFiles) throws IOException {
+		this.excludedFiles = excludedFiles;
+		this.excludedFilesIterator = excludedFiles == null ? null : excludedFiles.iterator();
+	}
+
+	public void close() throws IOException {
+		if (excludedFilesIterator != null) {
+			excludedFilesIterator.close();
+		}
 	}
 
 	public void newRow(char type, String key, String hash, ProcessContext context) 
-	throws FileMetaDataSerializationException, TaskCancelledException {
+	throws FileMetaDataSerializationException, TaskCancelledException, IOException {
 		context.getTaskMonitor().checkTaskState();
-		
 		File target = new File(destination, key);
-		if (FileSystemManager.exists(target)) {
-			FileMetaData atts = ArchiveTraceParser.extractAttributesFromEntry(key, type, hash, version);
-			
-			if (atts == null) {
-				Logger.defaultLogger().warn("Unable to retrieve metadata for '" + key + "'. This is probably because you are trying to read an archive that was created on a different operating system.");
-			} else {
-				try {
-					FileSystemManager.applyMetaData(atts, target);
-				} catch (IOException e) {
-					Logger.defaultLogger().error("Unable to apply metadata.", e);
+		
+		if (excludedFilesIterator == null || (! excludedFilesIterator.fetch(FileSystemManager.getAbsolutePath(target)))) {
+			if (FileSystemManager.exists(target)) {
+				FileMetaData atts = ArchiveTraceParser.extractAttributesFromEntry(key, type, hash, version);
+				
+				if (atts == null) {
+					Logger.defaultLogger().warn("Unable to retrieve metadata for '" + key + "'. This is probably because you are trying to read an archive that was created on a different operating system.");
+				} else {
+					try {
+						FileSystemManager.applyMetaData(atts, target);
+					} catch (IOException e) {
+						Logger.defaultLogger().error("Unable to apply metadata.", e);
+					}
 				}
 			}
 		}

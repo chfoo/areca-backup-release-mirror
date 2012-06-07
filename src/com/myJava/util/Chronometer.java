@@ -97,8 +97,8 @@ public class Chronometer {
 		public short state = STOPPED;
 		public long from = -1;
 		public long nb = 0;
-		public long maxDuration;
-		public long minDuration;
+		public long maxDuration = 0;
+		public long minDuration = Long.MAX_VALUE;
 		public long duration = 0;
 		
 		public String toString() {

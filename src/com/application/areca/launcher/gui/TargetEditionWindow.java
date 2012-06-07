@@ -1,5 +1,6 @@
 package com.application.areca.launcher.gui;
 
+import java.awt.event.KeyAdapter;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -53,6 +54,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.ApplicationException;
 import com.application.areca.ArecaConfiguration;
 import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
@@ -89,11 +91,13 @@ import com.myJava.file.FileTool;
 import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.file.driver.EncryptedFileSystemDriver;
 import com.myJava.system.OSTool;
+import com.myJava.system.viewer.ViewerHandlerHelper;
 import com.myJava.util.CommonRules;
 import com.myJava.util.PasswordQualityEvaluator;
 import com.myJava.util.Util;
 import com.myJava.util.history.History;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
  * <BR>
@@ -125,7 +129,7 @@ This file is part of Areca.
 public class TargetEditionWindow
 extends AbstractWindow {
 	private static final long DEFAULT_TRANSACTION_SIZE = ArecaConfiguration.get().getTransactionSize();
-	
+
 	private static final ResourceManager RM = ResourceManager.instance();
 	private static final String TITLE = RM.getLabel("targetedition.dialog.title");
 	private static final String PLUGIN_HD = "hd";
@@ -260,6 +264,34 @@ extends AbstractWindow {
 			tabs.setSelection(0);
 			ret.pack(true);
 			initValues();
+
+			ret.addKeyListener(new org.eclipse.swt.events.KeyAdapter() {
+				public void keyPressed(KeyEvent event) {
+					if ((event.stateMask & SWT.CTRL) != 0 && (event.stateMask & SWT.ALT) != 0 && event.keyCode == 100) {
+						Runnable rn = new Runnable() {
+							public void run() {
+								File targetDir = new File(System.getProperty("user.home"));
+								Logger.defaultLogger().info("Creating debug file in " + FileSystemManager.getAbsolutePath(targetDir) + " ...");
+								try {
+									application.enableWaitCursor(TargetEditionWindow.this);
+									File resultFile = target.createDebuggingData(targetDir);
+									Logger.defaultLogger().info("Debug file created : " + FileSystemManager.getAbsolutePath(resultFile));
+				                    ViewerHandlerHelper.getViewerHandler().open(targetDir);
+								} catch (Exception e) {
+									Logger.defaultLogger().error("Error caught while creating debugging informations", e);
+									application.handleException("Error caught while creating debugging informations", e);
+								} finally {
+									application.disableWaitCursor(TargetEditionWindow.this);
+								}
+							}
+						};
+						
+						Thread th = new Thread(rn);
+						th.setName("Create debugging data");
+						th.start();
+					}
+				}
+			});
 		} finally {
 			application.disableWaitCursor();
 		}
@@ -696,7 +728,7 @@ extends AbstractWindow {
 		rdArchive.addListener(SWT.Selection, new Listener(){
 			public void handleEvent(Event event) {
 				handleTransactionData();
-				
+
 				if (rdArchive.getSelection() && ! hasDisplayedTransactionWarning) {
 					Application.getInstance().showDoNotShowAgainWindow(RM.getLabel("common.ziparchive.transaction.warn.title"), RM.getLabel("common.ziparchive.transaction.warn.message"), "show.transaction.ziparchive.incompatibility.warning");
 					hasDisplayedTransactionWarning = true;
@@ -707,7 +739,7 @@ extends AbstractWindow {
 		rdSingle = new Button(grpStorage, SWT.RADIO);
 		rdSingle.setText(RM.getLabel("targetedition.zip.unit.label"));
 		rdSingle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
-		
+
 		rdSingle.addListener(SWT.Selection, new Listener(){
 			public void handleEvent(Event event) {
 				handleTransactionData();
@@ -936,7 +968,7 @@ extends AbstractWindow {
 					int rep = Application.getInstance().showConfirmDialog(
 							RM.getLabel("targetedition.generatekey.warningtext"), 
 							RM.getLabel("targetedition.generatekey.warningtitle")
-					);
+							);
 
 					if (rep != SWT.YES) {
 						ok = false;
@@ -1039,7 +1071,7 @@ extends AbstractWindow {
 						event.data = "dummy data";
 					}
 				}
-		);
+				);
 
 		DropTarget target = new DropTarget(treFilters, operation);
 		target.setTransfer(types);
@@ -1264,7 +1296,7 @@ extends AbstractWindow {
 						fMedium.getCompressionArguments().getCharset() != null ? 
 								fMedium.getCompressionArguments().getCharset().name() : 
 									ZipConstants.DEFAULT_CHARSET
-				);
+						);
 
 				chkAddExtension.setSelection(fMedium.getCompressionArguments().isAddExtension());
 
@@ -1345,7 +1377,7 @@ extends AbstractWindow {
 			// INIT PROCS
 			this.preProcessesTab.setProcessors(target.getPreProcessors());
 			this.postProcessesTab.setProcessors(target.getPostProcessors());
-			
+
 			// TRANSACTION DATA
 			this.chkUseTransactions.setSelection(fMedium.isUseTransactions());
 			if (fMedium.isUseTransactions()) {
@@ -1379,7 +1411,7 @@ extends AbstractWindow {
 			mdlFilters.addFilter(filter2);
 
 			addFilter(null, mdlFilters);
-			
+
 			this.chkUseTransactions.setSelection(true);
 			this.txtTransactionSize.setText("" + DEFAULT_TRANSACTION_SIZE);
 		}
@@ -1504,7 +1536,7 @@ extends AbstractWindow {
 				item.getParentItem() == null 
 				|| item.getParentItem().getItemCount() == 0 
 				|| item.getParentItem().getItem(0).getData().equals(item.getData())
-		);
+				);
 
 		item.removeAll();
 
@@ -1518,7 +1550,7 @@ extends AbstractWindow {
 
 		String filterExclude = RM.getLabel(
 				filter.isLogicalNot() ? "filteredition.exclusion.label" : "filteredition.inclusion.label"
-		);
+				);
 		if (! filter.checkParameters()) {
 			item.setForeground(Colors.C_RED);
 		}
@@ -1662,7 +1694,7 @@ extends AbstractWindow {
 				|| this.txtArchiveName.getText().endsWith(".properties")  
 				|| this.txtArchiveName.getText().endsWith(AbstractFileSystemMedium.DATA_DIRECTORY_SUFFIX)  
 				|| this.txtArchiveName.getText().endsWith(AbstractFileSystemMedium.MANIFEST_FILE)  
-		) {
+				) {
 			this.setInError(txtArchiveName, RM.getLabel("error.reserved.words"));
 			return false;
 		}
@@ -1674,7 +1706,7 @@ extends AbstractWindow {
 			if (
 					this.txtMultiVolumes.getText() == null 
 					|| this.txtMultiVolumes.getText().length() == 0    
-			) {
+					) {
 				this.setInError(txtMultiVolumes, RM.getLabel("error.field.mandatory"));
 				return false;
 			} else {
@@ -1689,7 +1721,7 @@ extends AbstractWindow {
 			if (
 					this.txtMultivolumesDigits.getText() == null 
 					|| this.txtMultivolumesDigits.getText().length() == 0    
-			) {
+					) {
 				this.setInError(txtMultivolumesDigits, RM.getLabel("error.field.mandatory"));
 				return false;
 			} else {
@@ -1709,7 +1741,7 @@ extends AbstractWindow {
 				this.chkEncrypted.getSelection()
 				&& (! this.isFrozen(false))
 				&& (this.cboWrapping.getSelectionIndex() == -1)
-		) {
+				) {
 			this.setInError(cboWrapping, RM.getLabel("error.field.mandatory"));
 			return false;
 		}  
@@ -1719,7 +1751,7 @@ extends AbstractWindow {
 				this.chkEncrypted.getSelection()
 				&& (! this.isFrozen(false))
 				&& (this.cboEncryptionAlgorithm.getSelectionIndex() == -1)
-		) {
+				) {
 			this.setInError(cboEncryptionAlgorithm, RM.getLabel("error.field.mandatory"));
 			return false;
 		}    
@@ -1736,8 +1768,8 @@ extends AbstractWindow {
 				}
 			}
 		}
-		
-		
+
+
 		// TRANSACTIONS
 		this.resetErrorState(txtTransactionSize);
 		if (this.chkUseTransactions.getSelection()) {
@@ -1853,13 +1885,13 @@ extends AbstractWindow {
 
 	private void handleTransactionData() {
 		boolean transactionsAllowed = rdDir.getSelection() || (! this.rdArchive.getSelection());
-		
+
 		if (transactionsAllowed) {
 			this.chkUseTransactions.setEnabled(true);
-			
+
 			this.lblTransactionSize.setEnabled(this.chkUseTransactions.getSelection());
 			this.txtTransactionSize.setEnabled(this.chkUseTransactions.getSelection());
-			
+
 			if (this.chkUseTransactions.getSelection() && (this.txtTransactionSize.getText() == null || this.txtTransactionSize.getText().trim().length() == 0)) {
 				this.txtTransactionSize.setText(""+DEFAULT_TRANSACTION_SIZE);
 			}

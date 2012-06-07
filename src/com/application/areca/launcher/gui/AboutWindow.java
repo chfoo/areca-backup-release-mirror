@@ -188,67 +188,7 @@ implements ArecaURLs {
     
     private void initSystemContent(Composite composite) {
         Text content = configurePanel(composite, SWT.H_SCROLL);
-        
-        Properties prps = System.getProperties();
-        System.gc();
-        prps.put("system.free.memory", "" + OSTool.getFreeMemory());
-        prps.put("system.memory.usage", "" + OSTool.getMemoryUsage());
-        prps.put("system.total.memory", "" + OSTool.getTotalMemory());
-        prps.put("system.max.available.memory", "" + OSTool.getMaxMemory());
-        prps.put("file.encoding.iana", OSTool.getIANAFileEncoding());
-        prps.put("areca-backup.version", VersionInfos.getLastVersion().getVersionId());
-        prps.put("areca-backup.build.id", "" + VersionInfos.getBuildId());
-        prps.put("areca-backup.path.length.limited", Boolean.toString(AbstractFileSystemDriver.CHECK_PATH));
-        prps.put("delta.lookup.success", "" + DeltaReader.SUCCESS_COUNTER);
-        prps.put("delta.lookup.failures", "" + DeltaReader.FAILURE_COUNTER);
-        prps.put("areca-backup.class.loader", ClassLoader.getSystemClassLoader().getClass().getName());
-        prps.put("system.available.processors", "" + Runtime.getRuntime().availableProcessors());
-        
-        FileLogProcessor proc = (FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class);
-        if (proc != null) {
-        	prps.put("log.file", proc.getCurrentLogFile());
-        }
-        
-        prps.putAll(ArecaConfiguration.get().getAll());
-        
-        // User preferences
-        prps.putAll(LocalPreferences.instance().getPreferences());
-        
-        // Plugins
-        Iterator iter = StoragePluginRegistry.getInstance().getAll().iterator();
-        String plugins = "";
-        while (iter.hasNext()) {
-            StoragePlugin plugin = (StoragePlugin)iter.next();
-            if (plugins.length() != 0) {
-                plugins += ", ";
-            }
-            plugins += plugin.getFullName();
-        }
-        prps.put("areca-backup.plugins", plugins);
-        
-        // Translations
-        prps.put("areca-backup.available.translations", Utils.getTranslationsAsString());        
-        
-        // Encodings
-        StringBuffer css = new StringBuffer();
-        for (int i=0; i<OSTool.getCharsets().length; i++) {
-            if (i != 0) {
-                css.append(", ");
-            }
-            css.append(OSTool.getCharsets()[i].name());
-        }
-        prps.put("supported.charsets", css.toString());
-        
-        String[] keys = (String[])prps.keySet().toArray(new String[0]);
-        Arrays.sort(keys);
-        StringBuffer sb = new StringBuffer();
-        for (int i=0; i<keys.length; i++) {
-            String key = keys[i];
-            String value = prps.getProperty(key).replace('\n', ' ').replace('\r', ' ');
-            sb.append(key).append(" : ").append(value).append("\n");
-        }
-        
-        content.setText(sb.toString());
+        content.setText(Utils.getPropertiesAndPreferences());
     }
     
     private Text configurePanel(Composite composite, int style) {

@@ -23,6 +23,7 @@ import com.application.areca.impl.copypolicy.AbstractCopyPolicy;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
 import com.application.areca.metadata.transaction.TransactionPoint;
+import com.application.areca.processor.Processor;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -30,6 +31,7 @@ import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.object.Duplicable;
 import com.myJava.object.DuplicateHelper;
+import com.myJava.util.Chronometer;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -231,7 +233,10 @@ implements TargetActions {
      * <BR>Filters are applied.
      */
     public RecoveryEntry nextElement(ProcessContext context) throws ApplicationException {
+		//Chronometer.instance().start("nextElement");
+		
     	if (context.getFileSystemIterator() == null) {
+    		//Chronometer.instance().stop("nextElement");
     		return null;
     	} else {
     		File f = context.getFileSystemIterator().nextFile();
@@ -239,6 +244,7 @@ implements TargetActions {
     			context.getReport().setUnfilteredDirectories((int)context.getFileSystemIterator().getDirectories());
     			context.getReport().setUnfilteredFiles((int)context.getFileSystemIterator().getFiles());
     			context.getReport().setFilteredEntries((int)context.getFileSystemIterator().getFiltered());
+        		//Chronometer.instance().stop("nextElement");
     			return null;
     		} else {
     			FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(this.getSourceDirectory(), f);
@@ -251,8 +257,10 @@ implements TargetActions {
 				}
 
                 if (entry.getKey().length() == 0) {
-                	return nextElement(context);
+            		//Chronometer.instance().stop("nextElement");
+            		return nextElement(context);
                 } else {
+            		//Chronometer.instance().stop("nextElement");
                 	return entry;
                 }
     		}
@@ -319,9 +327,20 @@ implements TargetActions {
     		CheckParameters checkParams,
     		GregorianCalendar date,
     		Set ignoreList,
+    		boolean runProcessors,
     		ProcessContext context) throws ApplicationException {
     	try {
     		validateTargetState(ACTION_RECOVER, context);
+    		
+    		runPreProcessors(Processor.ACTION_CHECK, 0.1, runProcessors, context);
+    		
+			double remaining = 
+					1.0 
+					- (! runProcessors || this.postProcessors.isEmpty(Processor.ACTION_CHECK) ? 0 : 0.1) 
+					- (! runProcessors || this.preProcessors.isEmpty(Processor.ACTION_CHECK) ? 0 : 0.1);
+			
+			context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(remaining, "check");
+    		
     		try {
     			String destination = null;
     			if (checkParams.isUseSpecificLocation()) {
@@ -333,7 +352,7 @@ implements TargetActions {
     		}
 
 			// Set status
-			if (context.hasRecoveryIssues()) {
+			if (context.getReport().hasRecoveryIssues()) {
 				context.getReport().getStatus().addItem(StatusList.KEY_ARCHIVE_CHECK, "The archives were not successfully checked.");
 			} else {
 				context.getReport().getStatus().addItem(StatusList.KEY_ARCHIVE_CHECK);	
@@ -343,6 +362,10 @@ implements TargetActions {
 			String msg = "The archives were not successfully checked. (" + e.getMessage() + ")";
 			context.getReport().getStatus().addItem(StatusList.KEY_ARCHIVE_CHECK, msg);
 			throw wrapException(e);
+		} finally {
+			context.getReport().setStopMillis();
+			
+    		runPostProcessors(Processor.ACTION_CHECK, 0.1, runProcessors, context);
 		}
     }
 

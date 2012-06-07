@@ -2,8 +2,10 @@ package com.application.areca.context;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.indicator.IndicatorMap;
@@ -105,6 +107,26 @@ public class ProcessReport implements Serializable {
      * nr of written kbytes
      */
     protected long writtenKBytes;
+    
+    /**
+     * Check : number of checked files
+     */
+    protected long nbChecked = 0;
+    
+    /**
+     * Check : List of recovered files that were detected as invalid
+     */
+    protected transient List invalidRecoveredFiles = new ArrayList();
+    
+    /**
+     * Check : List of recovered files that could not be checked
+     */
+    protected transient List uncheckedRecoveredFiles = new ArrayList();
+    
+    /**
+     * Check : List of files that were not recovered
+     */
+    protected transient List unrecoveredFiles = new ArrayList();
 
     /**
      * Tells whether the process has errors
@@ -152,6 +174,10 @@ public class ProcessReport implements Serializable {
         this.ignoredFiles = 0;
         this.recoveryResult = null;
         this.savedFiles = 0;
+        this.invalidRecoveredFiles.clear();
+        this.uncheckedRecoveredFiles.clear();
+        this.unrecoveredFiles.clear();
+        this.nbChecked = 0;
         if (this.logMessagesContainer != null) {
         	this.logMessagesContainer.clear();
         }
@@ -170,6 +196,10 @@ public class ProcessReport implements Serializable {
         GregorianCalendar c = new GregorianCalendar();
         c.setTime(d);
         return c;
+    }
+    
+	public void addChecked() {
+    	this.nbChecked++;
     }
     
     public int getIgnoredFiles() {
@@ -195,6 +225,29 @@ public class ProcessReport implements Serializable {
     public int getSavedFiles() {
         return savedFiles;
     }
+    
+    public long getNbChecked() {
+		return nbChecked;
+	}
+
+	public List getInvalidRecoveredFiles() {
+		return invalidRecoveredFiles;
+	}
+	
+	public List getUncheckedRecoveredFiles() {
+		return uncheckedRecoveredFiles;
+	}
+
+	public List getUnrecoveredFiles() {
+		return unrecoveredFiles;
+	}
+
+	public boolean hasRecoveryIssues() {
+		return 
+			(invalidRecoveredFiles != null && invalidRecoveredFiles.size() > 0)
+			|| (uncheckedRecoveredFiles != null && uncheckedRecoveredFiles.size() > 0)
+			|| (unrecoveredFiles != null && unrecoveredFiles.size() > 0);
+	}
     
     public void addSavedFile() {
         this.savedFiles++;

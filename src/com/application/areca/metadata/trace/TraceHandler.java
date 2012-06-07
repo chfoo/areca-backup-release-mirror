@@ -41,5 +41,5 @@ public interface TraceHandler {
 	public void newRow(char type, String key, String trace, ProcessContext context) 
 	throws IOException, FileMetaDataSerializationException, TaskCancelledException;
 	
-	public void close();
+	public void close() throws IOException;
 }

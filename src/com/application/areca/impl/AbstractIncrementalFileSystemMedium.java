@@ -1,7 +1,9 @@
 package com.application.areca.impl;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
@@ -28,6 +30,7 @@ import com.application.areca.RecoveryEntry;
 import com.application.areca.StoreException;
 import com.application.areca.TargetActions;
 import com.application.areca.Utils;
+import com.application.areca.adapters.write.TargetXMLWriter;
 import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.context.RecoveryResult;
@@ -72,6 +75,8 @@ import com.myJava.file.FileList.FileListIterator;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.HashInputStreamListener;
+import com.myJava.file.archive.ArchiveWriter;
+import com.myJava.file.archive.zip64.ZipArchiveAdapter;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.driver.contenthash.ContentHashFileSystemDriver;
 import com.myJava.file.iterator.FilePathComparator;
@@ -79,6 +84,7 @@ import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.system.OSTool;
 import com.myJava.util.CalendarUtils;
+import com.myJava.util.Chronometer;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
@@ -231,6 +237,101 @@ implements TargetActions {
 		manifest.setDescription(sb.toString());    
 		return manifest;
 	}
+	
+	protected abstract void dbgBuildArchiveFileList(File archive, BufferedWriter writer) throws IOException, ApplicationException;
+	
+	public File createDebuggingData(File directory) throws ApplicationException, TaskCancelledException {
+		ZipArchiveAdapter adapter = null;
+		ArchiveWriter writer = null;
+		try {
+			File targetFile = new File(directory, "areca_debug.zip");
+			FileTool.getInstance().delete(targetFile);
+			adapter = new ZipArchiveAdapter(FileSystemManager.getFileOutputStream(targetFile), false, 9);
+			writer = new ArchiveWriter(adapter);
+			
+			// Store configuration
+			String configurationPrefix = ""+ getTarget().getUid()+".bcfg";
+			StringBuffer sb = new StringBuffer();
+			TargetXMLWriter tgWriter = new TargetXMLWriter(sb, false);
+			tgWriter.setRemoveSensitiveData(true);
+			tgWriter.serializeTarget((FileSystemTarget)this.getTarget());
+			writer.addFile(configurationPrefix, tgWriter.getXML());
+			
+			// Store history
+			String historyPrefix = "history";
+			File historyFile = new File(fileSystemPolicy.getArchiveDirectory(), this.getHistoryName());
+			writer.addFile(historyFile, historyPrefix, null, null);
+			
+			// Store readme
+			String readmePrefix = "readme.txt";
+			String readme = "This zip file contains debugging informations that can be used to diagnose issues encountered with Areca Backup.";
+			readme += "\nIt has been generated on " + CalendarUtils.getFullDateToString(new GregorianCalendar()) + " with Areca-Backup v" + VersionInfos.getLastVersion().getVersionId() + " for target #" + getTarget().getUid() + " (" + getTarget().getName() + ").";
+			readme += "\n\nIt contains : ";
+			readme += "\n- 'properties.txt' : The properties of your Java environment and your user preferences";
+			readme += "\n- 'history' : The history of operations performed on your archives (merges, backups, recoveries, ...)";
+			readme += "\n- '" + getTarget().getUid()+".bcfg' : Your target configuration (without passwords)";
+			readme += "\n\n ... and for each archive :";
+			readme += "\n- 'manifest' : Various informations about your archive (description, filename encoding, number of stored files, ...)";
+			readme += "\n- 'trace' : The list of all source files at backup time (name, size and last modification date, plus some attributes depending of your filesystem - user permissions for instance)";
+			readme += "\n- 'content' : The list of all files that were actually stored in your archive (name, size)";
+			readme += "\n\n'" + getTarget().getUid()+".bcfg' and 'properties.txt' can be edited directly with your favorite text editor.";
+			readme += "\n\nTo check the content of 'history', 'manifest', 'trace' and 'content' files, add the '.gz' extension to their name, open them with an archive reader (Winzip or 7zip for instance) and edit the contained file with your text editor.";
+			writer.addFile(readmePrefix, readme);
+			
+			// Store system properties
+			String propertiesPrefix = "properties.txt";
+			writer.addFile(propertiesPrefix, Utils.getPropertiesAndPreferences());
+			
+			// Handle archives
+			File[] archives = this.listArchives(null, null, true);
+			for (int i=0; i<archives.length; i++) {
+				Logger.defaultLogger().info("Creating debug data for " + FileSystemManager.getAbsolutePath(archives[i]) + " ...");
+				
+	            File dataDir = AbstractFileSystemMedium.getDataDirectory(archives[i]);
+	            String prefix = FileSystemManager.getName(dataDir) + "/";
+	            
+				// Handle trace
+				File traceFile = ArchiveTraceManager.resolveTraceFileForArchive(this, archives[i]);
+				String traceFullPath = prefix + FileSystemManager.getName(traceFile);
+	            writer.addFile(traceFile, traceFullPath, null, null);
+	            
+	            // Handle manifest
+	            File manifestFile = new File(dataDir, getManifestName());
+				String manifestFullPath = prefix + FileSystemManager.getName(manifestFile);
+	            writer.addFile(manifestFile, manifestFullPath, null, null);
+	            
+	            // Handle content
+	            File contentFile = ArchiveContentManager.resolveContentFileForArchive(this, archives[i]);
+				String contentFullPath = prefix + FileSystemManager.getName(contentFile);
+	            writer.addFile(contentFile, contentFullPath, null, null);
+	            
+	            // Handle effective content
+	    		File effContentFile = FileTool.getInstance().generateNewWorkingFile(null, null, "areca", true);
+	    		BufferedWriter ctWriter = null;
+	    		try {
+					ctWriter = new BufferedWriter(FileSystemManager.getWriter(effContentFile));
+					this.dbgBuildArchiveFileList(archives[i], ctWriter);
+				} finally {
+					if (ctWriter != null) {
+						ctWriter.close();
+					}
+				}
+				writer.addFile(effContentFile, FileSystemManager.getName(archives[i]) + "___.txt", null, null);
+				FileTool.getInstance().delete(effContentFile);
+			}
+			return targetFile;
+		} catch (IOException e) {
+			throw new ApplicationException("Error caught while generating debugging data.", e);
+		} finally {
+			if (writer != null) {
+				try {
+					writer.close();
+				} catch (IOException e) {
+					throw new ApplicationException("Error caught while generating debugging data.", e);
+				}
+			}
+		}
+	}
 
 	/**
 	 * Check the archive denoted by the date passed as argument.
@@ -269,6 +370,7 @@ implements TargetActions {
 				perimeter = new DateArchiveScope(null, date);
 			}
 			perimeter.setIgnoredArchives(ignoreList);
+			//HERE
 			recover(
 					destinationFile, 
 					null,
@@ -336,6 +438,8 @@ implements TargetActions {
 	 * Close the archive
 	 */
 	public void commitBackup(ProcessContext context) throws ApplicationException {
+		//Chronometer.instance().start("commit");
+		
 		if (TH_MON_ENABLED) {
 			ThreadMonitor.getInstance().remove(this.getTarget().getUid());
 		}
@@ -424,6 +528,8 @@ implements TargetActions {
 			// the data caches won't detect that the archive content has changed and won't refresh their data
 			// By doing so, we enforce the cache refresh.
 			ArchiveManifestCache.getInstance().remove(this, archive); 
+			//Chronometer.instance().stop("commit");
+			//Chronometer.instance().stop("open_to_commit");
 		}
 	}
 
@@ -929,6 +1035,8 @@ implements TargetActions {
 	}  
 
 	public void open(Manifest manifest, TransactionPoint transactionPoint, ProcessContext context) throws ApplicationException { 
+		//Chronometer.instance().start("open_to_commit");
+		//Chronometer.instance().start("open");
 		try {  
 			if (transactionPoint == null) {
 
@@ -993,7 +1101,6 @@ implements TargetActions {
 				context.setEntryIndex(source.getEntryIndex());
 				context.setInputBytes(source.getInputBytes());
 				context.setInitialized(source.isInitialized());
-				context.setNbChecked(source.getNbChecked());
 				context.setCurrentArchiveFile(source.getCurrentArchiveFile());
 				context.setBackupScheme(source.getBackupScheme());
 				context.setOutputStreamListener(source.getOutputStreamListener());
@@ -1046,6 +1153,8 @@ implements TargetActions {
 			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
 		}
+		
+		//Chronometer.instance().stop("open");
 	}
 
 	/**
@@ -1097,7 +1206,7 @@ implements TargetActions {
 			}
 
 			// Apply metadata
-			applyMetaData((File)destination, traceFile, context);
+			applyMetaData((File)destination, traceFile, policy.listExcludedFiles(), context);
 		} catch (IOException e) {
 			throw new ApplicationException(e);
 		}
@@ -1335,14 +1444,14 @@ implements TargetActions {
 	 * Stores an entry
 	 */
 	public void store(RecoveryEntry entry, final ProcessContext context) 
-	throws StoreException, ApplicationException, TaskCancelledException {	
+	throws StoreException, ApplicationException, TaskCancelledException {
+		//Chronometer.instance().start("store");
+		
 		if (TH_MON_ENABLED) {
 			ThreadMonitor.getInstance().notify(this.getTarget().getUid());
 		}
 
-		if (entry == null) {
-			return;
-		} else {
+		if (entry != null) {
 			final FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;
 			try {
 				short type = FileSystemManager.getType(fEntry.getFile());
@@ -1370,7 +1479,9 @@ implements TargetActions {
 								} catch (NoSuchAlgorithmException e) {
 									throw new ApplicationException(e);
 								}
+					    		//Chronometer.instance().start("storeImpl");
 								storeFileInArchive(fEntry, in, context);
+					    		//Chronometer.instance().stop("storeImpl");
 							}
 						}, "An error occurred while storing " + fEntry.getKey());
 
@@ -1402,6 +1513,7 @@ implements TargetActions {
 				throw new StoreException("Error during storage of " + entry.getKey() + " : " + e.getMessage(), e);
 			}
 		}
+		//Chronometer.instance().stop("store");
 	}
 
 	public void doAndRetry(IOTask rn, String message) 
@@ -1735,9 +1847,6 @@ implements TargetActions {
 	 * Recovers the files at the requested recovery location, according to the recovery dates passed as argument.
 	 * <BR>'filters' may be null ...
 	 * <BR>The recovery is actually done if there are at least <code>minimumArchiveNumber</code> archives to recover
-	 * <BR>
-	 * <BR>If it has enough memory, Areca optimizes the recovery process to only recover the needed files (instead of
-	 * blindly recovering the whole archives)
 	 */
 	protected void recover(
 			File targetFile,                         	// Where to recover
@@ -1872,13 +1981,15 @@ implements TargetActions {
 	 * <BR>- permissions
 	 * <BR>- ACL ... (if supported by the local metadata accessor)
 	 */
-	private void applyMetaData(File destination, File traceFile, ProcessContext context) 
+	private void applyMetaData(File destination, File traceFile, FileList excludedFiles, ProcessContext context) 
 	throws ApplicationException, TaskCancelledException {
 		this.target.secureUpdateCurrentTask("Applying metadata ...", context);
-		UpdateMetaDataTraceHandler handler = new UpdateMetaDataTraceHandler();
-		handler.setDestination(destination);
 
 		try {
+			UpdateMetaDataTraceHandler handler = new UpdateMetaDataTraceHandler();
+			handler.setDestination(destination);
+			handler.setExcludedFiles(excludedFiles);
+			
 			ArchiveTraceAdapter.traverseTraceFile(handler, traceFile, context);
 			this.target.secureUpdateCurrentTask("Metadata applied.", context);
 		} catch (IOException e) {
@@ -1941,7 +2052,7 @@ implements TargetActions {
 		byte[] storedHash = ArchiveContentParser.interpretAsHash(entry.getKey(), entry.getData());
 		if (storedHash == null) {
 			context.getInfoChannel().warn(entry.getKey() + " : no reference hash could be found.");
-			context.getUncheckedRecoveredFiles().add(entry.getKey());
+			context.getReport().getUncheckedRecoveredFiles().add(entry.getKey());
 		} else {
 			this.doAndRetry(new CheckHash(context, storedHash, entry, file, simulatedRecovery), "Error while checking " + file.getAbsolutePath());
 		}
@@ -1984,7 +2095,7 @@ implements TargetActions {
 				for (int i=0; i<computedHash.length; i++) {
 					if (computedHash[i] != storedHash[i]) {
 						context.getInfoChannel().warn(entry.getKey() + " was not properly recovered : its hash (" + Util.base16Encode(computedHash) + ") is different from the reference hash (" + Util.base16Encode(storedHash) + ")." + suffix);
-						context.getInvalidRecoveredFiles().add(entry.getKey());
+						context.getReport().getInvalidRecoveredFiles().add(entry.getKey());
 						String info = getRecoveryInformations(entry.getKey(), context);
 						if (info != null) {
 							Logger.defaultLogger().fine(info);
@@ -2047,7 +2158,7 @@ implements TargetActions {
 					if (entry.getType() == MetadataConstants.T_FILE) {				
 						if (! FileSystemManager.exists(target)) {
 							context.getInfoChannel().warn(entry.getKey() + " was not recovered ... it should have.");
-							context.getUnrecoveredFiles().add(entry.getKey());
+							context.getReport().getUnrecoveredFiles().add(entry.getKey());
 							String info = getRecoveryInformations(entry.getKey(), context);
 							if (info != null) {
 								Logger.defaultLogger().fine(info);
@@ -2070,13 +2181,13 @@ implements TargetActions {
 									}
 									// The entry has been found --> check the hash
 									checkHash(target, iters[i].current(), simulatedRecovery, context);
-									context.addChecked();
+									context.getReport().addChecked();
 									break;
 								}
 							}
 							if (! found) {
 								context.getInfoChannel().warn("No reference hash could be found for " + entry.getKey());
-								context.getUncheckedRecoveredFiles().add(entry.getKey());
+								context.getReport().getUncheckedRecoveredFiles().add(entry.getKey());
 								String info = getRecoveryInformations(entry.getKey(), context);
 								if (info != null) {
 									Logger.defaultLogger().fine(info);
@@ -2095,7 +2206,7 @@ implements TargetActions {
 				}
 			}
 		} finally {
-			context.getInfoChannel().print("Check completed - " + context.getNbChecked() + " files checked.");
+			context.getInfoChannel().print("Check completed - " + context.getReport().getNbChecked() + " files checked.");
 
 			// Close iterators
 			try {

@@ -314,16 +314,25 @@ public class TargetXMLReader implements XMLTags {
 
 	protected void readProcessorAttributes(Node node, AbstractProcessor proc) throws AdapterException {
 		Node runSchemeNode = node.getAttributes().getNamedItem(XML_PP_RUN_SCHEME);
+		
 		Node runIfOKNode = node.getAttributes().getNamedItem(XML_PP_RUN_SUCCESS);
 		Node runIfWarningNode = node.getAttributes().getNamedItem(XML_PP_RUN_WARNING);
 		Node runIfErrorNode = node.getAttributes().getNamedItem(XML_PP_RUN_ERROR);
+		
+		Node runBackupNode = node.getAttributes().getNamedItem(XML_PP_RUN_BACKUP);
+		Node runMergeNode = node.getAttributes().getNamedItem(XML_PP_RUN_MERGE);
+		Node runCheckNode = node.getAttributes().getNamedItem(XML_PP_RUN_CHECK);
 
 		if (runIfErrorNode != null || runIfWarningNode != null || runIfOKNode != null) {
 			proc.setRunIfError(runIfErrorNode != null && Boolean.valueOf(runIfErrorNode.getNodeValue()).booleanValue());
 			proc.setRunIfWarning(runIfWarningNode != null && Boolean.valueOf(runIfWarningNode.getNodeValue()).booleanValue());
 			proc.setRunIfOK(runIfOKNode != null && Boolean.valueOf(runIfOKNode.getNodeValue()).booleanValue());
+			
+			proc.setRunBackup(runBackupNode == null || Boolean.valueOf(runBackupNode.getNodeValue()).booleanValue());
+			proc.setRunMerge(runMergeNode != null && Boolean.valueOf(runMergeNode.getNodeValue()).booleanValue());
+			proc.setRunCheck(runCheckNode != null && Boolean.valueOf(runCheckNode.getNodeValue()).booleanValue());
 		} else if (runSchemeNode != null) {
-			// BACKWARD-COMPATIBILITY : version between than 7.1.1 and 7.1.4 //
+			// BACKWARD-COMPATIBILITY : version between 7.1.1 and 7.1.4 //
 			if (XML_PP_RUN_SCHEME_ALWAYS.equals(runSchemeNode.getNodeValue())) {
 				proc.setRunAlways();
 			} else if (XML_PP_RUN_SCHEME_FAILURE.equals(runSchemeNode.getNodeValue())) {
@@ -337,7 +346,7 @@ public class TargetXMLReader implements XMLTags {
 			} else {
 				throw new AdapterException("Run rule not supported for processor " + proc.getName() + " : " + runSchemeNode.getNodeValue());
 			}
-			// EOF BACKWARD-COMPATIBILITY : version between than 7.1.1 and 7.1.4 //
+			// EOF BACKWARD-COMPATIBILITY : version between 7.1.1 and 7.1.4 //
 		} else {
 			// BACKWARD-COMPATIBILITY : version older than 7.1.1 //
 			Node failureOnlyNode = node.getAttributes().getNamedItem(XML_PP_ONLY_IF_ERROR);

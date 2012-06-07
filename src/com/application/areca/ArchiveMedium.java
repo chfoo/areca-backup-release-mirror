@@ -265,4 +265,9 @@ public interface ArchiveMedium extends Duplicable {
 	 * Tells whether the medium supports resuming backups
 	 */
 	public String checkResumeSupported();
+	
+	/**
+	 * Create a zip archive that contains archive / system / target informations
+	 */
+	public File createDebuggingData(File directory) throws ApplicationException, TaskCancelledException;
 }

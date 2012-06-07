@@ -37,12 +37,40 @@ public abstract class AbstractProcessor implements Processor {
 	private boolean runIfOK = true;
 	private boolean runIfWarning = true;
 	private boolean runIfError = true;
+	
+	private boolean runBackup = true;
+	private boolean runMerge = false;
+	private boolean runCheck = false;
 
     public AbstractProcessor() {
     }
 
-    public boolean isRunIfOK() {
+    public boolean isRunBackup() {
+		return runBackup;
+	}
+
+	public void setRunBackup(boolean runBackup) {
+		this.runBackup = runBackup;
+	}
+
+	public boolean isRunMerge() {
+		return runMerge;
+	}
+
+	public void setRunMerge(boolean runMerge) {
+		this.runMerge = runMerge;
+	}
+
+	public boolean isRunIfOK() {
 		return runIfOK;
+	}
+
+	public boolean isRunCheck() {
+		return runCheck;
+	}
+
+	public void setRunCheck(boolean runCheck) {
+		this.runCheck = runCheck;
 	}
 
 	public void setRunIfOK(boolean runIfOK) {
@@ -70,8 +98,16 @@ public abstract class AbstractProcessor implements Processor {
 		this.runIfWarning = true;
 		this.runIfOK = true;
 	}
-    
-    public boolean shallRun(ProcessContext context) {
+
+    public boolean shallRun(int action) {
+    	return (
+    			action == Processor.ACTION_BACKUP && runBackup
+    			|| action == Processor.ACTION_MERGE && runMerge
+    			|| action == Processor.ACTION_CHECK && runCheck
+    	);
+	}
+
+	private boolean shallRun(ProcessContext context) {
     	if (context.getReport().hasError() && this.runIfError) {
     		return true;
     	} else if (context.getReport().hasWarnings() && this.runIfWarning) {
@@ -87,6 +123,10 @@ public abstract class AbstractProcessor implements Processor {
     	proc.runIfOK = runIfOK;
     	proc.runIfError = runIfError;
     	proc.runIfWarning = runIfWarning;
+    	
+    	proc.runBackup = runBackup;
+    	proc.runMerge = runMerge;
+    	proc.runCheck = runCheck;
     }
 
 	public void run(ProcessContext context) throws ApplicationException {
@@ -111,7 +151,11 @@ public abstract class AbstractProcessor implements Processor {
             return 
                 EqualsHelper.equals(this.runIfOK, other.runIfOK)
             	&& EqualsHelper.equals(this.runIfError, other.runIfError)
-            	&& EqualsHelper.equals(this.runIfWarning, other.runIfWarning);            
+            	&& EqualsHelper.equals(this.runIfWarning, other.runIfWarning)
+            	&& EqualsHelper.equals(this.runMerge, other.runMerge)
+            	&& EqualsHelper.equals(this.runBackup, other.runBackup)
+            	&& EqualsHelper.equals(this.runCheck, other.runCheck)
+            	;            
         }
     }
     
@@ -120,6 +164,9 @@ public abstract class AbstractProcessor implements Processor {
         h = HashHelper.hash(h, this.runIfOK);
         h = HashHelper.hash(h, this.runIfError);
         h = HashHelper.hash(h, this.runIfWarning);
+        h = HashHelper.hash(h, this.runMerge);
+        h = HashHelper.hash(h, this.runBackup);
+        h = HashHelper.hash(h, this.runCheck);
         return h;
     }
     

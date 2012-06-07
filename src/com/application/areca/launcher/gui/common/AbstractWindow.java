@@ -178,10 +178,13 @@ extends ApplicationWindow {
 		String tt = (String)ctrl.getData(KEY_TT);
 		if (tt == null) {
 			tt = ctrl.getToolTipText();
+			if (tt == null) {
+				tt = "";
+			}
 			ctrl.setData(KEY_TT, tt);
 		}
 		if (errorMessage != null && errorMessage.trim().length() != 0) {
-			String root = tt == null ? "" : tt + "\n\n";
+			String root = (tt == null || tt.length() == 0) ? "" : tt + "\n\n";
 			ctrl.setToolTipText(root + RM.getLabel("error.label.prefix") + errorMessage);
 		}
 		ctrl.setBackground(Colors.C_FLD_ERROR);        

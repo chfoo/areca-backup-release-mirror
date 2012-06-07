@@ -11,9 +11,18 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.Properties;
 
+import com.application.areca.launcher.gui.common.LocalPreferences;
+import com.application.areca.plugins.StoragePlugin;
+import com.application.areca.plugins.StoragePluginRegistry;
+import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
+import com.myJava.file.delta.DeltaReader;
+import com.myJava.file.driver.AbstractFileSystemDriver;
 import com.myJava.system.OSTool;
+import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
 
 /**
@@ -45,255 +54,255 @@ This file is part of Areca.
 
  */
 public class Utils implements ArecaFileConstants {
-    private static final ResourceManager RM = ResourceManager.instance();
-    private static DateFormat DF;
-    public static final String FILE_DATE_SEPARATOR = ".";
-    private static final NumberFormat NF = new DecimalFormat();
-    private static final String LN_DIRECTORY = ArecaConfiguration.get().getLanguageLocationOverride();
-    private static final String EXEC_DIRECTORY = ArecaConfiguration.get().getBinLocationOverride();
+	private static final ResourceManager RM = ResourceManager.instance();
+	private static DateFormat DF;
+	public static final String FILE_DATE_SEPARATOR = ".";
+	private static final NumberFormat NF = new DecimalFormat();
+	private static final String LN_DIRECTORY = ArecaConfiguration.get().getLanguageLocationOverride();
+	private static final String EXEC_DIRECTORY = ArecaConfiguration.get().getBinLocationOverride();
 
-    static {
-        NF.setGroupingUsed(true);
-        initDateFormat(null);
-    }
+	static {
+		NF.setGroupingUsed(true);
+		initDateFormat(null);
+	}
 
-    public static void initDateFormat(String format) {
-        if (format != null && format.trim().length() != 0) {
-            try {
-                DF = new SimpleDateFormat(format);
-            } catch (Throwable e) {
-                Logger.defaultLogger().warn("The following error occurred during date format initialization : " + e.getMessage() + ". A default date format will be used.");
-                DF = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
-            }
-        } else {
-            DF = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
-        }
-    }
+	public static void initDateFormat(String format) {
+		if (format != null && format.trim().length() != 0) {
+			try {
+				DF = new SimpleDateFormat(format);
+			} catch (Throwable e) {
+				Logger.defaultLogger().warn("The following error occurred during date format initialization : " + e.getMessage() + ". A default date format will be used.");
+				DF = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
+			}
+		} else {
+			DF = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
+		}
+	}
 
-    public static File getApplicationRoot() {
-        String dir = System.getProperty("user.dir");
-        if (dir != null && dir.trim().length() != 0) {
-            return new File(dir);
-        } else {
-            Logger.defaultLogger().warn("Unable to load the 'user.dir' java property. Using classpath to detect application root.");
-            URL url = ClassLoader.getSystemClassLoader().getResource(ResourceManager.RESOURCE_NAME + "_en.properties");
-            File file = new File(URLDecoder.decode(url.getFile()));
-            return FileSystemManager.getParentFile(FileSystemManager.getParentFile(file));
-        }
-    }
+	public static File getApplicationRoot() {
+		String dir = System.getProperty("user.dir");
+		if (dir != null && dir.trim().length() != 0) {
+			return new File(dir);
+		} else {
+			Logger.defaultLogger().warn("Unable to load the 'user.dir' java property. Using classpath to detect application root.");
+			URL url = ClassLoader.getSystemClassLoader().getResource(ResourceManager.RESOURCE_NAME + "_en.properties");
+			File file = new File(URLDecoder.decode(url.getFile()));
+			return FileSystemManager.getParentFile(FileSystemManager.getParentFile(file));
+		}
+	}
 
-    public static TranslationData[] getTranslations() {
-        final String prefix = ResourceManager.RESOURCE_NAME + "_";
-        final String suffix = ".properties";
+	public static TranslationData[] getTranslations() {
+		final String prefix = ResourceManager.RESOURCE_NAME + "_";
+		final String suffix = ".properties";
 
-    	File translationsRoot;
-    	if (LN_DIRECTORY == null) {
-    		translationsRoot = new File(getApplicationRoot(), DEFAULT_TRANSLATION_SUBDIRECTORY_NAME);
-    	} else {
-    		translationsRoot = new File(LN_DIRECTORY);
-    	}
+		File translationsRoot;
+		if (LN_DIRECTORY == null) {
+			translationsRoot = new File(getApplicationRoot(), DEFAULT_TRANSLATION_SUBDIRECTORY_NAME);
+		} else {
+			translationsRoot = new File(LN_DIRECTORY);
+		}
 
-        File[] files = FileSystemManager.listFiles(translationsRoot, new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.startsWith(prefix) && name.endsWith(suffix);
-            }
-        });
+		File[] files = FileSystemManager.listFiles(translationsRoot, new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				return name.startsWith(prefix) && name.endsWith(suffix);
+			}
+		});
 
-        if (files == null) {
-            Logger.defaultLogger().warn("Unable to locate the translation files in " + FileSystemManager.getAbsolutePath(translationsRoot));
-            if (! FileSystemManager.exists(translationsRoot)) {
-                Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(translationsRoot) + " does not exist.");
-            }
-            return new TranslationData[0];
-        } else {
-        	TranslationData[] languages = new TranslationData[files.length];
-            for (int i=0; i<files.length; i++) {
-            	String fileName = FileSystemManager.getName(files[i]);
-            	String data = fileName.substring(ResourceManager.RESOURCE_NAME.length(), fileName.length() - suffix.length() + 1);
-            	String lg ;
-            	boolean deprecated;
-            	if (data.startsWith(ResourceManager.RESOURCE_NAME_DEPRECATED_SUFFIX + "_")) {
-            		deprecated = true;
-            		lg = data.substring(ResourceManager.RESOURCE_NAME_DEPRECATED_SUFFIX.length() + 1, ResourceManager.RESOURCE_NAME_DEPRECATED_SUFFIX.length() + 3);
-            	} else {
-                	deprecated = false;
-                	lg = data.substring(1, 3);
-            	}
-                languages[i] = new TranslationData(lg, deprecated);
-            }
+		if (files == null) {
+			Logger.defaultLogger().warn("Unable to locate the translation files in " + FileSystemManager.getAbsolutePath(translationsRoot));
+			if (! FileSystemManager.exists(translationsRoot)) {
+				Logger.defaultLogger().warn(FileSystemManager.getAbsolutePath(translationsRoot) + " does not exist.");
+			}
+			return new TranslationData[0];
+		} else {
+			TranslationData[] languages = new TranslationData[files.length];
+			for (int i=0; i<files.length; i++) {
+				String fileName = FileSystemManager.getName(files[i]);
+				String data = fileName.substring(ResourceManager.RESOURCE_NAME.length(), fileName.length() - suffix.length() + 1);
+				String lg ;
+				boolean deprecated;
+				if (data.startsWith(ResourceManager.RESOURCE_NAME_DEPRECATED_SUFFIX + "_")) {
+					deprecated = true;
+					lg = data.substring(ResourceManager.RESOURCE_NAME_DEPRECATED_SUFFIX.length() + 1, ResourceManager.RESOURCE_NAME_DEPRECATED_SUFFIX.length() + 3);
+				} else {
+					deprecated = false;
+					lg = data.substring(1, 3);
+				}
+				languages[i] = new TranslationData(lg, deprecated);
+			}
 
-            Arrays.sort(languages);
-            return languages;
-        }
-    }
-    
-    /**
-     * Build the "areca_cl" file name according to the user's system and technical configuration
-     */
-    public static File buildExecutableFile() {
-    	String executableName;
-        if (OSTool.isSystemWindows()) {
-        	executableName = "areca_cl.exe";
-        } else {
-        	executableName = "areca_cl.sh";
-        }
-    	
-        File executableDirectory;
-    	if (EXEC_DIRECTORY == null) {
-            File applicationRoot = Utils.getApplicationRoot();
-            if (OSTool.isSystemWindows()) {
-            	executableDirectory = applicationRoot;
-            } else {
-            	executableDirectory = new File(applicationRoot, DEFAULT_BIN_SUBDIRECTORY_NAME);
-            }
-    	} else {
-    		executableDirectory = new File(EXEC_DIRECTORY);
-    	}
+			Arrays.sort(languages);
+			return languages;
+		}
+	}
 
-    	return new File(executableDirectory, executableName);
-    }
+	/**
+	 * Build the "areca_cl" file name according to the user's system and technical configuration
+	 */
+	public static File buildExecutableFile() {
+		String executableName;
+		if (OSTool.isSystemWindows()) {
+			executableName = "areca_cl.exe";
+		} else {
+			executableName = "areca_cl.sh";
+		}
 
-    public static String getTranslationsAsString() {
-        StringBuffer sb = new StringBuffer();
-        TranslationData[] lges = Utils.getTranslations();
-        for (int i=0; i<lges.length; i++) {
-            if (i != 0) {
-                sb.append(", ");
-            }
-            sb.append(lges[i].getLanguage());
-        }
-        return sb.toString();
-    }
+		File executableDirectory;
+		if (EXEC_DIRECTORY == null) {
+			File applicationRoot = Utils.getApplicationRoot();
+			if (OSTool.isSystemWindows()) {
+				executableDirectory = applicationRoot;
+			} else {
+				executableDirectory = new File(applicationRoot, DEFAULT_BIN_SUBDIRECTORY_NAME);
+			}
+		} else {
+			executableDirectory = new File(EXEC_DIRECTORY);
+		}
 
-    public static String extractShortFilePath(File fileDir, File baseDir) {
-        return extractShortFilePath(fileDir, FileSystemManager.getAbsolutePath(baseDir));
-    }
+		return new File(executableDirectory, executableName);
+	}
 
-    public static String extractShortFilePath(File fileDir, String sBaseDir) {
-        String sFileDir = FileSystemManager.getPath(fileDir);
-        int index = sBaseDir.length();
+	public static String getTranslationsAsString() {
+		StringBuffer sb = new StringBuffer();
+		TranslationData[] lges = Utils.getTranslations();
+		for (int i=0; i<lges.length; i++) {
+			if (i != 0) {
+				sb.append(", ");
+			}
+			sb.append(lges[i].getLanguage());
+		}
+		return sb.toString();
+	}
 
-        if (
-        		OSTool.isSystemWindows()		
-                && index == 0
-                && sFileDir.length() > 2
-                && sFileDir.charAt(0) != '/'
-                && sFileDir.charAt(0) != '\\'
-                && sFileDir.charAt(1) == ':'
-                && (sFileDir.charAt(2) == '/' || sFileDir.charAt(2) == '\\')
-        ) {
-        	// Windows dedicated code : transform c:\toto into c/toto
-            return sFileDir.charAt(0) + (sFileDir.length() > 3 ? sFileDir.substring(2) : "");
-        } else if (index < sFileDir.length()) {
-            while(sFileDir.charAt(index) == '/' || sFileDir.charAt(index) == '\\') {
-                index++;
-            }
+	public static String extractShortFilePath(File fileDir, File baseDir) {
+		return extractShortFilePath(fileDir, FileSystemManager.getAbsolutePath(baseDir));
+	}
 
-            return sFileDir.substring(index);
-        } else {
-            return "";
-        }
-    }
+	public static String extractShortFilePath(File fileDir, String sBaseDir) {
+		String sFileDir = FileSystemManager.getPath(fileDir);
+		int index = sBaseDir.length();
 
-    public static String formatDisplayDate(GregorianCalendar cal) {
-        if (cal == null) {
-            return RM.getLabel("common.undated.label");
-        } else {
-            return DF.format(cal.getTime());
-        }
-    }
+		if (
+				OSTool.isSystemWindows()		
+				&& index == 0
+				&& sFileDir.length() > 2
+				&& sFileDir.charAt(0) != '/'
+				&& sFileDir.charAt(0) != '\\'
+				&& sFileDir.charAt(1) == ':'
+				&& (sFileDir.charAt(2) == '/' || sFileDir.charAt(2) == '\\')
+				) {
+			// Windows dedicated code : transform c:\toto into c/toto
+			return sFileDir.charAt(0) + (sFileDir.length() > 3 ? sFileDir.substring(2) : "");
+		} else if (index < sFileDir.length()) {
+			while(sFileDir.charAt(index) == '/' || sFileDir.charAt(index) == '\\') {
+				index++;
+			}
 
-    public static String formatFileSize(File f) {
-        if (FileSystemManager.isDirectory(f)) {
-            return RM.getLabel("common.unsized.label");
-        } else {
-            return formatFileSize(FileSystemManager.length(f));
-        }
-    }
+			return sFileDir.substring(index);
+		} else {
+			return "";
+		}
+	}
 
-    public static String formatFileSize(long argSize) {
-        long size = argSize;
+	public static String formatDisplayDate(GregorianCalendar cal) {
+		if (cal == null) {
+			return RM.getLabel("common.undated.label");
+		} else {
+			return DF.format(cal.getTime());
+		}
+	}
 
-    	if (size >= 1024) {
-    		size = (long)(argSize / 1024);
-            return NF.format(size) + " " + RM.getLabel("common.kb.label");
-    	} else {
-            return NF.format(size) + " " + RM.getLabel("common.bytes.label");
-    	}
-    }
+	public static String formatFileSize(File f) {
+		if (FileSystemManager.isDirectory(f)) {
+			return RM.getLabel("common.unsized.label");
+		} else {
+			return formatFileSize(FileSystemManager.length(f));
+		}
+	}
 
-    public static String formatLong(long argLong) {
-        NumberFormat nf = new DecimalFormat();
-        nf.setGroupingUsed(true);
+	public static String formatFileSize(long argSize) {
+		long size = argSize;
 
-        return nf.format(argLong);
-    }
+		if (size >= 1024) {
+			size = (long)(argSize / 1024);
+			return NF.format(size) + " " + RM.getLabel("common.kb.label");
+		} else {
+			return NF.format(size) + " " + RM.getLabel("common.bytes.label");
+		}
+	}
 
-    /**
-     * Retourne le nombre de millisecondes sous forme d'une dur�e.
-     */
-    public static String formatDuration(long ms) {
-        if (ms < 1000) {
-            return "" + ms + " " + RM.getLabel("common.time.ms");
-        }
+	public static String formatLong(long argLong) {
+		NumberFormat nf = new DecimalFormat();
+		nf.setGroupingUsed(true);
 
-        // On utilise les secondes ...
-        long nbSecondes = ms/1000;
+		return nf.format(argLong);
+	}
 
-        // Formattage
-        long nbHeures = (long)(nbSecondes/3600);
-        nbSecondes = nbSecondes - nbHeures*3600;
+	/**
+	 * Retourne le nombre de millisecondes sous forme d'une dur�e.
+	 */
+	public static String formatDuration(long ms) {
+		if (ms < 1000) {
+			return "" + ms + " " + RM.getLabel("common.time.ms");
+		}
 
-        long nbMinutes = (long)(nbSecondes/60);
-        nbSecondes = nbSecondes - nbMinutes*60;
+		// On utilise les secondes ...
+		long nbSecondes = ms/1000;
 
-        StringBuffer sb = new StringBuffer();
-        if (nbHeures > 0) {
-            sb.append(nbHeures).append(" ");
-            sb.append(RM.getLabel("common.time.h")).append(" ");
-        }
+		// Formattage
+		long nbHeures = (long)(nbSecondes/3600);
+		nbSecondes = nbSecondes - nbHeures*3600;
 
-        if (nbMinutes > 0) {
-            sb.append(nbMinutes).append(" ");
-            sb.append(RM.getLabel("common.time.mn")).append(" ");
-        }
+		long nbMinutes = (long)(nbSecondes/60);
+		nbSecondes = nbSecondes - nbMinutes*60;
 
-        if (nbSecondes > 0) {
-            sb.append(nbSecondes).append(" ");
-            sb.append(RM.getLabel("common.time.s")).append(" ");
-        }
+		StringBuffer sb = new StringBuffer();
+		if (nbHeures > 0) {
+			sb.append(nbHeures).append(" ");
+			sb.append(RM.getLabel("common.time.h")).append(" ");
+		}
 
-        return sb.toString();
-    }
+		if (nbMinutes > 0) {
+			sb.append(nbMinutes).append(" ");
+			sb.append(RM.getLabel("common.time.mn")).append(" ");
+		}
 
-    public static boolean isEmpty(String o) {
-        return o == null || o.trim().equals("");
-    }
+		if (nbSecondes > 0) {
+			sb.append(nbSecondes).append(" ");
+			sb.append(RM.getLabel("common.time.s")).append(" ");
+		}
 
-    /**
-     * Normalizes the fileName provided as argument.
-     * <BR>All file separators are removed and "?" are removed (URL parameter separator)
-     */
-    public static String normalizeFileName(String origName) {
-        int l = origName.length();
-        StringBuffer sb = new StringBuffer();
-        char c;
-        char pc = 'A';
-        for (int i=0; i<l; i++) {
-            c = origName.charAt(i);
+		return sb.toString();
+	}
 
-            if (c != '/' && c != '\\' && c != '?') {
-                sb.append(c);
-                pc = c;
-            } else if (pc != ' ') {
-                sb.append(' ');
-                pc = ' ';
-            }
-        }
+	public static boolean isEmpty(String o) {
+		return o == null || o.trim().equals("");
+	}
 
-        return sb.toString().trim();
-    }
-    
+	/**
+	 * Normalizes the fileName provided as argument.
+	 * <BR>All file separators are removed and "?" are removed (URL parameter separator)
+	 */
+	public static String normalizeFileName(String origName) {
+		int l = origName.length();
+		StringBuffer sb = new StringBuffer();
+		char c;
+		char pc = 'A';
+		for (int i=0; i<l; i++) {
+			c = origName.charAt(i);
+
+			if (c != '/' && c != '\\' && c != '?') {
+				sb.append(c);
+				pc = c;
+			} else if (pc != ' ') {
+				sb.append(' ');
+				pc = ' ';
+			}
+		}
+
+		return sb.toString().trim();
+	}
+
 	/**
 	 * Windows file paths are not case sensitive, but Areca IS.
 	 * <BR>In some cases, this can lead to errors -> we need to normalize file paths
@@ -310,5 +319,67 @@ public class Utils implements ArecaFileConstants {
 		} else {
 			return path;
 		}
+	}
+
+	public static String getPropertiesAndPreferences() {
+		Properties prps = System.getProperties();
+		System.gc();
+		prps.put("system.free.memory", "" + OSTool.getFreeMemory());
+		prps.put("system.memory.usage", "" + OSTool.getMemoryUsage());
+		prps.put("system.total.memory", "" + OSTool.getTotalMemory());
+		prps.put("system.max.available.memory", "" + OSTool.getMaxMemory());
+		prps.put("file.encoding.iana", OSTool.getIANAFileEncoding());
+		prps.put("areca-backup.version", VersionInfos.getLastVersion().getVersionId());
+		prps.put("areca-backup.build.id", "" + VersionInfos.getBuildId());
+		prps.put("areca-backup.path.length.limited", Boolean.toString(AbstractFileSystemDriver.CHECK_PATH));
+		prps.put("delta.lookup.success", "" + DeltaReader.SUCCESS_COUNTER);
+		prps.put("delta.lookup.failures", "" + DeltaReader.FAILURE_COUNTER);
+		prps.put("areca-backup.class.loader", ClassLoader.getSystemClassLoader().getClass().getName());
+		prps.put("system.available.processors", "" + Runtime.getRuntime().availableProcessors());
+
+		FileLogProcessor proc = (FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class);
+		if (proc != null) {
+			prps.put("log.file", proc.getCurrentLogFile());
+		}
+
+		prps.putAll(ArecaConfiguration.get().getAll());
+
+		// User preferences
+		prps.putAll(LocalPreferences.instance().getPreferences());
+
+		// Plugins
+		Iterator iter = StoragePluginRegistry.getInstance().getAll().iterator();
+		String plugins = "";
+		while (iter.hasNext()) {
+			StoragePlugin plugin = (StoragePlugin)iter.next();
+			if (plugins.length() != 0) {
+				plugins += ", ";
+			}
+			plugins += plugin.getFullName();
+		}
+		prps.put("areca-backup.plugins", plugins);
+
+		// Translations
+		prps.put("areca-backup.available.translations", Utils.getTranslationsAsString());        
+
+		// Encodings
+		StringBuffer css = new StringBuffer();
+		for (int i=0; i<OSTool.getCharsets().length; i++) {
+			if (i != 0) {
+				css.append(", ");
+			}
+			css.append(OSTool.getCharsets()[i].name());
+		}
+		prps.put("supported.charsets", css.toString());
+
+		String[] keys = (String[])prps.keySet().toArray(new String[0]);
+		Arrays.sort(keys);
+		StringBuffer sb = new StringBuffer();
+		for (int i=0; i<keys.length; i++) {
+			String key = keys[i];
+			String value = prps.getProperty(key).replace('\n', ' ').replace('\r', ' ');
+			sb.append(key).append(" : ").append(value).append("\n");
+		}
+		return sb.toString();
 	}
 }

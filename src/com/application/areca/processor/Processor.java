@@ -32,6 +32,10 @@ This file is part of Areca.
 
  */
 public interface Processor extends Comparable, Duplicable {
+	public static final int ACTION_BACKUP = 1;
+	public static final int ACTION_MERGE = 2;
+	public static final int ACTION_CHECK = 3;
+	
 	public String getKey();
 	
     public void run(ProcessContext context) throws ApplicationException;
@@ -45,4 +49,9 @@ public interface Processor extends Comparable, Duplicable {
 	public void setRunIfWarning(boolean runIfWarning);
 	public boolean isRunIfError();
 	public void setRunIfError(boolean runIfError);
+	public boolean shallRun(int action);
+	
+	public boolean isRunBackup();
+	public boolean isRunMerge();
+	public boolean isRunCheck();
 }

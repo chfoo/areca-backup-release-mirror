@@ -174,9 +174,15 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append("\n<");
         sb.append(header);
         sb.append(XMLTool.encodeProperty(XML_PP_AFTER, postProcess));
+        
         sb.append(XMLTool.encodeProperty(XML_PP_RUN_SUCCESS, proc.isRunIfOK()));
         sb.append(XMLTool.encodeProperty(XML_PP_RUN_ERROR, proc.isRunIfError()));
         sb.append(XMLTool.encodeProperty(XML_PP_RUN_WARNING, proc.isRunIfWarning()));
+        
+        sb.append(XMLTool.encodeProperty(XML_PP_RUN_BACKUP, proc.isRunBackup()));
+        sb.append(XMLTool.encodeProperty(XML_PP_RUN_MERGE, proc.isRunMerge()));
+        sb.append(XMLTool.encodeProperty(XML_PP_RUN_CHECK, proc.isRunCheck()));
+        
         sb.append(" "); 
     }
 

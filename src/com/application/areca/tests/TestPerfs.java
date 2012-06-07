@@ -32,6 +32,7 @@ import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.transaction.YesTransactionHandler;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.driver.DefaultFileSystemDriver;
 import com.myJava.util.CalendarUtils;
 import com.myJava.util.log.LogMessagesContainer;
 import com.myJava.util.log.Logger;
@@ -66,12 +67,14 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class Test {
+public class TestPerfs {
 	public static LoggerUserInformationChannel CHANNEL = new LoggerUserInformationChannel(false);
 	private static String CURRENT_TEST = "";
 	public static String CURRENT_TARGET = "";
 	public static boolean SUCCESS = false;
 	private static long START = System.currentTimeMillis();
+	
+	public static String RES = "target;uid;sync;async";
 
 	public static final String SOURCES_S = ".source_files";
 	public static final String RECOVERY_DIR_S = ".recovery_dir";
@@ -121,7 +124,9 @@ public class Test {
 		WorkspaceProcessor.process(item, new TargetHandler() {
 			public void handle(FileSystemTarget target) throws Exception {
 				CheckParameters checkParams = new CheckParameters(true, true, true, false, null);
-				
+				RES+="\n"+target.getName()+";"+target.getUid()+";";
+
+				// Etape 1 : inits divers
 				ActionProxy.processBackupOnTarget(
 						target,
 						null,
@@ -131,17 +136,39 @@ public class Test {
 						new YesTransactionHandler(),
 						buildContext(target)
 				);
-			}
-		});
-	}
-	
-	private static void doMerge(final WorkspaceItem item, final boolean keepDeleted) throws Exception {
-		WorkspaceProcessor.process(item, new TargetHandler() {
-			public void handle(FileSystemTarget target) throws Exception {
-				MergeParameters params = new MergeParameters(keepDeleted, false, null);
-				CheckParameters cp = new CheckParameters(true, true, true, false, null);
+				target.destroyRepository();
 				
-				ActionProxy.processMergeOnTarget(target, null, new GregorianCalendar(), null, params, cp, buildContext(target));
+				// Etape 2 : sync
+				//DefaultFileSystemDriver.ASYNC_OUTPUT = true;
+				
+				long start = System.currentTimeMillis();
+				ActionProxy.processBackupOnTarget(
+						target,
+						null,
+						backupScheme,
+						false,
+						checkParams,
+						new YesTransactionHandler(),
+						buildContext(target)
+				);
+				RES+=(System.currentTimeMillis()-start)+";";
+				target.destroyRepository();
+				
+				// Etape 3 : async
+				//DefaultFileSystemDriver.ASYNC_OUTPUT = false;
+				
+				start = System.currentTimeMillis();
+				ActionProxy.processBackupOnTarget(
+						target,
+						null,
+						backupScheme,
+						false,
+						checkParams,
+						new YesTransactionHandler(),
+						buildContext(target)
+				);
+				RES+=(System.currentTimeMillis()-start)+";";
+				target.destroyRepository();
 			}
 		});
 	}
@@ -324,97 +351,7 @@ public class Test {
 			
 			switchTo("Recover first backup");
 			doRecover(workspace, recoveryDir, null, true);
-			
-			switchTo("Modify Data");
-			CreateData.append(sources);
-			CreateData.remove(sources);
-			
-			switchTo("Second backup");
-			doBackup(workspace, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
-			doCountArchives(workspace, 2);
-			
-			switchTo("Check second backup");
-			doCheck(workspace);
-			
-			switchTo("Recover second backup");
-			doRecover(workspace, recoveryDir, null, true);
 
-			switchTo("Modify Data (2)");
-			CreateData.append2(sources);
-			CreateData.remove2(sources);
-			
-			switchTo("Third backup");
-			doBackup(workspace, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
-			doCountArchives(workspace, 3);
-			
-			switchTo("Check third backup");
-			doCheck(workspace);
-			
-			switchTo("Recover third backup");
-			doRecover(workspace, recoveryDir, null, true);
-	
-			switchTo("Merge archives");
-			doMerge(workspace, false);
-			doCountArchives(workspace, 1);
-			
-			switchTo("Check merged archive");
-			doCheck(workspace);
-			
-			switchTo("Recover merged archive");
-			doRecover(workspace, recoveryDir, null, true);
-
-			switchTo("Modify Data (3)");
-			CreateData.finalAppend(sources);
-			CreateData.finalRemove(sources);
-			
-			switchTo("Fourth backup");
-			doBackup(workspace, AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL);
-			doCountArchives(workspace, 2);
-			
-			switchTo("Check fourth backup");
-			doCheck(workspace);
-			
-			switchTo("Recover fourth backup");
-			doRecover(workspace, recoveryDir, null, true);
-			
-			switchTo("Merge archives (2)");
-			doMerge(workspace, true);
-			doCountArchives(workspace, 1);
-			
-			switchTo("Check merged archive (2)");
-			doCheck(workspace);
-			
-			switchTo("Recover merged archive (2)");
-			doRecover(workspace, recoveryDir, CreateData.FINAL_REMOVE, true);
-
-			switchTo("Modify Data (4)");
-			CreateData.create(sources);
-			CreateData.create2(sources);
-			
-			switchTo("Fifth backup");
-			doBackup(workspace, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
-			doCountArchives(workspace, 2);
-			
-			switchTo("Check fifth backup");
-			doCheck(workspace);
-			
-			switchTo("Recover fifth backup");
-			doRecover(workspace, recoveryDir, null, true);
-	
-			switchTo("Merge archives (third)");
-			doMerge(workspace, false);
-			doCountArchives(workspace, 1);
-			
-			switchTo("Check (3rd) merged archive");
-			doCheck(workspace);
-			
-			switchTo("Recover (3rd) merged archive");
-			doRecover(workspace, recoveryDir, null, true);
-
-			switchTo("Final Clean");
-			cleanArchives(workspace);
-			doCountArchives(workspace, 0);
-			
 			SUCCESS = true;
 			log("-----------------------------");
 			log("Tests performed successfully.");
@@ -435,6 +372,8 @@ public class Test {
 				FileTool.getInstance().delete(f);
 			} catch (IOException e) {
 				e.printStackTrace();
+			} finally {
+				System.out.println(RES);
 			}
 		}
 		long stop = System.currentTimeMillis();

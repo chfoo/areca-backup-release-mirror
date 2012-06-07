@@ -7,7 +7,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import com.application.areca.context.ProcessContext;
@@ -22,6 +21,7 @@ import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
 import com.application.areca.metadata.manifest.ManifestManager;
 import com.application.areca.metadata.transaction.TransactionPoint;
+import com.application.areca.processor.Processor;
 import com.application.areca.processor.ProcessorList;
 import com.application.areca.search.SearchCriteria;
 import com.application.areca.search.TargetSearchResult;
@@ -32,6 +32,7 @@ import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.system.OSTool;
 import com.myJava.util.CalendarUtils;
+import com.myJava.util.Chronometer;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.HistoryEntry;
 import com.myJava.util.history.HistoryHandler;
@@ -236,6 +237,10 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	public String getComments() {
 		return comments;
 	}
+	
+	public File createDebuggingData(File directory) throws ApplicationException, TaskCancelledException {
+		return medium.createDebuggingData(directory);
+	}
 
 	public void setComments(String comments) {
 		this.comments = comments;
@@ -317,7 +322,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 					&& this.medium.isPreBackupCheckUseful() 
 					&& (!disablePreCheck) 
 					&& backupScheme.equals(BACKUP_SCHEME_INCREMENTAL)
-					) {
+			) {
 				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2, "pre-check");
 				context.getInfoChannel().print("Pre-check in progress ...");
 				this.processSimulateImpl(context, false);
@@ -328,18 +333,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			}
 
 			if (backupRequired) {
-				if (
-						transactionPoint == null 
-						&& (! this.preProcessors.isEmpty())
-						) {
-					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1, "pre-processors");
-					TaskMonitor preProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
-					try {     
-						this.preProcessors.run(context);
-					} finally {
-						preProcessMon.enforceCompletion();
-					}
-				}
+				runPreProcessors(Processor.ACTION_BACKUP, 0.1, transactionPoint == null, context);
 
 				try {
 					context.getInfoChannel().print("Backup in progress ...");
@@ -350,8 +344,8 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 
 					double remaining = 
 							1.0 
-							- (this.postProcessors.isEmpty() ? 0 : 0.1) 
-							- (this.preProcessors.isEmpty() ? 0 : 0.1)
+							- (this.postProcessors.isEmpty(Processor.ACTION_BACKUP) ? 0 : 0.1) 
+							- (this.preProcessors.isEmpty(Processor.ACTION_BACKUP) ? 0 : 0.1)
 							- (checkParams.isCheck() ? 0.3 : 0);
 
 					// Open the storage medium
@@ -423,12 +417,12 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 					// Check the archive
 					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.6, "effective check");
 					try {
-						this.processArchiveCheck(checkParams, cal, null, context);
+						this.processArchiveCheck(checkParams, cal, null, false, context);
 					} catch (Exception e) {
 						Logger.defaultLogger().error("An error has been caught : ", e);
 						checkException = e;
 					}
-					if (checkException != null || context.hasRecoveryIssues()) {
+					if (checkException != null || context.getReport().hasRecoveryIssues()) {
 						String excMsg = "";
 						if (checkException != null) {
 							excMsg = " (got the following error : " + checkException.getMessage() + ")";
@@ -447,24 +441,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			}
 
 			if (backupRequired) {
-				if (! this.postProcessors.isEmpty()) {
-					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.1, "post-processors");
-					TaskMonitor postProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
-					try {  
-						if (this.postProcessors.requireStatistics()) {
-							try {
-								context.getReport().setIndicators(this.computeIndicators(context));
-								context.getReport().getStatus().addItem("Compute Statistics");
-							} catch (Throwable e) {
-								Logger.defaultLogger().error("Error while computing statistics.", e);
-								context.getReport().getStatus().addItem("Compute Statistics", e.getMessage());
-							}
-						}
-						this.postProcessors.run(context);
-					} finally {
-						postProcessMon.enforceCompletion();
-					}
-				}
+				runPostProcessors(Processor.ACTION_BACKUP, 0.1, true, context);
 				context.getInfoChannel().print("Backup completed."); 
 			} else {
 				// No backup is necessary
@@ -476,6 +453,8 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 				throw wrapException(checkException);
 			}
 		}
+		
+		//Logger.defaultLogger().fine(Chronometer.instance().toString());
 	}
 
 	/**
@@ -603,6 +582,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			Manifest manifest, 
 			MergeParameters params,
 			CheckParameters checkParams,
+			boolean runProcessors,
 			ProcessContext context
 			) throws ApplicationException {
 		if (fromDelay != 0 && toDelay != 0 && fromDelay < toDelay) {
@@ -624,7 +604,40 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 		toDate.add(Calendar.DATE, -1 * toDelay);
 
 		// Go !
-		processMerge(fromDate, toDate, manifest, params, checkParams, context);
+		processMerge(fromDate, toDate, manifest, params, checkParams, runProcessors, context);
+	}
+
+	protected void runPreProcessors(int action, double taskRatio, boolean runProcessors, ProcessContext context) throws ApplicationException {
+		if (runProcessors && ! this.preProcessors.isEmpty(action)) {
+			context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(taskRatio, "pre-processors");
+			TaskMonitor preProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
+			try {     
+				this.preProcessors.run(action, context);
+			} finally {
+				preProcessMon.enforceCompletion();
+			}
+		}
+	}
+
+	protected void runPostProcessors(int action, double taskRatio, boolean runProcessors, ProcessContext context) throws ApplicationException {
+		if (runProcessors && ! this.postProcessors.isEmpty(action)) {
+			context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(taskRatio, "post-processors");
+			TaskMonitor postProcessMon = context.getTaskMonitor().getCurrentActiveSubTask();
+			try {  
+				if (this.postProcessors.requireStatistics(action)) {
+					try {
+						context.getReport().setIndicators(this.computeIndicators(context));
+						context.getReport().getStatus().addItem("Compute Statistics");
+					} catch (Throwable e) {
+						Logger.defaultLogger().error("Error while computing statistics.", e);
+						context.getReport().getStatus().addItem("Compute Statistics", e.getMessage());
+					}
+				}
+				this.postProcessors.run(action, context);
+			} finally {
+				postProcessMon.enforceCompletion();
+			}
+		}
 	}
 
 	/**
@@ -636,14 +649,23 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			Manifest manifest,
 			MergeParameters params,
 			CheckParameters checkParams,
+			boolean runProcessors,
 			ProcessContext context
 			) throws ApplicationException {
 		try {
-			if (checkParams.isCheck()) {
-				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.7, "merge");
-			}
-			
 			validateTargetState(ACTION_MERGE_OR_DELETE, context);  
+			
+			runPreProcessors(Processor.ACTION_MERGE, 0.1, runProcessors, context);
+
+			double remaining = 
+					1.0 
+					- (! runProcessors || this.postProcessors.isEmpty(Processor.ACTION_MERGE) ? 0 : 0.1) 
+					- (! runProcessors || this.preProcessors.isEmpty(Processor.ACTION_MERGE) ? 0 : 0.1)
+					- (checkParams.isCheck() ? 0.3 : 0);
+			
+
+			context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(remaining, "merge");
+
 			context.getInfoChannel().print("Merge in progress ...");
 			context.setChecked(checkParams.isCheck());
 			HistoryHandler handler = medium.getHistoryHandler();
@@ -678,7 +700,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 						while (iter.hasNext()) {
 							ignoredArchives.add(iter.next());
 						}
-						this.processArchiveCheck(checkParams, cal, ignoredArchives, checkContext);
+						this.processArchiveCheck(checkParams, cal, ignoredArchives, false, checkContext);
 					} catch (Exception e) {
 						Logger.defaultLogger().error("An error has been caught : ", e);
 						checkException = e;
@@ -689,7 +711,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			}
 
 			// Raise error in case of check issue
-			if (checkException != null || (checkContext != null && checkContext.hasRecoveryIssues())) {
+			if (checkException != null || (checkContext != null && checkContext.getReport().hasRecoveryIssues())) {
 				String excMsg = "";
 				if (checkException != null) {
 					excMsg = " (got the following error : " + checkException.getMessage() + ")";
@@ -719,6 +741,8 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			throw wrapException(e);
 		} finally {
 			context.getReport().setStopMillis();
+			
+			runPostProcessors(Processor.ACTION_MERGE, 0.1, runProcessors, context);
 			context.getInfoChannel().print("Merge completed.");
 		}
 	}  
@@ -885,6 +909,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			CheckParameters checkParams, 
 			GregorianCalendar date, 
 			Set ignoreList,
+			boolean runProcessors,
 			ProcessContext context
 			) throws ApplicationException;
 

@@ -164,4 +164,8 @@ public interface XMLTags {
     public static final String XML_PP_RUN_SUCCESS = "run_if_success";
     public static final String XML_PP_RUN_ERROR = "run_if_error";
     public static final String XML_PP_RUN_WARNING = "run_if_warning";
+    
+    public static final String XML_PP_RUN_BACKUP = "run_if_backup";
+    public static final String XML_PP_RUN_MERGE = "run_if_merge";
+    public static final String XML_PP_RUN_CHECK = "run_if_check";
 }

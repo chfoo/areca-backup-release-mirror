@@ -1,5 +1,6 @@
 package com.application.areca.impl;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +21,7 @@ import com.myJava.file.InvalidPathException;
 import com.myJava.file.driver.CompressedFileSystemDriver;
 import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.iterator.FileNameComparator;
+import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.object.Duplicable;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
@@ -98,6 +100,16 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 				// Shall not happen
 				throw new IllegalArgumentException(entry.getKey() + " not found in hash file. Current entry = " + context.getPreviousHashIterator().current().getKey());
 			}
+		}
+	}
+
+	protected void dbgBuildArchiveFileList(File archive, BufferedWriter writer) throws IOException, ApplicationException {
+		FileSystemIterator iter = new FileSystemIterator(archive, false, true, true, true);
+		String prefix = FileSystemManager.getAbsolutePath(archive);
+		while (iter.hasNext()) {
+			File f = iter.nextFile();
+			Logger.defaultLogger().fine("File : " + f);
+			writer.write("\n"+FileSystemManager.getAbsolutePath(f).substring(prefix.length()));
 		}
 	}
 

@@ -2,6 +2,8 @@ package com.myJava.file.archive;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -40,59 +42,76 @@ This file is part of Areca.
  */
 public class ArchiveWriter {
 
-    private ArchiveAdapter adapter;
-    private FileTool tool;
-    
-    public ArchiveWriter(ArchiveAdapter adapter) throws IOException {
-        this.tool = FileTool.getInstance();  
-        this.adapter = adapter;
-    }
+	private ArchiveAdapter adapter;
+	private FileTool tool;
 
-    public void addFile(File file, String fullName, Comparator comparator, TaskMonitor monitor) 
-    throws IOException, TaskCancelledException {
-        try {
+	public ArchiveWriter(ArchiveAdapter adapter) throws IOException {
+		this.tool = FileTool.getInstance();  
+		this.adapter = adapter;
+	}
+
+	public void addFile(String fullName, String content) 
+			throws IOException {
+		try {
+			if (FileNameUtil.startsWithSeparator(fullName)) {
+				fullName = fullName.substring(1);
+			}
+
+			this.adapter.addEntry(fullName, 0);    
+			OutputStreamWriter fw = new OutputStreamWriter(this.adapter.getArchiveOutputStream());
+			fw.write(content);
+			fw.flush();
+			this.adapter.closeEntry();
+		} catch (IOException e) {
+			throw new IOException("Error storing " + fullName, e);
+		}
+	}
+
+	public void addFile(File file, String fullName, Comparator comparator, TaskMonitor monitor) 
+			throws IOException, TaskCancelledException {
+		try {
 			if (! FileSystemManager.exists(file)) {
-			    return;
+				return;
 			}
-			
+
 			if (monitor != null) {
-			    monitor.checkTaskState();
+				monitor.checkTaskState();
 			}
-			
+
 			if (FileSystemManager.isFile(file)) {
-			    if (FileNameUtil.startsWithSeparator(fullName)) {
-			        fullName = fullName.substring(1);
-			    }
-			    
-			    long length = FileSystemManager.length(file);
-			    
-			    this.adapter.addEntry(fullName, length);            
-			    this.tool.copyFile(file, this.adapter.getArchiveOutputStream(), false, monitor);
-			    this.adapter.closeEntry();
+				if (FileNameUtil.startsWithSeparator(fullName)) {
+					fullName = fullName.substring(1);
+				}
+
+				long length = FileSystemManager.length(file);
+
+				this.adapter.addEntry(fullName, length);            
+				this.tool.copyFile(file, this.adapter.getArchiveOutputStream(), false, monitor);
+				this.adapter.closeEntry();
 			} else {
-			    File[] children = FileSystemManager.listFiles(file);
+				File[] children = FileSystemManager.listFiles(file);
 				if (comparator != null) {
 					Arrays.sort(children, comparator);
 				}
-			    for (int i=0; i<children.length; i++) {
-			        this.addFile(
-			        		children[i], 
-			        		Util.replace(FileSystemManager.getCanonicalPath(children[i]), FileSystemManager.getCanonicalPath(file), fullName), 
-			        		comparator,
-			        		monitor
-			        );
-			    }
+				for (int i=0; i<children.length; i++) {
+					this.addFile(
+							children[i], 
+							Util.replace(FileSystemManager.getCanonicalPath(children[i]), FileSystemManager.getCanonicalPath(file), fullName), 
+							comparator,
+							monitor
+							);
+				}
 			}
 		} catch (IOException e) {
 			throw new IOException("Error storing " + file + " under key : " + fullName, e);
 		}
-    }
+	}
 
-    public ArchiveAdapter getAdapter() {
-        return adapter;
-    }
+	public ArchiveAdapter getAdapter() {
+		return adapter;
+	}
 
-    public void close() throws IOException {
-        this.adapter.close();
-    }
+	public void close() throws IOException {
+		this.adapter.close();
+	}
 }

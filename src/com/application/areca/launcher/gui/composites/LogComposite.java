@@ -75,14 +75,14 @@ implements LogProcessor, Refreshable {
 	private Set displayedMessages = new HashSet();
 	private int logLevel = Math.min(ApplicationPreferences.getLogLevel(), Logger.defaultLogger().getLogLevel());
 	private boolean lockScroll = false;
-	
+
 	private StyledText txtLog;
 	private Button btnClear;
 	private Button btnThreadDump;
 	private Button btnLock;
 	private Combo cboLogLevel;
 	private Composite panel;
-    private Link lblPath;
+	private Link lblPath;
 
 	private Font warningFont;
 	private int currentMinLevel = MAX_LEVEL;
@@ -117,7 +117,7 @@ implements LogProcessor, Refreshable {
 		Logger.defaultLogger().remove(this.getClass());
 		Logger.defaultLogger().addProcessor(this);
 	}
-	
+
 	private void switchLockScroll() {
 		if (lockScroll) {
 			btnLock.setText(RM.getLabel("app.locklog.label"));
@@ -132,8 +132,8 @@ implements LogProcessor, Refreshable {
 		panel = new Composite(parent, SWT.NONE);
 		panel.setLayout(new GridLayout(5, false));
 
-        lblPath = new Link(panel, SWT.NONE);
-        lblPath.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 5, 1));
+		lblPath = new Link(panel, SWT.NONE);
+		lblPath.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 5, 1));
 
 		Label lblLevel = new Label(panel, SWT.NONE);
 		lblLevel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
@@ -167,7 +167,7 @@ implements LogProcessor, Refreshable {
 				ApplicationPreferences.setLogLevel(LogComposite.this.logLevel);
 			}
 		});
-		
+
 		btnClear = new Button(panel, SWT.PUSH);
 		btnClear.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 		btnClear.setText(RM.getLabel("app.clearlog.label"));
@@ -176,7 +176,7 @@ implements LogProcessor, Refreshable {
 				application.clearLog();
 			}
 		});
-		
+
 		btnLock = new Button(panel, SWT.PUSH);
 		btnLock.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 		btnLock.setText(RM.getLabel("app.locklog.label"));
@@ -192,7 +192,7 @@ implements LogProcessor, Refreshable {
 		btnThreadDump.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				Util.logAllThreadInformations();
-				
+
 				Logger.defaultLogger().info("Connection data :");
 				Logger.defaultLogger().fine(RemoteConnectionMonitor.getInstance().toString());
 			}
@@ -315,21 +315,21 @@ implements LogProcessor, Refreshable {
 	public void refresh() {
 		FileLogProcessor fileProc = (FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class);
 		if (fileProc != null) {
-	        final String path = fileProc.getCurrentLogFile();
-	        lblPath.setText("<A HREF=\"\">" + path + "</A>");
-	        Listener[] listeners = lblPath.getListeners(SWT.Selection);
-	        for (int i=0; i<listeners.length; i++) {
-	        	lblPath.removeListener(SWT.Selection, listeners[i]);
-	        }
-	        lblPath.addListener (SWT.Selection, new Listener() {
-	            public void handleEvent(Event event) {
-	                try {
-	                    ViewerHandlerHelper.getViewerHandler().open(new File(path));
-	                } catch (Exception e) {
-	                    Logger.defaultLogger().error(e);
-	                }
-	            }
-	        });
+			final String path = fileProc.getCurrentLogFile();
+			lblPath.setText("<A HREF=\"\">" + path + "</A>");
+			Listener[] listeners = lblPath.getListeners(SWT.Selection);
+			for (int i=0; i<listeners.length; i++) {
+				lblPath.removeListener(SWT.Selection, listeners[i]);
+			}
+			lblPath.addListener (SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					try {
+						Application.getInstance().secureOpenFile(path);
+					} catch (Exception e) {
+						Logger.defaultLogger().error(e);
+					}
+				}
+			});
 		}
 	}
 
@@ -362,7 +362,7 @@ implements LogProcessor, Refreshable {
 		return (
 				messageKey != null
 				&& displayedMessages.contains(messageKey)
-		);
+				);
 	}
 
 	private static StyleRange resolveStyle(int level) {

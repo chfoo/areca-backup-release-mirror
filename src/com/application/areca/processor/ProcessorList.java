@@ -62,11 +62,16 @@ public class ProcessorList implements Duplicable {
 		this.forwardErrors = forwardErrors;
 	}
 	
-	public boolean requireStatistics() {
+	/**
+	 * 
+	 * @param action : see constants declared in the Processor interface
+	 * @return
+	 */
+	public boolean requireStatistics(int action) {
         Iterator iter = this.processors.iterator();
         while (iter.hasNext()) {
             Processor processor = (Processor)iter.next();
-            if (processor.requireStatictics()) {
+            if (processor.shallRun(action) && processor.requireStatictics()) {
             	return true;
             }
         }
@@ -76,9 +81,9 @@ public class ProcessorList implements Duplicable {
 	/**
      * Calls the processors 
      */
-    public void run(ProcessContext context) throws ApplicationException {
-        if (! this.isEmpty()) {
-            double taskShare = 1 / (double)this.getSize();
+    public void run(int action, ProcessContext context) throws ApplicationException {
+        if (! this.isEmpty(action)) {
+            double taskShare = 1 / (double)this.getSize(action);
             
 	        Iterator iter = this.processors.iterator();
 	        StringBuffer exceptions = new StringBuffer();
@@ -86,19 +91,22 @@ public class ProcessorList implements Duplicable {
                 context.reset(true);
                 
                 Processor processor = (Processor)iter.next();
-                String key = processor.getKey() + " (" + processor.getParametersSummary() + ")";
-                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(taskShare, processor.getClass().getName());
-	            TaskMonitor itemMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
-	            try {
-                    processor.run(context);
-	                context.getReport().getStatus().addItem(key);
-	            } catch (Throwable e) {
-	                Logger.defaultLogger().error("Error while executing " + key, e);
-	                exceptions.append("\n").append(e.getMessage());
-	                context.getReport().getStatus().addItem(key, e.getMessage());
-	            } finally {
-	                itemMonitor.enforceCompletion();
-	            }
+                
+                if (processor.shallRun(action)) {
+	                String key = processor.getKey() + " (" + processor.getParametersSummary() + ")";
+	                context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(taskShare, processor.getClass().getName());
+		            TaskMonitor itemMonitor = context.getTaskMonitor().getCurrentActiveSubTask();
+		            try {
+	                    processor.run(context);
+		                context.getReport().getStatus().addItem(key);
+		            } catch (Throwable e) {
+		                Logger.defaultLogger().error("Error while executing " + key, e);
+		                exceptions.append("\n").append(e.getMessage());
+		                context.getReport().getStatus().addItem(key, e.getMessage());
+		            } finally {
+		                itemMonitor.enforceCompletion();
+		            }
+                }
 	        }
 	        
 	        String errorMsg = exceptions.toString();
@@ -112,11 +120,21 @@ public class ProcessorList implements Duplicable {
         return this.processors.iterator();
     }
     
-    public int getSize() {
-        return this.processors.size();
+    public int getSize(int action) {
+    	int size = 0;
+        Iterator iter = this.processors.iterator();
+        
+        while (iter.hasNext()) {
+            Processor processor = (Processor)iter.next();
+            if (processor.shallRun(action)) {
+            	size++;
+            }
+        }
+        
+        return size;
     }
     
-    public boolean isEmpty() {
-        return this.processors.isEmpty();
+    public boolean isEmpty(int action) {
+        return this.getSize(action) == 0;
     }
 }

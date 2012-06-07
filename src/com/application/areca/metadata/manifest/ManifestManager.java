@@ -76,7 +76,7 @@ public class ManifestManager {
         }
     }
     
-	private static ManifestReader buildReader(File file) {
+	public static ManifestReader buildReader(File file) {
 		try {
 			String r = FileTool.getInstance().getFirstRow(new GZIPInputStream(FileSystemManager.getFileInputStream(file)), XMLManifestAdapter.ENCODING);
 			if (r.equalsIgnoreCase(XMLTool.getHeader(XMLManifestAdapter.ENCODING))) {

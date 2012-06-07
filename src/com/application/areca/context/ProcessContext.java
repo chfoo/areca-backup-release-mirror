@@ -55,7 +55,7 @@ public class ProcessContext implements Externalizable {
     /**
 	 * The ProcessContext is serializable, and needs a serial version uid
 	 */
-	private static final long serialVersionUID = 102772337124247716L;
+	private static final long serialVersionUID = 102772337124247718L;
 
 	////////////////
 	// BACKUP
@@ -118,10 +118,7 @@ public class ProcessContext implements Externalizable {
 	// RECOVERY
 	////////////////
     protected File recoveryDestination;
-    private List invalidRecoveredFiles = new ArrayList();
-    private List uncheckedRecoveredFiles = new ArrayList();
-    private List unrecoveredFiles = new ArrayList();
-    private long nbChecked = 0;
+
 	
     /**
      * Number of recovery errors that were explained in detail (used to limit the number of displayed messages)
@@ -183,7 +180,6 @@ public class ProcessContext implements Externalizable {
     	entryIndex = in.readLong();
 		inputBytes = in.readLong();
 		isInitialized = in.readBoolean();
-		nbChecked = in.readLong();
 		currentArchiveFile = (File)in.readObject();
 		backupScheme = (String)in.readObject();
 		outputStreamListener = (MeteredOutputStreamListener)in.readObject();
@@ -233,7 +229,6 @@ public class ProcessContext implements Externalizable {
 		out.writeLong(entryIndex);
 		out.writeLong(inputBytes);
 		out.writeBoolean(isInitialized);
-		out.writeLong(nbChecked);
 		out.writeObject(currentArchiveFile);
 		out.writeObject(backupScheme);
 		out.writeObject(outputStreamListener);
@@ -273,13 +268,9 @@ public class ProcessContext implements Externalizable {
         this.referenceTrace = null;
         this.traceAdapter = null;
         this.contentIterators.clear();
-        this.invalidRecoveredFiles.clear();
-        this.uncheckedRecoveredFiles.clear();
-        this.unrecoveredFiles.clear();
         this.previousHashIterator = null;
         this.detailedRecoveryErrors = 0;
         this.traceFile = null;
-        this.nbChecked = 0;
         this.inputBytes = 0;
         this.filesByArchive = null;
         this.checked = false;
@@ -328,7 +319,7 @@ public class ProcessContext implements Externalizable {
 	public ProcessContext(AbstractTarget target, UserInformationChannel channel, TaskMonitor taskMonitor, boolean forceChannelContext) {
         this.report = new ProcessReport(target);
         this.infoChannel = channel;
-        if (forceChannelContext) {
+        if (forceChannelContext && infoChannel != null) {
         	this.infoChannel.setContext(this);
         }
         if (taskMonitor != null) {
@@ -354,14 +345,6 @@ public class ProcessContext implements Externalizable {
 
 	public void setCurrentTransactionPoint(TransactionPoint currentTP) {
 		this.currentTransactionPoint = currentTP;
-	}
-
-	public void addChecked() {
-    	this.nbChecked++;
-    }
-
-    public long getNbChecked() {
-		return nbChecked;
 	}
     
     public ArchiveContentAdapter getContentAdapter() {
@@ -407,25 +390,6 @@ public class ProcessContext implements Externalizable {
 	public File getCurrentArchiveFile() {
         return currentArchiveFile;
     }
-
-	public List getInvalidRecoveredFiles() {
-		return invalidRecoveredFiles;
-	}
-	
-	public List getUncheckedRecoveredFiles() {
-		return uncheckedRecoveredFiles;
-	}
-
-	public List getUnrecoveredFiles() {
-		return unrecoveredFiles;
-	}
-	
-	public boolean hasRecoveryIssues() {
-		return 
-			(invalidRecoveredFiles != null && invalidRecoveredFiles.size() > 0)
-			|| (uncheckedRecoveredFiles != null && uncheckedRecoveredFiles.size() > 0)
-			|| (unrecoveredFiles != null && unrecoveredFiles.size() > 0);
-	}
 
     public void setCurrentArchiveFile(File currentArchiveFile) {
         this.currentArchiveFile = currentArchiveFile;
@@ -549,10 +513,6 @@ public class ProcessContext implements Externalizable {
 
 	public void setInitialized(boolean isInitialized) {
 		this.isInitialized = isInitialized;
-	}
-
-	public void setNbChecked(long nbChecked) {
-		this.nbChecked = nbChecked;
 	}
 
 	public void setOutputStreamListener(MeteredOutputStreamListener outputStreamListener) {

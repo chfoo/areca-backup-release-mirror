@@ -126,7 +126,7 @@ public class ActionProxy {
 			ProcessContext context
 	) throws ApplicationException {
 		LogHelper.logTarget(target);
-		target.processArchiveCheck(checkParams, date, null, context);
+		target.processArchiveCheck(checkParams, date, null, true, context);
 	}
 
 	/**
@@ -172,7 +172,7 @@ public class ActionProxy {
 			CheckParameters checkParams,
 			ProcessContext context
 	) throws ApplicationException {  
-		target.processMerge(fromDate, toDate, manifest, params, checkParams, context);
+		target.processMerge(fromDate, toDate, manifest, params, checkParams, true, context);
 	}  
 
 	public static void processMergeOnTarget(
@@ -185,7 +185,7 @@ public class ActionProxy {
 			ProcessContext context
 	) throws ApplicationException {
 		LogHelper.logTarget(target);
-		processMergeOnTargetImpl(target, fromDelay, toDelay, manifest, params, checkParams, context);
+		processMergeOnTargetImpl(target, fromDelay, toDelay, manifest, params, checkParams, true, context);
 	}  
 
 	public static void processMergeOnTargetImpl(
@@ -195,10 +195,11 @@ public class ActionProxy {
 			Manifest manifest, 
 			MergeParameters params, 
 			CheckParameters checkParams,
+			boolean runProcessors,
 			ProcessContext context
 	) throws ApplicationException { 
 		LogHelper.logTarget(target);
-		target.processMerge(fromDelay, toDelay, manifest, params, checkParams, context);
+		target.processMerge(fromDelay, toDelay, manifest, params, checkParams, runProcessors, context);
 	}
 
 	/**
