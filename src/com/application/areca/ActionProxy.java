@@ -49,7 +49,6 @@ public class ActionProxy {
 			AbstractTarget target, 
 			Manifest manifest, 
 			String backupScheme,
-			boolean disablePreCheck,
 			CheckParameters checkParams,
 			TransactionHandler transactionHandler,
 			ProcessContext context
@@ -96,7 +95,7 @@ public class ActionProxy {
 			}
 
 			Logger.defaultLogger().info("Starting backup on " + target.getName() + " (" + target.getUid() + "). Backup scheme = " + backupScheme);         
-			target.processBackup(manifest, backupScheme, disablePreCheck, checkParams, transactionPoint, context);
+			target.processBackup(manifest, backupScheme, checkParams, transactionPoint, context);
 		} finally {
 			Logger.defaultLogger().info("Backup completed on " + target.getName() + " (" + target.getUid() + ")");
 		}

@@ -398,7 +398,6 @@ implements CommandConstants {
 								(AbstractTarget)item,
 								manifest,
 								backupScheme,
-								false,
 								checkParams,
 								handler,
 								buildContext(item)

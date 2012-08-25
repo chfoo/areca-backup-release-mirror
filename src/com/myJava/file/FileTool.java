@@ -18,6 +18,7 @@ import java.util.Comparator;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.system.OSTool;
+import com.myJava.util.Chronometer;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
@@ -208,21 +209,37 @@ public class FileTool {
 			TaskMonitor monitor
 	) throws IOException, TaskCancelledException {
 
+		//Chronometer.instance().start("copy");
 		try {
 			byte[] in = new byte[BUFFER_SIZE];
 			int nbRead;
 
+			//Chronometer.instance().start("while");
 			while (true) {
 				if (monitor != null) {
 					monitor.checkTaskState();
 				}
+				
+				//Chronometer.instance().start("read");
+				//int available = inStream.available();
+				//if (available == 0) {
+				//	available = BUFFER_SIZE;
+				//}
+				//nbRead = inStream.read(in, 0, Math.min(available, in.length));
 				nbRead = inStream.read(in);
+				//Chronometer.instance().stop("read");
+				
 				if (nbRead == -1) {
 					break;
 				}
+				
+				//Chronometer.instance().start("write");
 				outStream.write(in, 0, nbRead);
+				//Chronometer.instance().stop("write");
 			}
+			//Chronometer.instance().stop("while");
 		} finally {
+			//Chronometer.instance().start("close");
 			try {
 				if (closeInputStream && inStream != null) {
 					inStream.close();
@@ -232,7 +249,9 @@ public class FileTool {
 					outStream.close();
 				}
 			}
+			//Chronometer.instance().stop("close");
 		}
+		//Chronometer.instance().stop("copy");
 	}
 
 	public void delete(File fileOrDirectory)

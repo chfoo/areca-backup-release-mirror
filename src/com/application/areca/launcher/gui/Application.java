@@ -81,6 +81,7 @@ import com.myJava.file.FileTool;
 import com.myJava.system.NoBrowserFoundException;
 import com.myJava.system.OSTool;
 import com.myJava.system.viewer.ViewerHandlerHelper;
+import com.myJava.util.Util;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
@@ -125,6 +126,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 	private static final ResourceManager RM = ResourceManager.instance();
 	private static Application instance = new Application();
 	public static boolean SIMPLE_MAINTABS = true;
+	public static String TEXT_EDITOR_PLACE_HOLDER = "%f";
 
 	public static Application getInstance() {
 		return instance;
@@ -314,12 +316,12 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			showWebPage(TUTORIAL_ROOT
 					+ VersionInfos.getLastVersion().getVersionId());
 		} else if (command.equals(CMD_BACKUP_ALL)) {
-			this.showBackupWindow(null, workspace.getContent(), false);
+			this.showBackupWindow(null, workspace.getContent());
 		} else if (command.equals(CMD_BACKUP)) {
 			// BACKUP
 			if (TargetGroup.class.isAssignableFrom(this.getCurrentObject()
 					.getClass())) {
-				this.showBackupWindow(null, getCurrentTargetGroup(), false);
+				this.showBackupWindow(null, getCurrentTargetGroup());
 			} else if (FileSystemTarget.class.isAssignableFrom(this
 					.getCurrentObject().getClass())) {
 				// BACKUP WITH MANIFEST
@@ -332,7 +334,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 					Logger.defaultLogger().error(e1);
 					mf = null;
 				}
-				this.showBackupWindow(mf, getCurrentTarget(), false);
+				this.showBackupWindow(mf, getCurrentTarget());
 			}
 		} else if (command.equals(CMD_MERGE)) {
 			// MERGE
@@ -621,7 +623,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 														.getViewerHandler()
 														.open(f);
 											} catch (Throwable e) {
-												if (ApplicationPreferences.getEditionCommand() != null&& ApplicationPreferences.getEditionCommand().trim().length() != 0) {
+												if (ApplicationPreferences.hasEditionCommand()) {
 													Logger.defaultLogger().fine("No default viewer found for "+ FileSystemManager.getDisplayPath(f)+ ". Launching text viewer.");
 													launchFileEditor(FileSystemManager.getAbsolutePath(f),true);
 												} else {
@@ -714,11 +716,9 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			this.currentObject = newTarget;
 			try {
 				if (target == null) {
-					ConfigurationListener.getInstance().targetCreated(
-							newTarget, workspace.getPathFile());
+					ConfigurationListener.getInstance().targetCreated(newTarget, workspace.getPathFile());
 				} else {
-					ConfigurationListener.getInstance().targetModified(
-							newTarget, workspace.getPathFile());
+					ConfigurationListener.getInstance().targetModified(newTarget, workspace.getPathFile());
 				}
 			} catch (Exception e) {
 				handleException(e);
@@ -742,16 +742,35 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 
 	public void launchFileEditor(String path, boolean async) {
 		path = path.replace('\\', '/');
+		String editCommand = ApplicationPreferences.getEditionCommand();
 		try {
-			String editCommand = ApplicationPreferences.getEditionCommand();
-			Logger.defaultLogger().info(
-					"Launching '" + editCommand + "' on file '" + path + "'");
-			String[] cmd = new String[] { editCommand, path };
+			Logger.defaultLogger().info("Launching '" + editCommand + "' on file '" + path + "'");
+			String[] cmd;
+			if (editCommand.indexOf(TEXT_EDITOR_PLACE_HOLDER) != -1) {
+				String replaced = Util.replace(editCommand, TEXT_EDITOR_PLACE_HOLDER, "\"" + path + "\"") + " ";
+				String token = "";
+				ArrayList list = new ArrayList();
+				boolean inQuote = false;
+				for (int i=0; i<replaced.length(); i++) {
+					if (replaced.charAt(i) == '\"') {
+						inQuote = ! inQuote;
+					} else if (replaced.charAt(i) == ' ' && ! inQuote) {
+						if (token.length() != 0) {
+							list.add(token);
+							token = "";
+						}
+					} else {
+						token += replaced.charAt(i);
+					}
+				}
+				cmd = (String[])list.toArray(new String[list.size()]);
+			} else {
+				cmd = new String[] {editCommand, path};
+			}
+
 			OSTool.execute(cmd, async);
 		} catch (Exception e) {
-			Application.getInstance().handleException(
-					"Error attempting to edit " + path + " - Text editor = "
-							+ ApplicationPreferences.getEditionCommand(), e);
+			Application.getInstance().handleException("Error attempting to edit " + path + " - Text editor = " + editCommand, e);
 		}
 	}
 
@@ -1339,13 +1358,13 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		}
 	}
 
-	public void launchBackupOnTarget(AbstractTarget target, Manifest manifest, String backupScheme, final boolean disablePreCheck, final CheckParameters checkParams) {
+	public void launchBackupOnTarget(AbstractTarget target, Manifest manifest, String backupScheme, final CheckParameters checkParams) {
 		TargetGroup process = target.getParent();
 		final String resolvedBackupScheme = resolveBackupScheme(target, backupScheme);
 		ProcessRunner rn = new ProcessRunner(target) {
 			public void runCommand() throws ApplicationException {
 				ActionProxy.processBackupOnTarget(rTarget, rManifest,
-						resolvedBackupScheme, disablePreCheck, checkParams,
+						resolvedBackupScheme, checkParams,
 						new GUITransactionHandler(), context);
 			}
 
@@ -1382,7 +1401,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			} else {
 				Manifest clone = mf == null ? null : (Manifest) mf.duplicate();
 				this.launchBackupOnTarget((AbstractTarget) item, clone,
-						backupScheme, false, checkParams);
+						backupScheme, checkParams);
 			}
 		}
 	}
@@ -1408,9 +1427,8 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		rn.launch();
 	}
 
-	public void showBackupWindow(Manifest manifest, WorkspaceItem scope,
-			boolean disableCheck) {
-		BackupWindow frm = new BackupWindow(manifest, scope, disableCheck);
+	public void showBackupWindow(Manifest manifest, WorkspaceItem scope) {
+		BackupWindow frm = new BackupWindow(manifest, scope);
 		showDialog(frm);
 	}
 

@@ -126,8 +126,8 @@ implements Listener, Refreshable, HistoryEntryTypes {
 
                 TableItem item = new TableItem(table, SWT.NONE);
 
-                if (type == HISTO_BACKUP_CANCEL) {
-                    item.setImage(0, ArecaImages.ICO_ACT_CANCEL);
+                if (type == HISTO_BACKUP_ROLLBACK) {
+                    item.setImage(0, ArecaImages.ICO_ACT_ROLLBACK);
                 } else if (type == HISTO_BACKUP || type == HISTO_RESUME) {
                     item.setImage(0, ArecaImages.ICO_ACT_ARCHIVE);
                 } else if (type == HISTO_DELETE) {

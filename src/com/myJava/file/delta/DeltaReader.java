@@ -86,7 +86,6 @@ public class DeltaReader implements Constants {
 	public void readNoSeq(TaskMonitor monitor) throws IOException, DeltaException, DeltaProcessorException, ByteProcessorException, TaskCancelledException {
 		LinkedList currentBlock = new LinkedList(blockSize);
 		long totalRead = 0;
-		long position = 0;
 		long breakSize = -1;
 
 		for (int x=0; x<processors.length; x++) {
@@ -124,8 +123,6 @@ public class DeltaReader implements Constants {
 					processors[x].newByte((byte)currentBlock.getFirst());   
 				}
 			}
-
-			position++;
 		}
 
 		for (int x=0; x<processors.length; x++) {
@@ -137,7 +134,6 @@ public class DeltaReader implements Constants {
 	public void readSeq(TaskMonitor monitor) throws IOException, DeltaException, DeltaProcessorException, ByteProcessorException, TaskCancelledException {
 		LinkedList currentBlock = new LinkedList(blockSize);
 		long totalRead = 0;
-		long position = 0;
 		int currentQuickHash = 0;
 		long breakSize = -1;
 		long lastBlockIndex = -1;
@@ -229,8 +225,6 @@ public class DeltaReader implements Constants {
 					}
 				}
 			}
-
-			position++;
 		}
 
 		if (lastBlockIndex < seq.getSize() - 1) {

@@ -68,4 +68,7 @@ public class HashInputStreamListener implements InputStreamListener {
 		}
 		return dg.digest();
 	}
+
+	public void available(int available) {
+	}
 }

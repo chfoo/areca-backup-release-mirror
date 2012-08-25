@@ -1,7 +1,6 @@
 package com.application.areca.launcher.gui;
 
 import java.io.File;
-import java.net.URL;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -28,7 +27,7 @@ import com.myJava.util.log.Logger;
 
 /**
  * <BR>
- * @author Stephane BRUNEL
+ * @author Olivier PETRUCCI
  * <BR>
  *
  */
@@ -228,9 +227,11 @@ extends AbstractWindow {
         
         Label lblEditor = new Label(parent, SWT.NONE);
         lblEditor.setText(RM.getLabel("preferences.editor.label"));
+        lblEditor.setToolTipText(RM.getLabel("preferences.editor.tt", new Object[] {Application.TEXT_EDITOR_PLACE_HOLDER}));
         editor = new Text(parent, SWT.BORDER);
         editor.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         editor.setText(ApplicationPreferences.getEditionCommand());
+        editor.setToolTipText(RM.getLabel("preferences.editor.tt", new Object[] {Application.TEXT_EDITOR_PLACE_HOLDER}));
         monitorControl(editor);
         
         displayReport = new Button(parent, SWT.CHECK);

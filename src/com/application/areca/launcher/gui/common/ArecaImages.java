@@ -79,7 +79,7 @@ public class ArecaImages {
     public static Image ICO_ACT_DELETE = loadImage("db_remove.png");
     public static Image ICO_ACT_DELETE_B = loadImage(B_PREFIX + "db_remove.png");    
     public static Image ICO_ARCHIVE_DETAIL = loadImage("db_status.png");       
-    public static Image ICO_ACT_CANCEL = ICO_ACT_DELETE;
+    public static Image ICO_ACT_ROLLBACK = ICO_ACT_DELETE;
     
     // FILESYSTEM
     public static Image ICO_FS_FILE = loadImage("binary.png");

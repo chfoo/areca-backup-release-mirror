@@ -73,18 +73,17 @@ public class IOHelper {
     }
     
     public static int readFully(InputStream in, byte[] data, int offset, int length) throws IOException {
-    	int r = in.read(data, offset, length);
-    	int t = r;
-    	while (r != -1 && t < length) {
-    		r = in.read(data, offset + t, length - t);
-    		if (r != -1) {
-    			t += r;
+    	int read = in.read(data, offset, length);
+    	int total = read;
+    	while (read != -1 && total < length) {
+    		read = in.read(data, offset + total, length - total);
+    		if (read != -1) {
+    			total += read;
     		}
     	}
-    	return t;
+    	return total;
     }
     
-
     public static long skipFully(InputStream in, long length) throws IOException {
     	if (length == 0) {
     		return 0;

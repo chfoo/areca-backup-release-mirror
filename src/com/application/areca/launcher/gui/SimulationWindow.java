@@ -279,6 +279,6 @@ implements Listener {
 			mf = new Manifest(Manifest.TYPE_BACKUP);
 		}
 
-		this.application.showBackupWindow(mf, target, true);
+		this.application.showBackupWindow(mf, target);
 	}
 }

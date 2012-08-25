@@ -127,7 +127,7 @@ public class ProcessReportWriter {
 				}
 			}
 
-			if (this.appendStoredFiles) {
+			if (this.appendStoredFiles && report.getContentFile() != null) {
 				writeSeparator();
 				write("Stored files :");
 				write("[Beginning]");

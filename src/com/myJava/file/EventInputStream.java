@@ -62,4 +62,10 @@ public class EventInputStream extends InputStream {
 		listener.read(b, 0, b.length, read);
 		return read;
 	}
+
+	public int available() throws IOException {
+		int available = in.available();
+		listener.available(available);
+		return available;
+	}
 }

@@ -205,6 +205,10 @@ public final class ApplicationPreferences {
         return LocalPreferences.instance().get(TEXT_EDITOR, "");
     }
     
+    public static boolean hasEditionCommand() {
+        return LocalPreferences.instance().get(TEXT_EDITOR, "").length() != 0;
+    }
+    
     public static boolean getCheckUseSpecificLocation(String uid) {
     	return LocalPreferences.instance().getBoolean(CHECK_USE_SPECIFIC_LOCATION + "." + normalize(uid), false);
     }
@@ -230,7 +234,7 @@ public final class ApplicationPreferences {
 	}
     
     public static boolean isInformationSynthetic() {
-        return LocalPreferences.instance().getBoolean(INFO_SYNTHETIC, false);
+        return LocalPreferences.instance().getBoolean(INFO_SYNTHETIC, true);
     }
     
     public static boolean isCheckNewVersions() {

@@ -23,6 +23,7 @@ import com.myJava.file.driver.FileSystemDriver;
 import com.myJava.file.iterator.FileNameComparator;
 import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.object.Duplicable;
+import com.myJava.util.Chronometer;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -146,6 +147,8 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 
 	protected void storeFileInArchive(FileSystemRecoveryEntry entry, InputStream in, ProcessContext context) 
 	throws IOException, ApplicationException, TaskCancelledException {
+		//Chronometer.instance().start("storeImpl");
+		//Chronometer.instance().start("preStore");
 		// Store the file
 		File targetFile = new File(context.getCurrentArchiveFile(), entry.getKey());
 		File targetDirectory = FileSystemManager.getParentFile(targetFile);
@@ -154,7 +157,12 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 			FileTool.getInstance().createDir(targetDirectory);
 
 			out = FileSystemManager.getFileOutputStream(targetFile, false, context.getOutputStreamListener());
+			
+			//Chronometer.instance().stop("preStore");
+//			Chronometer.instance().start("handlerStore");
 			this.handler.store(entry, in, out, context);
+			//Chronometer.instance().stop("handlerStore");
+			//Chronometer.instance().start("postStore");
 		} catch (InvalidPathException e) {
 			throw new ApplicationException("Error storing file " + FileSystemManager.getDisplayPath(entry.getFile()) + " : " + e.getMessage(), e);
 		} catch (IOException e) {
@@ -171,6 +179,9 @@ public class IncrementalDirectoryMedium extends AbstractIncrementalFileSystemMed
 				out.close();
 			}
 		}
+		
+		//Chronometer.instance().stop("postStore");
+		//Chronometer.instance().stop("storeImpl");
 	}
 
 	public void completeLocalCopyCleaning(File copy, ProcessContext context) throws IOException, ApplicationException {

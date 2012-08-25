@@ -237,7 +237,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	public String getComments() {
 		return comments;
 	}
-	
+
 	public File createDebuggingData(File directory) throws ApplicationException, TaskCancelledException {
 		return medium.createDebuggingData(directory);
 	}
@@ -308,85 +308,70 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	public synchronized void processBackup(
 			Manifest manifest, 
 			String backupScheme,
-			boolean disablePreCheck,
 			CheckParameters checkParams,
 			TransactionPoint transactionPoint,
 			ProcessContext context
 			) throws ApplicationException {
-		boolean backupRequired = true;
 		try {
 			this.validateTargetState(ACTION_BACKUP, context);
 
-			if (
-					transactionPoint == null 
-					&& this.medium.isPreBackupCheckUseful() 
-					&& (!disablePreCheck) 
-					&& backupScheme.equals(BACKUP_SCHEME_INCREMENTAL)
-			) {
-				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.2, "pre-check");
-				context.getInfoChannel().print("Pre-check in progress ...");
-				this.processSimulateImpl(context, false);
-				context.getInfoChannel().print("Pre-check completed.");
-				backupRequired = (context.getReport().getSavedFiles() > 0 || context.getReport().getDeletedFiles() > 0);
-				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.8, "backup");
+			runPreProcessors(Processor.ACTION_BACKUP, 0.1, transactionPoint == null, context);
+
+			try {
+				context.getInfoChannel().print("Backup in progress ...");
+				context.getTaskMonitor().checkTaskState();
+
+				// Start the backup
 				context.reset(false);
-			}
 
-			if (backupRequired) {
-				runPreProcessors(Processor.ACTION_BACKUP, 0.1, transactionPoint == null, context);
+				double remaining = 
+						1.0 
+						- (this.postProcessors.isEmpty(Processor.ACTION_BACKUP) ? 0 : 0.1) 
+						- (this.preProcessors.isEmpty(Processor.ACTION_BACKUP) ? 0 : 0.1)
+						- (checkParams.isCheck() ? 0.3 : 0);
 
-				try {
-					context.getInfoChannel().print("Backup in progress ...");
-					context.getTaskMonitor().checkTaskState();
+				// Open the storage medium
+				if (transactionPoint == null) {
+					// Create main task monitor
+					context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(remaining, "backup-main");
 
-					// Start the backup
-					context.reset(false);
-
-					double remaining = 
-							1.0 
-							- (this.postProcessors.isEmpty(Processor.ACTION_BACKUP) ? 0 : 0.1) 
-							- (this.preProcessors.isEmpty(Processor.ACTION_BACKUP) ? 0 : 0.1)
-							- (checkParams.isCheck() ? 0.3 : 0);
-
-					// Open the storage medium
-					if (transactionPoint == null) {
-						// Create main task monitor
-						context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(remaining, "backup-main");
-
-						context.getReport().startDataFlowTimer();
-						if (manifest == null) {
-							manifest = new Manifest(Manifest.TYPE_BACKUP);
-						}
-
-						this.open(manifest, context, backupScheme);
-
-						this.medium.getHistoryHandler().addEntryAndFlush(new HistoryEntry(HISTO_BACKUP, "Backup."));
-					} else {
-						this.open(transactionPoint, context);
-
-						context.getFileSystemIterator().setFilter(this.filterGroup);
-						context.getTaskMonitor().setCurrentSubTask(context.getFileSystemIterator().getMonitor(), remaining);
-
-						this.medium.getHistoryHandler().addEntryAndFlush(new HistoryEntry(HISTO_RESUME, "Resume backup."));
+					context.getReport().startDataFlowTimer();
+					if (manifest == null) {
+						manifest = new Manifest(Manifest.TYPE_BACKUP);
 					}
-					context.setChecked(checkParams.isCheck());
 
-					RecoveryEntry entry = this.nextElement(context);
-					while (entry != null) {
-						context.getInfoChannel().getTaskMonitor().checkTaskState();
-						if (this.filterEntryBeforeStore(entry)) {
-							try {
-								medium.handleTransactionPoint(context);
+					this.open(manifest, context, backupScheme);
 
-								context.incrementEntryIndex();
-								context.getInfoChannel().updateCurrentTask(context.getEntryIndex(), 0, entry.toString());
-								this.medium.store(entry, context);
-							} catch (StoreException e) {
-								throw new ApplicationException(e);
-							}
+					this.medium.getHistoryHandler().addEntryAndFlush(new HistoryEntry(HISTO_BACKUP, "Backup."));
+				} else {
+					this.open(transactionPoint, context);
+
+					context.getFileSystemIterator().setFilter(this.filterGroup);
+					context.getTaskMonitor().setCurrentSubTask(context.getFileSystemIterator().getMonitor(), remaining);
+
+					this.medium.getHistoryHandler().addEntryAndFlush(new HistoryEntry(HISTO_RESUME, "Resume backup."));
+				}
+				context.setChecked(checkParams.isCheck());
+
+				RecoveryEntry entry = this.nextElement(context);
+				while (entry != null) {
+					context.getInfoChannel().getTaskMonitor().checkTaskState();
+					if (this.filterEntryBeforeStore(entry)) {
+						try {
+							medium.handleTransactionPoint(context);
+
+							context.incrementEntryIndex();
+							context.getInfoChannel().updateCurrentTask(context.getEntryIndex(), 0, entry.toString());
+							this.medium.store(entry, context);
+						} catch (StoreException e) {
+							throw new ApplicationException(e);
 						}
-						entry = this.nextElement(context); 
 					}
+					entry = this.nextElement(context); 
+				}
+				if (context.getReport().getSavedFiles() == 0) {
+					cancelBackup(context);
+				} else {
 					this.commitBackup(context);
 					context.getReport().setWrittenKBytes(context.getOutputBytesInKB());
 					context.getReport().stopDataFlowTimer();
@@ -394,18 +379,18 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 					Logger.defaultLogger().info("Average data input : " + Utils.formatLong(context.getInputBytesInKBPerSecond()) + " kb/second.");
 					Logger.defaultLogger().info(Utils.formatLong(context.getReport().getWrittenKBytes()) + " kb written in " + Utils.formatLong(context.getReport().getDataFlowTimeInSecond()) + " seconds.");                
 					Logger.defaultLogger().info("Average data output : " + Utils.formatLong(context.getOutputBytesInKBPerSecond()) + " kb/second.");
-
-				} catch (Throwable e) {
-					if (! TaskCancelledException.isTaskCancellation(e)) {
-						Logger.defaultLogger().error(e);
-					}
-					this.rollbackBackup(context, e.getMessage());
-					throw wrapException(e);
 				}
+			} catch (Throwable e) {
+				if (! TaskCancelledException.isTaskCancellation(e)) {
+					Logger.defaultLogger().error(e);
+				}
+				this.rollbackBackup(context, e.getMessage());
+				throw wrapException(e);
 			}
+			//}
 		} finally {
 			Exception checkException = null;
-			if ((! context.getReport().hasError()) && checkParams.isCheck() && context.getCurrentArchiveFile() != null) {
+			if ((! context.getReport().hasError()) && checkParams.isCheck() && context.getCurrentArchiveFile() != null && context.getReport().getSavedFiles() != 0) {
 				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.3, "archive check");
 				TaskMonitor checkMon = context.getTaskMonitor().getCurrentActiveSubTask();
 
@@ -440,20 +425,14 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 				context.getReport().setStopMillis();
 			}
 
-			if (backupRequired) {
-				runPostProcessors(Processor.ACTION_BACKUP, 0.1, true, context);
-				context.getInfoChannel().print("Backup completed."); 
-			} else {
-				// No backup is necessary
-				context.getTaskMonitor().getCurrentActiveSubTask().setCurrentCompletion(1.0);
-				context.getInfoChannel().print("No backup required - Operation completed.");     
-			}
+			runPostProcessors(Processor.ACTION_BACKUP, 0.1, true, context);
+			context.getInfoChannel().print("Backup completed."); 
 
 			if (checkException != null) {
 				throw wrapException(checkException);
 			}
 		}
-		
+
 		//Logger.defaultLogger().fine(Chronometer.instance().toString());
 	}
 
@@ -515,6 +494,10 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 		} catch (Throwable e) {
 			context.getReport().getStatus().addItem(StatusList.KEY_SIMULATE, e.getMessage());
 			throw wrapException(e);
+		} finally {
+			if (context != null) {
+				context.getReport().setStopMillis();
+			}
 		}
 	}    
 
@@ -562,11 +545,26 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	/**
 	 * Rollback the backup and release the lock on the target
 	 */
+	protected void cancelBackup(ProcessContext context) throws ApplicationException {
+		try {
+			context.getTaskMonitor().setCancellable(false);
+			medium.getHistoryHandler().addEntryAndFlush(new HistoryEntry(HISTO_BACKUP_ROLLBACK, "Backup cancellation (nothing to store)"));
+		} finally {
+			try {
+				medium.rollbackBackup(context);
+			} finally {
+				context.getReport().getStatus().addItem(StatusList.KEY_BACKUP);
+			}
+		}
+	}
+
+	/**
+	 * Rollback the backup and release the lock on the target
+	 */
 	protected void rollbackBackup(ProcessContext context, String message) throws ApplicationException {
 		try {
 			context.getTaskMonitor().setCancellable(false);
-			HistoryHandler handler = medium.getHistoryHandler();
-			handler.addEntryAndFlush(new HistoryEntry(HISTO_BACKUP_CANCEL, "Backup cancellation."));
+			medium.getHistoryHandler().addEntryAndFlush(new HistoryEntry(HISTO_BACKUP_ROLLBACK, "Backup rollback."));
 		} finally {
 			try {
 				medium.rollbackBackup(context);
@@ -654,7 +652,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			) throws ApplicationException {
 		try {
 			validateTargetState(ACTION_MERGE_OR_DELETE, context);  
-			
+
 			runPreProcessors(Processor.ACTION_MERGE, 0.1, runProcessors, context);
 
 			double remaining = 
@@ -662,7 +660,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 					- (! runProcessors || this.postProcessors.isEmpty(Processor.ACTION_MERGE) ? 0 : 0.1) 
 					- (! runProcessors || this.preProcessors.isEmpty(Processor.ACTION_MERGE) ? 0 : 0.1)
 					- (checkParams.isCheck() ? 0.3 : 0);
-			
+
 
 			context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(remaining, "merge");
 
@@ -681,7 +679,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			}
 			Exception checkException = null;
 			ProcessContext checkContext = null;
-			
+
 			// Check merged archive
 			if ((! context.getReport().hasError()) && checkParams.isCheck() && context.getCurrentArchiveFile() != null) {
 				context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(0.3, "archive check");
@@ -741,7 +739,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			throw wrapException(e);
 		} finally {
 			context.getReport().setStopMillis();
-			
+
 			runPostProcessors(Processor.ACTION_MERGE, 0.1, runProcessors, context);
 			context.getInfoChannel().print("Merge completed.");
 		}
@@ -803,7 +801,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 		context.getInfoChannel().getTaskMonitor().setCancellable(false);
 		try {
 			HistoryHandler handler = medium.getHistoryHandler();
-			handler.addEntryAndFlush(new HistoryEntry(HISTO_MERGE_CANCEL, "Merge cancellation."));
+			handler.addEntryAndFlush(new HistoryEntry(HISTO_MERGE_ROLLBACK, "Merge rollback."));
 		} catch (Throwable e) {
 			// Make sure no error is raised
 			Logger.defaultLogger().error(e);

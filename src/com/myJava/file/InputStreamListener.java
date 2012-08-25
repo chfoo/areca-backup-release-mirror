@@ -31,4 +31,5 @@ public interface InputStreamListener {
 	public void close();
 	public void read(byte[] b, int off, int len, int read);
 	public void read(int b);
+	public void available(int available);
 }

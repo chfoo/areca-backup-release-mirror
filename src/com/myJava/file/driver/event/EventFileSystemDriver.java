@@ -23,6 +23,8 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
 import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
+ * Event based file system driver
+ * <BR>To be used with caution because of potential impact on performances (objects creations)
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>

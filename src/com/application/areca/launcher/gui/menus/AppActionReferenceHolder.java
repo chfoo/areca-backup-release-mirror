@@ -93,7 +93,7 @@ public class AppActionReferenceHolder implements ActionConstants{
         SecuredRunner.execute(Application.getInstance().getDisplay(), new Runnable() {
             public void run() {
                 Application application = Application.getInstance();
-                String cmd = ApplicationPreferences.getEditionCommand();
+                boolean hasEditionCmd = ApplicationPreferences.hasEditionCommand();
 
                 if (application.getCurrentObject() == null || Workspace.class.isAssignableFrom(application.getCurrentObject().getClass())) {
                     enableCommands(false);
@@ -127,15 +127,10 @@ public class AppActionReferenceHolder implements ActionConstants{
                 } else if (FileSystemTarget.class.isAssignableFrom(application.getCurrentObject().getClass())) {
                     boolean available = ! application.getCurrentTarget().isRunning();
                     
-                    AC_EDIT_XML.setEnabled(
-                    		available
-                            && cmd != null 
-                            && cmd.length() != 0 
-                    );
+                    AC_EDIT_XML.setEnabled(available && hasEditionCmd);
                     AC_BUILD_BATCH.setEnabled(true);
                     AC_BUILD_STRATEGY.setEnabled(true);
                     AC_HISTORY.setEnabled(true);   
-                    //AC_EDIT_GROUP.setEnabled(true);
                     AC_DUP_TARGET.setEnabled(! isBackupWorkspace()); 
                     AC_NEW_GROUP.setEnabled(! isBackupWorkspace());
                     AC_NEW_TARGET.setEnabled(! isBackupWorkspace());   
@@ -180,8 +175,7 @@ public class AppActionReferenceHolder implements ActionConstants{
 
                     AC_VIEW_TEXT_HISTORY.setEnabled(
                             available 
-                            && cmd != null 
-                            && cmd.length() != 0 
+                            && hasEditionCmd
                             && application.getCurrentEntryData() != null
                             && application.getCurrentFilter().isViewable()
                             && application.getCurrentEntryData().getStatus() != EntryStatus.STATUS_DELETED
@@ -222,7 +216,6 @@ public class AppActionReferenceHolder implements ActionConstants{
         AC_RECOVER.setEnabled(enabled);
         AC_CHECK_ARCHIVES.setEnabled(enabled);
         AC_INDICATORS.setEnabled(enabled);
-        //AC_EDIT_GROUP.setEnabled(enabled);
         AC_EDIT_XML.setEnabled(enabled);
         AC_EDIT_TARGET.setEnabled(enabled);
         AC_DUP_TARGET.setEnabled(enabled);

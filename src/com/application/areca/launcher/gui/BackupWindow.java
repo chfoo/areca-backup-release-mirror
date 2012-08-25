@@ -53,7 +53,6 @@ public class BackupWindow
 extends AbstractWindow {
 
 	protected Manifest manifest;
-	protected boolean disablePreCheck = false;
 
 	// MarieB was here !!
 
@@ -73,10 +72,9 @@ extends AbstractWindow {
 	protected boolean isTarget;
 	protected boolean isGroup;
 
-	public BackupWindow(Manifest manifest, WorkspaceItem scope, boolean disablePreCheck) {
+	public BackupWindow(Manifest manifest, WorkspaceItem scope) {
 		super();
 		this.manifest = manifest;
-		this.disablePreCheck = disablePreCheck;
 		this.scope = scope;
 		isTarget = scope instanceof AbstractTarget;
 		isGroup = scope instanceof TargetGroup;
@@ -302,7 +300,6 @@ extends AbstractWindow {
 					(AbstractTarget)scope, 
 					this.manifest, 
 					backupScheme, 
-					disablePreCheck, 
 					checkParams
 			);     
 		} else {

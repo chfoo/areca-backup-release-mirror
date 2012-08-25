@@ -90,7 +90,6 @@ implements Constants, LayerHandler {
 
     private boolean mergeImpl(TaskMonitor monitor) 
     throws IOException, DeltaProcessorException, TaskCancelledException {
-        int read = 0;
         int highWaterMark = 0;
 
         List instructionsToProcess = new ArrayList();
@@ -152,7 +151,6 @@ implements Constants, LayerHandler {
                         }
                         highWaterMark = Math.max(highWaterMark, writeOffset + toWrite);
                         
-                        read += toWrite;
                         current.setReadOffset(current.getReadOffset() + toWrite + toSkip);
                     } else {
                         // Read the data from underlying layer
@@ -203,7 +201,6 @@ implements Constants, LayerHandler {
                     throw new DeltaException("Incoherent read length : expected " + toWrite + ", got " + readBytes + " for base stream.");
                 }
                 highWaterMark = Math.max(highWaterMark, writeOffset + toWrite);
-                read += toWrite;
                 baseStreamPosition += toWrite;
             }
             instructionsToProcess.clear();

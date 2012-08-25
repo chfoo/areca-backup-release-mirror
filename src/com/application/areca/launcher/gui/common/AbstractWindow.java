@@ -167,11 +167,13 @@ extends ApplicationWindow {
 	}
 
 	public void resetErrorState(Control ctrl) {
-		String tt = (String)ctrl.getData(KEY_TT);
-		if (tt != null) {
-			ctrl.setToolTipText(tt);
+		if (ctrl != null) {
+			String tt = (String)ctrl.getData(KEY_TT);
+			if (tt != null) {
+				ctrl.setToolTipText(tt);
+			}
+			ctrl.setBackground(null);
 		}
-		ctrl.setBackground(null);
 	}
 
 	public void setInError(Control ctrl, String errorMessage) {

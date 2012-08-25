@@ -32,6 +32,7 @@ package com.myJava.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Random;
@@ -137,6 +138,36 @@ public abstract class Util {
     public static void logThreadInformations() {
     	logThreadInformations(null);	
     }
+    
+	public static void main(String[] args) {
+		String editCommand = "\"c:\\toto\\my edit.exe\" -file %f go";
+		String path = "p:\\dir\\my file.txt";
+		
+		String replaced = Util.replace(editCommand, "%f", "\"" + path + "\"") + " ";
+		String token = "";
+		ArrayList list = new ArrayList();
+		boolean inQuote = false;
+		for (int i=0; i<replaced.length(); i++) {
+			if (replaced.charAt(i) == '\"') {
+				inQuote = ! inQuote;
+			} else if (replaced.charAt(i) == ' ' && ! inQuote) {
+				if (token.length() != 0) {
+					list.add(token);
+					token = "";
+				}
+			} else {
+				token += replaced.charAt(i);
+			}
+		}
+		String[] cmd = (String[])list.toArray(new String[list.size()]);
+		
+		System.out.println(editCommand);
+		System.out.println(path);
+		System.out.println("-------");
+		for (int i=0; i<cmd.length; i++) {
+			System.out.println(cmd[i]);
+		}
+	}
     
     public static void logThreadInformations(String header) {
     	logThreadInformations(header, Thread.currentThread());

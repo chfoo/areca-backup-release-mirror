@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 6388499314614472225L;
+		BUILD_ID = 1182089867223615882L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.2.11", new GregorianCalendar(2012, 7, 25), "Backup is now launched without simulation; Improved texteditor options; Minor GUI bugfixes.", "Pre processors are now run whether a backup is required or not (ie even if no file has to be stored)."));
 		VERSIONS.add(new VersionData("7.2.10", new GregorianCalendar(2012, 4, 24), "Pre/Postprocessors can now be run when archives are merged or checked; Minor bugfixes and improvements."));
 		VERSIONS.add(new VersionData("7.2.9", new GregorianCalendar(2012, 4, 17), "Added filename encoding verifications when recovering or merging archives; Minor GUI improvements."));
 		VERSIONS.add(new VersionData("7.2.8", new GregorianCalendar(2012, 4, 5), "Added a 'check archive' option after merge; CBC mode added to encryption parameters; Stored file list can be included in backup reports."));
