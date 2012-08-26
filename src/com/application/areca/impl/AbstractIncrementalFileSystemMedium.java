@@ -1071,7 +1071,7 @@ implements TargetActions {
 						if (image) {
 							// In case of image backups, we need to duplicate the trace file in order to read it during the backup process.
 							f = duplicateMetadataFile(trcFile, context);
-							removeMarkerFile(lastArchive);
+							removeMarkerFile(lastArchive);  
 						} else {
 							f = trcFile;					
 						}

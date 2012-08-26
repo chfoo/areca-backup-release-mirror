@@ -324,6 +324,16 @@ public class Test {
 			switchTo("Recover first backup");
 			doRecover(workspace, recoveryDir, null, true);
 			
+			switchTo("First backup (second try, should do nothing - no modified data)");
+			doBackup(workspace, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
+			doCountArchives(workspace, 1);
+			
+			switchTo("Check first backup (second try)");
+			doCheck(workspace);
+			
+			switchTo("Recover first backup (second try)");
+			doRecover(workspace, recoveryDir, null, true);
+			
 			switchTo("Modify Data");
 			CreateData.append(sources);
 			CreateData.remove(sources);

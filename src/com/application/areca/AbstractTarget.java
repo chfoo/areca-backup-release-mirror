@@ -14,6 +14,7 @@ import com.application.areca.context.StatusList;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.FilterGroup;
 import com.application.areca.impl.AbstractFileSystemMedium;
+import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.impl.copypolicy.AbstractCopyPolicy;
 import com.application.areca.indicator.IndicatorMap;
@@ -369,7 +370,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 					}
 					entry = this.nextElement(context); 
 				}
-				if (context.getReport().getSavedFiles() == 0) {
+				if (context.getReport().getSavedFiles() == 0 && ! ((AbstractIncrementalFileSystemMedium)medium).isImage()) {
 					cancelBackup(context);
 				} else {
 					this.commitBackup(context);
