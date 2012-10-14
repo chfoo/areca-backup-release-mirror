@@ -25,7 +25,6 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.AbstractTarget;
-import com.application.areca.ResourceManager;
 import com.application.areca.TargetGroup;
 import com.application.areca.WorkspaceItem;
 import com.application.areca.launcher.gui.Application;
@@ -33,6 +32,7 @@ import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Refreshable;
 import com.application.areca.launcher.gui.common.SecuredRunner;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.application.areca.search.DefaultSearchCriteria;
 import com.application.areca.search.SearchResult;
 import com.application.areca.search.SearchResultItem;

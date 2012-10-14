@@ -53,14 +53,15 @@ public class VersionInfos {
 	+ " to run properly.\nThe version which is currently installed on your system (v " 
 	+ OSTool.formatJavaVersion(OSTool.getJavaVersion()) 
 	+ ") does not meet this requirement.\n\nPlease go to http://java.sun.com/javase/downloads/ and get a newer version of Java.\n "; 
-
-	public static String VENDOR_MSG = "CAUTION : The Java Runtime Environment you are currently using has been released by '" + OSTool.getJavaVendor() + "'.\nIt seems that some open source Java Virtual Machines have problems dealing with some specific filenames characters (German 'Umlaut' for instance).\nIt is so HIGHLY advised to use Sun Microsystem's Java Runtime Environment to run " + VersionInfos.APP_SHORT_NAME + ".\n(http://www.java.com/download/)";
+	
+	public static String VENDOR_MSG = "CAUTION : The Java Runtime Environment you are currently using has been released by '" + OSTool.getJavaVendor() + "'.\nIt seems that some open source Java Virtual Machines have problems dealing with some specific filenames characters (German 'Umlaut' for instance).\nIt is so highly advised to use Sun Microsystem's Java Runtime Environment to run " + VersionInfos.APP_SHORT_NAME + ".\n(http://www.java.com/download/)";
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 4213090418915638323L;
+		BUILD_ID = 5111443887180000643L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.2.13", new GregorianCalendar(2012, 9, 14), "Fixed a bug that could occur when handling arget sources spread across multiple drives; better integration of plugins."));
 		VERSIONS.add(new VersionData("7.2.12", new GregorianCalendar(2012, 7, 26), "Fixed a bug introduced in v7.2.11 that could occur with image backups when no file needs to be stored.", "Pre processors are now run whether a backup is required or not (ie even if no file has to be stored)."));
 		VERSIONS.add(new VersionData("7.2.11", new GregorianCalendar(2012, 7, 25), "Backup is now launched without simulation; Improved texteditor options; Minor GUI bugfixes.", "Pre processors are now run whether a backup is required or not (ie even if no file has to be stored)."));
 		VERSIONS.add(new VersionData("7.2.10", new GregorianCalendar(2012, 4, 24), "Pre/Postprocessors can now be run when archives are merged or checked; Minor bugfixes and improvements."));

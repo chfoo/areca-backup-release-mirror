@@ -3,7 +3,7 @@ package com.application.areca.filter;
 import java.io.File;
 import java.io.IOException;
 
-import com.application.areca.ResourceManager;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.object.Duplicable;
@@ -102,23 +102,23 @@ public class SpecialFileFilter extends AbstractArchiveFilter {
 		throw new UnsupportedOperationException("Parameters are not supported by this implementation.");
 	}
 
-    public short acceptIteration(File entry) {
+    public short acceptIteration(File entry, File data) {
         return WILL_MATCH_PERHAPS;
     }
 
-	public boolean acceptElement(File entry) {   
+	public boolean acceptElement(File entry, File data) {   
 		if (entry == null) {
 			return false;
 		} else {
 			try {
-				if (matchParameters(entry)) {
+				if (matchParameters(data)) {
 					return ! logicalNot;
 				} else {
 					return logicalNot;
 				}
 			} catch (IOException e) {
-				Logger.defaultLogger().error("Error during filtering of " + FileSystemManager.getDisplayPath(entry), e);
-				throw new IllegalArgumentException("Error during filtering of " + FileSystemManager.getDisplayPath(entry));
+				Logger.defaultLogger().error("Error during filtering of " + FileSystemManager.getDisplayPath(data), e);
+				throw new IllegalArgumentException("Error during filtering of " + FileSystemManager.getDisplayPath(data));
 			}
 		}
 	}

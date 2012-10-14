@@ -85,7 +85,7 @@ public class FileSystemIterator implements Iterator, Serializable {
 		this(baseDirectory, baseDirectory, followSymLinks, followSubdirectories, returnEmptyDirectories, sorted);
 	}
 
-	private FileSystemIterator(
+	protected FileSystemIterator(
 			File root,
 			File baseDirectory,
 			boolean followSymLinks,
@@ -97,9 +97,6 @@ public class FileSystemIterator implements Iterator, Serializable {
 
 		this.baseDirectory = baseDirectory;
 		FileSystemLevel level = new FileSystemLevel(baseDirectory, null, sorted);
-		//if (FileSystemManager.isFile(baseDirectory)) {
-		//	  level.setHasBeenReturned(true);
-		//}
 		setCurrentLevel(level);
 	}
 
@@ -209,6 +206,10 @@ public class FileSystemIterator implements Iterator, Serializable {
 		return next;
 	}
 
+	public File getRoot() {
+		return root;
+	}
+
 	public boolean hasNext() {
 		checkInitialized();
 		return (this.nextCachedFile != null);
@@ -221,9 +222,13 @@ public class FileSystemIterator implements Iterator, Serializable {
 	private void setCurrentLevel(FileSystemLevel level) {
 		this.currentLevel = level;
 	}
+	
+	protected boolean acceptIteration(File directory) {
+		return acceptIteration(directory, directory);
+	}
 
-	private boolean acceptIteration(File directory) {
-		short result = filter == null ? FileSystemIteratorFilter.WILL_MATCH_TRUE : filter.acceptIteration(directory);
+	protected boolean acceptIteration(File directory, File dataDir) {
+		short result = filter == null ? FileSystemIteratorFilter.WILL_MATCH_TRUE : filter.acceptIteration(directory, dataDir);
 		if (result == FileSystemIteratorFilter.WILL_MATCH_FALSE) {
 			this.filtered++;
 			return false;
@@ -232,12 +237,20 @@ public class FileSystemIterator implements Iterator, Serializable {
 		}
 	}
 
-	private boolean acceptElement(File directory) {
-		boolean result = filter == null ? true : filter.acceptElement(directory);
+	protected boolean acceptElement(File element) {
+		return acceptElement(element, element);
+	}
+	
+	protected boolean acceptElement(File element, File dataFile) {
+		boolean result = filter == null ? true : filter.acceptElement(element, dataFile);
 		if (! result) {
 			this.filtered++;
 		}
 		return result;
+	}
+	
+	protected FileSystemIterator buildNewSubIterator(File nextSource) {
+		return new FileSystemIterator(root, nextSource, followSymLinks, followSubdirectories, forceAllDirectories, sorted);
 	}
 
 	/**
@@ -264,7 +277,7 @@ public class FileSystemIterator implements Iterator, Serializable {
 				this.monitor.addNewSubTask(0.99/sourceCount, FileSystemManager.getDisplayPath(nextSource));
 			}
 
-			this.currentFileSystemSubIterator = new FileSystemIterator(root, nextSource, followSymLinks, followSubdirectories, forceAllDirectories, sorted);
+			this.currentFileSystemSubIterator = buildNewSubIterator(nextSource);
 			this.currentFileSystemSubIterator.setFilter(this.filter);
 			this.currentFileSystemSubIterator.setWarnDanglingLinks(this.warnDanglingLinks);
 			if (monitor != null) {

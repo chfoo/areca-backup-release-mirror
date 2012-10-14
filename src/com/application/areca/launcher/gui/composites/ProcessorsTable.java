@@ -20,13 +20,13 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
 import com.application.areca.launcher.gui.ProcessorRepository;
 import com.application.areca.launcher.gui.TargetEditionWindow;
 import com.application.areca.launcher.gui.common.AbstractWindow;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.application.areca.processor.Processor;
 import com.application.areca.processor.ProcessorList;
 

@@ -3,6 +3,7 @@ package com.application.areca;
 import java.io.File;
 
 import com.application.areca.context.ProcessContext;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.trace.ArchiveTraceAdapter;
 import com.myJava.util.Util;

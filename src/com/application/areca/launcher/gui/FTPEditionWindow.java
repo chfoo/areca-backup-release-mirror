@@ -16,11 +16,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.impl.policy.FTPFileSystemPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.SecuredRunner;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.driver.remote.ftp.SecuredSocketFactory;
 import com.myJava.system.OSTool;

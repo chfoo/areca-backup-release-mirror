@@ -16,12 +16,12 @@ import org.eclipse.swt.widgets.TableItem;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.HistoryEntryTypes;
-import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Refreshable;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.util.history.History;
 import com.myJava.util.history.HistoryEntry;
 

@@ -583,6 +583,10 @@ implements TargetActions, IndicatorTypes {
 		this.encryptionPolicy = encryptionPolicy;
 	}
 
+	/**
+	 * Associates a fully initialized policy to the medium
+	 * @param fileSystemPolicy
+	 */
 	public void setFileSystemPolicy(FileSystemPolicy fileSystemPolicy) {
 		this.fileSystemPolicy = fileSystemPolicy;
 		this.fileSystemPolicy.setMedium(this);

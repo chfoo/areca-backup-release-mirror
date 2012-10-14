@@ -12,13 +12,13 @@ import org.eclipse.swt.widgets.TableItem;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
-import com.application.areca.ResourceManager;
 import com.application.areca.indicator.Indicator;
 import com.application.areca.indicator.IndicatorMap;
 import com.application.areca.indicator.IndicatorTypes;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.Refreshable;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**

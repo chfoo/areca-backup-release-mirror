@@ -14,8 +14,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.application.areca.version.VersionInfos;
 import com.myJava.encryption.EncryptionUtil;
 import com.myJava.system.OSTool;

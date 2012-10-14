@@ -13,11 +13,11 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.file.FileSystemManager;
 
 /**

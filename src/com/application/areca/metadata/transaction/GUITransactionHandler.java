@@ -2,9 +2,9 @@ package com.application.areca.metadata.transaction;
 
 import org.eclipse.swt.SWT;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.SecuredRunner;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.file.FileSystemManager;
 
 /**

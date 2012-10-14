@@ -1,4 +1,4 @@
-package com.application.areca;
+package com.application.areca.launcher.gui.resources;
 
 import java.text.MessageFormat;
 import java.util.Iterator;
@@ -12,7 +12,6 @@ import com.myJava.util.log.Logger;
  * This resource manager allows accessing to GUI labels and error messages
  * 
  * <BR>
- * @author Stephane BRUNEL
  * @author Olivier PETRUCCI
  * <BR>
  *
@@ -38,32 +37,33 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class ResourceManager {
-    public static final String RESOURCE_NAME = "resources";
-    public static final String RESOURCE_NAME_DEPRECATED_SUFFIX = "_d";
-    private static ResourceManager instance = new ResourceManager(RESOURCE_NAME, RESOURCE_NAME_DEPRECATED_SUFFIX);
-    
+public abstract class AbstractResourceManager {
     private ResourceBundle properties = null;
     private ResourceBundle defaultProperties = null;
 
-    public static ResourceManager instance() {
-        return instance;
+    protected AbstractResourceManager(String domain, String deprecatedSuffix) {
+    	this(domain, deprecatedSuffix, ClassLoader.getSystemClassLoader());
     }
-
-    protected ResourceManager(String domain, String deprecatedSuffix) {
+    
+    protected AbstractResourceManager(String domain, String deprecatedSuffix, ClassLoader classLoader) {
+    	if (classLoader == null) {
+    		Logger.defaultLogger().warn("No classloader was provided - switching to system classloader.");
+    		classLoader = ClassLoader.getSystemClassLoader();
+    	}
+    	
         try {
-            properties = ResourceBundle.getBundle(domain, Locale.getDefault());
+            properties = ResourceBundle.getBundle(domain, Locale.getDefault(), classLoader);
         } catch (MissingResourceException ex) {
         	try {
-                properties = ResourceBundle.getBundle(domain + deprecatedSuffix, Locale.getDefault());
+                properties = ResourceBundle.getBundle(domain + deprecatedSuffix, Locale.getDefault(), classLoader);
             } catch (MissingResourceException ex2) {
-            	properties = ResourceBundle.getBundle(domain, Locale.ENGLISH);
+            	properties = ResourceBundle.getBundle(domain, Locale.ENGLISH, classLoader);
             }
         } catch (Exception ex) {
             Logger.defaultLogger().error(ex);
         } finally {
             try {
-                defaultProperties = ResourceBundle.getBundle(domain, Locale.ENGLISH);
+                defaultProperties = ResourceBundle.getBundle(domain, Locale.ENGLISH, classLoader);
             } catch (Exception ex) {
                 Logger.defaultLogger().error(ex);
             } 

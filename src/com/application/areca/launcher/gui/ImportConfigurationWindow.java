@@ -14,11 +14,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.Workspace;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.composites.ImportTargetTreeComposite;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.Logger;
 import com.myJava.util.xml.AdapterException;

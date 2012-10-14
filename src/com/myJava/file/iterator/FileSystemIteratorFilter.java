@@ -36,12 +36,18 @@ public interface FileSystemIteratorFilter {
 	public static short WILL_MATCH_FALSE = 0;
 	
 	/**
-	 * Tell whether the iterator will iterate into the directory provides as argument 
+	 * Tell whether the iterator will iterate into the directoryPath provided as argument 
+	 * <BR>The directoryData argument is a non-nullable argument that allows the caller to specify that the filter will have to 
+	 * get the data related to the file (internal file data, but also attributes such as ACL or modification date) from this
+	 * file and not from the original file.
 	 */
-	public short acceptIteration(File directory);
-	
+	public short acceptIteration(File directoryPath, File directoryData);
+
 	/**
-	 * Tell whether the iterator will return the element to the caller
+	 * Tell whether the iterator will return the elementPath to the caller
+	 * <BR>The elementData argument is a non-nullable argument that allows the caller to specify that the filter will have to 
+	 * get the data related to the file (internal file data, but also attributes such as ACL or modification date) from this
+	 * file and not from the original file.
 	 */
-	public boolean acceptElement(File element);
+	public boolean acceptElement(File elementPath, File elementData);
 }

@@ -228,13 +228,10 @@ public class Test {
 		});
 	}
 	
-	private static void doCountArchives(final WorkspaceItem item, final int expected) throws Exception {
+	private static void doCountArchives(final WorkspaceItem item, final int expected, final int expectedIfImage) throws Exception {
 		WorkspaceProcessor.process(item, new TargetHandler() {
 			public void handle(FileSystemTarget target) throws Exception {
-				int toCheck = expected;
-				if (((AbstractFileSystemMedium)target.getMedium()).isImage() && toCheck > 1) {
-					toCheck = 1;
-				}
+				int toCheck = ((AbstractFileSystemMedium)target.getMedium()).isImage() ? expectedIfImage : expected;
 
 				File[] files = ((AbstractIncrementalFileSystemMedium)target.getMedium()).listArchives(null, null, true);
 				if (files == null) {
@@ -250,7 +247,7 @@ public class Test {
 		});
 	}
 	
-	private static void adjustWorkspace(final WorkspaceItem item, String sources) throws Exception {
+	private static void adjustWorkspace(final WorkspaceItem item, String sources, final boolean enableVSS) throws Exception {
 		File filtered = new File(sources, CreateData.FILTERED_DIR);
 		final String path = FileSystemManager.getAbsolutePath(filtered);
 		WorkspaceProcessor.process(item, new TargetHandler() {
@@ -282,6 +279,10 @@ public class Test {
 				exclusion.addFilter(filter3);
 				exclusion.addFilter(filter4);
 				
+				if (enableVSS) {
+					//target.registerAddon(new ArecaVSSConfigurationAddon(target));
+				}
+				
 				target.getFilterGroup().addFilter(exclusion);
 			}
 		});
@@ -289,6 +290,11 @@ public class Test {
 	
 	public static void main(String[] args) {
 		String ws = args[0].replace('\\', '/');
+		test(ws, true);
+		test(ws, false);
+	}
+	
+	public static void test(String ws, boolean enableVSS) {
 		String sources = ws + "/" + SOURCES_S;
 		String recoveryDir = ws + "/" + RECOVERY_DIR_S;
 		
@@ -298,6 +304,18 @@ public class Test {
 			ArecaConfiguration.initialize();
 	    	Logger.defaultLogger().setTlLogProcessor(new ThreadLocalLogProcessor());
 	    	
+			switchTo("Load Target");
+			TargetGroup workspace = load(ws, sources);
+			adjustWorkspace(workspace, sources, enableVSS);
+			showData(workspace);
+			
+			switchTo("Initial Clean");
+			cleanArchives(workspace);
+			doCountArchives(workspace, 0, 0);
+	    	
+			switchTo("0st backup");
+			doBackup(workspace, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
+			
 	    	switchTo("Create Data");
 	    	File f = new File(sources);
 	    	FileTool.getInstance().delete(f);
@@ -305,18 +323,9 @@ public class Test {
 	    	FileTool.getInstance().delete(f);
 			CreateData.create(sources);
 			
-			switchTo("Load Target");
-			TargetGroup workspace = load(ws, sources);
-			adjustWorkspace(workspace, sources);
-			showData(workspace);
-			
-			switchTo("Initial Clean");
-			cleanArchives(workspace);
-			doCountArchives(workspace, 0);
-			
 			switchTo("First backup");
 			doBackup(workspace, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
-			doCountArchives(workspace, 1);
+			doCountArchives(workspace, 1, 1);
 			
 			switchTo("Check first backup");
 			doCheck(workspace);
@@ -326,7 +335,7 @@ public class Test {
 			
 			switchTo("First backup (second try, should do nothing - no modified data)");
 			doBackup(workspace, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
-			doCountArchives(workspace, 1);
+			doCountArchives(workspace, 1, 1);
 			
 			switchTo("Check first backup (second try)");
 			doCheck(workspace);
@@ -340,7 +349,7 @@ public class Test {
 			
 			switchTo("Second backup");
 			doBackup(workspace, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
-			doCountArchives(workspace, 2);
+			doCountArchives(workspace, 2, 1);
 			
 			switchTo("Check second backup");
 			doCheck(workspace);
@@ -354,7 +363,7 @@ public class Test {
 			
 			switchTo("Third backup");
 			doBackup(workspace, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
-			doCountArchives(workspace, 3);
+			doCountArchives(workspace, 3, 1);
 			
 			switchTo("Check third backup");
 			doCheck(workspace);
@@ -364,7 +373,7 @@ public class Test {
 	
 			switchTo("Merge archives");
 			doMerge(workspace, false);
-			doCountArchives(workspace, 1);
+			doCountArchives(workspace, 1, 1);
 			
 			switchTo("Check merged archive");
 			doCheck(workspace);
@@ -378,7 +387,7 @@ public class Test {
 			
 			switchTo("Fourth backup");
 			doBackup(workspace, AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL);
-			doCountArchives(workspace, 2);
+			doCountArchives(workspace, 2, 1);
 			
 			switchTo("Check fourth backup");
 			doCheck(workspace);
@@ -388,7 +397,7 @@ public class Test {
 			
 			switchTo("Merge archives (2)");
 			doMerge(workspace, true);
-			doCountArchives(workspace, 1);
+			doCountArchives(workspace, 1, 1);
 			
 			switchTo("Check merged archive (2)");
 			doCheck(workspace);
@@ -402,7 +411,7 @@ public class Test {
 			
 			switchTo("Fifth backup");
 			doBackup(workspace, AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
-			doCountArchives(workspace, 2);
+			doCountArchives(workspace, 2, 1);
 			
 			switchTo("Check fifth backup");
 			doCheck(workspace);
@@ -412,7 +421,7 @@ public class Test {
 	
 			switchTo("Merge archives (third)");
 			doMerge(workspace, false);
-			doCountArchives(workspace, 1);
+			doCountArchives(workspace, 1, 1);
 			
 			switchTo("Check (3rd) merged archive");
 			doCheck(workspace);
@@ -422,7 +431,7 @@ public class Test {
 
 			switchTo("Final Clean");
 			cleanArchives(workspace);
-			doCountArchives(workspace, 0);
+			doCountArchives(workspace, 0, 0);
 			
 			SUCCESS = true;
 			log("-----------------------------");

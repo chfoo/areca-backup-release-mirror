@@ -91,6 +91,10 @@ public interface XMLTags {
     public static final String XML_USE_TRANSACTIONS = "use_transactions";
     public static final String XML_TRANSACTION_SIZE = "transaction_size";
 
+    public static final String XML_ADDONS = "addons";
+    public static final String XML_ADDON = "addon";
+    public static final String XML_ADDON_ID = "id";
+    
     public static final String XML_MEDIUM = "medium";    
     public static final String XML_MEDIUM_ARCHIVEPATH_DEPRECATED = "archive_path";   // Backward - compatibility
     public static final String XML_MEDIUM_PATH = "path";

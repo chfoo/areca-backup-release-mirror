@@ -14,7 +14,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
 
 import com.application.areca.AbstractTarget;
-import com.application.areca.ResourceManager;
 import com.application.areca.UserInformationChannel;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.launcher.gui.Application;
@@ -23,6 +22,7 @@ import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.SecuredRunner;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskMonitor;
 

@@ -2,6 +2,8 @@ package com.application.areca.impl.policy;
 
 import java.io.File;
 
+import com.application.areca.ArchiveMedium;
+
 /**
  * <BR>
  * @author Olivier PETRUCCI
@@ -33,6 +35,7 @@ public abstract class AbstractFileSystemPolicy
 implements FileSystemPolicy {    
     protected String id;
     protected String archiveName;
+    protected ArchiveMedium medium;
 
     public String getArchiveName() {
 		return this.archiveName;
@@ -57,5 +60,9 @@ implements FileSystemPolicy {
     public void copyAttributes(AbstractFileSystemPolicy policy) {
     	policy.archiveName = archiveName;
         policy.id = id;
+    }
+    
+    public void setMedium(ArchiveMedium medium) {
+        this.medium = medium;
     }
 }

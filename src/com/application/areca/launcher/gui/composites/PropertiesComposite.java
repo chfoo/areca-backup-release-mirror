@@ -14,7 +14,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.TargetGroup;
 import com.application.areca.WorkspaceItem;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
@@ -23,6 +22,7 @@ import com.application.areca.impl.handler.DefaultArchiveHandler;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.file.FileSystemManager;
 import com.myJava.system.viewer.ViewerHandlerHelper;
 import com.myJava.util.log.Logger;

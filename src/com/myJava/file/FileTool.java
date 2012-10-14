@@ -18,7 +18,6 @@ import java.util.Comparator;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.copypolicy.CopyPolicy;
 import com.myJava.system.OSTool;
-import com.myJava.util.Chronometer;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;

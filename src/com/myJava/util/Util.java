@@ -140,32 +140,12 @@ public abstract class Util {
     }
     
 	public static void main(String[] args) {
-		String editCommand = "\"c:\\toto\\my edit.exe\" -file %f go";
-		String path = "p:\\dir\\my file.txt";
-		
-		String replaced = Util.replace(editCommand, "%f", "\"" + path + "\"") + " ";
-		String token = "";
-		ArrayList list = new ArrayList();
-		boolean inQuote = false;
-		for (int i=0; i<replaced.length(); i++) {
-			if (replaced.charAt(i) == '\"') {
-				inQuote = ! inQuote;
-			} else if (replaced.charAt(i) == ' ' && ! inQuote) {
-				if (token.length() != 0) {
-					list.add(token);
-					token = "";
-				}
-			} else {
-				token += replaced.charAt(i);
-			}
-		}
-		String[] cmd = (String[])list.toArray(new String[list.size()]);
-		
-		System.out.println(editCommand);
-		System.out.println(path);
-		System.out.println("-------");
-		for (int i=0; i<cmd.length; i++) {
-			System.out.println(cmd[i]);
+		String tt = "12345678901234567890123456789012345678901234567890";
+		String[] data = split(tt, 5);
+		System.out.println(tt);
+		System.out.println("-------------");
+		for (int i=0; i<data.length; i++) {
+			System.out.println(data[i]);
 		}
 	}
     
@@ -212,6 +192,17 @@ public abstract class Util {
         return (rndGenerator.nextLong());
     }
     
+    public static String[] split(String data, int chunkSize) {
+    	int size = (int)Math.ceil(((double)data.length()) / ((double)chunkSize));
+    	String[] ret = new String[size];
+    	
+    	for (int i=0; i<size; i++) {
+    		ret[i] = data.substring(chunkSize*i, Math.min(chunkSize*(i+1), data.length()));
+    	}
+    	
+    	return ret;
+    }
+    
     /**
      * Return a base 64 String representation of the byte[] passed as argument
      */
@@ -227,7 +218,7 @@ public abstract class Util {
      * Decode the base 64 representation passed as argument and return the corresponding byte[]
      */
     public static byte[] base64Decode(String data) {
-    	if (data.trim().equals("<null>")) {
+    	if (data == null || data.trim().equals("<null>")) {
     		return null;
     	} else {
     		return Base64.decode(data);    		
@@ -238,6 +229,9 @@ public abstract class Util {
      * Return a base 16 String representation of the byte[] passed as argument
      */
     public static String base16Encode(byte[] data) {
+    	if (data == null) {
+    		return null;
+    	}
         StringBuffer sb = new StringBuffer();
         for (int i=0; i<data.length; i++) {
             int d = data[i];
@@ -254,6 +248,9 @@ public abstract class Util {
      * Decode the base 16 representation passed as argument and return the corresponding byte[]
      */
     public static byte[] base16Decode(String input) {
+    	if (input == null) {
+    		return null;
+    	}
         if (input.length()%2 == 1) {
             throw new IllegalArgumentException("The string's length must be even. Current length = " + input.length() + " characters. (" + input + ")");
         }

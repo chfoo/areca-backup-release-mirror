@@ -17,12 +17,12 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.filters.AbstractFilterComposite;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.file.FileSystemManager;
 
 /**
@@ -182,7 +182,7 @@ extends AbstractWindow {
 			ArchiveFilter filter = FilterRepository.buildFilter(this.cboFilterType.getSelectionIndex());
 			initFilter(filter);
 
-			boolean accepted = filter.acceptElement(tg);
+			boolean accepted = filter.acceptElement(tg, tg);
 			String message;
 			if (accepted) {
 				message = RM.getLabel("filteredition.test.ok.label"); 

@@ -22,12 +22,12 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.CheckParameters;
-import com.application.areca.ResourceManager;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.common.SecuredRunner;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.util.log.Logger;
 
 /**

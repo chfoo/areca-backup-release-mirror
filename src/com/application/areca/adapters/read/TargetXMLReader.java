@@ -40,9 +40,11 @@ import com.application.areca.impl.handler.DefaultArchiveHandler;
 import com.application.areca.impl.handler.DeltaArchiveHandler;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
+import com.application.areca.plugins.ConfigurationPlugin;
+import com.application.areca.plugins.ConfigurationPluginXMLHandler;
 import com.application.areca.plugins.FileSystemPolicyXMLHandler;
+import com.application.areca.plugins.PluginRegistry;
 import com.application.areca.plugins.StoragePlugin;
-import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.processor.AbstractMailSendProcessor;
 import com.application.areca.processor.AbstractProcessor;
 import com.application.areca.processor.DeleteProcessor;
@@ -131,7 +133,7 @@ public class TargetXMLReader implements XMLTags {
 				version = Integer.parseInt(versionNode.getNodeValue());
 			}  
 		}
-		
+
 		if (version > XMLVersions.CURRENT_VERSION) {
 			throw new AdapterException("Invalid XML version : This version of " + VersionInfos.APP_SHORT_NAME + " can't handle XML versions above " + XMLVersions.CURRENT_VERSION + ". You are trying to read a version " + version);
 		}
@@ -159,7 +161,7 @@ public class TargetXMLReader implements XMLTags {
 		if (name != null) {
 			target.setTargetName(name.getNodeValue());
 		}
-		
+
 		if (isBackupCopy != null) {
 			target.getLoadedFrom().setBackupCopy(Boolean.valueOf(isBackupCopy.getNodeValue()).booleanValue());
 		}
@@ -270,6 +272,8 @@ public class TargetXMLReader implements XMLTags {
 					addProcessor(children.item(i), this.readDeleteProcessor(children.item(i)), target);                 
 				} else if (child.equalsIgnoreCase(XML_SOURCE)) {
 					readSource(sources, children.item(i));
+				} else if (child.equalsIgnoreCase(XML_ADDONS)) {
+					readAddons(children.item(i), target);
 				}
 			}
 
@@ -314,11 +318,11 @@ public class TargetXMLReader implements XMLTags {
 
 	protected void readProcessorAttributes(Node node, AbstractProcessor proc) throws AdapterException {
 		Node runSchemeNode = node.getAttributes().getNamedItem(XML_PP_RUN_SCHEME);
-		
+
 		Node runIfOKNode = node.getAttributes().getNamedItem(XML_PP_RUN_SUCCESS);
 		Node runIfWarningNode = node.getAttributes().getNamedItem(XML_PP_RUN_WARNING);
 		Node runIfErrorNode = node.getAttributes().getNamedItem(XML_PP_RUN_ERROR);
-		
+
 		Node runBackupNode = node.getAttributes().getNamedItem(XML_PP_RUN_BACKUP);
 		Node runMergeNode = node.getAttributes().getNamedItem(XML_PP_RUN_MERGE);
 		Node runCheckNode = node.getAttributes().getNamedItem(XML_PP_RUN_CHECK);
@@ -327,7 +331,7 @@ public class TargetXMLReader implements XMLTags {
 			proc.setRunIfError(runIfErrorNode != null && Boolean.valueOf(runIfErrorNode.getNodeValue()).booleanValue());
 			proc.setRunIfWarning(runIfWarningNode != null && Boolean.valueOf(runIfWarningNode.getNodeValue()).booleanValue());
 			proc.setRunIfOK(runIfOKNode != null && Boolean.valueOf(runIfOKNode.getNodeValue()).booleanValue());
-			
+
 			proc.setRunBackup(runBackupNode == null || Boolean.valueOf(runBackupNode.getNodeValue()).booleanValue());
 			proc.setRunMerge(runMergeNode != null && Boolean.valueOf(runMergeNode.getNodeValue()).booleanValue());
 			proc.setRunCheck(runCheckNode != null && Boolean.valueOf(runCheckNode.getNodeValue()).booleanValue());
@@ -387,17 +391,17 @@ public class TargetXMLReader implements XMLTags {
 		if (nameNode != null) {
 			pp.setReportName(nameNode.getNodeValue());
 		}
-		
+
 		Node statsNode = node.getAttributes().getNamedItem(XML_PP_ADD_STATS);
 		if (statsNode != null) {
 			pp.setAppendStatistics(Boolean.valueOf(statsNode.getNodeValue()).booleanValue());
 		}
-		
+
 		Node listStoredFilesNode = node.getAttributes().getNamedItem(XML_PP_LIST_STORED_FILES);
 		if (listStoredFilesNode != null) {
 			pp.setAppendStoredFiles(Boolean.valueOf(listStoredFilesNode.getNodeValue()).booleanValue());
 		}
-		
+
 		Node maxListedFilesNode = node.getAttributes().getNamedItem(XML_PP_MAX_LISTED_FILES);
 		if (maxListedFilesNode != null) {
 			pp.setMaxStoredFiles(Long.parseLong(maxListedFilesNode.getNodeValue()));
@@ -452,7 +456,7 @@ public class TargetXMLReader implements XMLTags {
 			keepDeletedEntries = Boolean.valueOf(keepNode.getNodeValue()).booleanValue();
 		}
 		pp.setParams(new MergeParameters(keepDeletedEntries, false, null));
-		
+
 		//CHECK ARCHIVE
 		Node checkNode = node.getAttributes().getNamedItem(XML_PP_MERGE_CHECK);
 		boolean check = true;
@@ -518,20 +522,20 @@ public class TargetXMLReader implements XMLTags {
 		if (fromNode != null) {
 			pp.setFrom(fromNode.getNodeValue());
 		}
-		
+
 		if (appendReport) {
 			SendReportByMailProcessor smpp = (SendReportByMailProcessor)pp;
-			
+
 			Node statsNode = node.getAttributes().getNamedItem(XML_PP_ADD_STATS);
 			if (statsNode != null) {
 				smpp.setAppendStatistics(Boolean.valueOf(statsNode.getNodeValue()).booleanValue());
 			}
-			
+
 			Node listStoredFilesNode = node.getAttributes().getNamedItem(XML_PP_LIST_STORED_FILES);
 			if (listStoredFilesNode != null) {
 				smpp.setAppendStoredFiles(Boolean.valueOf(listStoredFilesNode.getNodeValue()).booleanValue());
 			}
-			
+
 			Node maxListedFilesNode = node.getAttributes().getNamedItem(XML_PP_MAX_LISTED_FILES);
 			if (maxListedFilesNode != null) {
 				smpp.setMaxStoredFiles(Long.parseLong(maxListedFilesNode.getNodeValue()));
@@ -549,6 +553,29 @@ public class TargetXMLReader implements XMLTags {
 	public static boolean isOverwrite(Node mediumNode) {
 		Node overwriteNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_OVERWRITE);
 		return (overwriteNode != null && overwriteNode.getNodeValue().equalsIgnoreCase("true"));   
+	}
+
+	protected void readAddons(Node node, AbstractTarget target) throws AdapterException {
+		NodeList children = node.getChildNodes();
+		for (int i=0; i<children.getLength(); i++) {
+			Node child = children.item(i);
+
+			if (child.getNodeName().equalsIgnoreCase(XML_ADDON)) {
+				Node idNode = child.getAttributes().getNamedItem(XML_ADDON_ID);
+				if (idNode == null) {
+					throw new AdapterException(XML_ADDON_ID + " not found.");
+				} else {
+					String id = idNode.getNodeValue();
+					ConfigurationPlugin plugin = (ConfigurationPlugin)PluginRegistry.getInstance().getById(id);
+					if (plugin == null) {
+						Logger.defaultLogger().warn("Unable to load the following plugin : " + id + ". It will be ignored. (file : " + this.source.getSource() + ")");
+					} else {
+						ConfigurationPluginXMLHandler handler = plugin.buildConfigurationPluginXMLHandler();
+						target.registerAddon(handler.read(child, this, target));
+					}
+				}
+			}
+		}
 	}
 
 	protected ArchiveMedium readMedium(Node mediumNode, AbstractTarget target) throws IOException, AdapterException, ApplicationException {
@@ -642,25 +669,25 @@ public class TargetXMLReader implements XMLTags {
 				}
 				medium.setHandler(readHandler(children.item(i)));
 			}
-			
+
 			if (child.equalsIgnoreCase(XML_TRANSACTION_CONFIG)) {
 				Node transactionNode = children.item(i);
-				
+
 				boolean useTransactions = true;
 				long transactionSize = -1;
-				
+
 				Node enabledNode = transactionNode.getAttributes().getNamedItem(XML_USE_TRANSACTIONS);
 				if (enabledNode != null) {
 					useTransactions = Boolean.valueOf(enabledNode.getNodeValue()).booleanValue();
 				}
-				
+
 				if (useTransactions) {
 					Node sizeNode = transactionNode.getAttributes().getNamedItem(XML_TRANSACTION_SIZE);
 					if (sizeNode != null) {
 						transactionSize = Long.parseLong(sizeNode.getNodeValue());
 					}
 				}
-				
+
 				medium.setUseTransactions(useTransactions);
 				if (useTransactions) {
 					medium.setTransactionSize(transactionSize);
@@ -701,7 +728,7 @@ public class TargetXMLReader implements XMLTags {
 	protected FileSystemPolicy readFileSystemPolicy(
 			Node mediumNode, 
 			AbstractTarget target
-	) throws IOException, AdapterException, ApplicationException {
+			) throws IOException, AdapterException, ApplicationException {
 		Node policyNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_POLICY);
 		String policyId;
 		if (policyNode != null) {
@@ -716,7 +743,7 @@ public class TargetXMLReader implements XMLTags {
 			}
 		}
 
-		StoragePlugin plugin = StoragePluginRegistry.getInstance().getById(policyId);
+		StoragePlugin plugin = (StoragePlugin)PluginRegistry.getInstance().getById(policyId);
 		FileSystemPolicyXMLHandler handler = plugin.buildFileSystemPolicyXMLHandler();
 		handler.setVersion(version);
 		return handler.read(mediumNode, target, this);
@@ -725,7 +752,7 @@ public class TargetXMLReader implements XMLTags {
 	protected EncryptionPolicy readEncryptionPolicy(
 			Node mediumNode, 
 			AbstractTarget target
-	) throws IOException, AdapterException, ApplicationException {
+			) throws IOException, AdapterException, ApplicationException {
 		Node encryptedNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTED);
 		boolean isEncrypted = (encryptedNode != null && encryptedNode.getNodeValue().equalsIgnoreCase("true"));   
 
@@ -733,7 +760,7 @@ public class TargetXMLReader implements XMLTags {
 		Node encryptionAlgoNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTIONALGO);
 		Node encryptNamesNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTNAMES);
 		Node wrapNamesNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_WRAPNAMES);
-		
+
 		String encryptionKey = encryptionKeyNode != null ? encryptionKeyNode.getNodeValue() : null;   
 		String encryptionAlgo = encryptionAlgoNode != null ? encryptionAlgoNode.getNodeValue() : null;   
 		Boolean encryptNames = encryptNamesNode != null ? Boolean.valueOf(encryptNamesNode.getNodeValue()) : null;  
@@ -741,7 +768,7 @@ public class TargetXMLReader implements XMLTags {
 		if (wrapNamesNode != null) {
 			nameWrappingMode = wrapNamesNode.getNodeValue();
 		}
-		
+
 		if (isEncrypted && encryptionKey == null) {
 			if (missingDataListener != null) {
 				EncryptionPolicy encrData = missingDataListener.missingEncryptionDataDetected(target, encryptionAlgo, encryptNames, nameWrappingMode);
@@ -772,7 +799,7 @@ public class TargetXMLReader implements XMLTags {
 				&& isEncrypted 
 				&& (! encryptionAlgo.equals(EncryptionConfiguration.AES_RAW))
 				&& (! encryptionAlgo.equals(EncryptionConfiguration.AES256_RAW))
-		) {
+				) {
 			throw new AdapterException("\nError reading target \"" + target.getName() + "\" in group \"" + target.getParent().getName() + "\" (" + target.getParent().getFullPath() + ") :\nEncryption management has been refactored in version 6.1 of " + VersionInfos.APP_SHORT_NAME + ", and your configuration has been generated with a previous version of " + VersionInfos.APP_SHORT_NAME + ". As a result, it is not compatible with your current version (" + VersionInfos.getLastVersion().getVersionId() + ").\nYou must either :\n- re-create your target/targetgroup and use one of the available encryption algorithms, or\n- re-install a previous version of " + VersionInfos.APP_SHORT_NAME + " (6.0.7 or before).");
 		}
 

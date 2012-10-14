@@ -5,8 +5,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import com.application.areca.context.ProcessContext;
@@ -22,6 +24,7 @@ import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
 import com.application.areca.metadata.manifest.ManifestManager;
 import com.application.areca.metadata.transaction.TransactionPoint;
+import com.application.areca.plugins.ConfigurationAddon;
 import com.application.areca.processor.Processor;
 import com.application.areca.processor.ProcessorList;
 import com.application.areca.search.SearchCriteria;
@@ -33,7 +36,6 @@ import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.system.OSTool;
 import com.myJava.util.CalendarUtils;
-import com.myJava.util.Chronometer;
 import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.HistoryEntry;
 import com.myJava.util.history.HistoryHandler;
@@ -88,6 +90,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	protected ProcessorList preProcessors = new ProcessorList();
 	protected boolean running;
 	protected boolean createSecurityCopyOnBackup = true;
+	protected Map configurationAddons = new HashMap();
 
 	protected void copyAttributes(Object clone) {
 		AbstractTarget other = (AbstractTarget)clone;
@@ -133,7 +136,19 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	public boolean isCreateSecurityCopyOnBackup() {
 		return createSecurityCopyOnBackup;
 	}
+	
+	public Iterator getAddons() {
+		return configurationAddons.values().iterator();
+	}
 
+	public ConfigurationAddon getAddonById(String id) {
+		return (ConfigurationAddon)configurationAddons.get(id);
+	}
+	
+	public void registerAddon(ConfigurationAddon addon) {
+		this.configurationAddons.put(addon.getId(), addon);
+	}
+	
 	public void setCreateSecurityCopyOnBackup(boolean createSecurityCopyOnBackup) {
 		this.createSecurityCopyOnBackup = createSecurityCopyOnBackup;
 	}
@@ -282,6 +297,12 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 		if (checkResumeSupported() != null) {
 			throw new ApplicationException("Transaction points are not supported by this target configuration.");
 		} else {
+			Iterator iter = this.getAddons();
+			while (iter.hasNext()) {
+				ConfigurationAddon addon = (ConfigurationAddon)iter.next();
+				addon.open(transactionPoint, context);
+			}
+			
 			medium.open(null, transactionPoint, context);
 		}
 	}  
@@ -291,6 +312,13 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 	 */
 	protected void open(Manifest manifest, ProcessContext context, String backupScheme) throws ApplicationException {
 		context.setBackupScheme(backupScheme);
+		
+		Iterator iter = this.getAddons();
+		while (iter.hasNext()) {
+			ConfigurationAddon addon = (ConfigurationAddon)iter.next();
+			addon.open(manifest, context, backupScheme);
+		}
+		
 		medium.open(manifest, null, context);
 		String resumeSupportedResponse = this.checkResumeSupported();
 
@@ -525,6 +553,12 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			context.getManifest().addProperty(ManifestKeys.CHECKED, context.isChecked());
 			addBasicInformationsToManifest(context.getManifest());
 
+			Iterator iter = this.getAddons();
+			while (iter.hasNext()) {
+				ConfigurationAddon addon = (ConfigurationAddon)iter.next();
+				addon.commitBackup(context);
+			}
+			
 			medium.commitBackup(context);
 			context.getReport().getStatus().addItem(StatusList.KEY_BACKUP);
 		} catch (Throwable e) {
@@ -568,9 +602,17 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			medium.getHistoryHandler().addEntryAndFlush(new HistoryEntry(HISTO_BACKUP_ROLLBACK, "Backup rollback."));
 		} finally {
 			try {
-				medium.rollbackBackup(context);
+				Iterator iter = this.getAddons();
+				while (iter.hasNext()) {
+					ConfigurationAddon addon = (ConfigurationAddon)iter.next();
+					addon.rollbackBackup(context, message);
+				}
 			} finally {
-				context.getReport().getStatus().addItem(StatusList.KEY_BACKUP, message);
+				try {
+					medium.rollbackBackup(context);
+				} finally {
+					context.getReport().getStatus().addItem(StatusList.KEY_BACKUP, message);
+				}
 			}
 		}
 	}

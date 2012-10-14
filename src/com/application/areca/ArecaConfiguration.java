@@ -144,6 +144,11 @@ extends FrameworkConfiguration {
     public static String KEY_FORCED_PLUGIN_LOCATION = "plugins.location.override";
     
     /**
+     * Module path (set this property if you want to force this location)
+     */
+    public static String KEY_FORCED_MODULE_LOCATION = "modules.location.override";
+    
+    /**
      * Language files path (set this property if you want to force this location)
      */
     public static String KEY_FORCED_LN_LOCATION = "languages.location.override";
@@ -198,6 +203,7 @@ extends FrameworkConfiguration {
     public static String DEF_FORCED_LOG_LOCATION = null;
     public static String DEF_FORCED_BIN_LOCATION = null;
     public static String DEF_FORCED_PLUGIN_LOCATION = null;
+    public static String DEF_FORCED_MODULE_LOCATION = null;
     public static String DEF_FORCED_LN_LOCATION = null;
     public static int DEF_MAX_FTP_RETRIES = 5;
     public static boolean DEF_MDT_DEBUG = false;
@@ -247,6 +253,10 @@ extends FrameworkConfiguration {
     
     public String getPluginsLocationOverride() {
         return getProperty(KEY_FORCED_PLUGIN_LOCATION, DEF_FORCED_PLUGIN_LOCATION);
+    }
+    
+    public String getModulesLocationOverride() {
+        return getProperty(KEY_FORCED_MODULE_LOCATION, DEF_FORCED_MODULE_LOCATION);
     }
     
     public String getLanguageLocationOverride() {

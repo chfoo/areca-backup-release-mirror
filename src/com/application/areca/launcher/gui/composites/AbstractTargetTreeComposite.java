@@ -24,7 +24,6 @@ import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.AbstractWorkspaceItem;
-import com.application.areca.ResourceManager;
 import com.application.areca.TargetGroup;
 import com.application.areca.Workspace;
 import com.application.areca.WorkspaceItem;
@@ -32,6 +31,7 @@ import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 
 /**
  * <BR>

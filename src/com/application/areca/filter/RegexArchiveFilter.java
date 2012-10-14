@@ -80,10 +80,10 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
 		setRegex(parameters);
     }
     
-    public short acceptIteration(File entry) {
+    public short acceptIteration(File entry, File data) {
     	if (scheme.equals(SCHEME_PARENTDIR)) {
     		// Check that the directory itself is accepted by the filter
-			if (acceptElement(entry)) {
+			if (acceptElement(entry, data)) {
 				return WILL_MATCH_TRUE;
 			} else {
 				return WILL_MATCH_FALSE;
@@ -101,7 +101,7 @@ public class RegexArchiveFilter extends AbstractArchiveFilter {
 		this.match = match;
 	}
 
-	public boolean acceptElement(File entry) {
+	public boolean acceptElement(File entry, File data) {
         if (entry == null) {
             return false;
         } else {

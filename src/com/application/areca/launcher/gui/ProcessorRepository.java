@@ -6,13 +6,13 @@ import java.util.List;
 import org.eclipse.swt.widgets.Composite;
 
 import com.application.areca.AbstractTarget;
-import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.processors.AbstractProcessorComposite;
 import com.application.areca.launcher.gui.processors.DeleteProcessorComposite;
 import com.application.areca.launcher.gui.processors.FileDumpProcessorComposite;
 import com.application.areca.launcher.gui.processors.MergeProcessorComposite;
 import com.application.areca.launcher.gui.processors.SendMailProcessorComposite;
 import com.application.areca.launcher.gui.processors.ShellScriptProcessorComposite;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.application.areca.processor.DeleteProcessor;
 import com.application.areca.processor.FileDumpProcessor;
 import com.application.areca.processor.MergeProcessor;

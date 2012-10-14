@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.eclipse.swt.widgets.Composite;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.DirectoryArchiveFilter;
 import com.application.areca.filter.FileDateArchiveFilter;
@@ -26,6 +25,7 @@ import com.application.areca.launcher.gui.filters.FileSizeFilterComposite;
 import com.application.areca.launcher.gui.filters.FilterGroupComposite;
 import com.application.areca.launcher.gui.filters.RegexFilterComposite;
 import com.application.areca.launcher.gui.filters.SpecFileFilterComposite;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.file.FileSystemManager;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;

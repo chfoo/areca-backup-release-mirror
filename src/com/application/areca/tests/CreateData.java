@@ -1,6 +1,10 @@
 package com.application.areca.tests;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -131,6 +135,7 @@ public class CreateData {
 	
 	public static void append(String root) throws IOException {
 		doCreate(APPEND, null, root);
+		alterFile(new File(APPEND[0]));
 	}
 	
 	public static void append2(String root) throws IOException {
@@ -163,6 +168,40 @@ public class CreateData {
 		}
 	}
 	
+	private static void alterFile(File f) throws IOException {
+		long length = f.length();
+		if (length > 3) {
+			int idx = (int)length / 2;
+			
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			FileInputStream fis = new FileInputStream(f);
+			
+			int read;
+			int i=0;
+			while ((read = fis.read()) != -1) {
+				if (i == idx) {
+					baos.write(read < 150 ? 151 : 20);
+				} else {
+					baos.write(read);
+				}
+				i++;
+			}
+			
+			fis.close();
+			baos.close();
+			
+			FileOutputStream fos = new FileOutputStream(f);
+			ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+			
+			while ((read = bais.read()) != -1) {
+				fos.write(read);
+			}
+			
+			bais.close();
+			fos.close();
+		}
+	}
+	
 	private static void doCreate(String[] files, int[] sizes, String root) throws IOException {
 		File rootFile = new File(root);
 		rootFile.mkdirs();
@@ -187,7 +226,16 @@ public class CreateData {
 			OutputStream os = FileSystemManager.getFileOutputStream(f);
 			writer = new OutputStreamWriter(os);
 			for (int i=0; i<repeats; i++) {
-				writer.write("Random Data For Areca\n");
+				writer.write("1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca\n");
+				writer.write("1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca\n");
+				writer.write("1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca\n");
+				writer.write("1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca\n");
+				writer.write("1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca\n");
+				writer.write("1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca\n");
+				writer.write("1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca\n");
+				writer.write("1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca\n");
+				writer.write("1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca\n");
+				writer.write("1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca1234567890 Random Data For Areca\n");
 			}
 		} finally {
 			if (writer != null) {

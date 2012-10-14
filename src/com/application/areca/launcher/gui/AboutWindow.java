@@ -20,14 +20,14 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ArecaConfiguration;
 import com.application.areca.ArecaURLs;
-import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.LocalPreferences;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.application.areca.plugins.StoragePlugin;
-import com.application.areca.plugins.StoragePluginRegistry;
+import com.application.areca.plugins.PluginRegistry;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileTool;
 import com.myJava.file.delta.DeltaReader;

@@ -3,9 +3,9 @@ package com.application.areca.launcher.gui.filters;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.launcher.gui.FilterEditionWindow;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 
 /**
  * Abstract implementation for all Filter parameters panels

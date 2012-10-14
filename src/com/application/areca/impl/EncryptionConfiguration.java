@@ -11,7 +11,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.application.areca.ResourceManager;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 import com.myJava.util.log.Logger;

@@ -73,7 +73,7 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
 	/**
      * Accepts (or refuses) an entry
      */         
-    public short acceptIteration(File entry) {
+    public short acceptIteration(File entry, File data) {
         short matchFilter = WILL_MATCH_TRUE;
         
         Iterator iter = this.getFilterIterator();
@@ -82,7 +82,7 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
             matchFilter = WILL_MATCH_TRUE;
             while (iter.hasNext()) {
                 ArchiveFilter filter = (ArchiveFilter)iter.next();
-                short answer = filter.acceptIteration(entry);
+                short answer = filter.acceptIteration(entry, data);
                 if (answer == WILL_MATCH_FALSE) {
                     matchFilter = WILL_MATCH_FALSE;
                     break;
@@ -95,7 +95,7 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
             matchFilter = WILL_MATCH_FALSE;            
             while (iter.hasNext()) {
                 ArchiveFilter filter = (ArchiveFilter)iter.next();
-                short answer = filter.acceptIteration(entry);
+                short answer = filter.acceptIteration(entry, data);
                 if (answer == WILL_MATCH_TRUE) {
                     matchFilter = WILL_MATCH_TRUE;
                     break;
@@ -118,7 +118,7 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
     /**
      * Accepts (or refuses) an entry
      */         
-    public boolean acceptElement(File entry) {
+    public boolean acceptElement(File entry, File data) {
         boolean matchFilter;
         
         Iterator iter = this.getFilterIterator();
@@ -127,7 +127,7 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
             matchFilter = true;
             while (iter.hasNext()) {
                 ArchiveFilter filter = (ArchiveFilter)iter.next();
-                if (! filter.acceptElement(entry)) {
+                if (! filter.acceptElement(entry, data)) {
                     matchFilter = false;
                     break;
                 }
@@ -137,7 +137,7 @@ implements ArchiveFilter, FileSystemIteratorFilter, Serializable {
             matchFilter = false;            
             while (iter.hasNext()) {
                 ArchiveFilter filter = (ArchiveFilter)iter.next();
-                if (filter.acceptElement(entry)) {
+                if (filter.acceptElement(entry, data)) {
                     matchFilter = true;
                     break;
                 }

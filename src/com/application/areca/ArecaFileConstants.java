@@ -36,6 +36,7 @@ public interface ArecaFileConstants {
 	public static final String DEPRECATED_LOG_SUBDIRECTORY_NAME = "log";
 	public static final String LOG_SUBDIRECTORY_NAME = ".log";
 	public static final String DEFAULT_PLUGIN_SUBDIRECTORY_NAME = "plugins";
+	public static final String DEFAULT_MODULE_SUBDIRECTORY_NAME = "modules";
 	public static final String DEFAULT_BIN_SUBDIRECTORY_NAME = "bin";
 	public static final String DEFAULT_TRANSLATION_SUBDIRECTORY_NAME = "translations";
 	

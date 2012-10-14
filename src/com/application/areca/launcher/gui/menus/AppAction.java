@@ -14,8 +14,8 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 
 /**
  * <BR>

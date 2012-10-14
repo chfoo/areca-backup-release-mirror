@@ -2,12 +2,10 @@ package com.application.areca.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import com.application.areca.AbstractTarget;
@@ -28,10 +26,10 @@ import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.iterator.FileSystemIterator;
+import com.myJava.file.iterator.SourcesHelper;
 import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.object.Duplicable;
 import com.myJava.object.DuplicateHelper;
-import com.myJava.util.Chronometer;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -97,7 +95,7 @@ implements TargetActions {
     public void setSources(Set sources) {
         this.sources = sources;
         deduplicate(this.sources);
-    	this.sourcesRoot = computeSourceRoot(this.sources);
+    	this.sourcesRoot = SourcesHelper.computeSourceRoot(this.sources);
     }
 
     public boolean isFollowSubdirectories() {
@@ -145,70 +143,13 @@ implements TargetActions {
     public Set getSources() {
         return sources;
     }
-    
-    public static String computeSourceRoot(Set sourceDirectories) {
-        List paths = new ArrayList();
-        int min = Integer.MAX_VALUE;
-        if (sourceDirectories.size() > 0) {
-            Iterator iter = sourceDirectories.iterator();
-            while (iter.hasNext()) {
-                File source = (File)iter.next();
-                ArrayList path = new ArrayList();
-                computeParents(source, path);
-                paths.add(path);
-                if (path.size() < min) {
-                    min = path.size();
-                }
-            }
-
-            int divergenceIndex = -1;
-            for (int token=0; token<min && divergenceIndex == -1; token++) {
-                File current = (File)((List)paths.get(0)).get(token);
-                String currentStr = FileSystemManager.getAbsolutePath(current);
-                for (int s=1; s<sourceDirectories.size() && divergenceIndex == -1; s++) {
-                    File other = (File)((List)paths.get(s)).get(token);
-                    if (! currentStr.equals(FileSystemManager.getAbsolutePath(other))) {
-                        divergenceIndex = token;
-                    }
-                }
-            }
-
-            if (divergenceIndex == 0) {
-            	return "";
-            } else if (divergenceIndex == -1) {
-            	return FileSystemManager.getAbsolutePath((File)sourceDirectories.iterator().next());
-            } else {
-            	return FileSystemManager.getAbsolutePath((File)((List)paths.get(0)).get(divergenceIndex - 1));
-            }
-        } else {
-        	return "";
-        }
-    }
-
-    private static void computeParents(File f, List l) {
-        l.add(0, f);
-        File parent = FileSystemManager.getParentFile(f);
-        if (parent != null) {
-            computeParents(parent, l);
-        }
-    }
 
     public String getSourcesRoot() {
         return this.sourcesRoot;
     }
 
     public String getSourceDirectory() {
-        if (sourcesRoot.length() == 0) {
-            return sourcesRoot;
-        } else {
-            File f = new File(sourcesRoot);
-
-            if (FileSystemManager.isFile(f)) {
-                return FileSystemManager.getAbsolutePath(FileSystemManager.getParentFile(f));
-            } else {
-                return this.sourcesRoot;
-            }
-        }
+    	return SourcesHelper.computeSourceDirectory(sourcesRoot);
     }
 
     public boolean isTrackSymlinks() {
@@ -247,19 +188,20 @@ implements TargetActions {
         		//Chronometer.instance().stop("nextElement");
     			return null;
     		} else {
-    			FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(this.getSourceDirectory(), f);
-                entry.setSize(FileSystemManager.length(f));
-                try {
-					entry.setLink(this.isTrackSymlinks() && FileMetaDataAccessor.TYPE_LINK == FileSystemManager.getType(f));
-				} catch (IOException e) {
-					Logger.defaultLogger().error(e);
-					throw new ApplicationException(e);
-				}
+    			FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(context.getFileSystemIterator().getRoot() == null ? null : FileSystemManager.getAbsolutePath(context.getFileSystemIterator().getRoot()), f);
 
                 if (entry.getKey().length() == 0) {
             		//Chronometer.instance().stop("nextElement");
             		return nextElement(context);
                 } else {
+                    entry.setSize(FileSystemManager.length(f));
+                    try {
+    					entry.setLink(this.isTrackSymlinks() && FileMetaDataAccessor.TYPE_LINK == FileSystemManager.getType(f));
+    				} catch (IOException e) {
+    					Logger.defaultLogger().error(e);
+    					throw new ApplicationException(e);
+    				}
+                    
             		//Chronometer.instance().stop("nextElement");
                 	return entry;
                 }
@@ -283,25 +225,17 @@ implements TargetActions {
     }
 
     private void initCurrentLevel(ProcessContext context) throws ApplicationException {
-        Iterator iter = this.sources.iterator();
-        String[] sourceArray = new String[this.sources.size()];
-        String root = this.getSourceDirectory();
-        for (int i=0; i<sources.size(); i++) {
-            File source = (File)iter.next();
-            Logger.defaultLogger().info("Registering source directory : " + FileSystemManager.getDisplayPath(source));
-            sourceArray[i] = FileSystemManager.getAbsolutePath(source).substring(root.length());
-        }
-        File fRoot = null;
-        if (root != null && root.length() != 0) {
-        	fRoot = new File(root);
-        }
-        if (this.sources.size() != 0) {
-        	FileSystemIterator fsIter = new FileSystemIterator(fRoot, sourceArray, ! this.trackSymlinks, this.followSubdirectories, trackEmptyDirectories, true);
-        	fsIter.setLogProgress(true);
-        	fsIter.setFilter(this.filterGroup);
-        	fsIter.setMonitor(context.getTaskMonitor().getCurrentActiveSubTask());
-        	context.setFileSystemIterator(fsIter);
-        }
+    	if (context.getFileSystemIteratorBuilder() == null) {
+    		context.setFileSystemIteratorBuilder(new DefaultFileSystemIteratorBuilder());
+    	}
+    	
+    	FileSystemIterator iterator = context.getFileSystemIteratorBuilder().buildFileSystemIterator(this);
+    	if (iterator != null) {
+    		iterator.setLogProgress(true);
+    		iterator.setFilter(filterGroup);
+    		iterator.setMonitor(context.getTaskMonitor().getCurrentActiveSubTask());
+        	context.setFileSystemIterator(iterator);
+    	}
     }
 
     public synchronized SimulationResult processSimulateImpl(ProcessContext context, boolean returnDetailedResults) throws ApplicationException {

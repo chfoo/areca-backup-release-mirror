@@ -21,8 +21,11 @@ import com.application.areca.impl.handler.DefaultArchiveHandler;
 import com.application.areca.impl.handler.DeltaArchiveHandler;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
+import com.application.areca.plugins.ConfigurationAddon;
+import com.application.areca.plugins.ConfigurationPlugin;
+import com.application.areca.plugins.ConfigurationPluginXMLHandler;
+import com.application.areca.plugins.PluginRegistry;
 import com.application.areca.plugins.StoragePlugin;
-import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.processor.AbstractMailSendProcessor;
 import com.application.areca.processor.DeleteProcessor;
 import com.application.areca.processor.FileDumpProcessor;
@@ -64,7 +67,6 @@ This file is part of Areca.
 
  */
 public class TargetXMLWriter extends AbstractXMLWriter {
-
     protected boolean removeSensitiveData = false;
     protected boolean writeXMLHeader = false;
     protected boolean isBackupCopy = false;
@@ -128,6 +130,9 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         } else if (IncrementalZipMedium.class.isAssignableFrom(tg.getMedium().getClass())) {
             serializeMedium((IncrementalZipMedium)tg.getMedium());
         }
+        
+        // Addons
+        serializeAddons(tg.getAddons());
        
         // Filtres
         serializeFilter(tg.getFilterGroup());
@@ -138,9 +143,19 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         // Postprocessors
         serializeProcessors(tg.getPostProcessors(), true);
         
-        sb.append("\n</");
-        sb.append(XML_TARGET);
-        sb.append(">");            
+        sb.append("\n</").append(XML_TARGET).append(">");            
+    }
+	
+    protected void serializeAddons(Iterator addons) {
+        sb.append("\n<").append(XML_ADDONS).append(">");   
+        while (addons.hasNext()) {
+        	ConfigurationAddon addon = (ConfigurationAddon)addons.next();
+    		String id =addon.getId();
+    		ConfigurationPlugin plugin = (ConfigurationPlugin)PluginRegistry.getInstance().getById(id);
+    		ConfigurationPluginXMLHandler handler = plugin.buildConfigurationPluginXMLHandler();
+    		handler.write(addon, removeSensitiveData, sb);
+    	}
+        sb.append("\n</").append(XML_ADDONS).append(">");  
     }
     
     protected void serializeProcessors(ProcessorList actions, boolean preProcesses) {
@@ -474,7 +489,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
     protected void serializeFileSystemPolicy(FileSystemPolicy policy) {
         String id = policy.getId();
         sb.append(XMLTool.encodeProperty(XML_MEDIUM_POLICY, id)); 
-        StoragePlugin plugin = StoragePluginRegistry.getInstance().getById(id);
+        StoragePlugin plugin = (StoragePlugin)PluginRegistry.getInstance().getById(id);
         plugin.buildFileSystemPolicyXMLHandler().write(policy, removeSensitiveData, sb);
     }
 }

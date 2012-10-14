@@ -57,19 +57,19 @@ public class FileSizeArchiveFilter extends AbstractArchiveFilter {
         this.maxSize = Long.parseLong(parameters.trim().substring(1).trim());
     }
     
-    public short acceptIteration(File entry) {
+    public short acceptIteration(File entry, File data) {
         return WILL_MATCH_PERHAPS;
     }
     
     /**
      * Directories always return "true"
      */
-    public boolean acceptElement(File entry) {   
+    public boolean acceptElement(File entry, File data) {   
         if (entry == null) {
             return false;
-        } else if (FileSystemManager.isFile(entry)) {
+        } else if (FileSystemManager.isFile(data)) {
             boolean value;
-            if (FileSystemManager.length(entry) > maxSize) {
+            if (FileSystemManager.length(data) > maxSize) {
                 value = greaterThan;
             } else {
                 value = ! greaterThan;

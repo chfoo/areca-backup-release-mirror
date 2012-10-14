@@ -27,15 +27,12 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
 import com.myJava.util.taskmonitor.TaskMonitor;
 
 /**
- * Gestionnaire de systeme de fichiers. <BR>
- * Ce gestionnaire reference des FileSystemDrivers pour differents points de
- * montage (repertoires) et route les demandes d'acces (replication des methodes
- * de la classe File) au driver approprie. <BR>
+ * File system manager.
+ * <BR>This class maps various drivers to their mount point and uses them to handle file operations
+ * <BR>By default, a DefaultFileSystemDriver is used, which routes method calls to the File class.
  * <BR>
- * Par defaut, un DefaultFileSystemDriver est utilise. <BR>
- * 
- * @author Olivier PETRUCCI <BR>
- *         
+ * @author Olivier PETRUCCI
+ * <BR>
  *
  */
 
@@ -61,38 +58,30 @@ This file is part of Areca.
  */
 public class FileSystemManager {
 	protected static FileSystemManager instance = new FileSystemManager();
-	protected static int MAX_CACHED_MOUNTPOINTS = FrameworkConfiguration
-			.getInstance().getMaxCachedMountPoints();
+	protected static int MAX_CACHED_MOUNTPOINTS = FrameworkConfiguration.getInstance().getMaxCachedMountPoints();
 
 	/**
-	 * Drivers indexes par point de montage
+	 * Drivers indexed by mount point
 	 */
-	protected Map drivers = new HashMap();
+	protected Map driverCache = new HashMap();
 
 	/**
-	 * Drivers indexes par point de montage. <BR>
-	 * Contrairement a la map "drivers", cette map ne contient que les drivers
-	 * qui ont ete explicitement enregistres par la methode "registerDriver". <BR>
-	 * Elle sert a reinitialiser la map "drivers" suite a l'appel a la methode
-	 * "unregisterDriver"
+	 * Drivers indexed by mount point. This map is used as reference to reset the driver cache when needed.
 	 */
 	protected Map driversReference = new HashMap();
 
 	/**
-	 * Driver par defaut.
+	 * Default driver
 	 */
 	protected FileSystemDriver defaultDriver = new DefaultFileSystemDriver();
 
 	/**
-	 * Racines du FileSystem
+	 * Roots of the filesystem
 	 */
 	protected Set roots = new HashSet();
 
 	/**
-	 * Optimisation : ce flag est a "true" si aucun driver specifique n'a ete
-	 * enregistre. <BR>
-	 * On evite ainsi des recherches dans la Map des drivers : le driver par
-	 * defaut est systematiquement retourne.
+	 * Optimization : this flag is set to "true" as soon as a first driver is explicitely registered
 	 */
 	protected boolean hasOnlyDefaultDriver = true;
 
@@ -109,99 +98,55 @@ public class FileSystemManager {
 	}
 
 	/**
-	 * Enregistre un driver pour le point de montage specifie.
+	 * Register a driver for a specific mount point
 	 */
-	public synchronized void registerDriver(File mountPoint,
-			FileSystemDriver driver) throws DriverAlreadySetException,
-			IOException {
+	public synchronized void registerDriver(File mountPoint, FileSystemDriver driver) throws DriverAlreadySetException, IOException {
+		this.hasOnlyDefaultDriver = false;
+		
 		FileSystemDriver existing = this.getDriverAtMountPoint(mountPoint);
-		if (existing != null && !existing.equals(driver)) { // The former
-															// instance check
-															// was replaced by a
-															// more standard
-															// call to the
-															// "equals" method.
-			// This solves the problems that occured when reopening a target
-			// that had already been opened.
-			// The code below has been disabled.
-			// It lead to unexpected behaviors of Areca
-			/*
-			 * if (driver.isContentSensitive()) { File[] files = null; try {
-			 * files = FileSystemManager.listFiles(mountPoint); } catch
-			 * (Exception e) {Logger.defaultLogger().error(
-			 * "An error occurred while trying to list existing file during the driver registration. The driver will still be registered but this can result in an unstable state."
-			 * , e, "FilesystemManager.registerDriver"); }
-			 * 
-			 * if (files != null && files.length != 0) { throw new
-			 * DriverAlreadySetException
-			 * ("Driver already set for mount point : [" +
-			 * mountPoint.getAbsolutePath() + "] ; existing driver = [" +
-			 * existing.getClass().getName() + "]. This mountPoint contains " +
-			 * files.length +
-			 * " files or directories. It must be cleared before this operation."
-			 * ); } }
-			 */
-
-			// Si un autre driver existait pour ce point de montage, on tente de
-			// le supprimer.
-			driver.mount();
+		driver.mount();
+		if (existing != null && ! existing.equals(driver)) {
 			unregisterDriver(mountPoint);
-		} else {
-			driver.mount();
 		}
 
-		Logger.defaultLogger().info(
-				"Registring a new file system driver : Mount Point = "
-						+ mountPoint + ", Driver = " + driver);
-		registerDriverWithoutCheck(mountPoint, driver);
+		Logger.defaultLogger().info("Registring a new file system driver : Mount Point = " + mountPoint + ", Driver = " + driver);
+		
+		// Add the driver to the reference map
 		this.driversReference.put(mountPoint, driver);
+		this.resetDriverCache();
 	}
 
 	/**
 	 * Deletes the driver currently registered at this mount point.
 	 */
-	public synchronized void unregisterDriver(File mountPoint)
-			throws IOException {
+	public synchronized void unregisterDriver(File mountPoint) throws IOException {
 		FileSystemDriver existing = this.getDriverAtMountPoint(mountPoint);
-		Logger.defaultLogger().info(
-				"Unregistring file system driver : Mount Point = " + mountPoint
-						+ ", Driver = " + existing);
+		Logger.defaultLogger().info("Unregistring file system driver : Mount Point = " + mountPoint + ", Driver = " + existing);
 		try {
 			existing.unmount();
 		} catch (Throwable e) {
 			Logger.defaultLogger().error(e);
 		}
 
-		// Suppression du driver de la map de reference
+		// Remove the driver from the reference map
 		this.driversReference.remove(mountPoint);
-
-		// Reinitialisation de la map de drivers
-		this.initDriverCache();
-	}
-
-	private void initDriverCache() {
-		this.drivers.clear();
-		this.drivers.putAll(this.driversReference);
+		this.resetDriverCache();
 	}
 
 	/**
-	 * Retourne le driver enregistre pour le point de montage passe en argument. <BR>
-	 * Il n'y a pas de recherche recursive dans les repertoires parents; la
-	 * methode retourne null si aucun driver n'a ete enregistre pour ce point de
-	 * montage.
+	 * Clear the driver cache and put all references contained in the "driverReference" map
 	 */
-	public synchronized FileSystemDriver getDriverAtMountPoint(File mountPoint) {
-		return (FileSystemDriver) this.drivers.get(mountPoint);
+	private void resetDriverCache() {
+		this.driverCache.clear();
+		this.driverCache.putAll(this.driversReference);
 	}
 
-	public synchronized void flush(File file) throws IOException {
-		FileSystemDriver driver = getDriver(file);
-		driver.flush();
-	}
-	
-	public synchronized void clearCachedData(File file) throws IOException {
-		FileSystemDriver driver = getDriver(file);
-		driver.clearCachedData(file);
+	/**
+	 * Return the driver that has been explicitely registered for the mount point passed as argument
+	 * <BR>No recursive lookup is done
+	 */
+	public synchronized FileSystemDriver getDriverAtMountPoint(File mountPoint) {
+		return (FileSystemDriver) this.driversReference.get(mountPoint);
 	}
 
 	/**
@@ -215,7 +160,7 @@ public class FileSystemManager {
 		}
 
 		// Sinon, on recherche le Driver
-		return lookupDriver(file, true);
+		return resolveDriver(file, true);
 	}
 
 	public synchronized FileSystemDriver getDefaultDriver() {
@@ -231,35 +176,38 @@ public class FileSystemManager {
 	}
 
 	/**
-	 * Enregistre le driver sans verifier qu'aucun driver n'a ete prealablement
-	 * specifie (a utiliser avec precautions !)
+	 * Store a driver in the driver cache without any check (for instance that a previous driver exists)
 	 */
-	private Object registerDriverWithoutCheck(File mountPoint,
-			FileSystemDriver driver) {
-		this.hasOnlyDefaultDriver = false;
-		if (this.drivers.size() >= MAX_CACHED_MOUNTPOINTS) {
+	private Object cacheDriver(File mountPoint, FileSystemDriver driver) {
+		if (this.driverCache.size() >= MAX_CACHED_MOUNTPOINTS) {
 			// Max size reached -> destroy all
-			this.initDriverCache();
+			this.resetDriverCache();
 		}
-		return this.drivers.put(mountPoint, driver);
+		return this.driverCache.put(mountPoint, driver);
 	}
 
-	private FileSystemDriver lookupDriver(File file, boolean firstCall) {
-		// Sinon, on recherche le Driver
-		Object driver = this.drivers.get(file);
+	/**
+	 * Resolve the driver for the file passed as argument
+	 * @param file
+	 * @param firstCall
+	 * @return
+	 */
+	private FileSystemDriver resolveDriver(File file, boolean firstCall) {
+		// lookup in driver map
+		Object driver = this.driverCache.get(file);
 		if (driver == null) {
 			if (this.isRoot(file)) {
 				return this.defaultDriver;
 			} else {
-				// Recherche du driver par le repertoire parent
+				// search again - for parent directory
 				File parent = file.getParentFile();
-				FileSystemDriver returned = this.lookupDriver(parent, false);
+				FileSystemDriver returned = this.resolveDriver(parent, false);
 
 				if (!firstCall) {
-					this.registerDriverWithoutCheck(file, returned);
+					// Register the driver in the driver cache
+					this.cacheDriver(file, returned);
 				}
 
-				// On retourne le driver
 				return returned;
 			}
 		} else {
@@ -275,6 +223,17 @@ public class FileSystemManager {
 	// FILE class mimic
 	// /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+	public synchronized void flush(File file) throws IOException {
+		FileSystemDriver driver = getDriver(file);
+		driver.flush();
+	}
+	
+	public synchronized void clearCachedData(File file) throws IOException {
+		FileSystemDriver driver = getDriver(file);
+		driver.clearCachedData(file);
+	}
+	
 	public static boolean isFile(File file) {
 		return getInstance().getDriver(file).isFile(file);
 	}

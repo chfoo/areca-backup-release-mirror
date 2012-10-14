@@ -57,7 +57,6 @@ implements FileSystemPolicy {
     protected static final String LOCAL_DIR_PREFIX;
 
     protected String remoteDirectory;
-    protected ArchiveMedium medium;
     
     static {
     	String prefix;
@@ -103,10 +102,6 @@ implements FileSystemPolicy {
 
 	public ArchiveMedium getMedium() {
         return medium;
-    }
-    
-    public void setMedium(ArchiveMedium medium) {
-        this.medium = medium;
     }
     
     public void validateSimple() throws ApplicationException {

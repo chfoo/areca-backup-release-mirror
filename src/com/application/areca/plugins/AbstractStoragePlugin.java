@@ -1,11 +1,8 @@
 package com.application.areca.plugins;
 
-import java.net.URL;
-
-import com.application.areca.ResourceManager;
-import com.myJava.object.ToStringHelper;
 
 /**
+ * For backward compatibility
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -33,44 +30,10 @@ This file is part of Areca.
 
  */
 public abstract class AbstractStoragePlugin
+extends AbstractPlugin
 implements StoragePlugin {
-    protected static final ResourceManager RM = ResourceManager.instance();
-    protected URL[] classpath;
-    protected String id;
-
+	
     public boolean storageSelectionHelperProvided() {
         return false;
-    }
-
-	public URL[] getClassPath() {
-		return classpath;
-	}
-
-	public void setClassPath(URL[] cp) {
-		this.classpath = cp;
-	}
-
-	public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-    
-    public String getToolTip() {
-        return null;
-    }
-    
-    public String getDisplayName() {
-        return null;
-    }
-    
-    public String toString() {
-        StringBuffer sb = ToStringHelper.init(this);
-        ToStringHelper.append("Name", this.getFullName(), sb);
-        ToStringHelper.append("Id", this.getId(), sb);
-        ToStringHelper.append("Version", this.getVersionData(), sb);
-        return ToStringHelper.close(sb);
     }
 }

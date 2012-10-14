@@ -1,4 +1,4 @@
-Areca's translation home page : http://areca.wiki.sourceforge.net/Translations
+Areca's translation home page : http://www.areca-backup.org/arcwk/index.php?title=Translations
 
 If you want to add a new language : Make a copy of the english translation ("translations/resources_en.properties" file) and name it after the language you want to add ("de" for german, "it" for italian, ...)
 

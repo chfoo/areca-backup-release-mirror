@@ -1,6 +1,5 @@
 package com.application.areca.launcher.gui;
 
-import java.awt.event.KeyAdapter;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -8,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,9 +54,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.AbstractTarget;
-import com.application.areca.ApplicationException;
 import com.application.areca.ArecaConfiguration;
-import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
@@ -81,8 +79,12 @@ import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.composites.ProcessorsTable;
+import com.application.areca.launcher.gui.resources.ResourceManager;
+import com.application.areca.plugins.ConfigurationAddon;
+import com.application.areca.plugins.ConfigurationPlugin;
+import com.application.areca.plugins.ConfigurationPluginHelper;
+import com.application.areca.plugins.PluginRegistry;
 import com.application.areca.plugins.StoragePlugin;
-import com.application.areca.plugins.StoragePluginRegistry;
 import com.application.areca.plugins.StorageSelectionHelper;
 import com.myJava.encryption.EncryptionUtil;
 import com.myJava.file.CompressionArguments;
@@ -90,6 +92,7 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.file.driver.EncryptedFileSystemDriver;
+import com.myJava.file.iterator.SourcesHelper;
 import com.myJava.system.OSTool;
 import com.myJava.system.viewer.ViewerHandlerHelper;
 import com.myJava.util.CommonRules;
@@ -97,7 +100,6 @@ import com.myJava.util.PasswordQualityEvaluator;
 import com.myJava.util.Util;
 import com.myJava.util.history.History;
 import com.myJava.util.log.Logger;
-import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
  * <BR>
@@ -221,6 +223,8 @@ extends AbstractWindow {
 	protected Button btnModifySource;
 
 	protected boolean hasDisplayedTransactionWarning = false;
+	
+	protected List configurationPluginHelpers = new ArrayList();
 
 	public TargetEditionWindow(AbstractTarget target) {
 		super();
@@ -247,6 +251,13 @@ extends AbstractWindow {
 			initSourcesTab(initTab(tabs, RM.getLabel("targetedition.sourcesgroup.title")));
 			initCompressionTab(initTab(tabs, RM.getLabel("targetedition.compression.label")));
 			initAdvancedTab(initTab(tabs, RM.getLabel("targetedition.advancedgroup.title")));
+
+			Iterator iter = PluginRegistry.getInstance().getAll(ConfigurationPlugin.class).iterator();
+			while (iter.hasNext()) {
+				ConfigurationPlugin plugin = (ConfigurationPlugin)iter.next();
+				addPlugin(plugin, initTab(tabs, plugin.getDisplayName()));
+			}
+			
 			initFiltersTab(initTab(tabs, RM.getLabel("targetedition.filtersgroup.title")));
 			initPreProcessorsTab(initTab(tabs, RM.getLabel("targetedition.preprocessing.title")));
 			initPostProcessorsTab(initTab(tabs, RM.getLabel("targetedition.postprocessing.title")));
@@ -276,7 +287,7 @@ extends AbstractWindow {
 									application.enableWaitCursor(TargetEditionWindow.this);
 									File resultFile = target.createDebuggingData(targetDir);
 									Logger.defaultLogger().info("Debug file created : " + FileSystemManager.getAbsolutePath(resultFile));
-				                    ViewerHandlerHelper.getViewerHandler().open(targetDir);
+									ViewerHandlerHelper.getViewerHandler().open(targetDir);
 								} catch (Exception e) {
 									Logger.defaultLogger().error("Error caught while creating debugging informations", e);
 									application.handleException("Error caught while creating debugging informations", e);
@@ -285,7 +296,7 @@ extends AbstractWindow {
 								}
 							}
 						};
-						
+
 						Thread th = new Thread(rn);
 						th.setName("Create debugging data");
 						th.start();
@@ -303,7 +314,7 @@ extends AbstractWindow {
 		return itm;
 	}
 
-	private GridLayout initLayout(int nbCols) {
+	public static GridLayout initLayout(int nbCols) {
 		GridLayout layout = new GridLayout();
 		layout.marginWidth = 0;
 		layout.numColumns = nbCols;
@@ -372,44 +383,47 @@ extends AbstractWindow {
 		this.strRadio.put(PLUGIN_HD, rdFile);
 
 		// Plugins
-		Iterator iter = StoragePluginRegistry.getInstance().getDisplayable().iterator();
+		Iterator iter = PluginRegistry.getInstance().getAll(StoragePlugin.class).iterator();
 		while (iter.hasNext()) {
 			final StoragePlugin plugin = (StoragePlugin)iter.next();
-			Button rd = new Button(grpPath, SWT.RADIO);
-			rd.setText(plugin.getDisplayName() == null ? "UNDEFINED" : plugin.getDisplayName());
-			rd.setToolTipText(plugin.getToolTip() == null ? "" : plugin.getToolTip());
-			rd.addListener(SWT.Selection, new Listener(){
-				public void handleEvent(Event event) {
-					StorageSelectionHelper helper = plugin.getStorageSelectionHelper(); 
-					helper.setWindow(TargetEditionWindow.this);
-					helper.handleSelection();
-					processSelection(plugin.getId(), "");
-				}
-			});
-			this.strRadio.put(plugin.getId(), rd);
 
-			final Text text = new Text(grpPath, SWT.BORDER);
-			text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			text.setEditable(false);
-			monitorControl(text);
-			this.strText.put(plugin.getId(), text);
+			if (plugin.storageSelectionHelperProvided()) {
+				Button rd = new Button(grpPath, SWT.RADIO);
+				rd.setText(plugin.getDisplayName() == null ? "UNDEFINED" : plugin.getDisplayName());
+				rd.setToolTipText(plugin.getToolTip() == null ? "" : plugin.getToolTip());
+				rd.addListener(SWT.Selection, new Listener(){
+					public void handleEvent(Event event) {
+						StorageSelectionHelper helper = plugin.getStorageSelectionHelper(); 
+						helper.setWindow(TargetEditionWindow.this);
+						helper.handleSelection();
+						processSelection(plugin.getId(), "");
+					}
+				});
+				this.strRadio.put(plugin.getId(), rd);
 
-			Button btn = new Button(grpPath, SWT.PUSH);
-			btn.setText(RM.getLabel("common.browseaction.label"));
-			btn.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					StorageSelectionHelper helper = plugin.getStorageSelectionHelper(); 
-					helper.setWindow(TargetEditionWindow.this);
-					FileSystemPolicy newPolicy = helper.handleConfiguration();
-					if (newPolicy != null) {
-						currentPolicy = newPolicy;
-						text.setText(currentPolicy.getDisplayableParameters(false));
-						TargetEditionWindow.this.updateFinalPath(currentPolicy.getDisplayableParameters(false));
-						registerUpdate();                
-					} 
-				}
-			});
-			this.strButton.put(plugin.getId(), btn);
+				final Text text = new Text(grpPath, SWT.BORDER);
+				text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+				text.setEditable(false);
+				monitorControl(text);
+				this.strText.put(plugin.getId(), text);
+
+				Button btn = new Button(grpPath, SWT.PUSH);
+				btn.setText(RM.getLabel("common.browseaction.label"));
+				btn.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						StorageSelectionHelper helper = plugin.getStorageSelectionHelper(); 
+						helper.setWindow(TargetEditionWindow.this);
+						FileSystemPolicy newPolicy = helper.handleConfiguration();
+						if (newPolicy != null) {
+							currentPolicy = newPolicy;
+							text.setText(currentPolicy.getDisplayableParameters(false));
+							TargetEditionWindow.this.updateFinalPath(currentPolicy.getDisplayableParameters(false));
+							registerUpdate();                
+						} 
+					}
+				});
+				this.strButton.put(plugin.getId(), btn);
+			}
 		}
 
 		new Label(grpPath, SWT.NONE);
@@ -486,6 +500,14 @@ extends AbstractWindow {
 		dt.widthHint = AbstractWindow.computeWidth(500);
 		dt.heightHint = AbstractWindow.computeHeight(70);
 		txtDesc.setLayoutData(dt);
+	}
+	
+	private void addPlugin(ConfigurationPlugin plugin, Composite composite) {
+		composite.setLayout(initLayout(1));
+		ConfigurationPluginHelper helper = plugin.buildConfigurationPluginHelper();
+		configurationPluginHelpers.add(helper);
+		helper.setWindow(this);
+		helper.initComposite(composite);
 	}
 
 	private void initTransactionTab(Composite composite) {
@@ -1406,9 +1428,11 @@ extends AbstractWindow {
 			filter1.setLogicalNot(true);
 			mdlFilters.addFilter(filter1);
 
+			/*
 			LockedFileFilter filter2 = new LockedFileFilter();
 			filter2.setLogicalNot(true);
 			mdlFilters.addFilter(filter2);
+			*/
 
 			addFilter(null, mdlFilters);
 
@@ -1587,7 +1611,7 @@ extends AbstractWindow {
 		for (int i=0; i<items.length; i++) {
 			sourceDirectories.add((File)items[i].getData());
 		}
-		String newPath = FileSystemTarget.computeSourceRoot(sourceDirectories);
+		String newPath = SourcesHelper.computeSourceRoot(sourceDirectories);
 		txtRootValue.setText(newPath);
 
 		// 1 : check the sources modification
@@ -1735,7 +1759,6 @@ extends AbstractWindow {
 		}
 
 		// CRYPTAGE
-
 		this.resetErrorState(cboWrapping);
 		if (
 				this.chkEncrypted.getSelection()
@@ -1768,7 +1791,15 @@ extends AbstractWindow {
 				}
 			}
 		}
-
+		
+		// MODULES
+		Iterator iter = this.configurationPluginHelpers.iterator();
+		while (iter.hasNext()) {
+			ConfigurationPluginHelper helper = (ConfigurationPluginHelper)iter.next();
+			if (! helper.checkBusinessRules()) {
+				return false;
+			}
+		}
 
 		// TRANSACTIONS
 		this.resetErrorState(txtTransactionSize);
@@ -2083,6 +2114,16 @@ extends AbstractWindow {
 			newTarget.getPreProcessors().setForwardErrors(preProcessesTab.isForwardErrors());
 			postProcessesTab.addProcessors(newTarget.getPostProcessors());
 
+			// configuration addons
+			Iterator iter = this.configurationPluginHelpers.iterator();
+			while (iter.hasNext()) {
+				ConfigurationPluginHelper helper = (ConfigurationPluginHelper)iter.next();
+				ConfigurationAddon addon = helper.buildAddon();
+				if (addon != null) {
+					newTarget.registerAddon(addon);
+				}
+			}
+			
 			this.target = newTarget;
 		} catch (Exception e) {
 			this.application.handleException(RM.getLabel("error.updateprocess.message", new Object[] {e.getMessage()}), e);

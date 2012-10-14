@@ -62,6 +62,7 @@ public class OSTool {
     private static String USER_NAME;
     private static String TMP_DIR;
     private static String LINE_SEPARATOR = System.getProperty("line.separator");
+    private static String ADMIN_GROUP_ID = "S-1-5-32-544";
     
     private static Charset[] CHARSETS;
     
@@ -165,6 +166,15 @@ public class OSTool {
     
 	public static int execute(String[] cmd) throws IOException {
 		return execute(cmd, false);
+	}
+	
+	public static boolean checkAdmin() {
+	    String groups[] = (new com.sun.security.auth.module.NTSystem()).getGroupIDs();
+	    for (int i=0; i<groups.length; i++) {
+	        if (groups[i].equals(ADMIN_GROUP_ID))
+	            return true;
+	    }
+	    return false;
 	}
 
 	public static int execute(String[] cmd, boolean async) throws IOException {

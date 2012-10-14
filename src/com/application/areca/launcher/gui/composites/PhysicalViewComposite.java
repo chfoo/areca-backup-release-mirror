@@ -21,7 +21,6 @@ import org.eclipse.swt.widgets.TableItem;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.ApplicationException;
-import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.cache.ArchiveManifestCache;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
@@ -30,6 +29,7 @@ import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.Refreshable;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.manifest.ManifestKeys;
 import com.myJava.util.log.Logger;

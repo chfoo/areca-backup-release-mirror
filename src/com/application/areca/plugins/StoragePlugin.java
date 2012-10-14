@@ -1,8 +1,5 @@
 package com.application.areca.plugins;
 
-import java.net.URL;
-
-import com.myJava.util.version.VersionData;
 
 /**
  * <BR>
@@ -31,16 +28,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public interface StoragePlugin {
-    public String getFullName();
-    public String getToolTip();
-    public String getDisplayName();
-    public String getId();
-    public void setId(String id);
-    public VersionData getVersionData();
-    public URL[] getClassPath();
-    public void setClassPath(URL[] classpath);
-    
+public interface StoragePlugin extends Plugin {
     public FileSystemPolicyXMLHandler buildFileSystemPolicyXMLHandler();
     public StorageSelectionHelper getStorageSelectionHelper();
     public boolean storageSelectionHelperProvided();

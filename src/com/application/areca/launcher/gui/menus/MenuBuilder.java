@@ -6,7 +6,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 
 import com.application.areca.ArecaConfiguration;
-import com.application.areca.ResourceManager;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 
 /**
  * <BR>

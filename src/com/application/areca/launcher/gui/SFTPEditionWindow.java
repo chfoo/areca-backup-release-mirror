@@ -15,11 +15,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.impl.policy.SFTPFileSystemPolicy;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.SecuredRunner;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.jcraft.jsch.HostKey;
 import com.jcraft.jsch.HostKeyAccessor;
 import com.jcraft.jsch.JSch;

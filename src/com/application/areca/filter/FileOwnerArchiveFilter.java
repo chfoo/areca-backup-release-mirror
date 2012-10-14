@@ -66,8 +66,8 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 		}
 	}
 	
-	public short acceptIteration(File entry) {
-		if (! acceptElement(entry)) {
+	public short acceptIteration(File entry, File data) {
+		if (! acceptElement(entry, data)) {
 			return WILL_MATCH_FALSE;
 		} else {
 			return WILL_MATCH_PERHAPS;
@@ -90,12 +90,12 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 		return group;
 	}
 
-	public boolean acceptElement(File entry) {
+	public boolean acceptElement(File entry, File data) {
 		if (entry == null) {
 			return false;
 		} else {
 			try {
-				FileMetaData atts = FileSystemManager.getMetaData(entry, true);
+				FileMetaData atts = FileSystemManager.getMetaData(data, true);
 				boolean match;
 				if (atts instanceof PosixMetaData) {
 					PosixMetaData pmtd = (PosixMetaData)atts;
@@ -106,7 +106,7 @@ public class FileOwnerArchiveFilter extends AbstractArchiveFilter {
 				}
 				return match ? !logicalNot : logicalNot;
 			} catch (IOException e) {
-				String msg = "Error reading file permissions for "+ FileSystemManager.getDisplayPath(entry);
+				String msg = "Error reading file permissions for "+ FileSystemManager.getDisplayPath(data);
 				Logger.defaultLogger().info(msg);
 				throw new IllegalArgumentException(msg);
 			}

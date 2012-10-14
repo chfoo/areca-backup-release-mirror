@@ -8,7 +8,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
-import com.application.areca.ResourceManager;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 /**
  * <BR>
  * @author Olivier PETRUCCI

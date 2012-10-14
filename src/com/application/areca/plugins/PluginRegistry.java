@@ -8,6 +8,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -46,22 +47,21 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class StoragePluginRegistry implements ArecaFileConstants {
+public class PluginRegistry implements ArecaFileConstants {
     public static final String KEY_JAR_PATH = "plugin.jar.file";
     public static final String KEY_CLASS = "plugin.class";
     public static final String SEPARATOR = ";";  
     private static final String PLUGIN_DIRECTORY = ArecaConfiguration.get().getPluginsLocationOverride();
 
-    private static StoragePluginRegistry instance = new StoragePluginRegistry();
+    private static PluginRegistry instance = new PluginRegistry();
 
     private Map plugins = new HashMap();
-    private Map displayablePlugins = new HashMap();
 
-    public static StoragePluginRegistry getInstance() {
+    public static PluginRegistry getInstance() {
         return instance;
     }
 
-    private StoragePluginRegistry() {
+    private PluginRegistry() {
     	File pluginDirectory;
     	if (PLUGIN_DIRECTORY == null) {
     		pluginDirectory = new File(Utils.getApplicationRoot(), DEFAULT_PLUGIN_SUBDIRECTORY_NAME);
@@ -77,7 +77,7 @@ public class StoragePluginRegistry implements ArecaFileConstants {
     }
 
     public void load(File pluginsDirectory) {
-        Logger.defaultLogger().info("Looking for storage plugins in directory : " + FileSystemManager.getDisplayPath(pluginsDirectory));
+        Logger.defaultLogger().info("Looking for plugins in directory : " + FileSystemManager.getDisplayPath(pluginsDirectory));
         File[] pluginFiles = FileSystemManager.listFiles(pluginsDirectory);
         if (pluginFiles != null) {
             for (int i=0; i<pluginFiles.length; i++) {
@@ -85,7 +85,7 @@ public class StoragePluginRegistry implements ArecaFileConstants {
                 if (FileSystemManager.isDirectory(pluginDirectory)) {
                     Logger.defaultLogger().info("Attempting to load plugin directory : " + FileSystemManager.getDisplayPath(pluginDirectory));
                     File configFile = new File(pluginDirectory, FileSystemManager.getName(pluginDirectory) + ".properties");
-                    StoragePlugin plugin = null;
+                    Plugin plugin = null;
                     try {
                         plugin = instanciate(configFile);
                     } catch (ApplicationException e) {
@@ -95,22 +95,25 @@ public class StoragePluginRegistry implements ArecaFileConstants {
                         register(plugin);
                         Logger.defaultLogger().info("Plugin directory successfully loaded.");
                     } else {
-                        Logger.defaultLogger().info("Inconsistent plugin or not a plugin directory.");                
+                        Logger.defaultLogger().warn("Inconsistent plugin or not a plugin directory.");                
+                    }
+                } else {
+                    Logger.defaultLogger().error("Invalid plugin data : " + FileSystemManager.getName(pluginDirectory) + ". Only directories named after the plugin they contain are expected in Areca's main plugins directory (" + pluginsDirectory + ")"); 
+                    String name = FileSystemManager.getName(pluginDirectory).toLowerCase();
+                    if (name.endsWith(".zip") || name.endsWith(".gz") || name.endsWith(".7z") || name.endsWith(".tar")) {
+                        Logger.defaultLogger().error(name + " seems to be an archive. If you downloaded this file as a plugin for Areca, you should probably unzip it."); 
                     }
                 }
             }
         }
     }
 
-    private void register(StoragePlugin plugin) {
+    private void register(Plugin plugin) {
         this.plugins.put(plugin.getId(), plugin);
-        if (plugin.storageSelectionHelperProvided()) {
-            this.displayablePlugins.put(plugin.getId(), plugin);
-        }
         Logger.defaultLogger().info("Plugin successfully registered : " + plugin.toString());
     }
 
-    private StoragePlugin instanciate(File configFile) throws ApplicationException {
+    private Plugin instanciate(File configFile) throws ApplicationException {
         try {
             if (FileSystemManager.exists(configFile)) {
                 Logger.defaultLogger().info("Reading plugin configuration file : " + FileSystemManager.getDisplayPath(configFile));
@@ -134,6 +137,7 @@ public class StoragePluginRegistry implements ArecaFileConstants {
                 }
                 
                 // Build class loader
+                File rootDir = FileSystemManager.getParentFile(configFile);
                 String classpath = props.getProperty(KEY_JAR_PATH);
                 ArrayList jars = new ArrayList();
                 StringTokenizer stt = new StringTokenizer(classpath, SEPARATOR);
@@ -141,13 +145,15 @@ public class StoragePluginRegistry implements ArecaFileConstants {
                 	String jar = stt.nextToken();
                 	jars.add(jar);
                 }
+                // Also add the parent directory
+                jars.add("/");
                 
                 URL[] urls = new URL[jars.size()];
                 for (int i=0; i<urls.length; i++) {
                 	String path = (String)jars.get(i);
                 	
                     // Load Jar
-                    File jarFile = new File(FileSystemManager.getParentFile(configFile), path);
+                    File jarFile = new File(rootDir, path);
                     Logger.defaultLogger().info("Loading jar file : " + FileSystemManager.getDisplayPath(jarFile));
                     urls[i] = new URL("file:" + FileSystemManager.getAbsolutePath(jarFile));
                 }
@@ -157,9 +163,9 @@ public class StoragePluginRegistry implements ArecaFileConstants {
                 String mainClass = props.getProperty(KEY_CLASS);
                 Logger.defaultLogger().info("Instanciating class : " + mainClass);
                 Class pluginClass = cl.loadClass(mainClass);
-                StoragePlugin plugin = (StoragePlugin)pluginClass.newInstance();
-                plugin.setClassPath(urls);
-                plugin.setId(FileSystemManager.getName(FileSystemManager.getParentFile(configFile)));
+                Plugin plugin = (Plugin)pluginClass.newInstance();
+                plugin.setClassLoader(cl);
+                plugin.setPath(FileSystemManager.getAbsolutePath(rootDir));
                 return plugin;
             } else {
                 Logger.defaultLogger().info("Plugin configuration file not found.");
@@ -171,15 +177,20 @@ public class StoragePluginRegistry implements ArecaFileConstants {
         }
     }
 
-    public Collection getAll() {
-        return this.plugins.values();
+    public Collection getAll(Class implementedInterface) {
+    	ArrayList ret = new ArrayList();
+    	Iterator iter = this.plugins.values().iterator();
+    	
+    	while (iter.hasNext()) {
+    		Object plugin = iter.next();
+    		if (implementedInterface.isAssignableFrom(plugin.getClass())) {
+    			ret.add(plugin);
+    		}
+    	}
+        return ret;
     }
 
-    public Collection getDisplayable() {
-        return this.displayablePlugins.values();
-    }
-
-    public StoragePlugin getById(String id) {
-        return (StoragePlugin)this.plugins.get(id);
+    public Plugin getById(String id) {
+        return (Plugin)this.plugins.get(id);
     }
 }

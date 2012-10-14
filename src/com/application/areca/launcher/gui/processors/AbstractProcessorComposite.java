@@ -3,8 +3,8 @@ package com.application.areca.launcher.gui.processors;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.application.areca.processor.Processor;
 
 /**

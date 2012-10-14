@@ -10,9 +10,9 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
-import com.application.areca.ResourceManager;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.Refreshable;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 
 /**
  * <BR>

@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.ArrayList;
-import java.util.List;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.UserInformationChannel;
+import com.application.areca.impl.FileSystemIteratorBuilder;
 import com.application.areca.impl.tools.RecoveryFilterMap;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.content.ContentFileIterator;
@@ -161,6 +161,8 @@ public class ProcessContext implements Externalizable {
      */
     protected boolean isInitialized;
 
+    protected FileSystemIteratorBuilder fileSystemIteratorBuilder;
+    
     protected FileSystemIterator fileSystemIterator;  
     
     /**
@@ -217,6 +219,7 @@ public class ProcessContext implements Externalizable {
 		//detailedRecoveryErrors
 		//traceFile
 		//checked
+		// filesystemiteratorbuilder
 		
 		// Initialized afterwards
 	    //ArchiveTraceAdapter traceAdapter;
@@ -302,6 +305,14 @@ public class ProcessContext implements Externalizable {
 
 	public void setChecked(boolean checked) {
 		this.checked = checked;
+	}
+
+	public FileSystemIteratorBuilder getFileSystemIteratorBuilder() {
+		return fileSystemIteratorBuilder;
+	}
+
+	public void setFileSystemIteratorBuilder(FileSystemIteratorBuilder fileSystemIteratorBuilder) {
+		this.fileSystemIteratorBuilder = fileSystemIteratorBuilder;
 	}
 
 	public ProcessContext() {

@@ -15,8 +15,10 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import com.application.areca.launcher.gui.common.LocalPreferences;
+import com.application.areca.launcher.gui.resources.ResourceManager;
+import com.application.areca.plugins.Plugin;
 import com.application.areca.plugins.StoragePlugin;
-import com.application.areca.plugins.StoragePluginRegistry;
+import com.application.areca.plugins.PluginRegistry;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.delta.DeltaReader;
@@ -180,7 +182,7 @@ public class Utils implements ArecaFileConstants {
 
 	public static String extractShortFilePath(File fileDir, String sBaseDir) {
 		String sFileDir = FileSystemManager.getPath(fileDir);
-		int index = sBaseDir.length();
+		int index = sBaseDir == null ? 0 : sBaseDir.length();
 
 		if (
 				OSTool.isSystemWindows()		
@@ -348,10 +350,10 @@ public class Utils implements ArecaFileConstants {
 		prps.putAll(LocalPreferences.instance().getPreferences());
 
 		// Plugins
-		Iterator iter = StoragePluginRegistry.getInstance().getAll().iterator();
+		Iterator iter = PluginRegistry.getInstance().getAll(Plugin.class).iterator();
 		String plugins = "";
 		while (iter.hasNext()) {
-			StoragePlugin plugin = (StoragePlugin)iter.next();
+			Plugin plugin = (Plugin)iter.next();
 			if (plugins.length() != 0) {
 				plugins += ", ";
 			}

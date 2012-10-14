@@ -45,7 +45,7 @@ public class LockedFileFilter extends AbstractArchiveFilter {
 	public void acceptParameters(String parameters) {
     }
     
-    public short acceptIteration(File entry) {
+    public short acceptIteration(File entry, File data) {
         return WILL_MATCH_PERHAPS;
     }
     
@@ -53,32 +53,32 @@ public class LockedFileFilter extends AbstractArchiveFilter {
      * Cette condition ne s'applique que sur les fichiers (pour des raisons d'optimisation).
      * Les repertoires retournent systematiquement "true"
      */
-    public boolean acceptElement(File entry) {
+    public boolean acceptElement(File entry, File data) {
         if (entry == null) {
             return false;
-        } else if (FileSystemManager.isDirectory(entry)) {
+        } else if (FileSystemManager.isDirectory(data)) {
             return true;
         } else {
-        	if (! FileSystemManager.exists(entry)) { // dangling links are accepted 
+        	if (! FileSystemManager.exists(data)) { // dangling links are accepted 
     		    Logger.defaultLogger().warn("The following file is a dangling link : " + FileSystemManager.getDisplayPath(entry));
         		return logicalNot;
         	} else {
         		short type;
 				try {
-					type = FileSystemManager.getType(entry);
+					type = FileSystemManager.getType(data);
 				} catch (IOException e) {
-					Logger.defaultLogger().error("Error reading attributes for " + entry.getAbsolutePath(), e);
-					throw new IllegalArgumentException("Error reading attributes for " + entry.getAbsolutePath(), e);
+					Logger.defaultLogger().error("Error reading attributes for " + data.getAbsolutePath(), e);
+					throw new IllegalArgumentException("Error reading attributes for " + data.getAbsolutePath(), e);
 				}
         		if (type == FileMetaDataAccessor.TYPE_PIPE) {
         			return logicalNot;  
         		} else {
-	        		ReadableCheckResult res = FileSystemManager.isReadable(entry);
+	        		ReadableCheckResult res = FileSystemManager.isReadable(data);
 	
 	        		if (res.isReadable()) {       		    
 	        			return logicalNot;                
 	        		} else {
-	        		    Logger.defaultLogger().warn("The following file is locked by the system : " + FileSystemManager.getDisplayPath(entry));
+	        		    Logger.defaultLogger().warn("The following file is locked by the system : " + FileSystemManager.getDisplayPath(data));
 	        		    if (res.getCause() != null) {
 	        		        Logger.defaultLogger().info("Cause : " + res.getCause());
 	        		    }

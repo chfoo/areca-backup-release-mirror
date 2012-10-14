@@ -55,7 +55,7 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
     	return FileSystemManager.exists(directory);
 	}
 
-	public short acceptIteration(File entry) {
+	public short acceptIteration(File entry, File data) {
         if (entry == null) {
             return WILL_MATCH_FALSE; 
         } else if (contains(directory, entry)) {
@@ -69,7 +69,7 @@ public class DirectoryArchiveFilter extends AbstractArchiveFilter {
     
     /**
      */
-    public boolean acceptElement(File entry) {  
+    public boolean acceptElement(File entry, File data) {  
         if (entry == null) {
             return false;
         } else if (FileSystemManager.isFile(entry)) {

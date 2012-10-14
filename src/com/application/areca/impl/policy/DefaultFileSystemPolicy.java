@@ -51,7 +51,6 @@ implements FileSystemPolicy {
      * Storage path
      */
     protected String archivePath;
-    protected ArchiveMedium medium;
 
     public void validate(boolean extendedTests) throws ApplicationException {
     }
@@ -127,10 +126,6 @@ implements FileSystemPolicy {
 
     public ArchiveMedium getMedium() {
         return medium;
-    }
-    
-    public void setMedium(ArchiveMedium medium) {
-        this.medium = medium;
     }
     
     public void synchronizeConfiguration() {

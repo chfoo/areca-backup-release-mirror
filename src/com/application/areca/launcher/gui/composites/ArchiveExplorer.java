@@ -27,7 +27,6 @@ import org.eclipse.swt.widgets.TreeItem;
 
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
-import com.application.areca.ResourceManager;
 import com.application.areca.Utils;
 import com.application.areca.impl.AggregatedViewContext;
 import com.application.areca.launcher.gui.Application;
@@ -35,6 +34,7 @@ import com.application.areca.launcher.gui.UIRecoveryFilter;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.application.areca.metadata.MetadataConstants;
 import com.application.areca.metadata.trace.TraceEntry;
 import com.myJava.util.log.Logger;
