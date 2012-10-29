@@ -6,9 +6,11 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -108,7 +110,7 @@ public class PluginRegistry implements ArecaFileConstants {
         }
     }
 
-    private void register(Plugin plugin) {
+    public void register(Plugin plugin) {
         this.plugins.put(plugin.getId(), plugin);
         Logger.defaultLogger().info("Plugin successfully registered : " + plugin.toString());
     }
@@ -177,8 +179,8 @@ public class PluginRegistry implements ArecaFileConstants {
         }
     }
 
-    public Collection getAll(Class implementedInterface) {
-    	ArrayList ret = new ArrayList();
+    public Collection getAll(Class implementedInterface, boolean ordered) {
+    	List ret = new ArrayList();
     	Iterator iter = this.plugins.values().iterator();
     	
     	while (iter.hasNext()) {
@@ -186,6 +188,12 @@ public class PluginRegistry implements ArecaFileConstants {
     		if (implementedInterface.isAssignableFrom(plugin.getClass())) {
     			ret.add(plugin);
     		}
+    	}
+    	
+    	if (ordered) {
+    		Object[] content = ret.toArray();
+    		Arrays.sort(content);
+    		ret = Arrays.asList(content);
     	}
         return ret;
     }

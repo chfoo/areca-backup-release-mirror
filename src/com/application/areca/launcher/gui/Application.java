@@ -30,7 +30,6 @@ import com.application.areca.AbstractTarget;
 import com.application.areca.ActionProxy;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
-import com.application.areca.ArecaConfiguration;
 import com.application.areca.ArecaRawFileList;
 import com.application.areca.ArecaURLs;
 import com.application.areca.CheckParameters;
@@ -118,9 +117,6 @@ This file is part of Areca.
 
  */
 public class Application implements ActionConstants, Window.IExceptionHandler, ArecaURLs {
-
-	private static final boolean SHOW_VERSION_CHECK = ArecaConfiguration.get().isNewVersionCheckDisplayed();
-
 	public static String[] STATUS_LABELS;
 	public static Image[] STATUS_ICONS;
 	private static final ResourceManager RM = ResourceManager.instance();
@@ -305,8 +301,12 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			return;
 		} else if (command.equals(CMD_ABOUT)) {
 			// ABOUT
-			AboutWindow about = new AboutWindow();
+			AboutWindow about = new AboutWindow(0);
 			showDialog(about);
+		} else if (command.equals(CMD_PLUGINS)) {
+			// ABOUT
+			AboutWindow win = new AboutWindow(4);
+			showDialog(win);
 		} else if (command.equals(CMD_HELP)) {
 			// HELP
 			showWebPage(HELP_ROOT
@@ -856,8 +856,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 	}
 
 	public void checkVersion(final boolean explicit) {
-		if (SHOW_VERSION_CHECK
-				&& (explicit || ApplicationPreferences.isCheckNewVersions())) {
+		if ((explicit || ApplicationPreferences.isCheckNewVersions())) {
 			Runnable rn = new Runnable() {
 				public void run() {
 					try {

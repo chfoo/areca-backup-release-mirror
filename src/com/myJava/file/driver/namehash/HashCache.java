@@ -1,12 +1,10 @@
 package com.myJava.file.driver.namehash;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.myJava.configuration.FrameworkConfiguration;
-import com.myJava.util.log.Logger;
-
-import sun.misc.Queue;
 
 /**
  * <BR>
@@ -49,23 +47,19 @@ public class HashCache {
     
     // DATA CACHE
     private Map hashCache = new HashMap();
-    private Queue hashOrder = new Queue();
+    private ArrayList hashOrder = new ArrayList();
 
     public HashCache() {
     }
     
     protected synchronized void registerFullName(String hash, String fullName) {
         if (CACHE_SIZE != 0) {
-	        try {
-	            while (this.hashCache.size() >= CACHE_SIZE) {
-	                this.hashCache.remove(this.hashOrder.dequeue());
-	            }
-	            
-	            this.hashCache.put(hash, fullName);
-	            this.hashOrder.enqueue(hash);
-	        } catch (InterruptedException e) {
-	            Logger.defaultLogger().error(e);
-	        }
+            while (this.hashCache.size() >= CACHE_SIZE) {
+                this.hashCache.remove(this.hashOrder.remove(0));
+            }
+            
+            this.hashCache.put(hash, fullName);
+            this.hashOrder.add(hash);
         }
     }
     
@@ -79,7 +73,7 @@ public class HashCache {
     
     protected synchronized void clearCache() {
         this.hashCache.clear();
-        this.hashOrder = new Queue();
+        this.hashOrder.clear();
     }
     
     public int size() {

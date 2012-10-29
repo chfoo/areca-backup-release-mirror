@@ -1,12 +1,10 @@
 package com.myJava.file.driver.remote;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.myJava.configuration.FrameworkConfiguration;
-import com.myJava.util.log.Logger;
-
-import sun.misc.Queue;
 
 /**
  * Local cache of file data.
@@ -52,23 +50,19 @@ public class RemoteFileInfoCache {
     
     // DATA CACHE
     private Map fileInfoCache = new HashMap();
-    private Queue fileInfoOrder = new Queue();
+    private ArrayList fileInfoOrder = new ArrayList();
 
     public RemoteFileInfoCache() {
     }
     
     public synchronized void registerFileInfo(String remoteFileName, FictiveFile info) {
         if (CACHE_SIZE != 0) {
-	        try {
-	            while (this.fileInfoCache.size() >= CACHE_SIZE) {
-	                this.fileInfoCache.remove(this.fileInfoOrder.dequeue());
-	            }
-	            
-	            this.fileInfoCache.put(remoteFileName, info);
-	            this.fileInfoOrder.enqueue(remoteFileName);
-	        } catch (InterruptedException e) {
-	            Logger.defaultLogger().error(e);
-	        }
+            while (this.fileInfoCache.size() >= CACHE_SIZE) {
+                this.fileInfoCache.remove(this.fileInfoOrder.remove(0));
+            }
+            
+            this.fileInfoCache.put(remoteFileName, info);
+            this.fileInfoOrder.add(remoteFileName);
         }
     }
     
@@ -82,7 +76,7 @@ public class RemoteFileInfoCache {
     
     public synchronized void clearCache() {
         this.fileInfoCache.clear();
-        this.fileInfoOrder = new Queue();
+        this.fileInfoOrder.clear();
     }
     
     public int size() {

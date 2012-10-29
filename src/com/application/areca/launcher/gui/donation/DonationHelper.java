@@ -1,11 +1,9 @@
-package com.application.areca.tests;
+package com.application.areca.launcher.gui.donation;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import com.application.areca.launcher.gui.Application;
+import com.application.areca.launcher.gui.common.ApplicationPreferences;
 
 /**
- * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -32,17 +30,19 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class EncodingTest {
-	public static void main(String[] args) {
-		try {
-			System.out.println("file.encoding="+System.getProperty("file.encoding"));
-			System.out.println("sun.jnu.encoding="+System.getProperty("sun.jnu.encoding"));
-			String filename = "c:\\users\\olivier\\Desktop\\FilenameWithéoràorü.txt";
-			FileWriter writer = new FileWriter(new File(filename));
-			writer.write(new char[] {'a', 'b', 'c', 'd', 'e'});
-			writer.close();
-		} catch (IOException e) {
-			e.printStackTrace();
+public class DonationHelper {
+	private static final int DONATION_INTERVAL = 150;
+	
+	public static void handleDonationMessage() {
+		int launchCount = ApplicationPreferences.getLaunchCount();
+		ApplicationPreferences.setLaunchCount(launchCount+1);
+
+		int lastMsg = ApplicationPreferences.getDonationMsgLaunchCount();
+		int interval = Math.abs(launchCount - lastMsg);
+		
+		if (interval > DONATION_INTERVAL) {
+			ApplicationPreferences.setDonationMsgLaunchCount(launchCount);
+			Application.getInstance().showDialog(new DonationWindow(), false);
 		}
 	}
 }

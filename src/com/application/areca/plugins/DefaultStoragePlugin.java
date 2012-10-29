@@ -41,6 +41,7 @@ implements StoragePlugin {
     public DefaultStoragePlugin() {
         super();
         this.setId(PLG_ID);
+        this.description = "Default storage plugin : allows storing archives on local or remote drives";
     }
 
     public String getFullName() {

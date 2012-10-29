@@ -12,6 +12,7 @@ import com.myJava.system.OSTool;
 
 /**
  * @author Stephane Brunel
+ * @author Olivier Petrucci
  * <BR>
  *
  */
@@ -54,6 +55,7 @@ public final class ApplicationPreferences {
     public static final String DISPLAY_DEPRECATED_IMAGE_MESSAGE = "display.deprecated.image.message";
 	private static final String CHECK_NEW_VERSIONS = "check.new.versions";
 	private static final String GUI_LOG_LEVEL = "gui.log.level";
+	private static final String CHECK_FORCE_DEFAULT_LOCATION = "check.force.default.location";
 	private static final String CHECK_USE_SPECIFIC_LOCATION = "check.use.specific.location";
 	private static final String CHECK_SPECIFIC_LOCATION = "check.specific.location";
 	private static final String MERGE_USE_SPECIFIC_LOCATION = "merge.use.specific.location";
@@ -61,6 +63,8 @@ public final class ApplicationPreferences {
 	private static final String DISPLAY_WS_ADDRESS = "display.ws.address";
 	private static final String DISPLAY_TOOLBAR = "display.toolbar";
 	private static final String WS_HISTORY = "ws.history";
+	private static final String LAUNCH_COUNT = "launch.count";
+	private static final String DONATION_MSG_LAUNCH_COUNT = "donation.msg.launch.count";
     
 	public static final int UNDEFINED = -1;
 	public static final int LAST_WORKSPACE_MODE = 0;
@@ -158,8 +162,9 @@ public final class ApplicationPreferences {
         synchronizeClientConfigurations();
     }
     
-    public static void setCheckUseSpecificLocation(boolean mask, String uid) {
-        LocalPreferences.instance().set(CHECK_USE_SPECIFIC_LOCATION + "." + normalize(uid), mask);
+    public static void setCheckForceDefaultLocation(boolean mask, String uid) {
+        LocalPreferences.instance().remove(CHECK_USE_SPECIFIC_LOCATION + "." + normalize(uid));
+        LocalPreferences.instance().set(CHECK_FORCE_DEFAULT_LOCATION + "." + normalize(uid), mask);
         synchronizeClientConfigurations();
     }
 	
@@ -209,8 +214,8 @@ public final class ApplicationPreferences {
         return LocalPreferences.instance().get(TEXT_EDITOR, "").length() != 0;
     }
     
-    public static boolean getCheckUseSpecificLocation(String uid) {
-    	return LocalPreferences.instance().getBoolean(CHECK_USE_SPECIFIC_LOCATION + "." + normalize(uid), false);
+    public static boolean isCheckForceDefaultLocation(String uid) {
+    	return LocalPreferences.instance().getBoolean(CHECK_FORCE_DEFAULT_LOCATION + "." + normalize(uid), false);
     }
     
     public static boolean getMergeUseSpecificLocation(String uid) {
@@ -227,6 +232,14 @@ public final class ApplicationPreferences {
 	
 	public static boolean getLastWorkspaceCopyMask() {
 	    return LocalPreferences.instance().getBoolean(LAST_WORKSPACE_COPY_MASK);
+	}
+	
+	public static int getLaunchCount() {
+	    return LocalPreferences.instance().getInt(LAUNCH_COUNT, 0);
+	}
+	
+	public static int getDonationMsgLaunchCount() {
+	    return LocalPreferences.instance().getInt(DONATION_MSG_LAUNCH_COUNT, 0);
 	}
 	
 	public static int getLogLevel() {
@@ -258,6 +271,16 @@ public final class ApplicationPreferences {
 	
 	public static void setStartupMode(int mode) {
 	    LocalPreferences.instance().set(STARTUP_MODE, mode == LAST_WORKSPACE_MODE ? STARTUP_MODE_LAST : STARTUP_MODE_DEFAULT);
+	    synchronizeClientConfigurations();
+	}
+	
+	public static void setLaunchCount(int cnt) {
+	    LocalPreferences.instance().set(LAUNCH_COUNT, cnt);
+	    synchronizeClientConfigurations();
+	}
+	
+	public static void setDonationMsgLaunchCount(int cnt) {
+	    LocalPreferences.instance().set(DONATION_MSG_LAUNCH_COUNT, cnt);
 	    synchronizeClientConfigurations();
 	}
 	

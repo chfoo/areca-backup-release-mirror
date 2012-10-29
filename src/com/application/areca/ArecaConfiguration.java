@@ -173,10 +173,6 @@ extends FrameworkConfiguration {
      */
     public static String KEY_TRANSACTION_SIZE_KB = "transaction.size";
     
-    /**
-     * Whether the "check for new version" feature will be enabled or not
-     */
-    public static String KEY_NEW_VERSION_CHECK_DISPLAYED = "enable.version.check";
     
     /**
      * Whether target properties are logged when an action is performed (merge, backup, ...)
@@ -211,7 +207,6 @@ extends FrameworkConfiguration {
     public static long DEF_TH_MONITOR_DELAY = 1000*60*3;
     public static String DEF_COMMIT_FILE_NAME = ".committed";
     public static long DEF_TRANSACTION_SIZE_KB = 50*1024;
-    public static boolean DEF_NEW_VERSION_CHECK_DISPLAYED = true;
     public static boolean DEF_LOG_TARGET_PROPERTIES = true;
     
     public ArecaConfiguration() {
@@ -273,10 +268,6 @@ extends FrameworkConfiguration {
     
     public boolean isFileStreamsDebugMode() {
         return getProperty(KEY_FILESTREAMS_DEBUG, DEF_FILESTREAMS_DEBUG);
-    }
-    
-    public boolean isNewVersionCheckDisplayed() {
-    	return getProperty(KEY_NEW_VERSION_CHECK_DISPLAYED, DEF_NEW_VERSION_CHECK_DISPLAYED);
     }
     
     public boolean isMetaDataDebugMode() {

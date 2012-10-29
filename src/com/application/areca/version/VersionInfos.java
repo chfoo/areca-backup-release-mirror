@@ -58,10 +58,11 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 5111443887180000643L;
+		BUILD_ID = 3319919020366903182L;
 
 		// INIT VERSION DATA
-		VERSIONS.add(new VersionData("7.2.13", new GregorianCalendar(2012, 9, 14), "Fixed a bug that could occur when handling arget sources spread across multiple drives; better integration of plugins."));
+		VERSIONS.add(new VersionData("7.2.14", new GregorianCalendar(2012, 9, 23), "Fixed a compatibility issue with IBM JVMs (Base64 encoding); Better error management when handling compressed archives; Areca now uses by default the local temporary directory as working directory when checking archives; Better plugins integration"));
+		VERSIONS.add(new VersionData("7.2.13", new GregorianCalendar(2012, 9, 14), "Fixed a bug that could occur when handling target sources spread across multiple drives; better integration of plugins."));
 		VERSIONS.add(new VersionData("7.2.12", new GregorianCalendar(2012, 7, 26), "Fixed a bug introduced in v7.2.11 that could occur with image backups when no file needs to be stored.", "Pre processors are now run whether a backup is required or not (ie even if no file has to be stored)."));
 		VERSIONS.add(new VersionData("7.2.11", new GregorianCalendar(2012, 7, 25), "Backup is now launched without simulation; Improved texteditor options; Minor GUI bugfixes.", "Pre processors are now run whether a backup is required or not (ie even if no file has to be stored)."));
 		VERSIONS.add(new VersionData("7.2.10", new GregorianCalendar(2012, 4, 24), "Pre/Postprocessors can now be run when archives are merged or checked; Minor bugfixes and improvements."));

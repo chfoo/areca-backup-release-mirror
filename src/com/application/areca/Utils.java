@@ -17,7 +17,6 @@ import java.util.Properties;
 import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.application.areca.plugins.Plugin;
-import com.application.areca.plugins.StoragePlugin;
 import com.application.areca.plugins.PluginRegistry;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
@@ -56,7 +55,6 @@ This file is part of Areca.
 
  */
 public class Utils implements ArecaFileConstants {
-	private static final ResourceManager RM = ResourceManager.instance();
 	private static DateFormat DF;
 	public static final String FILE_DATE_SEPARATOR = ".";
 	private static final NumberFormat NF = new DecimalFormat();
@@ -208,7 +206,7 @@ public class Utils implements ArecaFileConstants {
 
 	public static String formatDisplayDate(GregorianCalendar cal) {
 		if (cal == null) {
-			return RM.getLabel("common.undated.label");
+			return ResourceManager.instance().getLabel("common.undated.label");
 		} else {
 			return DF.format(cal.getTime());
 		}
@@ -216,7 +214,7 @@ public class Utils implements ArecaFileConstants {
 
 	public static String formatFileSize(File f) {
 		if (FileSystemManager.isDirectory(f)) {
-			return RM.getLabel("common.unsized.label");
+			return ResourceManager.instance().getLabel("common.unsized.label");
 		} else {
 			return formatFileSize(FileSystemManager.length(f));
 		}
@@ -227,9 +225,9 @@ public class Utils implements ArecaFileConstants {
 
 		if (size >= 1024) {
 			size = (long)(argSize / 1024);
-			return NF.format(size) + " " + RM.getLabel("common.kb.label");
+			return NF.format(size) + " " + ResourceManager.instance().getLabel("common.kb.label");
 		} else {
-			return NF.format(size) + " " + RM.getLabel("common.bytes.label");
+			return NF.format(size) + " " + ResourceManager.instance().getLabel("common.bytes.label");
 		}
 	}
 
@@ -245,7 +243,7 @@ public class Utils implements ArecaFileConstants {
 	 */
 	public static String formatDuration(long ms) {
 		if (ms < 1000) {
-			return "" + ms + " " + RM.getLabel("common.time.ms");
+			return "" + ms + " " + ResourceManager.instance().getLabel("common.time.ms");
 		}
 
 		// On utilise les secondes ...
@@ -261,17 +259,17 @@ public class Utils implements ArecaFileConstants {
 		StringBuffer sb = new StringBuffer();
 		if (nbHeures > 0) {
 			sb.append(nbHeures).append(" ");
-			sb.append(RM.getLabel("common.time.h")).append(" ");
+			sb.append(ResourceManager.instance().getLabel("common.time.h")).append(" ");
 		}
 
 		if (nbMinutes > 0) {
 			sb.append(nbMinutes).append(" ");
-			sb.append(RM.getLabel("common.time.mn")).append(" ");
+			sb.append(ResourceManager.instance().getLabel("common.time.mn")).append(" ");
 		}
 
 		if (nbSecondes > 0) {
 			sb.append(nbSecondes).append(" ");
-			sb.append(RM.getLabel("common.time.s")).append(" ");
+			sb.append(ResourceManager.instance().getLabel("common.time.s")).append(" ");
 		}
 
 		return sb.toString();
@@ -338,6 +336,7 @@ public class Utils implements ArecaFileConstants {
 		prps.put("delta.lookup.failures", "" + DeltaReader.FAILURE_COUNTER);
 		prps.put("areca-backup.class.loader", ClassLoader.getSystemClassLoader().getClass().getName());
 		prps.put("system.available.processors", "" + Runtime.getRuntime().availableProcessors());
+		prps.put("user.is.admin", ""+OSTool.isAdmin());
 
 		FileLogProcessor proc = (FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class);
 		if (proc != null) {
@@ -350,7 +349,7 @@ public class Utils implements ArecaFileConstants {
 		prps.putAll(LocalPreferences.instance().getPreferences());
 
 		// Plugins
-		Iterator iter = PluginRegistry.getInstance().getAll(Plugin.class).iterator();
+		Iterator iter = PluginRegistry.getInstance().getAll(Plugin.class, true).iterator();
 		String plugins = "";
 		while (iter.hasNext()) {
 			Plugin plugin = (Plugin)iter.next();

@@ -1,3 +1,10 @@
-To enable advanced encryption (such as AES 256), locate the "local_policy.jar" file in your {java_home}/lib/security directory, rename it and replace it by the "local_policy.jar" which is contained in the {areca_home}/lib directory.
+To enable advanced encryption (such as AES 256) :
+
+* If you are running Java version 6 or older : 
+Locate the "local_policy.jar" file in your {java_home}/lib/security directory, rename it and replace it by the "local_policy.jar" which is contained in the {areca_home}/lib directory.
+You can alternatively download the version provided by Sun : http://www.oracle.com/technetwork/java/javase/downloads/jce-6-download-429243.html
+
+* If you are running Java version 7 or later : 
+Use the local policy file that is located here : http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html
 
 For more informations, have a look at the "Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files" topic on Sun's website (java.sun.com)

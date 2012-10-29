@@ -64,6 +64,28 @@ public class VersionData {
         this.additionalNotes = additionalNotes;
     }
     
+    public boolean isAfterOrEquals(VersionData other) {
+    	return isAfterOrEquals(other.versionId);
+    }
+    
+    public boolean isAfterOrEquals(String otherId) {
+    	String[] tc = this.versionId.split(".");
+    	String[] oc = otherId.split(".");
+    	
+    	int nb = Math.min(tc.length, oc.length);
+    	for (int i=0; i<nb; i++) {
+    		int ti = Integer.parseInt(tc[i]);
+    		int oi = Integer.parseInt(oc[i]);
+    		if (ti < oi) {
+    			return false;
+    		} else if (ti > oi) {
+    			return true;
+    		}
+    	}
+    	
+    	return (tc.length >= oc.length);
+    }
+    
     public VersionData(String versionId, GregorianCalendar versionDate, String description, String additionalNotes, String implementationNotes) {
     	this(versionId, versionDate, description, additionalNotes);
         this.implementationNotes = implementationNotes;

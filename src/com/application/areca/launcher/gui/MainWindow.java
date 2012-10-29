@@ -32,6 +32,7 @@ import com.application.areca.launcher.gui.composites.ProgressComposite;
 import com.application.areca.launcher.gui.composites.PropertiesComposite;
 import com.application.areca.launcher.gui.composites.SearchComposite;
 import com.application.areca.launcher.gui.composites.TargetTreeComposite;
+import com.application.areca.launcher.gui.donation.DonationHelper;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.application.areca.launcher.gui.menus.MenuBuilder;
 import com.application.areca.launcher.gui.menus.ToolBarBuilder;
@@ -103,6 +104,7 @@ public class MainWindow extends AbstractWindow {
             public void handleEvent(Event event) {
                 application.checkSystem();
                 application.checkVersion(false);
+                DonationHelper.handleDonationMessage();
                 if (workspacePath != null) {
                 	application.openWorkspace(workspacePath);
                 }

@@ -1,6 +1,5 @@
 package com.application.areca.plugins;
 
-import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.object.ToStringHelper;
 
 /**
@@ -32,10 +31,10 @@ This file is part of Areca.
  */
 public abstract class AbstractPlugin
 implements Plugin {
-    protected static final ResourceManager RM = ResourceManager.instance();
     protected String id;
     protected ClassLoader classLoader;
     protected String path;
+    protected String description;
 
 	public String getId() {
         return id;
@@ -75,5 +74,14 @@ implements Plugin {
 
 	public void setPath(String path) {
 		this.path = path;
+	}
+
+	public int compareTo(Object o) {
+		Plugin other = (Plugin)o;
+		return getId().compareTo(other.getId());
+	}
+
+	public String getDescription() {
+		return description;
 	}
 }

@@ -51,6 +51,7 @@ public interface ActionConstants {
     public static final String CMD_DELETE_ARCHIVES = "delete archives";
     public static final String CMD_ABOUT = "about";
     public static final String CMD_SUPPORT = "support";
+    public static final String CMD_PLUGINS = "plugins";
     public static final String CMD_CHECK_VERSION = "check version";
     public static final String CMD_HELP = "help";    
     public static final String CMD_TUTORIAL = "tutorial";  

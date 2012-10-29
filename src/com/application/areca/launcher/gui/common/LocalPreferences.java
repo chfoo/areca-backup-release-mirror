@@ -75,6 +75,10 @@ public class LocalPreferences implements ArecaFileConstants {
     public void set(String key, String value) {
         preferences.setProperty(key, value);
     }
+    
+    public void remove(String key) {
+    	preferences.remove(key);
+    }
 
     public void set(String key, int value) {
         set(key, String.valueOf(value));

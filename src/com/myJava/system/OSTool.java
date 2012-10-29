@@ -15,7 +15,6 @@ import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.object.ToStringHelper;
 import com.myJava.util.log.Logger;
 
-
 /**
  * Utility class for all system calls
  * <BR>
@@ -45,7 +44,6 @@ This file is part of Areca.
 
  */
 public class OSTool {
-    
     private static final long MAX_MEMORY = Runtime.getRuntime().maxMemory();
     private static final long MAX_MEMORY_KB = MAX_MEMORY / 1024;
     private static final long MAX_MEMORY_MB = MAX_MEMORY / 1048576;
@@ -62,8 +60,7 @@ public class OSTool {
     private static String USER_NAME;
     private static String TMP_DIR;
     private static String LINE_SEPARATOR = System.getProperty("line.separator");
-    private static String ADMIN_GROUP_ID = "S-1-5-32-544";
-    
+
     private static Charset[] CHARSETS;
     
     static {
@@ -168,13 +165,42 @@ public class OSTool {
 		return execute(cmd, false);
 	}
 	
-	public static boolean checkAdmin() {
-	    String groups[] = (new com.sun.security.auth.module.NTSystem()).getGroupIDs();
-	    for (int i=0; i<groups.length; i++) {
-	        if (groups[i].equals(ADMIN_GROUP_ID))
+	public static boolean isAdmin() {
+		try {
+	        String command = "reg query \"HKU\\S-1-5-19\"";
+	        Process p = Runtime.getRuntime().exec(command);
+	        p.waitFor();
+	        int exitValue = p.exitValue(); 
+	
+	        if (0 == exitValue) {
 	            return true;
+	        } else {
+	            return false;
+	        }
+	    } catch (Exception e) {
+	    	Logger.defaultLogger().error(e);
+	        return false;
 	    }
-	    return false;
+	}
+	
+	public static boolean is64BitsJVM() {
+		String osArch = System.getProperty("os.arch");
+		String sunArchDataModel = System.getProperty("sun.arch.data.model");
+		if (osArch != null && osArch.trim().length() != 0) {
+			return osArch.indexOf("64") != -1;
+		} else if (sunArchDataModel != null && sunArchDataModel.trim().length() != 0) {
+			return sunArchDataModel.indexOf("64") != -1;
+		} else {
+			throw new UnsupportedOperationException("No property could be used to determine JVM architecture.");
+		}
+	}
+	
+	public static boolean is64BitsOS() {
+	    return (System.getenv("ProgramW6432") != null);
+	}
+	
+	public static void main(String[] args) {
+		isAdmin();
 	}
 
 	public static int execute(String[] cmd, boolean async) throws IOException {

@@ -38,11 +38,12 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.Vector;
 
+import org.apache.commons.codec.binary.Base64;
+
 import com.myJava.file.FileList.FileListIterator;
 import com.myJava.file.FileNameUtil;
 import com.myJava.file.FileSystemManager;
 import com.myJava.util.log.Logger;
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
 public abstract class Util {
     
@@ -140,13 +141,13 @@ public abstract class Util {
     }
     
 	public static void main(String[] args) {
-		String tt = "12345678901234567890123456789012345678901234567890";
-		String[] data = split(tt, 5);
-		System.out.println(tt);
-		System.out.println("-------------");
+		byte[] data = new byte[128];
 		for (int i=0; i<data.length; i++) {
-			System.out.println(data[i]);
+			data[i] = (byte)(Math.random()*128.);
 		}
+		String enc = base64Encode(data);
+		System.out.println(enc);
+		System.out.println(base64Encode(base64Decode(enc)));
 	}
     
     public static void logThreadInformations(String header) {
@@ -210,7 +211,7 @@ public abstract class Util {
     	if (data == null) {
     		return "<null>";
     	} else {
-    		return Base64.encode(data).trim();
+    		return Base64.encodeBase64String(data).trim().replace("\r", "").replace("\n", "");
     	}
     }
     
@@ -221,7 +222,7 @@ public abstract class Util {
     	if (data == null || data.trim().equals("<null>")) {
     		return null;
     	} else {
-    		return Base64.decode(data);    		
+    		return Base64.decodeBase64(data);		
     	}
     }
     

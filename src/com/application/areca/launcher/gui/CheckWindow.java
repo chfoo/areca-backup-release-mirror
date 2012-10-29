@@ -170,10 +170,11 @@ extends AbstractWindow {
         
         // INIT DATA
         txtLocation.setText(ApplicationPreferences.getCheckSpecificLocation(application.getCurrentWorkspaceItem().getUid()));
-        if (ApplicationPreferences.getCheckUseSpecificLocation(application.getCurrentWorkspaceItem().getUid())) {
-            radUseSpecificLocation.setSelection(true);
-        } else {
+        
+        if (ApplicationPreferences.isCheckForceDefaultLocation(application.getCurrentWorkspaceItem().getUid())) {
             radUseDefaultLocation.setSelection(true);
+        } else {
+            radUseSpecificLocation.setSelection(true);
         }
 
         switchLocation();
@@ -262,7 +263,7 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() { 
-		ApplicationPreferences.setCheckUseSpecificLocation(radUseSpecificLocation.getSelection(), application.getCurrentWorkspaceItem().getUid());
+		ApplicationPreferences.setCheckForceDefaultLocation(radUseDefaultLocation.getSelection(), application.getCurrentWorkspaceItem().getUid());
 		ApplicationPreferences.setCheckSpecificLocation(txtLocation.getText(), application.getCurrentWorkspaceItem().getUid());
 		
     	this.viewer.setItemCount(0);

@@ -29,7 +29,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public interface Plugin {
+public interface Plugin extends Comparable {
     public String getFullName();
     public String getToolTip();
     public String getDisplayName();
@@ -40,4 +40,5 @@ public interface Plugin {
     public ClassLoader getClassLoader();
     public void setPath(String path);
     public String getPath();
+    public String getDescription();
 }

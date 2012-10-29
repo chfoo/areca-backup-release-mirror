@@ -51,10 +51,7 @@ This file is part of Areca.
  */
 public class BackupWindow 
 extends AbstractWindow {
-
 	protected Manifest manifest;
-
-	// MarieB was here !!
 
 	protected Text txtTitle;
 	protected Text txtDescription;
@@ -220,10 +217,10 @@ extends AbstractWindow {
 		// Default parameters
 		chkCheckArchive.setSelection(true);
         txtLocation.setText(ApplicationPreferences.getCheckSpecificLocation(scope.getUid()));
-        if (ApplicationPreferences.getCheckUseSpecificLocation(scope.getUid())) {
-            radUseSpecificLocation.setSelection(true);
-        } else {
+        if (ApplicationPreferences.isCheckForceDefaultLocation(scope.getUid())) {
             radUseDefaultLocation.setSelection(true);
+        } else {
+            radUseSpecificLocation.setSelection(true);
         }
 
         switchLocation();
@@ -265,7 +262,7 @@ extends AbstractWindow {
 	}
 
 	protected void saveChanges() {
-		ApplicationPreferences.setCheckUseSpecificLocation(radUseSpecificLocation.getSelection(), scope.getUid());
+		ApplicationPreferences.setCheckForceDefaultLocation(radUseDefaultLocation.getSelection(), scope.getUid());
 		ApplicationPreferences.setCheckSpecificLocation(txtLocation.getText(), scope.getUid());
 		
 		if (chkManifest != null && chkManifest.getSelection()) {

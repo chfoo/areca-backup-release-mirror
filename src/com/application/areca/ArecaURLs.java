@@ -36,4 +36,5 @@ public interface ArecaURLs {
 	public String REGEX_URL = "http://www.areca-backup.org/regex.php";
     public String VERSION_URL = "http://www.areca-backup.org/version_xml.php";
     public String BACKUP_COPY_URL = "http://www.areca-backup.org/config_backup.php";
+    public String PLUGINS_URL = "http://www.areca-backup.org/plugin_list.php";
 }

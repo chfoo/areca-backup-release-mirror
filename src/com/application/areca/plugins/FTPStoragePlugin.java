@@ -3,6 +3,7 @@ package com.application.areca.plugins;
 
 import com.application.areca.adapters.FTPFileSystemPolicyXMLHandler;
 import com.application.areca.launcher.gui.FTPStorageSelectionHelper;
+import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.application.areca.version.VersionInfos;
 import com.myJava.util.version.VersionData;
 
@@ -36,14 +37,13 @@ This file is part of Areca.
 public class FTPStoragePlugin
 extends AbstractStoragePlugin 
 implements StoragePlugin {
-    public static final String PLG_DISPLAY = RM.getLabel("targetedition.storage.ftp");
     public static final String PLG_NAME = "FTP server";
     public static final String PLG_ID = "ftp";
-    public static final String PLG_TT = RM.getLabel("targetedition.storage.ftp.tt");
 
     public FTPStoragePlugin() {
         super();
         this.setId(PLG_ID);
+        this.description = "Enables access to FTP or FTPs servers.";
     }
 
     public String getFullName() {
@@ -51,11 +51,11 @@ implements StoragePlugin {
     }
 
     public String getToolTip() {
-        return PLG_TT;
+        return ResourceManager.instance().getLabel("targetedition.storage.ftp.tt");
     }
 
     public String getDisplayName() {
-        return PLG_DISPLAY;
+        return ResourceManager.instance().getLabel("targetedition.storage.ftp");
     }
     
     public boolean storageSelectionHelperProvided() {

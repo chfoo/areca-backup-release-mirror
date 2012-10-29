@@ -55,7 +55,6 @@ This file is part of Areca.
 public class PreferencesWindow 
 extends AbstractWindow {
     private static final ResourceManager RM = ResourceManager.instance();
-    private static final boolean SHOW_VERSION_CHECK = true;//ArecaConfiguration.get().isNewVersionCheckDisplayed();
     
     private Combo langCombo;
     private Button openLastWorkspace;
@@ -194,15 +193,13 @@ extends AbstractWindow {
         showLogical.setSelection(ApplicationPreferences.isDisplayLogicalViewOnStartup());
         showLogical.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
         monitorControl(showLogical);  
-        
-        if (SHOW_VERSION_CHECK) {
-	        checkNewVersions = new Button(parent, SWT.CHECK);
-	        checkNewVersions.setText(RM.getLabel("preferences.checkversions.label"));
-	        checkNewVersions.setToolTipText(RM.getLabel("preferences.checkversions.tt"));    
-	        checkNewVersions.setSelection(ApplicationPreferences.isCheckNewVersions());
-	        checkNewVersions.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
-	        monitorControl(checkNewVersions);  
-        }
+
+        checkNewVersions = new Button(parent, SWT.CHECK);
+        checkNewVersions.setText(RM.getLabel("preferences.checkversions.label"));
+        checkNewVersions.setToolTipText(RM.getLabel("preferences.checkversions.tt"));    
+        checkNewVersions.setSelection(ApplicationPreferences.isCheckNewVersions());
+        checkNewVersions.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
+        monitorControl(checkNewVersions);  
     }
     
     private void buildArchivesComposite(Composite parent) {
@@ -289,11 +286,7 @@ extends AbstractWindow {
         ApplicationPreferences.setInformationSynthetic(informationSynthetic.getSelection());
         ApplicationPreferences.setDisplayLogicalViewOnStartup(showLogical.getSelection());
         ApplicationPreferences.setDateFormat(dateFormat.getText());
-        if (SHOW_VERSION_CHECK) {
-        	ApplicationPreferences.setCheckNewVersion(checkNewVersions.getSelection());
-        } else {
-        	ApplicationPreferences.setCheckNewVersion(false);
-        }
+        ApplicationPreferences.setCheckNewVersion(checkNewVersions.getSelection());
         ApplicationPreferences.setDisplayToolBar(showToolBar.getSelection());
         ApplicationPreferences.setDisplayWSAddress(showWSPath.getSelection());
         

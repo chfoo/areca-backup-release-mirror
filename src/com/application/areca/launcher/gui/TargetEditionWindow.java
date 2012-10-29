@@ -59,7 +59,6 @@ import com.application.areca.Utils;
 import com.application.areca.filter.ArchiveFilter;
 import com.application.areca.filter.FileExtensionArchiveFilter;
 import com.application.areca.filter.FilterGroup;
-import com.application.areca.filter.LockedFileFilter;
 import com.application.areca.impl.AbstractFileSystemMedium;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.impl.EncryptionConfiguration;
@@ -252,7 +251,7 @@ extends AbstractWindow {
 			initCompressionTab(initTab(tabs, RM.getLabel("targetedition.compression.label")));
 			initAdvancedTab(initTab(tabs, RM.getLabel("targetedition.advancedgroup.title")));
 
-			Iterator iter = PluginRegistry.getInstance().getAll(ConfigurationPlugin.class).iterator();
+			Iterator iter = PluginRegistry.getInstance().getAll(ConfigurationPlugin.class, true).iterator();
 			while (iter.hasNext()) {
 				ConfigurationPlugin plugin = (ConfigurationPlugin)iter.next();
 				addPlugin(plugin, initTab(tabs, plugin.getDisplayName()));
@@ -383,7 +382,7 @@ extends AbstractWindow {
 		this.strRadio.put(PLUGIN_HD, rdFile);
 
 		// Plugins
-		Iterator iter = PluginRegistry.getInstance().getAll(StoragePlugin.class).iterator();
+		Iterator iter = PluginRegistry.getInstance().getAll(StoragePlugin.class, false).iterator();
 		while (iter.hasNext()) {
 			final StoragePlugin plugin = (StoragePlugin)iter.next();
 

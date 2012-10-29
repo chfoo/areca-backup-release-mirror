@@ -37,7 +37,6 @@ This file is part of Areca.
  */
 public class MenuBuilder 
 extends AppActionReferenceHolder {
-    private static final boolean SHOW_VERSION_CHECK = ArecaConfiguration.get().isNewVersionCheckDisplayed();
     private static final ResourceManager RM = ResourceManager.instance();
     
     public static Menu buildMainMenu(Shell parent) {
@@ -89,9 +88,8 @@ extends AppActionReferenceHolder {
         add(AC_HELP, mnHelp);
         add(AC_TUTORIAL, mnHelp);
         addSeparator(mnHelp);
-        if (SHOW_VERSION_CHECK) {
-        	add(AC_CHECK_VERSION, mnHelp);
-        }
+        add(AC_CHECK_VERSION, mnHelp);
+        add(AC_PLUGINS, mnHelp); 
         add(AC_SUPPORT, mnHelp);  
         addSeparator(mnHelp);
         add(AC_ABOUT, mnHelp);    

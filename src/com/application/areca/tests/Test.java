@@ -76,11 +76,11 @@ public class Test {
 	public static final String SOURCES_S = ".source_files";
 	public static final String RECOVERY_DIR_S = ".recovery_dir";
 	
-	public static TargetGroup load(String path, String source) throws Exception {
+	public static WorkspaceItem load(String path, String source) throws Exception {
 		log("Loading targets ...");
 		WorkspaceItem item = ConfigurationHandler.getInstance().readObject(new File(path), new MissingDataListener(), null, true, true);
 		overrideSource(item, source);
-		return (TargetGroup)item;
+		return item;
 	}
 	
 	private static void overrideSource(WorkspaceItem item, final String src) throws Exception {
@@ -291,12 +291,12 @@ public class Test {
 	public static void main(String[] args) {
 		String ws = args[0].replace('\\', '/');
 		test(ws, true);
-		test(ws, false);
+		//test(ws, false);
 	}
 	
 	public static void test(String ws, boolean enableVSS) {
-		String sources = ws + "/" + SOURCES_S;
-		String recoveryDir = ws + "/" + RECOVERY_DIR_S;
+		String sources = ws + SOURCES_S;
+		String recoveryDir = ws + RECOVERY_DIR_S;
 		
 		log("Using " + ws + " as workspace.");
 		
@@ -305,7 +305,7 @@ public class Test {
 	    	Logger.defaultLogger().setTlLogProcessor(new ThreadLocalLogProcessor());
 	    	
 			switchTo("Load Target");
-			TargetGroup workspace = load(ws, sources);
+			WorkspaceItem workspace = load(ws, sources);
 			adjustWorkspace(workspace, sources, enableVSS);
 			showData(workspace);
 			
