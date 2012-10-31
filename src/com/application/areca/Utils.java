@@ -80,14 +80,24 @@ public class Utils implements ArecaFileConstants {
 	}
 
 	public static File getApplicationRoot() {
-		String dir = System.getProperty("user.dir");
+		String dir = System.getProperty("areca.root.dir");
 		if (dir != null && dir.trim().length() != 0) {
 			return new File(dir);
 		} else {
-			Logger.defaultLogger().warn("Unable to load the 'user.dir' java property. Using classpath to detect application root.");
-			URL url = ClassLoader.getSystemClassLoader().getResource(ResourceManager.RESOURCE_NAME + "_en.properties");
-			File file = new File(URLDecoder.decode(url.getFile()));
-			return FileSystemManager.getParentFile(FileSystemManager.getParentFile(file));
+			URL url = ClassLoader.getSystemClassLoader().getResource(getGuiExecutableName());
+			File refFile = null;
+			if (url == null) {
+				url = ClassLoader.getSystemClassLoader().getResource("COPYING");
+				if (url == null) {
+					url = ClassLoader.getSystemClassLoader().getResource(ResourceManager.RESOURCE_NAME + "_en.properties");
+					refFile = FileSystemManager.getParentFile(new File(URLDecoder.decode(url.getFile())));
+				} else {
+					refFile = new File(URLDecoder.decode(url.getFile()));
+				}
+			} else {
+				refFile = new File(URLDecoder.decode(url.getFile()));
+			}
+			return FileSystemManager.getParentFile(refFile);
 		}
 	}
 
@@ -135,17 +145,28 @@ public class Utils implements ArecaFileConstants {
 			return languages;
 		}
 	}
+	
+	public static String getTuiExecutableName() {
+		if (OSTool.isSystemWindows()) {
+			return "areca_cl.exe";
+		} else {
+			return "areca_cl.sh";
+		}
+	}
+	
+	public static String getGuiExecutableName() {
+		if (OSTool.isSystemWindows()) {
+			return "areca.exe";
+		} else {
+			return "areca.sh";
+		}
+	}
 
 	/**
 	 * Build the "areca_cl" file name according to the user's system and technical configuration
 	 */
 	public static File buildExecutableFile() {
-		String executableName;
-		if (OSTool.isSystemWindows()) {
-			executableName = "areca_cl.exe";
-		} else {
-			executableName = "areca_cl.sh";
-		}
+		String executableName = getTuiExecutableName();
 
 		File executableDirectory;
 		if (EXEC_DIRECTORY == null) {

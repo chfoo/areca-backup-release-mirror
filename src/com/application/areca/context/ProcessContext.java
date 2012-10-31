@@ -315,10 +315,6 @@ public class ProcessContext implements Externalizable {
 		this.fileSystemIteratorBuilder = fileSystemIteratorBuilder;
 	}
 
-	public ProcessContext() {
-		this(null, null);
-	}
-
     public ProcessContext(AbstractTarget target, UserInformationChannel channel) {
         this(target, channel, null);
     }

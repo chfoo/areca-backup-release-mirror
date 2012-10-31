@@ -35,6 +35,7 @@ CLASSPATH="${CLASSPATH}:/usr/lib/java/swt.jar"
 CLASSPATH="${CLASSPATH}:/usr/lib64/java/swt.jar"
 CLASSPATH="${CLASSPATH}:/usr/share/java/swt.jar"
 CLASSPATH="${CLASSPATH}:${LIB_PATH}swt.jar"
+CLASSPATH="${CLASSPATH}:${LIB_PATH}commons-codec-1.4.jar"
 
 LIBRARY_PATH="${LIB_PATH}:/lib64:/lib:/usr/lib64:/usr/lib:/usr/lib64/java:/usr/lib/java:/usr/lib64/jni:/usr/lib/jni:/usr/share/java"
 
