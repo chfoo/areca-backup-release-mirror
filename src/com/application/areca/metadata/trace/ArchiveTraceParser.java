@@ -16,10 +16,10 @@ import com.myJava.util.log.Logger;
 
 /**
  * FORMAT :
- * <BR>File : 		f[NAME];[SIZE];[DATE];[PERMS]			-> Hash = "[SIZE];[DATE]"
- * <BR>Directory : 	d[NAME];[DATE];[PERMS]					-> Hash = ""
- * <BR>SymLink : 	s[NAME];[d/f][PATH];[DATE];[PERMS]		-> Hash = "[d/f][PATH]"
- * <BR>Pipe : 		p[NAME];[DATE];[PERMS]					-> Hash = ""
+ * <BR>File : 		f[NAME];[SIZE];[DATE];[HASH];[PERMS] or f[NAME];[SIZE];[DATE];;[PERMS]	-> Hash = "[SIZE];[DATE]" or "[HASH]" if present
+ * <BR>Directory : 	d[NAME];[DATE];[PERMS]													-> Hash = ""
+ * <BR>SymLink : 	s[NAME];[d/f][PATH];[DATE];[PERMS]										-> Hash = "[d/f][PATH]"
+ * <BR>Pipe : 		p[NAME];[DATE];[PERMS]													-> Hash = ""
  * <BR>'@' are reencoded as '@@'
  * <BR>';' are reencoded as '@P'
  * <BR>
@@ -67,15 +67,38 @@ public class ArchiveTraceParser {
 		Logger.defaultLogger().error("Error processing trace : [" + trace + "]", e);
 	}
 	
-	// size;date[;attributes]
+	// size;date[;hash;attributes]
 	public static String extractHashFromTrace(String trace) {
-		int idx1 = trace.indexOf(MetadataConstants.SEPARATOR);				// size
+		int idx1 = trace.indexOf(MetadataConstants.SEPARATOR);					// size
 		int idx2 = trace.indexOf(MetadataConstants.SEPARATOR, idx1 + 1);		// date
 
 		if (idx2 < 0) {
 			return trace;
 		} else {
 			return trace.substring(0, idx2);
+		}
+	}
+	
+	/**
+	 * Return the SHA Hash code that is contained in the trace as a base64-encoded string
+	 * <BR>The method assumes that the SHA hash is actually present
+	 * @param trace
+	 * @return
+	 */
+	// size;date[;hash;attributes]
+	public static String extractShaFromTrace(String trace) throws FileMetaDataSerializationException {
+		int idx1 = trace.indexOf(MetadataConstants.SEPARATOR);					// size
+		int idx2 = trace.indexOf(MetadataConstants.SEPARATOR, idx1 + 1);		// date
+
+		if (idx2 < 0) {
+			return null;
+		} else {
+			int idx3 = trace.indexOf(MetadataConstants.SEPARATOR, idx2 + 1);		// attributes
+			
+			if (idx3 == -1) {
+				throw new FileMetaDataSerializationException("Invalid trace string : [" + trace + "]; failed attempting to find hash data.");
+			}
+			return trace.substring(idx2 + 1, idx3);
 		}
 	}
 	
@@ -100,18 +123,26 @@ public class ArchiveTraceParser {
 		return atts;
 	}
 
-	// size;date[;attributes]
+	// size;date[;hash;attributes] (version >=7) or size;date[;attributes] (version <7)
 	public static FileMetaData extractFileAttributesFromTrace(String trace, long version) throws FileMetaDataSerializationException {
 		try {
 			FileMetaData data = null;
 			int idx1 = trace.indexOf(MetadataConstants.SEPARATOR);				// size
-			int idx2 = trace.indexOf(MetadataConstants.SEPARATOR, idx1 + 1);		// date
+			int idx2 = trace.indexOf(MetadataConstants.SEPARATOR, idx1 + 1);	// date
 
 			if (idx2 < 0) {
 				data = FileMetaDataAccessorHelper.getFileSystemAccessor().buildEmptyMetaData();
 				data.setLastmodified(Long.parseLong(trace.substring(idx1 + 1)));
 			} else {
-				data = FileMetaDataAccessorHelper.getFileSystemAccessor().getMetaDataSerializer().deserialize(trace.substring(idx2 + 1), version);
+				String strPerms;
+				
+				if (version < 7) {
+					strPerms = trace.substring(idx2 + 1);
+				} else {
+					int idx3 = trace.indexOf(MetadataConstants.SEPARATOR, idx2 + 1);	// hash
+					strPerms = trace.substring(idx3 + 1);
+				}
+				data = FileMetaDataAccessorHelper.getFileSystemAccessor().getMetaDataSerializer().deserialize(strPerms, version);
 				if (data != null) {
 					data.setLastmodified(Long.parseLong(trace.substring(idx1 + 1, idx2)));
 				}
@@ -228,15 +259,12 @@ public class ArchiveTraceParser {
 	/**
 	 * Builds the key + hash
 	 */
-	protected static String serialize(
-			FileSystemRecoveryEntry entry, 
-			boolean trackMetaData, 
-			boolean trackSymlinks
-	) throws IOException, FileMetaDataSerializationException {
+	protected static String serialize(FileSystemRecoveryEntry entry, boolean trackSymlinks, String shaBase64) throws IOException, FileMetaDataSerializationException {
 		if (entry == null) {
 			return null;
 		}
 		
+		// Serialize
 		StringBuffer sb = new StringBuffer();
 		short type = FileSystemManager.getType(entry.getFile());
 		if (trackSymlinks && FileMetaDataAccessor.TYPE_LINK == type) {      
@@ -246,7 +274,7 @@ public class ArchiveTraceParser {
 			.append(MetadataConstants.SEPARATOR)
 			.append(hash(entry, true))
 			.append(MetadataConstants.SEPARATOR)
-			.append(FileSystemManager.lastModified(entry.getFile())); 
+			.append(FileSystemManager.lastModified(entry.getFile()));
 		} else if (trackSymlinks && FileMetaDataAccessor.TYPE_PIPE == type) {      
 			sb
 			.append(MetadataConstants.T_PIPE)                
@@ -258,23 +286,27 @@ public class ArchiveTraceParser {
 			.append(MetadataConstants.T_FILE)
 			.append(MetadataEncoder.getInstance().encode(entry.getKey()))
 			.append(MetadataConstants.SEPARATOR)
-			.append(hash(entry, false));
+			.append(hash(entry, false)) 
+			.append(MetadataConstants.SEPARATOR);
+			
+			if (shaBase64 != null) {
+				sb.append(shaBase64);
+			}
 		} else {
 			sb
 			.append(MetadataConstants.T_DIR)
 			.append(MetadataEncoder.getInstance().encode(entry.getKey()))
 			.append(MetadataConstants.SEPARATOR)
-			.append(FileSystemManager.lastModified(entry.getFile()));
+			.append(FileSystemManager.lastModified(entry.getFile())); 
 		}
 		
-		// Serialize Meta Data
-		if (trackMetaData) {
-			FileMetaDataSerializer serializer = FileMetaDataAccessorHelper.getFileSystemAccessor().getMetaDataSerializer();
-			
-			sb.append(MetadataConstants.SEPARATOR);
-			File target = trackSymlinks ? entry.getFile() : FileSystemManager.getCanonicalFile(entry.getFile());
-			serializer.serialize(FileSystemManager.getMetaData(target, false), sb);
-		}
+		// Get metadata
+		FileMetaDataSerializer serializer = FileMetaDataAccessorHelper.getFileSystemAccessor().getMetaDataSerializer();
+		File target = trackSymlinks ? entry.getFile() : FileSystemManager.getCanonicalFile(entry.getFile());
+		sb.append(MetadataConstants.SEPARATOR);
+		serializer.serialize(FileSystemManager.getMetaData(target, false), sb);
+
+		// Return the result
 		return sb.toString();
 	}  
 

@@ -448,11 +448,16 @@ implements TargetActions, IndicatorTypes {
 
 	public void destroyRepository() throws ApplicationException {
 		File storage = fileSystemPolicy.getArchiveDirectory();
-		Logger.defaultLogger().info("Deleting repository : " + FileSystemManager.getDisplayPath(storage) + " ...");
 		try {
-			FileTool tool = FileTool.getInstance();
-			tool.delete(storage);
+			// Delete repository
+			Logger.defaultLogger().info("Deleting repository : " + FileSystemManager.getDisplayPath(storage) + " ...");
+			FileTool.getInstance().delete(storage);
 			Logger.defaultLogger().info(FileSystemManager.getDisplayPath(storage) + " deleted.");
+			
+			// Delete configuration backup
+			File configBackup = computeConfigurationBackupFile();
+			Logger.defaultLogger().info("Deleting configuration backup file : " + FileSystemManager.getDisplayPath(configBackup) + " ...");
+			FileTool.getInstance().delete(configBackup);
 		} catch (Exception e) {
 			throw new ApplicationException("Error trying to delete directory : " + FileSystemManager.getDisplayPath(storage), e);
 		}
@@ -832,42 +837,33 @@ implements TargetActions, IndicatorTypes {
 	/**
 	 * Store the file in the archive referenced by the context
 	 */
-	protected abstract void storeFileInArchive(FileSystemRecoveryEntry entry,
-			InputStream in, ProcessContext context) throws IOException,
-			ApplicationException, TaskCancelledException;
+	protected abstract void storeFileInArchive(FileSystemRecoveryEntry entry, InputStream in, ProcessContext context) throws IOException, ApplicationException, TaskCancelledException;
+
+	private File computeConfigurationBackupDirectory() {
+		File storageDir = this.fileSystemPolicy.getArchiveDirectory();
+		File rootDir = FileSystemManager.getParentFile(storageDir);
+		return new File(rootDir,TARGET_BACKUP_FILE_PREFIX);
+	}
+	
+	private File computeConfigurationBackupFile() {
+		return target.computeConfigurationFile(computeConfigurationBackupDirectory(), false);
+	}
 
 	/**
 	 * Create a copy of the target's XML configuration and stores it in the main
 	 * backup directory. <BR>
 	 * This copy can be used later - in case of computer crash.
 	 */
-	protected void storeTargetConfigBackup(ProcessContext context)
-			throws ApplicationException {
+	protected void storeTargetConfigBackup(ProcessContext context) throws ApplicationException {
 		if (this.target.isCreateSecurityCopyOnBackup()) {
-			File storageDir = FileSystemManager.getParentFile(context.getCurrentArchiveFile());
-			boolean ok = false;
-
-			if (storageDir != null && FileSystemManager.exists(storageDir)) {
-				File rootDir = FileSystemManager.getParentFile(storageDir);
-				if (rootDir != null && FileSystemManager.exists(rootDir)) {
-					File targetFile = new File(rootDir,TARGET_BACKUP_FILE_PREFIX);
-					Logger.defaultLogger().info("Creating a XML backup copy of target \""+ this.target.getName() + "\" on : " + FileSystemManager.getDisplayPath(targetFile));
-
-					// process.setComments("This group contains a backup copy of your target : \""
-					// + this.target.getName() +
-					// "\". It can be used if your configuration has been lost (for instance in case of computer crash).\nDo not modify it since it will be automatically updated during backups.");
-					ok = ConfigurationHandler.getInstance().serialize(this.target, targetFile, true, true);
-				}
-			}
-
-			if (!ok) {
-				Logger.defaultLogger().warn("Could not create XML configuration backup for "
-								+ FileSystemManager.getDisplayPath(context.getCurrentArchiveFile())
-								+ ". It is HIGHLY advisable to create a backup copy of your configuration !");
+			File dir = computeConfigurationBackupDirectory();
+			Logger.defaultLogger().info("Creating a XML backup copy of target \""+ this.target.getName() + "\" on : " + FileSystemManager.getDisplayPath(dir));
+					
+			if (! ConfigurationHandler.getInstance().serialize(this.target, dir, true, true)) {
+				Logger.defaultLogger().warn("Could not create XML configuration backup for " + FileSystemManager.getDisplayPath(context.getCurrentArchiveFile()) + ". It is HIGHLY advisable to create a backup copy of your configuration !");
 			}
 		} else {
-			Logger.defaultLogger()
-					.warn("Configuration security copy has been disabled for this target. No XML configuration copy will be created. It is HIGHLY advisable to create a backup copy of your configuration !");
+			Logger.defaultLogger().warn("Configuration security copy has been disabled for this target. No XML configuration copy will be created. It is HIGHLY advisable to create a backup copy of your configuration !");
 		}
 	}
 }

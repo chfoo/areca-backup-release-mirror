@@ -63,6 +63,7 @@ public class SendMailProcessorComposite extends AbstractProcessorComposite {
 	private Text txtFrom;
 	private Button btnTest;
 	private Button btnSMTPS;
+	private Button btnDisableStartTLS;
 	private Button chkAppendStatistics;
 	private Button chkListStoredFiles;
 	private Text txtMaxListedFiles;
@@ -162,6 +163,13 @@ public class SendMailProcessorComposite extends AbstractProcessorComposite {
 		btnSMTPS.setText(RM.getLabel("procedition.smtps.label"));
 		btnSMTPS.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
 
+		// Disable StartTLS
+		new Label(this, SWT.NONE);
+		btnDisableStartTLS = new Button(this, SWT.CHECK);
+		btnDisableStartTLS.setText(RM.getLabel("procedition.disable.start.tls.label"));
+		btnDisableStartTLS.setToolTipText(RM.getLabel("procedition.disable.start.tls.tt"));
+		btnDisableStartTLS.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
+		
 		// User
 		Label lblUser = new Label(this, SWT.NONE);
 		lblUser.setText(RM.getLabel("procedition.user.label"));
@@ -225,6 +233,7 @@ public class SendMailProcessorComposite extends AbstractProcessorComposite {
 			txtPassword.setText(mProc.getPassword());
 			txtTitle.setText(mProc.getTitle());
 			btnSMTPS.setSelection(mProc.isSmtps());
+			btnDisableStartTLS.setSelection(mProc.isDisableSTARTTLS());
 			if (mProc.getMessage() != null) {
 				txtMessage.setText(mProc.getMessage());
 			}
@@ -245,6 +254,7 @@ public class SendMailProcessorComposite extends AbstractProcessorComposite {
 		window.monitorControl(txtPassword);
 		window.monitorControl(txtUser);
 		window.monitorControl(btnSMTPS);
+		window.monitorControl(btnDisableStartTLS);
 		window.monitorControl(txtPort);
 		window.monitorControl(txtSmtp);
 		window.monitorControl(txtFrom);
@@ -271,6 +281,7 @@ public class SendMailProcessorComposite extends AbstractProcessorComposite {
 		mProc.setPassword(txtPassword.getText());
 		mProc.setTitle(txtTitle.getText());
 		mProc.setSmtps(btnSMTPS.getSelection());
+		mProc.setDisableSTARTTLS(btnDisableStartTLS.getSelection());
 		mProc.setMessage(txtMessage.getText());
 		mProc.setFrom(txtFrom.getText());
 

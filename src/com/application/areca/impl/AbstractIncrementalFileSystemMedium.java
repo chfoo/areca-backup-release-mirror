@@ -3,7 +3,7 @@ package com.application.areca.impl;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.FilePermission;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
@@ -84,7 +84,6 @@ import com.myJava.file.metadata.FileMetaDataAccessor;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.system.OSTool;
 import com.myJava.util.CalendarUtils;
-import com.myJava.util.Chronometer;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
@@ -145,14 +144,14 @@ implements TargetActions {
 	};
 
 	/**
-	 * Tells whether file permissions shall be tracked or not
-	 */
-	protected boolean trackPermissions = false;
-
-	/**
 	 * Handler for archive processing
 	 */
 	protected ArchiveHandler handler;
+	
+	/**
+	 * Tells whether the content of the file must be checked to decide whether it will be stored or not
+	 */
+	protected boolean inspectFileContent = false;
 
 	public void setHandler(ArchiveHandler handler) {
 		this.handler = handler;
@@ -163,8 +162,12 @@ implements TargetActions {
 		return handler;
 	}
 
-	public boolean isTrackPermissions() {
-		return trackPermissions;
+	public boolean isInspectFileContent() {
+		return inspectFileContent;
+	}
+
+	public void setInspectFileContent(boolean inspectFileContent) {
+		this.inspectFileContent = inspectFileContent;
 	}
 
 	public Manifest buildDefaultBackupManifest() throws ApplicationException {
@@ -1122,7 +1125,6 @@ implements TargetActions {
 			// Create trace, content, hash, ...
 			File traceFile = new File(getDataDirectory(context.getCurrentArchiveFile()), getTraceFileName());
 			context.setTraceAdapter(new ArchiveTraceAdapter(traceFile, target.getSourceDirectory(), target.isTrackSymlinks()));
-			context.getTraceAdapter().setTrackPermissions(this.trackPermissions);
 
 			File contentFile = new File(getDataDirectory(context.getCurrentArchiveFile()), getContentFileName());
 			context.setContentAdapter(new ArchiveContentAdapter(contentFile, target.getSourceDirectory()));      
@@ -1355,11 +1357,8 @@ implements TargetActions {
 		return result;
 	}
 
-	public void setTrackPermissions(boolean trackPermissions) {
-		this.trackPermissions = trackPermissions;
-	}
-
-	public void simulateEntryProcessing(RecoveryEntry entry, boolean haltOnFirstDifference, ProcessContext context) throws ApplicationException {
+	public void simulateEntryProcessing(RecoveryEntry entry, boolean haltOnFirstDifference, ProcessContext context)
+	throws ApplicationException, TaskCancelledException {
 		try {
 			FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;
 
@@ -1400,15 +1399,7 @@ implements TargetActions {
 								link = true;
 								fEntry.setSize(0);
 							}
-							String newHash = ArchiveTraceParser.hash(fEntry, link);
-							String oldHash = iter.current() == null ? null : ArchiveTraceParser.extractHashFromTrace(iter.current().getData());
-
-							// return result
-							if (newHash.equals(oldHash)) {
-								fEntry.setStatus(EntryStatus.STATUS_NOT_STORED);
-							} else {
-								fEntry.setStatus(EntryStatus.STATUS_MODIFIED);
-							}
+							compareEntries(iter.current(), fEntry, link, context);
 						}
 					}
 
@@ -1437,8 +1428,42 @@ implements TargetActions {
 		} catch (IOException e) {
 			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
+		} catch (FileMetaDataSerializationException e) {
+			Logger.defaultLogger().error(e);
+			throw new ApplicationException(e);
+		} catch (NoSuchAlgorithmException e) {
+			Logger.defaultLogger().error(e);
+			throw new ApplicationException(e);
 		}
 	} 
+	
+	private boolean compareEntries(TraceEntry traceEntry, FileSystemRecoveryEntry entry, boolean asLink, ProcessContext context) 
+	throws IOException, TaskCancelledException, NoSuchAlgorithmException, FileMetaDataSerializationException {
+		String oldHash = traceEntry == null ? null : ArchiveTraceParser.extractHashFromTrace(traceEntry.getData());
+		String newHash = ArchiveTraceParser.hash(entry, asLink);
+		
+		if (newHash.equals(oldHash)) {
+			
+			if (inspectFileContent && ! asLink) {
+				String newSha = Util.base64Encode(FileTool.getInstance().hashFileContent(entry.getFile(), context.getTaskMonitor()));
+				String oldSha = ArchiveTraceParser.extractShaFromTrace(traceEntry.getData());
+				
+				if (newSha.equals(oldSha)) {
+					entry.setStatus(EntryStatus.STATUS_NOT_STORED);
+					return false;
+				} else {
+					entry.setStatus(EntryStatus.STATUS_MODIFIED);
+					return true;
+				}
+			} else {
+				entry.setStatus(EntryStatus.STATUS_NOT_STORED);
+				return false;
+			}
+		} else {
+			entry.setStatus(EntryStatus.STATUS_MODIFIED);
+			return true;
+		}
+	}
 
 	/**
 	 * Stores an entry
@@ -1453,6 +1478,7 @@ implements TargetActions {
 
 		if (entry != null) {
 			final FileSystemRecoveryEntry fEntry = (FileSystemRecoveryEntry)entry;
+			String shaBase64 = null;
 			try {
 				short type = FileSystemManager.getType(fEntry.getFile());
 				if (
@@ -1461,7 +1487,7 @@ implements TargetActions {
 								|| (! ((FileSystemTarget)this.target).isTrackSymlinks())
 						) && (FileMetaDataAccessor.TYPE_PIPE != type)
 				) {
-					// The entry is stored if it has been modified
+					// The entry is stored if it has been modified	
 					if (this.checkModified(fEntry, context)) {
 						if (DEBUG_MODE) {
 							Logger.defaultLogger().fine("[" + FileSystemManager.getDisplayPath(fEntry.getFile()) + "] : Backup in progress ...");
@@ -1487,8 +1513,10 @@ implements TargetActions {
 
 						context.addInputBytes(FileSystemManager.length(fEntry.getFile()));
 						context.getContentAdapter().writeContentEntry(fEntry);
-						context.getHashAdapter().writeHashEntry(fEntry, listener.getHash());
-
+						
+						shaBase64 = Util.base64Encode(listener.getHash());
+						
+						context.getHashAdapter().writeHashEntry(fEntry, shaBase64);
 						context.getReport().addSavedFile();
 					} else {
 						if (DEBUG_MODE) {
@@ -1496,12 +1524,15 @@ implements TargetActions {
 						}
 						this.registerUnstoredFile(fEntry, context);
 						context.getReport().addIgnoredFile();
+						
+						if (inspectFileContent) {
+							shaBase64 = ArchiveTraceParser.extractShaFromTrace(context.getReferenceTrace().current().getData());
+						}
 					}
 				}
 
 				// Register the entry
-				context.getTraceAdapter().writeEntry(fEntry);
-
+				context.getTraceAdapter().writeEntry(fEntry, inspectFileContent ? shaBase64 : null);
 			} catch (IOException e) {
 				Logger.defaultLogger().error(e);
 				throw new StoreException("Error during storage of " + entry.getKey() + " : " + e.getMessage(), e);
@@ -1646,9 +1677,10 @@ implements TargetActions {
 		super.copyAttributes(clone);
 
 		AbstractIncrementalFileSystemMedium other = (AbstractIncrementalFileSystemMedium)clone;
-		other.trackPermissions = this.trackPermissions;
 		other.handler = (ArchiveHandler)this.handler.duplicate();
 		other.handler.setMedium(other);
+		
+		other.inspectFileContent = this.inspectFileContent;
 	}
 
 	/**
@@ -2305,8 +2337,10 @@ implements TargetActions {
 
 	/**
 	 * Check whether the file has been modified since the previous backup or not
+	 * @throws FileMetaDataSerializationException 
 	 */
-	private boolean checkModified(FileSystemRecoveryEntry entry, ProcessContext context) throws IOException {
+	private boolean checkModified(FileSystemRecoveryEntry entry, ProcessContext context) 
+	throws IOException, TaskCancelledException, NoSuchAlgorithmException, FileMetaDataSerializationException {
 		TraceFileIterator iter = context.getReferenceTrace();
 		if (iter == null) {
 			return true;		// No iterator -> Full backup
@@ -2321,20 +2355,7 @@ implements TargetActions {
 
 			if (result == 0) {
 				// Found among source files and in trace -> ok : check hash codes
-				String newHash = ArchiveTraceParser.hash(entry, false);
-				String oldHash = iter.current() == null ? null : ArchiveTraceParser.extractHashFromTrace(iter.current().getData());
-
-				// Fetch next entry
-				iter.next();
-
-				// return result
-				if (newHash.equals(oldHash)) {
-					entry.setStatus(EntryStatus.STATUS_NOT_STORED);
-					return false;
-				} else {
-					entry.setStatus(EntryStatus.STATUS_MODIFIED);
-					return true;
-				}
+				return compareEntries(iter.current(), entry, false, context);
 			} else if (result < 0) {
 				// File found in source files but not found in trace -> new File
 				entry.setStatus(EntryStatus.STATUS_CREATED);
@@ -2345,6 +2366,7 @@ implements TargetActions {
 			}
 		}
 	}
+
 
 	private List getAggregatedView(AggregatedViewContext context, String root, GregorianCalendar date, boolean aggregated) throws ApplicationException {
 		try {	

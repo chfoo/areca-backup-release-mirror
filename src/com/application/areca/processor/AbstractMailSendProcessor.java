@@ -60,6 +60,13 @@ public abstract class AbstractMailSendProcessor extends AbstractProcessor {
 	private String password;
 	private String title = VersionInfos.APP_SHORT_NAME;
 	private String message = "";
+	
+	/**
+	 * 	In case of SMTPs connection, this boolean tells whether we must issue a "STARTTLS" or try to connect directly to a port which expects encrypted data.
+	 * - If set to "true", Areca will connect directly to the server by using an encrypted connection. This mode is deprecated.
+	 * - If set to "false", Areca will first establish a plain text connection, then issue a "STARTTLS" command and then switch to encrypted mode. This mode is recommended.
+	 */
+	private boolean disableSTARTTLS = false;
 
 	public AbstractMailSendProcessor() {
 		super();
@@ -67,6 +74,14 @@ public abstract class AbstractMailSendProcessor extends AbstractProcessor {
 
 	public String getRecipients() {
 		return recipients;
+	}
+
+	public boolean isDisableSTARTTLS() {
+		return disableSTARTTLS;
+	}
+
+	public void setDisableSTARTTLS(boolean disableSTARTTLS) {
+		this.disableSTARTTLS = disableSTARTTLS;
 	}
 
 	public String getPassword() {
@@ -173,15 +188,19 @@ public abstract class AbstractMailSendProcessor extends AbstractProcessor {
 			String content,
 			PrintStream debugStream,
 			ProcessContext context
-	) throws ApplicationException {       
+	) throws ApplicationException {  
 		Properties props = System.getProperties();
-		String protocol = isSmtps() ? "smtps":"smtp";
+		String protocol = isSmtps() && disableSTARTTLS ? "smtps":"smtp";
 
 		props.put("mail." + protocol + ".host", getSmtpServerName());
 		props.put("mail." + protocol + ".port", "" + getSmtpServerPort());
 
 		if (isAuthenticated()) {
 			props.put("mail." + protocol + ".auth", "true");
+		}
+		
+		if (isSmtps()) {
+			props.put("mail." + protocol + ".starttls.enable", "true");
 		}
 
 		Session session = Session.getInstance(props, null);
@@ -215,7 +234,7 @@ public abstract class AbstractMailSendProcessor extends AbstractProcessor {
 			msg.setHeader("X-" + VersionInfos.APP_SHORT_NAME + "-Version", VersionInfos.getLastVersion().getVersionId());
 			if (isAuthenticated()) {
 				Transport tr;
-				if (isSmtps()) {
+				if (isSmtps() && disableSTARTTLS) {
 					tr = session.getTransport("smtps");
 				} else {
 					tr = session.getTransport("smtp");
@@ -243,6 +262,7 @@ public abstract class AbstractMailSendProcessor extends AbstractProcessor {
 		pro.smtps = this.smtps;
 		pro.from = this.from;
 		pro.title = this.title;
+		pro.disableSTARTTLS = this.disableSTARTTLS;
 		pro.message = this.message;
 	}
 
@@ -286,7 +306,8 @@ public abstract class AbstractMailSendProcessor extends AbstractProcessor {
 			&& EqualsHelper.equals(this.recipients, other.recipients)
 			&& EqualsHelper.equals(this.smtps, other.smtps)   
 			&& EqualsHelper.equals(this.from, other.from)    
-			&& EqualsHelper.equals(this.title, other.title)      
+			&& EqualsHelper.equals(this.title, other.title)   
+			&& EqualsHelper.equals(this.disableSTARTTLS, other.disableSTARTTLS)  
 			&& EqualsHelper.equals(this.message, other.message)  
 			;
 		}
@@ -299,7 +320,8 @@ public abstract class AbstractMailSendProcessor extends AbstractProcessor {
 		h = HashHelper.hash(h, this.user);
 		h = HashHelper.hash(h, this.smtpServer);
 		h = HashHelper.hash(h, this.recipients);  
-		h = HashHelper.hash(h, this.smtps);              
+		h = HashHelper.hash(h, this.smtps);    
+		h = HashHelper.hash(h, this.disableSTARTTLS);   
 		h = HashHelper.hash(h, this.from);   
 		h = HashHelper.hash(h, this.title);
 		h = HashHelper.hash(h, this.message);         

@@ -65,6 +65,7 @@ public final class ApplicationPreferences {
 	private static final String WS_HISTORY = "ws.history";
 	private static final String LAUNCH_COUNT = "launch.count";
 	private static final String DONATION_MSG_LAUNCH_COUNT = "donation.msg.launch.count";
+	private static final String DONATION_THRES = "donation.msg.threshold";
     
 	public static final int UNDEFINED = -1;
 	public static final int LAST_WORKSPACE_MODE = 0;
@@ -236,6 +237,10 @@ public final class ApplicationPreferences {
 	
 	public static int getLaunchCount() {
 	    return LocalPreferences.instance().getInt(LAUNCH_COUNT, 0);
+	}
+	
+	public static int getDonationThreshold() {
+	    return LocalPreferences.instance().getInt(DONATION_THRES, 150);
 	}
 	
 	public static int getDonationMsgLaunchCount() {

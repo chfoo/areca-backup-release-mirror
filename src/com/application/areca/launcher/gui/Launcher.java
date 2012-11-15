@@ -1,13 +1,19 @@
 package com.application.areca.launcher.gui;
 
+import java.io.File;
+import java.io.IOException;
+
 import javax.swing.JOptionPane;
 
 import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.ArecaFileConstants;
+import com.application.areca.Utils;
 import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.version.VersionInfos;
+import com.myJava.file.FileTool;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
+import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
  * <BR>
@@ -45,10 +51,31 @@ public class Launcher extends AbstractArecaLauncher {
 	}
 
 	public static void main(String[] args) {   
+
+/*
+		try {
+			String src = "C:\\Users\\Olivier\\Desktop\\src\\todo_areca_mutate.TXT";
+			File f = new File(src);
+			long lm = f.lastModified();
+
+			int i1 = Math.abs((int)(10000*Math.random())) % 10;
+			int i2 = Math.abs((int)(10000*Math.random())) % 10;
+			int i3 = Math.abs((int)(10000*Math.random())) % 10;
+			
+			String content = "contenu nr " + i1 + "" + i2 + "" + i3;
+			FileTool.getInstance().createFile(new File(src), content);
+			if (lm > 0) {
+				f.setLastModified(lm);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+*/
     	getInstance().launch(args);
     	getInstance().exit();
     }
-	
+
 	private static class Options {
 		public String workspace;
 		public String configurationDirectory;

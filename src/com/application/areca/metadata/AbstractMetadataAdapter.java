@@ -56,7 +56,8 @@ public abstract class AbstractMetadataAdapter {
 	//protected static final String VERSION = VERSION_HEADER + "3"; // new separators
 	//protected static final String VERSION = VERSION_HEADER + "4"; // new posix attributes format
 	//protected static final String VERSION = VERSION_HEADER + "5"; // traces and contents are now ordered
-	protected static final String VERSION = VERSION_HEADER + "6"; // The global file prefix is written in the file's header
+	//protected static final String VERSION = VERSION_HEADER + "6"; // The global file prefix is written in the file's header
+	protected static final String VERSION = VERSION_HEADER + "7"; // Trace format modification : files traces now include sha hash
 
 	private static FileTool TOOL = FileTool.getInstance();
 

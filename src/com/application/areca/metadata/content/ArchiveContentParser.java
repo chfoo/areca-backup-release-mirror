@@ -43,8 +43,8 @@ public class ArchiveContentParser implements MetadataConstants {
     	return MetadataEncoder.getInstance().encode(entry.getKey()) + SEPARATOR + entry.getSize();
     }
     
-    protected static String serialize(FileSystemRecoveryEntry entry, byte[] hash) {
-    	return MetadataEncoder.getInstance().encode(entry.getKey()) + SEPARATOR + Util.base64Encode(hash);
+    protected static String serialize(FileSystemRecoveryEntry entry, String shaBase64) {
+    	return MetadataEncoder.getInstance().encode(entry.getKey()) + SEPARATOR + shaBase64;
     }
     
     protected static String serialize(FileSystemRecoveryEntry entry, HashSequence sequence) {

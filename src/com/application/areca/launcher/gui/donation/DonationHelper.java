@@ -31,16 +31,17 @@ This file is part of Areca.
 
  */
 public class DonationHelper {
-	private static final int DONATION_INTERVAL = 150;
+	private static final int DONATION_INTERVAL = ApplicationPreferences.getDonationThreshold();
 	
 	public static void handleDonationMessage() {
 		int launchCount = ApplicationPreferences.getLaunchCount();
 		ApplicationPreferences.setLaunchCount(launchCount+1);
 
+
 		int lastMsg = ApplicationPreferences.getDonationMsgLaunchCount();
-		int interval = Math.abs(launchCount - lastMsg);
+		int interval = launchCount - lastMsg;
 		
-		if (interval > DONATION_INTERVAL) {
+		if (DONATION_INTERVAL != -1 && interval > DONATION_INTERVAL) {
 			ApplicationPreferences.setDonationMsgLaunchCount(launchCount);
 			Application.getInstance().showDialog(new DonationWindow(), false);
 		}

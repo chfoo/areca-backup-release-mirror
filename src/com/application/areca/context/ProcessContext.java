@@ -314,6 +314,10 @@ public class ProcessContext implements Externalizable {
 	public void setFileSystemIteratorBuilder(FileSystemIteratorBuilder fileSystemIteratorBuilder) {
 		this.fileSystemIteratorBuilder = fileSystemIteratorBuilder;
 	}
+	
+    // Serialization
+    public ProcessContext() {
+    }
 
     public ProcessContext(AbstractTarget target, UserInformationChannel channel) {
         this(target, channel, null);
@@ -324,6 +328,7 @@ public class ProcessContext implements Externalizable {
 	}
 
 	public ProcessContext(AbstractTarget target, UserInformationChannel channel, TaskMonitor taskMonitor, boolean forceChannelContext) {
+		this();
         this.report = new ProcessReport(target);
         this.infoChannel = channel;
         if (forceChannelContext && infoChannel != null) {

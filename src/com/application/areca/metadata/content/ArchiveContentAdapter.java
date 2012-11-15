@@ -71,9 +71,9 @@ public class ArchiveContentAdapter extends AbstractMetadataAdapter {
 		write(ArchiveContentParser.serialize(entry));
 	}
 
-	public void writeHashEntry(FileSystemRecoveryEntry entry, byte[] hash) throws IOException {
+	public void writeHashEntry(FileSystemRecoveryEntry entry, String shaBase64) throws IOException {
 		checkEntry(entry.getKey());
-		write(ArchiveContentParser.serialize(entry, hash));
+		write(ArchiveContentParser.serialize(entry, shaBase64));
 	}
 
 	public void writeSequenceEntry(FileSystemRecoveryEntry entry, HashSequence sequence) throws IOException {
@@ -141,8 +141,7 @@ public class ArchiveContentAdapter extends AbstractMetadataAdapter {
 			skipHeader(reader);
 			
 			while ((line = reader.readLine()) != null) {
-				line = line.trim();
-				if (line.length() != 0) {
+				if (line.trim().length() != 0) {
 					ContentEntry entry = (ContentEntry)decodeEntry(line);
 
 					// It is VERY important that the key / data are compliant with the current serialization

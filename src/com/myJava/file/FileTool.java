@@ -385,8 +385,7 @@ public class FileTool {
 					BUFFER_SIZE);
 			String line = null;
 			while ((line = reader.readLine()) != null && (maxRows != v.size())) {
-				line = line.trim();
-				if (line.length() != 0) {
+				if (line.trim().length() != 0) {
 					v.add(line);
 				}
 			}

@@ -375,7 +375,10 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 				} else {
 					this.open(transactionPoint, context);
 
-					context.getFileSystemIterator().setFilter(this.filterGroup);
+					// Following line removed on 2012-11-10 : not needed because the filter is serialized with the ProcessContext; 
+					// Further modifications performed on target filter won't be taken into account.
+					// This is necessary for compatibility with potential modifications applied to the filter by the ConfigurationAddons.
+					//context.getFileSystemIterator().setFilter(this.filterGroup);
 					context.getTaskMonitor().setCurrentSubTask(context.getFileSystemIterator().getMonitor(), remaining);
 
 					this.medium.getHistoryHandler().addEntryAndFlush(new HistoryEntry(HISTO_RESUME, "Resume backup."));

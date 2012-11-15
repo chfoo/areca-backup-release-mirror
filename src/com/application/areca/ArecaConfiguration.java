@@ -173,12 +173,11 @@ extends FrameworkConfiguration {
      */
     public static String KEY_TRANSACTION_SIZE_KB = "transaction.size";
     
-    
     /**
      * Whether target properties are logged when an action is performed (merge, backup, ...)
      */
     public static String KEY_LOG_TARGET_PROPERTIES = "log.target.properties";
-    
+
     public static boolean DEF_SMTP_DEBUG = false;
     public static long DEF_MEMORY_BASE_KB = 4 * 1024;
     public static double DEF_MEMORY_BY_ENTRY_KB = 1.3;

@@ -3,6 +3,7 @@ package com.application.areca.metadata.trace;
 import java.io.File;
 import java.io.IOException;
 
+import com.application.areca.impl.AbstractFileSystemMedium;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.myJava.file.FileTool;
 
@@ -42,7 +43,7 @@ public class ArchiveTraceManager {
         if (! medium.checkArchiveCompatibility(archive, true)) {
             return null;
         }
-        File dataDir = medium.getDataDirectory(archive);
+        File dataDir = AbstractFileSystemMedium.getDataDirectory(archive);
         return new File(dataDir, medium.getTraceFileName());
     }
     

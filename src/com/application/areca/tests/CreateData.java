@@ -53,6 +53,8 @@ public class CreateData {
 		"name with space and 's",
 		"name with;semicolon",
 		"name with-s",
+		//" space_beginning",
+		//"space_end ",
 		"azerty/name with_s",
 		//"n[a]me with é",
 		"n{am}e with #",

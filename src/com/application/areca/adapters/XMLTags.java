@@ -104,6 +104,7 @@ public interface XMLTags {
     public static final String XML_MEDIUM_FILECOMPRESSION = "file_compression";
     public static final String XML_MEDIUM_Z64 = "zip64";
     public static final String XML_MEDIUM_ZIP_LEVEL = "zip_level";
+    public static final String XML_MEDIUM_INSPECT_FILE_CONTENT = "inspect_file_content";
     public static final String XML_MEDIUM_ENCRYPTED = "encrypted";
     public static final String XML_MEDIUM_ENCRYPTIONKEY = "encryption_key";
     public static final String XML_MEDIUM_ENCRYPTIONALGO = "encryption_algo";
@@ -151,7 +152,8 @@ public interface XMLTags {
     public static final String XML_PP_EMAIL_INTRO = "introduction";    
     public static final String XML_PP_EMAIL_USER = "smtp_user";
     public static final String XML_PP_EMAIL_PASSWORD = "smtp_password";    
-    public static final String XML_PP_EMAIL_SMTPS = "smtp_s";    
+    public static final String XML_PP_EMAIL_SMTPS = "smtp_s";  
+    public static final String XML_PP_EMAIL_DISABLE_STARTTLS = "smtp_disable_starttls"; 
     public static final String XML_PP_SHELL_SCRIPT = "script";
     public static final String XML_PP_SHELL_PARAMS = "parameters";    
     public static final String XML_PP_DELAY = "delay";   // deprecated 

@@ -165,7 +165,15 @@ public class OSTool {
 		return execute(cmd, false);
 	}
 	
+	/**
+	 * Works only on Windows
+	 * @return
+	 */
 	public static boolean isAdmin() {
+		if (! isSystemWindows()) {
+			return false;
+		}
+		
 		try {
 	        String command = "reg query \"HKU\\S-1-5-19\"";
 	        Process p = Runtime.getRuntime().exec(command);

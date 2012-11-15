@@ -232,6 +232,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_USER, pp.getUser()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_PASSWORD, pp.getPassword()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_SMTPS, pp.isSmtps()));
+        sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_DISABLE_STARTTLS, pp.isDisableSTARTTLS()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_TITLE, pp.getTitle()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_FROM, pp.getFrom()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_INTRO, pp.getMessage()));
@@ -405,8 +406,8 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         serializeFileSystemPolicy(medium.getFileSystemPolicy());
         serializeEncryptionPolicy(medium.getEncryptionPolicy());
         sb.append(" ");
-        sb.append(XMLTool.encodeProperty(XML_MEDIUM_TRACK_PERMS, medium.isTrackPermissions()));
         sb.append(XMLTool.encodeProperty(XML_MEDIUM_OVERWRITE, medium.isImage()));  
+        sb.append(XMLTool.encodeProperty(XML_MEDIUM_INSPECT_FILE_CONTENT, medium.isInspectFileContent()));  
         
         if (medium.getCompressionArguments().isCompressed()) {
             if (medium.getCompressionArguments().isMultiVolumes()) {

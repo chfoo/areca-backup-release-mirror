@@ -205,6 +205,8 @@ extends AbstractWindow {
 	protected Button chkUseTransactions;
 	protected Text txtTransactionSize;
 	protected Label lblTransactionSize;
+	protected Label lblDetectionMode;
+	protected Combo cboDetectionMode;
 
 	private TreeItem transfered;
 	protected Tree treFilters;
@@ -347,7 +349,7 @@ extends AbstractWindow {
 		rdFile.setToolTipText(RM.getLabel("targetedition.storage.file.tt"));
 		txtMediumPath = new Text(grpPath, SWT.BORDER);
 		GridData dt = new GridData(SWT.FILL, SWT.CENTER, true, false);
-		dt.minimumWidth = computeWidth(250);
+		dt.minimumWidth = computeWidth(350);
 		txtMediumPath.setLayoutData(dt);
 		txtMediumPath.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
@@ -857,20 +859,32 @@ extends AbstractWindow {
 		// FILE MANAGEMENT
 		grpFileManagement = new Group(composite, SWT.NONE);
 		grpFileManagement.setText(RM.getLabel("targetedition.filemanagement.label"));
-		grpFileManagement.setLayout(new RowLayout(SWT.VERTICAL));
+		grpFileManagement.setLayout(new GridLayout(2, false));
 		grpFileManagement.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 
 		chkFollowSubDirectories = new Button(grpFileManagement, SWT.CHECK);
+		chkFollowSubDirectories.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
 		monitorControl(chkFollowSubDirectories);
 		chkFollowSubDirectories.setText(RM.getLabel("targetedition.followsubdirs.label"));
 		chkFollowSubDirectories.setToolTipText(RM.getLabel("targetedition.followsubdirs.tooltip"));
-
+		
 		if (! OSTool.isSystemWindows()) {
 			chkFollowLinks = new Button(grpFileManagement, SWT.CHECK);
+			chkFollowLinks.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
 			monitorControl(chkFollowLinks);
 			chkFollowLinks.setText(RM.getLabel("targetedition.followlinks.label"));
 			chkFollowLinks.setToolTipText(RM.getLabel("targetedition.followlinks.tooltip"));
 		}
+		
+		lblDetectionMode = new Label(grpFileManagement, SWT.NONE);
+		lblDetectionMode.setText(RM.getLabel("targetedition.detect.mode.label") + " :");
+		lblDetectionMode.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		cboDetectionMode = new Combo(grpFileManagement, SWT.READ_ONLY);
+		cboDetectionMode.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		cboDetectionMode.add(RM.getLabel("targetedition.detect.mode.fast"));
+		cboDetectionMode.add(RM.getLabel("targetedition.detect.mode.full"));
+		monitorControl(cboDetectionMode);
+		cboDetectionMode.setToolTipText(RM.getLabel("targetedition.detect.mode.tt"));
 
 		// ENCRYPTION
 		grpEncryption = new Group(composite, SWT.NONE);
@@ -1297,6 +1311,7 @@ extends AbstractWindow {
 			}
 
 			chkFollowSubDirectories.setSelection(((FileSystemTarget)target).isFollowSubdirectories());
+			cboDetectionMode.select(fMedium.isInspectFileContent() ? 1 : 0);
 			chkNoXMLCopy.setSelection(! target.isCreateSecurityCopyOnBackup());
 			if (chkFollowLinks != null) {
 				chkFollowLinks.setSelection( ! ((FileSystemTarget)target).isTrackSymlinks());
@@ -1411,6 +1426,7 @@ extends AbstractWindow {
 			cboZipLevel.select(4);
 			rdMultiple.setSelection(true);
 			chkFollowSubDirectories.setSelection(true);
+			cboDetectionMode.select(0);
 			rdSingle.setSelection(true);
 			selectEncoding(ZipConstants.DEFAULT_CHARSET);
 			processSelection(PLUGIN_HD, ApplicationPreferences.getDefaultArchiveStorage());
@@ -1496,6 +1512,8 @@ extends AbstractWindow {
 			lblMultiVolumesUnit.setEnabled(false);
 			lblMultiVolumesDigits.setEnabled(false);
 			chkFollowSubDirectories.setEnabled(false);
+			lblDetectionMode.setEnabled(false);
+			cboDetectionMode.setEnabled(false);
 			chkNoXMLCopy.setEnabled(false);
 			if (chkFollowLinks != null) {
 				chkFollowLinks.setEnabled(false);
@@ -2080,7 +2098,7 @@ extends AbstractWindow {
 				medium.setCompressionArguments(compression);
 				medium.setFileSystemPolicy(storagePolicy);
 				medium.setEncryptionPolicy(encrArgs);
-				medium.setTrackPermissions(true);
+				medium.setInspectFileContent(cboDetectionMode.getSelectionIndex() == 1);
 
 				if (rdDelta.getSelection()) {
 					medium.setHandler(new DeltaArchiveHandler());

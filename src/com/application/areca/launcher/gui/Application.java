@@ -945,15 +945,13 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		// Dialog
 		String prefix = this.getCurrentTarget().getUid() + "_every_";
 
-		BackupStrategyWizardWindow win = new BackupStrategyWizardWindow(
-				OSTool.getUserHome());
+		BackupStrategyWizardWindow win = new BackupStrategyWizardWindow(OSTool.getUserHome());
 		showDialog(win);
 
 		String path = win.getSelectedPath();
 		boolean check = true; // not used yet ...
 
-		if (path != null && win.getTimes() != null
-				&& win.getTimes().size() != 0) {
+		if (path != null && win.getTimes() != null && win.getTimes().size() != 0) {
 			String files = "";
 
 			// Init
@@ -985,8 +983,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 
 			content += precommands;
 
-			File config = this.getCurrentTarget().computeConfigurationFile(
-					new File(workspace.getPath()), true);
+			File config = this.getCurrentTarget().computeConfigurationFile(new File(workspace.getPath()), true);
 			String configPath = FileSystemManager.getAbsolutePath(config);
 			String command = commandPrefix + "\""
 					+ FileSystemManager.getAbsolutePath(executable)
@@ -1009,7 +1006,12 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 				if (i == 0) {
 					// Backup
 					fileContent += "\n" + commentPrefix + "Daily backup\n";
-					String strCheck = check ? "-c " : "";
+					
+					String strCheck = "";
+					if (check) {
+						strCheck = "-c -wdir \"" + OSTool.getTempDirectory() + "\" ";
+					}
+
 					fileContent += commandPrefix + "\""
 							+ FileSystemManager.getAbsolutePath(executable)
 							+ "\" backup " + strCheck + "-config \""
@@ -1019,17 +1021,14 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 					// Intermediate merge
 					int to = unit;
 					int from = 2 * unit;
-					fileContent += "\n" + commentPrefix + "Merge between day "
-							+ to + " and day " + from + " \n";
-					fileContent += command + " -from " + from + " -to " + to
-							+ "\n";
+					fileContent += "\n" + commentPrefix + "Merge between day " + to + " and day " + from + " \n";
+					fileContent += command + " -from " + from + " -to " + to+ "\n";
 					unit *= repetition + 1;
 				}
 
 				// Final merge
 				if (i == parameters.size() - 1) {
-					fileContent += "\n" + commentPrefix + "Merge after day "
-							+ unit + " \n";
+					fileContent += "\n" + commentPrefix + "Merge after day "+ unit + " \n";
 					fileContent += command + " -delay " + unit + "\n";
 				}
 
@@ -1072,8 +1071,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			commandPrefix = "";
 		}
 
-		BackupShortcutWizardWindow win = new BackupShortcutWizardWindow(
-				OSTool.getUserHome(), fileNameSelected, fileNameAll);
+		BackupShortcutWizardWindow win = new BackupShortcutWizardWindow(OSTool.getUserHome(), fileNameSelected, fileNameAll);
 		showDialog(win);
 		String path = win.getSelectedPath();
 		boolean forSelectedOnly = win.isForSelectedOnly();
@@ -1167,12 +1165,9 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 	private String generateShortcutScript(File executable, TargetGroup process,
 			AbstractTarget target, String commentPrefix, String commandPrefix,
 			boolean check, boolean full, boolean differential) {
-		String type = full ? AbstractTarget.BACKUP_SCHEME_FULL
-				: (differential ? AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL
-						: AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
+		String type = full ? AbstractTarget.BACKUP_SCHEME_FULL: (differential ? AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL: AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
 
-		String comments = commentPrefix + type + "\n" + commentPrefix
-				+ "Target Group : \"" + process.getName() + "\"\n";
+		String comments = commentPrefix + type + "\n" + commentPrefix + "Target Group : \"" + process.getName() + "\"\n";
 		File config = new File(workspace.getPath(), process.getFullPath());
 		if (target != null) {
 			config = target.computeConfigurationFile(config, false);
@@ -1185,19 +1180,15 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			command += "-d ";
 		}
 		if (check) {
-			command += "-c ";
+			command += "-c -wdir \"" + OSTool.getTempDirectory() + "\" ";
 		}
 
-		command += "-config \"" + FileSystemManager.getAbsolutePath(config)
-				+ "\"";
+		command += "-config \"" + FileSystemManager.getAbsolutePath(config) + "\"";
 		if (target != null) {
-			comments += commentPrefix + "Target : \"" + target.getName()
-					+ "\"\n";
+			comments += commentPrefix + "Target : \"" + target.getName()+ "\"\n";
 		}
 
-		command = commandPrefix + "\""
-				+ FileSystemManager.getAbsolutePath(executable) + "\" "
-				+ command;
+		command = commandPrefix + "\""+ FileSystemManager.getAbsolutePath(executable) + "\" "+ command;
 
 		return comments + command + "\n\n";
 	}
@@ -1260,9 +1251,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 				}
 
 				item.getParent().remove(item.getUid());
-				ConfigurationListener.getInstance()
-						.itemDeleted(this.getCurrentWorkspaceItem(),
-								workspace.getPathFile());
+				ConfigurationListener.getInstance().itemDeleted(this.getCurrentWorkspaceItem(),workspace.getPathFile());
 
 				this.currentObject = null;
 				this.mainWindow.refresh(true, true);

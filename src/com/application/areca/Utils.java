@@ -357,8 +357,9 @@ public class Utils implements ArecaFileConstants {
 		prps.put("delta.lookup.failures", "" + DeltaReader.FAILURE_COUNTER);
 		prps.put("areca-backup.class.loader", ClassLoader.getSystemClassLoader().getClass().getName());
 		prps.put("system.available.processors", "" + Runtime.getRuntime().availableProcessors());
-		prps.put("user.is.admin", ""+OSTool.isAdmin());
-
+		if (OSTool.isSystemWindows()) {
+			prps.put("user.is.admin", ""+OSTool.isAdmin());
+		}
 		FileLogProcessor proc = (FileLogProcessor)Logger.defaultLogger().find(FileLogProcessor.class);
 		if (proc != null) {
 			prps.put("log.file", proc.getCurrentLogFile());

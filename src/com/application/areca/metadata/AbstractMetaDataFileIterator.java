@@ -89,8 +89,7 @@ public abstract class AbstractMetaDataFileIterator {
 		if (line == null) {
 			pointer = null;
 		} else {
-	        line = line.trim();
-			if (line.length() == 0) {
+			if (line.trim().length() == 0) {
 				fetchNext();
 			} else {
 				pointer = adapter.decodeEntry(line);

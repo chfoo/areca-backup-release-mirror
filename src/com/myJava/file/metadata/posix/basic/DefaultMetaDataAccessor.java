@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.metadata.FileMetaData;
 import com.myJava.file.metadata.FileMetaDataAccessor;
@@ -48,6 +49,7 @@ public class DefaultMetaDataAccessor implements FileMetaDataAccessor {
 
 	private static final String DESCRIPTION = "Default meta data accessor for Posix systems. It uses the \"ls\", \"chmod\" and \"chown\" system commands to handle file attributes (owner, group and permissions).\nExtended attributes, ACL and special bits are not handled by this accessor.";
 	private static final FileMetaDataSerializer SERIALIZER = new PosixMetaDataSerializer();
+	private static final String LS_ARGS = FrameworkConfiguration.getInstance().getPosixMetadataAccessorArgs();
 	
 	public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
         PosixMetaDataImpl p = new PosixMetaDataImpl();
@@ -57,7 +59,7 @@ public class DefaultMetaDataAccessor implements FileMetaDataAccessor {
         String str = null;
         
         try {
-            process = Runtime.getRuntime().exec(new String[] {"ls", "-ald1", FileSystemManager.getAbsolutePath(f)});
+            process = Runtime.getRuntime().exec(new String[] {"ls", LS_ARGS, FileSystemManager.getAbsolutePath(f)});
             process.waitFor();
             reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             str = reader.readLine();

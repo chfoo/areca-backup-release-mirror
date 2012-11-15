@@ -212,7 +212,7 @@ public interface ArchiveMedium extends Duplicable {
      * <BR>Used during backup simulation.
      */
     public void simulateEntryProcessing(RecoveryEntry entry, boolean haltOnFirstDifference, ProcessContext context) 
-    throws ApplicationException;
+    throws ApplicationException, TaskCancelledException;
     
     /**
      * Closes the simulation and returns all unprocessed entries (ie entries which have been deleted). 

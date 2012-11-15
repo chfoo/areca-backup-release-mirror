@@ -507,6 +507,13 @@ public class TargetXMLReader implements XMLTags {
 		if (smtpsNode != null) {
 			pp.setSmtps(Boolean.valueOf(smtpsNode.getNodeValue()).booleanValue());
 		}
+		
+		Node disableStarttlsNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_DISABLE_STARTTLS);
+		if (disableStarttlsNode != null) {
+			pp.setDisableSTARTTLS(Boolean.valueOf(disableStarttlsNode.getNodeValue()).booleanValue());
+		} else {
+			pp.setDisableSTARTTLS(true); // backward compatibility
+		}
 
 		Node titleNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_TITLE);
 		if (titleNode != null) {
@@ -591,9 +598,6 @@ public class TargetXMLReader implements XMLTags {
 			((FileSystemTarget)target).setTrackEmptyDirectories(trackDirs); 
 		}
 		// EOF backward compatibility
-
-		Node trackPermsNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_TRACK_PERMS);
-		boolean trackPerms = (trackPermsNode != null && trackPermsNode.getNodeValue().equalsIgnoreCase("true"));   
 
 		EncryptionPolicy encrArgs = readEncryptionPolicy(mediumNode, target);
 		FileSystemPolicy storage = readFileSystemPolicy(mediumNode, target);
@@ -704,7 +708,11 @@ public class TargetXMLReader implements XMLTags {
 		medium.setFileSystemPolicy(storage);
 		medium.setEncryptionPolicy(encrArgs);
 		medium.setImage(isOverwrite(mediumNode));
-		medium.setTrackPermissions(trackPerms); 
+
+		Node inspectContentNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_INSPECT_FILE_CONTENT);
+		if (inspectContentNode != null) {
+			medium.setInspectFileContent(Boolean.valueOf(inspectContentNode.getNodeValue()).booleanValue());
+		}
 
 		if (medium.isImage() && medium.getHandler() instanceof DeltaArchiveHandler) {
 			throw new AdapterException("Illegal state : 'Delta' archive mode is incompatible with 'image' targets.");

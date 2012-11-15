@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 1241161054210717343L;
+		BUILD_ID = 8507262710682540418L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.2.16", new GregorianCalendar(2012, 10, 13), "Fixed SMTPs compatibility issue : Areca can now send the 'STARTTLS' command when establishing the connection; Fixed a bug on transaction points; Fixed a bug that could occur when handling files starting with a whitespace; Improved file modification detection : Areca can now inspect the files' content instead of relying on their attributes; Minor wizard improvements."));
 		VERSIONS.add(new VersionData("7.2.15", new GregorianCalendar(2012, 9, 30), "Minor technical bugfixes."));
 		VERSIONS.add(new VersionData("7.2.14", new GregorianCalendar(2012, 9, 23), "Fixed a compatibility issue with IBM JVMs (Base64 encoding); Better error management when handling compressed archives; Areca now uses by default the local temporary directory as working directory when checking archives; Better plugins integration"));
 		VERSIONS.add(new VersionData("7.2.13", new GregorianCalendar(2012, 9, 14), "Fixed a bug that could occur when handling target sources spread across multiple drives; better integration of plugins."));
@@ -188,10 +189,6 @@ public class VersionInfos {
 
 	public static List getVersions() {
 		return VERSIONS;
-	}
-
-	public static boolean isBeforeOrEquals(String v0, String v1) {
-		return v0.compareTo(v1)<=0;
 	}
 
 	/**

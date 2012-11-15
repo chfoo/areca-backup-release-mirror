@@ -47,7 +47,6 @@ This file is part of Areca.
  */
 public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
 	protected boolean trackSymlinks;
-	protected boolean trackMetaData;
 	protected String previousKey = null;
 
 	private ArchiveTraceAdapter(File traceFile) throws IOException {
@@ -59,18 +58,14 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
 		this.trackSymlinks = trackSymlinks;
 	}
 
-	public void setTrackPermissions(boolean trackMetaData) {
-		this.trackMetaData = trackMetaData;
-	}
-
-	public void writeEntry(FileSystemRecoveryEntry entry) 
+	public void writeEntry(FileSystemRecoveryEntry entry, String shaBase64) 
 	throws IOException, FileMetaDataSerializationException {
 		if (previousKey != null) {
 			if (FilePathComparator.instance().compare(entry.getKey(), previousKey) <= 0) {
 				throw new IllegalStateException(entry.getKey() + " <= " + previousKey);
 			}
 		}
-		write(ArchiveTraceParser.serialize(entry, trackMetaData, trackSymlinks));
+		write(ArchiveTraceParser.serialize(entry, trackSymlinks, shaBase64));
 	}
 
 	public void writeEntry(char type, String key, String data) throws IOException {
@@ -97,8 +92,7 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
 			skipHeader(reader);
 			
 			while ((line = reader.readLine()) != null) {
-				line = line.trim();
-				if (line.length() != 0) {
+				if (line.trim().length() != 0) {
 					TraceEntry entry = (TraceEntry)decodeEntry(line);
 
 					// It is VERY important that the key / hash are compliant with the current serialization
@@ -121,10 +115,6 @@ public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
 
 	public boolean isTrackSymlinks() {
 		return trackSymlinks;
-	}
-
-	public boolean isTrackMetaData() {
-		return trackMetaData;
 	}
 
 	public AbstractMetaDataEntry decodeEntry(String serialized) {

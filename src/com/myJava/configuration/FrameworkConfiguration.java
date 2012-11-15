@@ -187,7 +187,7 @@ public class FrameworkConfiguration {
      * Size of the hashmap used by the "filediff" classes
      */
     public static String KEY_DELTA_HASHMAP_SIZE = "delta.hashmap.size"; 
-    
+
     /**
      * Multiplier used by the "filediff" classes to product the quickHash value
      */
@@ -238,6 +238,11 @@ public class FrameworkConfiguration {
     public static String KEY_INLINE_LOG_LEVEL = "threadlocal.log.level"; 
 
     
+    /**
+     * Arguments passed to the "ls" command on POSIX systems to get file attributes
+     */
+    public static String KEY_POSIX_MTD_ACCESSOR_ARGS = "posix.def.metadata.accessor.args";
+    
     public static int DEF_ENCRYPTION_KG_ITER = 96731;
     public static String DEF_ENCRYPTION_KG_SALT = "ù%${{²]}}[|`è€$£^¤*!§:/..;;,,_?\"\\°à@@%µ";
     public static String DEF_ENCRYPTION_KG_SALT_ENC = "UTF-8";
@@ -277,6 +282,7 @@ public class FrameworkConfiguration {
     public static String DEF_VIEWER_HANDLER = "com.myJava.system.viewer.DesktopViewerHandler";
     public static int DEF_MAX_INLINE_LOG_MESSAGES = 200; 
     public static int DEF_INLINE_LOG_LEVEL = 3; // WARNING 
+    public static String DEF_POSIX_MTD_ACCESSOR_ARGS = "-ald1";
     
     
     private static String VM_PROPS_PREFIX = "launcher.d.";
@@ -351,6 +357,11 @@ public class FrameworkConfiguration {
     
     public String getFileSystemAccessorImpl() {
     	return getProperty(KEY_FILESYSTEM_ACCESSOR, DEF_FILESYSTEM_ACCESSOR);
+    }
+    
+    
+    public String getPosixMetadataAccessorArgs() {
+        return getProperty(KEY_POSIX_MTD_ACCESSOR_ARGS, DEF_POSIX_MTD_ACCESSOR_ARGS);
     }
     
     public String getViewerHandlerImpl() {
