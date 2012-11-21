@@ -1775,13 +1775,14 @@ extends AbstractWindow {
 			}
 		}
 
-		// CRYPTAGE
+		// ENCRYPTION
 		this.resetErrorState(cboWrapping);
 		if (
 				this.chkEncrypted.getSelection()
+				&& this.chkEncrypNames.getSelection()
 				&& (! this.isFrozen(false))
 				&& (this.cboWrapping.getSelectionIndex() == -1)
-				) {
+		) {
 			this.setInError(cboWrapping, RM.getLabel("error.field.mandatory"));
 			return false;
 		}  

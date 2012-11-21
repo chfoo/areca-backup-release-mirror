@@ -1009,7 +1009,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 					
 					String strCheck = "";
 					if (check) {
-						strCheck = "-c -wdir \"" + OSTool.getTempDirectory() + "\" ";
+						strCheck = "-c -wdir \"" + getWorkingDirectoryWithoutTrailingSlash() + "\" ";
 					}
 
 					fileContent += commandPrefix + "\""
@@ -1180,7 +1180,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			command += "-d ";
 		}
 		if (check) {
-			command += "-c -wdir \"" + OSTool.getTempDirectory() + "\" ";
+			command += "-c -wdir \"" + getWorkingDirectoryWithoutTrailingSlash() + "\" ";
 		}
 
 		command += "-config \"" + FileSystemManager.getAbsolutePath(config) + "\"";
@@ -1191,6 +1191,14 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		command = commandPrefix + "\""+ FileSystemManager.getAbsolutePath(executable) + "\" "+ command;
 
 		return comments + command + "\n\n";
+	}
+	
+	private static String getWorkingDirectoryWithoutTrailingSlash() {
+		String wdir = OSTool.getTempDirectory();
+        if (wdir.endsWith("\\")) {
+        	wdir = wdir.substring(0, wdir.length()-1);
+        }
+        return wdir;
 	}
 
 	public void createWorkspaceCopy(File root, boolean removeEncryptionData) {
