@@ -14,7 +14,7 @@ import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Properties;
 
-import com.application.areca.launcher.gui.common.LocalPreferences;
+import com.application.areca.launcher.LocalPreferences;
 import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.application.areca.plugins.Plugin;
 import com.application.areca.plugins.PluginRegistry;
@@ -35,7 +35,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 

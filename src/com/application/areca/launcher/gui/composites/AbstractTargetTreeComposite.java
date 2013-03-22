@@ -27,8 +27,8 @@ import com.application.areca.AbstractWorkspaceItem;
 import com.application.areca.TargetGroup;
 import com.application.areca.Workspace;
 import com.application.areca.WorkspaceItem;
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.Application;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.application.areca.launcher.gui.resources.ResourceManager;
@@ -41,7 +41,7 @@ import com.application.areca.launcher.gui.resources.ResourceManager;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -122,7 +122,7 @@ implements MouseListener, Listener {
     public void synchronizeHistory() {
     	if (txtPath != null){
 	    	txtPath.removeAll();
-	        Stack h = ApplicationPreferences.getWorkspaceHistory();
+	        Stack h = ArecaUserPreferences.getWorkspaceHistory();
 	        for (int i=0; i<h.size(); i++) {
 	        	txtPath.add((String)h.get(i));
 	        }

@@ -1,19 +1,13 @@
 package com.application.areca.launcher.gui;
 
-import java.io.File;
-import java.io.IOException;
-
 import javax.swing.JOptionPane;
 
-import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.ArecaFileConstants;
-import com.application.areca.Utils;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
+import com.application.areca.launcher.AbstractArecaLauncher;
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.version.VersionInfos;
-import com.myJava.file.FileTool;
 import com.myJava.system.OSTool;
 import com.myJava.util.log.Logger;
-import com.myJava.util.taskmonitor.TaskCancelledException;
 
 /**
  * <BR>
@@ -23,7 +17,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -51,27 +45,6 @@ public class Launcher extends AbstractArecaLauncher {
 	}
 
 	public static void main(String[] args) {   
-
-/*
-		try {
-			String src = "C:\\Users\\Olivier\\Desktop\\src\\todo_areca_mutate.TXT";
-			File f = new File(src);
-			long lm = f.lastModified();
-
-			int i1 = Math.abs((int)(10000*Math.random())) % 10;
-			int i2 = Math.abs((int)(10000*Math.random())) % 10;
-			int i3 = Math.abs((int)(10000*Math.random())) % 10;
-			
-			String content = "contenu nr " + i1 + "" + i2 + "" + i3;
-			FileTool.getInstance().createFile(new File(src), content);
-			if (lm > 0) {
-				f.setLastModified(lm);
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-*/
     	getInstance().launch(args);
     	getInstance().exit();
     }
@@ -141,8 +114,9 @@ public class Launcher extends AbstractArecaLauncher {
     	if (opt.toString().length() != 0) {
             Logger.defaultLogger().info("Parameters detected : " + opt.toString());
     	}
-    	ApplicationPreferences.initialize(opt.configurationDirectory == null ? System.getProperty("user.home") : opt.configurationDirectory);
-    	
+    	ArecaUserPreferences.initialize(opt.configurationDirectory == null ? System.getProperty("user.home") : opt.configurationDirectory);
+		ArecaUserPreferences.setLaunchCount(ArecaUserPreferences.getLaunchCount() + 1);
+		
         boolean killOnError = true;
         try {
             String workspace = null;
@@ -150,12 +124,12 @@ public class Launcher extends AbstractArecaLauncher {
             if (opt.workspace != null && opt.workspace.trim().length() != 0) {
                 workspace = opt.workspace;
             } else {
-	            switch (ApplicationPreferences.getStartupMode()) {
-	            case ApplicationPreferences.LAST_WORKSPACE_MODE:
-	                workspace = ApplicationPreferences.getLastWorkspace();
+	            switch (ArecaUserPreferences.getStartupMode()) {
+	            case ArecaUserPreferences.LAST_WORKSPACE_MODE:
+	                workspace = ArecaUserPreferences.getLastWorkspace();
 	                break;
-	            case ApplicationPreferences.DEFAULT_WORKSPACE_MODE:
-	                workspace = ApplicationPreferences.getDefaultWorkspace();
+	            case ArecaUserPreferences.DEFAULT_WORKSPACE_MODE:
+	                workspace = ArecaUserPreferences.getDefaultWorkspace();
 	                break;
 	            }
 	            

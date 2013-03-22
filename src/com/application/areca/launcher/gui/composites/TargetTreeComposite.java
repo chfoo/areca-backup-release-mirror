@@ -31,8 +31,8 @@ import com.application.areca.TargetGroup;
 import com.application.areca.Workspace;
 import com.application.areca.WorkspaceItem;
 import com.application.areca.adapters.ConfigurationListener;
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.Application;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.system.viewer.ViewerHandlerHelper;
@@ -46,7 +46,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -72,7 +72,7 @@ extends AbstractTargetTreeComposite {
 	protected Link more;
 
     public TargetTreeComposite(Composite parent) {
-        super(parent, false, ApplicationPreferences.isDisplayWSAddress());
+        super(parent, false, ArecaUserPreferences.isDisplayWSAddress());
         
         viewer.addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {

@@ -20,8 +20,8 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.Application;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.Refreshable;
@@ -44,7 +44,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -73,7 +73,7 @@ implements LogProcessor, Refreshable {
 	private Application application = Application.getInstance();
 	private int position = 0;
 	private Set displayedMessages = new HashSet();
-	private int logLevel = Math.min(ApplicationPreferences.getLogLevel(), Logger.defaultLogger().getLogLevel());
+	private int logLevel = Math.min(ArecaUserPreferences.getLogLevel(), Logger.defaultLogger().getLogLevel());
 	private boolean lockScroll = false;
 
 	private StyledText txtLog;
@@ -164,7 +164,7 @@ implements LogProcessor, Refreshable {
 		cboLogLevel.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				LogComposite.this.logLevel = Logger.LEVELS[cboLogLevel.getSelectionIndex()];
-				ApplicationPreferences.setLogLevel(LogComposite.this.logLevel);
+				ArecaUserPreferences.setLogLevel(LogComposite.this.logLevel);
 			}
 		});
 

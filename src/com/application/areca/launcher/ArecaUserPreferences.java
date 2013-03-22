@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui.common;
+package com.application.areca.launcher;
 
 import java.util.Locale;
 import java.util.Stack;
@@ -18,7 +18,7 @@ import com.myJava.system.OSTool;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -37,7 +37,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public final class ApplicationPreferences {
+public final class ArecaUserPreferences {
     private static final String STARTUP_DISPLAY_LOGICAL_VIEW = "startup.display.logical.view";
     private static final String STARTUP_MODE = "startup.mode";
 	private static final String STARTUP_WORKSPACE = "startup.workspace";
@@ -64,8 +64,8 @@ public final class ApplicationPreferences {
 	private static final String DISPLAY_TOOLBAR = "display.toolbar";
 	private static final String WS_HISTORY = "ws.history";
 	private static final String LAUNCH_COUNT = "launch.count";
-	private static final String DONATION_MSG_LAUNCH_COUNT = "donation.msg.launch.count";
-	private static final String DONATION_THRES = "donation.msg.threshold";
+	private static final String DONATION_MSG_DAY = "dnt.msg.day";
+	private static final String DONATION_THRES = "dnt.msg.threshold";
     
 	public static final int UNDEFINED = -1;
 	public static final int LAST_WORKSPACE_MODE = 0;
@@ -240,11 +240,11 @@ public final class ApplicationPreferences {
 	}
 	
 	public static int getDonationThreshold() {
-	    return LocalPreferences.instance().getInt(DONATION_THRES, 150);
+	    return LocalPreferences.instance().getInt(DONATION_THRES, 120);
 	}
 	
-	public static int getDonationMsgLaunchCount() {
-	    return LocalPreferences.instance().getInt(DONATION_MSG_LAUNCH_COUNT, 0);
+	public static int getDonationMsgDay() {
+	    return LocalPreferences.instance().getInt(DONATION_MSG_DAY, 0);
 	}
 	
 	public static int getLogLevel() {
@@ -284,8 +284,8 @@ public final class ApplicationPreferences {
 	    synchronizeClientConfigurations();
 	}
 	
-	public static void setDonationMsgLaunchCount(int cnt) {
-	    LocalPreferences.instance().set(DONATION_MSG_LAUNCH_COUNT, cnt);
+	public static void setDonationMsgDay(int cnt) {
+	    LocalPreferences.instance().set(DONATION_MSG_DAY, cnt);
 	    synchronizeClientConfigurations();
 	}
 	

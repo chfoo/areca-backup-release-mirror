@@ -8,8 +8,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.resources.ResourceManager;
 
@@ -21,7 +21,7 @@ import com.application.areca.launcher.gui.resources.ResourceManager;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -94,7 +94,7 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() {    
-        ApplicationPreferences.setDisplayMessage(key, ! this.chkDoNotShowAgain.getSelection());
+        ArecaUserPreferences.setDisplayMessage(key, ! this.chkDoNotShowAgain.getSelection());
         this.close();
     }
 

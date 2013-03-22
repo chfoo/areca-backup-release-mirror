@@ -54,9 +54,9 @@ import com.application.areca.impl.copypolicy.AlwaysOverwriteCopyPolicy;
 import com.application.areca.impl.copypolicy.AskBeforeOverwriteCopyPolicy;
 import com.application.areca.impl.copypolicy.NeverOverwriteCopyPolicy;
 import com.application.areca.impl.copypolicy.OverwriteIfNewerCopyPolicy;
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ActionConstants;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.CTabFolderManager;
 import com.application.areca.launcher.gui.common.SecuredRunner;
@@ -97,7 +97,7 @@ import com.myJava.util.xml.AdapterException;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -222,13 +222,13 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			showDoNotShowAgainWindow(RM.getLabel("common.java.vendor.title"),
 					RM.getLabel("common.java.vendor.message",
 							new Object[] { OSTool.getJavaVendor() }),
-					ApplicationPreferences.DISPLAY_JAVA_VENDOR_MESSAGE);
+					ArecaUserPreferences.DISPLAY_JAVA_VENDOR_MESSAGE);
 		}
 	}
 
 	public void showDoNotShowAgainWindow(String title, String message,
 			String key) {
-		if (ApplicationPreferences.isDisplayMessage(key)) {
+		if (ArecaUserPreferences.isDisplayMessage(key)) {
 			DoNotShowAgainWindow frm = new DoNotShowAgainWindow(title, message,
 					key);
 			showDialog(frm);
@@ -623,7 +623,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 														.getViewerHandler()
 														.open(f);
 											} catch (Throwable e) {
-												if (ApplicationPreferences.hasEditionCommand()) {
+												if (ArecaUserPreferences.hasEditionCommand()) {
 													Logger.defaultLogger().fine("No default viewer found for "+ FileSystemManager.getDisplayPath(f)+ ". Launching text viewer.");
 													launchFileEditor(FileSystemManager.getAbsolutePath(f),true);
 												} else {
@@ -742,7 +742,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 
 	public void launchFileEditor(String path, boolean async) {
 		path = path.replace('\\', '/');
-		String editCommand = ApplicationPreferences.getEditionCommand();
+		String editCommand = ArecaUserPreferences.getEditionCommand();
 		try {
 			Logger.defaultLogger().info("Launching '" + editCommand + "' on file '" + path + "'");
 			String[] cmd;
@@ -830,15 +830,15 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 						FileSystemManager.getAbsolutePath(new File(path)),
 						this, true);
 
-				Stack s = ApplicationPreferences.getWorkspaceHistory();
+				Stack s = ArecaUserPreferences.getWorkspaceHistory();
 				String normalizedPath = FileNameUtil.normalizePath(path);
 				if (!s.contains(normalizedPath)) {
 					s.add(0, normalizedPath);
 				}
-				while (s.size() > ApplicationPreferences.MAX_HISTORY_SIZE) {
+				while (s.size() > ArecaUserPreferences.MAX_HISTORY_SIZE) {
 					s.remove(s.size() - 1);
 				}
-				ApplicationPreferences.setWorkspaceHistory(s);
+				ArecaUserPreferences.setWorkspaceHistory(s);
 
 				this.setWorkspace(w, true);
 			} catch (AdapterException e) {
@@ -856,7 +856,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 	}
 
 	public void checkVersion(final boolean explicit) {
-		if ((explicit || ApplicationPreferences.isCheckNewVersions())) {
+		if ((explicit || ArecaUserPreferences.isCheckNewVersions())) {
 			Runnable rn = new Runnable() {
 				public void run() {
 					try {
@@ -1613,7 +1613,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			this.mainWindow.refresh(true, true);
 		}
 
-		ApplicationPreferences.setLastWorkspace(workspace.getPath());
+		ArecaUserPreferences.setLastWorkspace(workspace.getPath());
 	}
 
 	public void enableWaitCursor(final AbstractWindow window) {

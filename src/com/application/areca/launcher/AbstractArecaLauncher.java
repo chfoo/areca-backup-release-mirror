@@ -1,9 +1,10 @@
-package com.application.areca;
+package com.application.areca.launcher;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.application.areca.ArecaConfiguration;
 import com.application.areca.version.VersionInfos;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.system.AbstractLauncher;
@@ -19,7 +20,7 @@ import com.myJava.util.log.ThreadLocalLogProcessor;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -59,12 +60,12 @@ extends AbstractLauncher {
         ArecaConfiguration.initialize();
     	Logger.defaultLogger().setTlLogProcessor(new ThreadLocalLogProcessor());
     	
-        Map javaargs = FrameworkConfiguration.getInstance().getJavaProperties();
-        if (javaargs != null) {
-            Iterator iter = javaargs.keySet().iterator();
+        Map javaArgs = FrameworkConfiguration.getInstance().getJavaProperties();
+        if (javaArgs != null) {
+            Iterator iter = javaArgs.keySet().iterator();
             while (iter.hasNext()) {
                 String key = (String)iter.next();
-                String value = (String)javaargs.get(key);
+                String value = (String)javaArgs.get(key);
                 Logger.defaultLogger().info("Overriding java property : [" + key + "] = [" + value + "]");
                 System.setProperty(key, value);
             }

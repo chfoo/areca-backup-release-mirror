@@ -19,7 +19,7 @@ import com.myJava.util.version.VersionData;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 390165751149466756L;
+		BUILD_ID = 8291566109997588475L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.2.18", new GregorianCalendar(2013, 2, 22), "Fixed freeze issues when trying to connect to unresponsive FTP/SFTP servers; Up-to-date Chinese and Japanese translations."));
 		VERSIONS.add(new VersionData("7.2.17", new GregorianCalendar(2012, 10, 17), "Minor GUI bugfixes."));
 		VERSIONS.add(new VersionData("7.2.16", new GregorianCalendar(2012, 10, 13), "Fixed SMTPs compatibility issue : Areca can now send the 'STARTTLS' command when establishing the connection; Fixed a bug on transaction points; Fixed a bug that could occur when handling files starting with a whitespace; Improved file modification detection : Areca can now inspect the files' content instead of relying on their attributes; Minor wizard improvements."));
 		VERSIONS.add(new VersionData("7.2.15", new GregorianCalendar(2012, 9, 30), "Minor technical bugfixes."));

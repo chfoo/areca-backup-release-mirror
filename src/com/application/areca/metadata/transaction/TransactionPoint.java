@@ -31,7 +31,7 @@ import com.myJava.util.xml.AdapterException;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -290,8 +290,8 @@ public class TransactionPoint implements Serializable {
 				InputStream fin = FileSystemManager.getFileInputStream(new File(computedPath, PROCESS_CONTEXT_FILE));
 				in = new ObjectInputStream(fin);
 				return (ProcessContext)in.readObject();
-			} catch (ClassNotFoundException e) {
-				Logger.defaultLogger().error(e);
+			} catch (Exception e) {
+				Logger.defaultLogger().error("Error while trying to read the transaction point contained in " + computedPath + ". If the error persist, please delete this directory.", e);
 				throw new IOException(e);
 			}
 		} finally {

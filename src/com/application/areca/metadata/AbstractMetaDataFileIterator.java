@@ -16,7 +16,7 @@ import com.myJava.file.iterator.FilePathComparator;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 

@@ -43,7 +43,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -184,6 +184,7 @@ public class SFTPProxy extends AbstractProxy {
 			session.setUserInfo(ui);
 			session.setDaemonThread(true);
 			session.setConfig("StrictHostKeyChecking", checkHostKey ? "yes":"no");
+			session.setTimeout(FrameworkConfiguration.getInstance().getSFTPTimeout());
 
 			Logger.defaultLogger().info("Trying to log in with user : " + this.login +  " ...");
 			debug("connect : login", login + "/" + password);

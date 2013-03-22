@@ -15,8 +15,8 @@ import org.eclipse.swt.widgets.Text;
 import com.application.areca.AbstractTarget;
 import com.application.areca.CheckParameters;
 import com.application.areca.MergeParameters;
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.metadata.manifest.Manifest;
 
@@ -28,7 +28,7 @@ import com.application.areca.metadata.manifest.Manifest;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -175,8 +175,8 @@ extends AbstractWindow {
         pnl.setLayoutData(ldPnl);
 
         // INIT DATA
-        txtLocation.setText(ApplicationPreferences.getMergeSpecificLocation(application.getCurrentWorkspaceItem().getUid()));
-        if (ApplicationPreferences.getMergeUseSpecificLocation(application.getCurrentWorkspaceItem().getUid())) {
+        txtLocation.setText(ArecaUserPreferences.getMergeSpecificLocation(application.getCurrentWorkspaceItem().getUid()));
+        if (ArecaUserPreferences.getMergeUseSpecificLocation(application.getCurrentWorkspaceItem().getUid())) {
             radUseSpecificLocation.setSelection(true);
         } else {
             radUseDefaultLocation.setSelection(true);
@@ -208,8 +208,8 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() {
-		ApplicationPreferences.setMergeUseSpecificLocation(radUseSpecificLocation.getSelection(), application.getCurrentWorkspaceItem().getUid());
-		ApplicationPreferences.setMergeSpecificLocation(txtLocation.getText(), application.getCurrentWorkspaceItem().getUid());
+		ArecaUserPreferences.setMergeUseSpecificLocation(radUseSpecificLocation.getSelection(), application.getCurrentWorkspaceItem().getUid());
+		ArecaUserPreferences.setMergeSpecificLocation(txtLocation.getText(), application.getCurrentWorkspaceItem().getUid());
 		
         this.manifest.setDescription(this.txtDescription.getText());
         this.manifest.setTitle(this.txtTitle.getText());  

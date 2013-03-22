@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.util.Iterator;
 
 import com.application.areca.adapters.ConfigurationHandler;
+import com.application.areca.launcher.LocalPreferences;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.MissingDataListener;
-import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -26,7 +26,7 @@ import com.myJava.util.xml.AdapterException;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 

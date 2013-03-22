@@ -5,7 +5,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
+import com.application.areca.launcher.ArecaUserPreferences;
 
 /**
  * <BR>
@@ -15,7 +15,7 @@ import com.application.areca.launcher.gui.common.ApplicationPreferences;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -52,7 +52,7 @@ extends AppActionReferenceHolder {
     }
     
     public static void addOpenItems(ToolBar bar) {
-        if (! ApplicationPreferences.isDisplayWSAddress()) {
+        if (! ArecaUserPreferences.isDisplayWSAddress()) {
         	buildToolItem(AC_OPEN, bar);
         }
         buildToolItem(AC_PREFERENCES, bar);       

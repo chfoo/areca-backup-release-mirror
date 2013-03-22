@@ -17,11 +17,12 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.launcher.ArecaUserPreferences;
+import com.application.areca.launcher.LocalPreferences;
+import com.application.areca.launcher.gui.donation.GUIDonationHelper;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
-import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.launcher.gui.composites.AbstractTabComposite;
 import com.application.areca.launcher.gui.composites.HistoryComposite;
 import com.application.areca.launcher.gui.composites.IndicatorsComposite;
@@ -32,7 +33,6 @@ import com.application.areca.launcher.gui.composites.ProgressComposite;
 import com.application.areca.launcher.gui.composites.PropertiesComposite;
 import com.application.areca.launcher.gui.composites.SearchComposite;
 import com.application.areca.launcher.gui.composites.TargetTreeComposite;
-import com.application.areca.launcher.gui.donation.DonationHelper;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.application.areca.launcher.gui.menus.MenuBuilder;
 import com.application.areca.launcher.gui.menus.ToolBarBuilder;
@@ -47,7 +47,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -104,7 +104,7 @@ public class MainWindow extends AbstractWindow {
             public void handleEvent(Event event) {
                 application.checkSystem();
                 application.checkVersion(false);
-                DonationHelper.handleDonationMessage();
+                GUIDonationHelper.handleDonationMessage();
                 if (workspacePath != null) {
                 	application.openWorkspace(workspacePath);
                 }
@@ -122,7 +122,7 @@ public class MainWindow extends AbstractWindow {
         mainLayout.verticalSpacing = 2;
         composite.setLayout(mainLayout);
 
-        if (ApplicationPreferences.isDisplayToolBar()) {
+        if (ArecaUserPreferences.isDisplayToolBar()) {
         	ToolBarBuilder.buildMainToolBar(composite);
         }
 
@@ -157,7 +157,7 @@ public class MainWindow extends AbstractWindow {
         addFolderItem(RM.getLabel("mainpanel.log.label"), ArecaImages.ICO_TAB_LOG, new LogComposite(tabs));
         addFolderItem(RM.getLabel("mainpanel.progress.label"), ArecaImages.ICO_CHANNEL, progressContainer);
 
-        int selectedTab = ApplicationPreferences.isDisplayLogicalViewOnStartup() ? TAB_LOGICAL : TAB_PHYSICAL;
+        int selectedTab = ArecaUserPreferences.isDisplayLogicalViewOnStartup() ? TAB_LOGICAL : TAB_PHYSICAL;
         tabs.setSelection(selectedTab);
         application.getFolderMonitor().handleSelection(tabs.getItem(selectedTab));
         

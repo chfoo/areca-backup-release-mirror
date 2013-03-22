@@ -17,8 +17,8 @@ import com.application.areca.CheckParameters;
 import com.application.areca.SupportedBackupTypes;
 import com.application.areca.TargetGroup;
 import com.application.areca.WorkspaceItem;
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.metadata.manifest.Manifest;
 
@@ -30,7 +30,7 @@ import com.application.areca.metadata.manifest.Manifest;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -216,8 +216,8 @@ extends AbstractWindow {
 
 		// Default parameters
 		chkCheckArchive.setSelection(true);
-        txtLocation.setText(ApplicationPreferences.getCheckSpecificLocation(scope.getUid()));
-        if (ApplicationPreferences.isCheckForceDefaultLocation(scope.getUid())) {
+        txtLocation.setText(ArecaUserPreferences.getCheckSpecificLocation(scope.getUid()));
+        if (ArecaUserPreferences.isCheckForceDefaultLocation(scope.getUid())) {
             radUseDefaultLocation.setSelection(true);
         } else {
             radUseSpecificLocation.setSelection(true);
@@ -262,8 +262,8 @@ extends AbstractWindow {
 	}
 
 	protected void saveChanges() {
-		ApplicationPreferences.setCheckForceDefaultLocation(radUseDefaultLocation.getSelection(), scope.getUid());
-		ApplicationPreferences.setCheckSpecificLocation(txtLocation.getText(), scope.getUid());
+		ArecaUserPreferences.setCheckForceDefaultLocation(radUseDefaultLocation.getSelection(), scope.getUid());
+		ArecaUserPreferences.setCheckSpecificLocation(txtLocation.getText(), scope.getUid());
 		
 		if (chkManifest != null && chkManifest.getSelection()) {
 			if (this.manifest == null) {

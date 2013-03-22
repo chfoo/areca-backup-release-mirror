@@ -99,7 +99,7 @@ import com.myJava.util.threadmonitor.ThreadMonitorItem;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -1040,6 +1040,7 @@ implements TargetActions {
 	public void open(Manifest manifest, TransactionPoint transactionPoint, ProcessContext context) throws ApplicationException { 
 		//Chronometer.instance().start("open_to_commit");
 		//Chronometer.instance().start("open");
+		
 		try {  
 			if (transactionPoint == null) {
 

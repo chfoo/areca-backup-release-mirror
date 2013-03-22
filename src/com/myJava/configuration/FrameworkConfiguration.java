@@ -23,7 +23,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -243,6 +243,11 @@ public class FrameworkConfiguration {
      */
     public static String KEY_POSIX_MTD_ACCESSOR_ARGS = "posix.def.metadata.accessor.args";
     
+    /**
+     * SFTP timeout
+     */
+    public static String KEY_SFTP_TIMEOUT = "sftp.timeout";
+    
     public static int DEF_ENCRYPTION_KG_ITER = 96731;
     public static String DEF_ENCRYPTION_KG_SALT = "ù%${{²]}}[|`è€$£^¤*!§:/..;;,,_?\"\\°à@@%µ";
     public static String DEF_ENCRYPTION_KG_SALT_ENC = "UTF-8";
@@ -283,6 +288,7 @@ public class FrameworkConfiguration {
     public static int DEF_MAX_INLINE_LOG_MESSAGES = 200; 
     public static int DEF_INLINE_LOG_LEVEL = 3; // WARNING 
     public static String DEF_POSIX_MTD_ACCESSOR_ARGS = "-ald1";
+    public static int DEF_SFTP_TIMEOUT = 5000;
     
     
     private static String VM_PROPS_PREFIX = "launcher.d.";
@@ -349,6 +355,10 @@ public class FrameworkConfiguration {
     
     public int getEncryptionKGIters() {
     	return getProperty(KEY_ENCRYPTION_KG_ITER, DEF_ENCRYPTION_KG_ITER);
+    }
+    
+    public int getSFTPTimeout() {
+    	return getProperty(KEY_SFTP_TIMEOUT, DEF_SFTP_TIMEOUT);
     }
     
     public String getTemporaryDirectory() {
@@ -500,7 +510,7 @@ public class FrameworkConfiguration {
         return getProperty(KEY_SSE_PROTOCOLS, DEF_SSE_PROTOCOLS);
     }
     
-    protected String getProperty(String key, String defaultValue) {
+    public String getProperty(String key, String defaultValue) {
         String p = props.getProperty(key);
         if (p == null) {
             return defaultValue;
@@ -513,7 +523,7 @@ public class FrameworkConfiguration {
         return getProperty(KEY_DELTA_LINKEDLIST_BUFFER_SIZE, DEF_DELTA_LINKEDLIST_BUFFER_SIZE);
     }
     
-    protected boolean getProperty(String key, boolean defaultValue) {
+    public boolean getProperty(String key, boolean defaultValue) {
         String p = props.getProperty(key);
         if (p == null) {
             return defaultValue;
@@ -522,7 +532,7 @@ public class FrameworkConfiguration {
         }
     }
     
-    protected int getProperty(String key, int defaultValue) {
+    public int getProperty(String key, int defaultValue) {
         String p = props.getProperty(key);
         if (p == null) {
             return defaultValue;
@@ -531,7 +541,7 @@ public class FrameworkConfiguration {
         }
     }
     
-    protected long getProperty(String key, long defaultValue) {
+    public long getProperty(String key, long defaultValue) {
         String p = props.getProperty(key);
         if (p == null) {
             return defaultValue;
@@ -540,7 +550,7 @@ public class FrameworkConfiguration {
         }
     }
     
-    protected double getProperty(String key, double defaultValue) {
+    public double getProperty(String key, double defaultValue) {
         String p = props.getProperty(key);
         if (p == null) {
             return defaultValue;
@@ -549,7 +559,7 @@ public class FrameworkConfiguration {
         }
     }
     
-    protected String[] getProperty(String key, String[] defaultValue) {
+    public String[] getProperty(String key, String[] defaultValue) {
         String p = props.getProperty(key);
         if (p == null) {
             return defaultValue;

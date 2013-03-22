@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.AbstractTarget;
 import com.application.areca.ActionProxy;
 import com.application.areca.ArecaConfiguration;
@@ -21,6 +20,9 @@ import com.application.areca.impl.FileSystemTarget;
 import com.application.areca.impl.copypolicy.AbstractCopyPolicy;
 import com.application.areca.impl.copypolicy.AlwaysOverwriteCopyPolicy;
 import com.application.areca.impl.copypolicy.NeverOverwriteCopyPolicy;
+import com.application.areca.launcher.AbstractArecaLauncher;
+import com.application.areca.launcher.ArecaUserPreferences;
+import com.application.areca.launcher.LocalPreferences;
 import com.application.areca.metadata.manifest.Manifest;
 import com.application.areca.metadata.transaction.ConditionalTransactionHandler;
 import com.application.areca.metadata.transaction.NoTransactionHandler;
@@ -46,7 +48,7 @@ import com.myJava.util.xml.AdapterException;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -90,6 +92,12 @@ implements CommandConstants {
 		Logger.defaultLogger().remove(ConsoleLogProcessor.class);
 		UserCommandLine command = null;
 		try {
+			try {
+		    	ArecaUserPreferences.initialize(System.getProperty("user.home"));
+				ArecaUserPreferences.setLaunchCount(ArecaUserPreferences.getLaunchCount() + 1);
+				LocalPreferences.instance().save();
+			} catch (Exception ignored) {
+			}
 			command = new UserCommandLine(args);
 			command.parse();
 

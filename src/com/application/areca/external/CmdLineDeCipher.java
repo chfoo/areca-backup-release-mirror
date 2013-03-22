@@ -3,9 +3,9 @@ package com.application.areca.external;
 import java.io.File;
 import java.io.IOException;
 
-import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.ApplicationException;
 import com.application.areca.impl.policy.EncryptionPolicy;
+import com.application.areca.launcher.AbstractArecaLauncher;
 import com.application.areca.version.VersionInfos;
 import com.myJava.commandline.BooleanCmdLineOption;
 import com.myJava.commandline.CmdLineParserException;
@@ -27,7 +27,7 @@ import com.myJava.file.iterator.FileSystemIterator;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 

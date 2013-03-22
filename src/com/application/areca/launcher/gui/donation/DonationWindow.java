@@ -8,8 +8,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.composites.DonationLink;
@@ -22,7 +22,7 @@ import com.application.areca.launcher.gui.composites.DonationLink;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -53,7 +53,7 @@ extends AbstractWindow {
         
         Label lbl = new Label(composite, SWT.NONE);
         lbl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        lbl.setText("You have used Areca-Backup more than " + ApplicationPreferences.getLaunchCount() + " times since its installation on your computer.\nIf you find Areca useful, please consider making a donation to support the time that has been (and still is) spent on it.");
+        lbl.setText("You have used Areca-Backup more than " + ArecaUserPreferences.getLaunchCount() + " times since its installation on your computer.\nIf you find Areca useful, please consider making a donation to support the time that has been (and still is) spent on it.");
         
         Link lnk = DonationLink.build(composite);
         lnk.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false));

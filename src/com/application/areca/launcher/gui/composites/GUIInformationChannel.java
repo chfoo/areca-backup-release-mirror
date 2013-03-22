@@ -16,9 +16,9 @@ import org.eclipse.swt.widgets.ProgressBar;
 import com.application.areca.AbstractTarget;
 import com.application.areca.UserInformationChannel;
 import com.application.areca.context.ProcessContext;
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ReportWindow;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.ArecaImages;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.SecuredRunner;
@@ -34,7 +34,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -70,7 +70,7 @@ implements UserInformationChannel, Colors, Listener {
 	private boolean running;
 	private String stateBeforePause = "";
 	private String currentMessage = "";
-	private boolean synthetic = ApplicationPreferences.isInformationSynthetic();
+	private boolean synthetic = ArecaUserPreferences.isInformationSynthetic();
 	private String action;
 
 	public GUIInformationChannel(AbstractTarget target, Composite parent) {
@@ -174,8 +174,13 @@ implements UserInformationChannel, Colors, Listener {
 	public void completionChanged(final TaskMonitor task) {
 		SecuredRunner.execute(parent, new Runnable() {
 			public void run() {
-				int pc = (int)(100 * task.getGlobalCompletionRate());
-				pgbProgress.setSelection(pc);
+				try {
+					int pc = (int)(100 * task.getGlobalCompletionRate());
+					pgbProgress.setSelection(pc);
+				} catch (Exception e) {
+					// Non blocking error - just log it
+					Logger.defaultLogger().error(e);
+				}
 			}
 		});
 	}

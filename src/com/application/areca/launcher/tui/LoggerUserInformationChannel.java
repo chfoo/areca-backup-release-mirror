@@ -14,7 +14,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -122,7 +122,12 @@ implements UserInformationChannel {
 	}
 
 	public void completionChanged(TaskMonitor task) {
-        this.updateProgress(100 * task.getGlobalCompletionRate());
+        try {
+			this.updateProgress(100 * task.getGlobalCompletionRate());
+		} catch (Exception e) {
+			// Non blocking error - just log it
+			Logger.defaultLogger().error(e);
+		}
     }
     
     public void cancellableChanged(TaskMonitor task) {

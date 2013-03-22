@@ -14,8 +14,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.resources.ResourceManager;
 
@@ -27,7 +27,7 @@ import com.application.areca.launcher.gui.resources.ResourceManager;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -73,7 +73,7 @@ extends AbstractWindow {
         
         location = new Text(grpLocation, SWT.BORDER);
         location.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        location.setText(ApplicationPreferences.getLastWorkspaceCopyLocation());
+        location.setText(ArecaUserPreferences.getLastWorkspaceCopyLocation());
         monitorControl(location);
         
         Button btnBrowse = new Button(grpLocation, SWT.PUSH);
@@ -90,7 +90,7 @@ extends AbstractWindow {
 
         removeEncryption = new Button(composite, SWT.CHECK);
         removeEncryption.setText(RM.getLabel("cpws.removeencryption.label"));
-        removeEncryption.setSelection(ApplicationPreferences.getLastWorkspaceCopyMask());
+        removeEncryption.setSelection(ArecaUserPreferences.getLastWorkspaceCopyMask());
         monitorControl(SWT.Selection, removeEncryption);
 
         SavePanel pnlSave = new SavePanel(this);
@@ -115,8 +115,8 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() {       
-        ApplicationPreferences.setLastWorkspaceCopyLocation(location.getText());
-        ApplicationPreferences.setLastWorkspaceCopyMask(removeEncryption.getSelection());
+        ArecaUserPreferences.setLastWorkspaceCopyLocation(location.getText());
+        ArecaUserPreferences.setLastWorkspaceCopyMask(removeEncryption.getSelection());
         
         application.createWorkspaceCopy(new File(location.getText()), removeEncryption.getSelection());
         

@@ -17,7 +17,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -127,8 +127,7 @@ public class TaskMonitor implements Serializable {
         if (currentSubTask == null) {
             return this.currentCompletionRate;
         } else {
-            return Math.min(1., this.currentCompletionRate 
-                    + this.currentSubTaskShare * this.currentSubTask.getGlobalCompletionRate());
+            return Math.min(1., this.currentCompletionRate + this.currentSubTaskShare * this.currentSubTask.getGlobalCompletionRate());
         }
     }
     

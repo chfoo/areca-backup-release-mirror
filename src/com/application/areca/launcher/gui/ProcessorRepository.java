@@ -29,7 +29,7 @@ import com.application.areca.processor.ShellScriptProcessor;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 

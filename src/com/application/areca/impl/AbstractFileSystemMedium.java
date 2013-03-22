@@ -62,7 +62,7 @@ import com.myJava.util.xml.AdapterException;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -670,8 +670,7 @@ implements TargetActions, IndicatorTypes {
 					if ((!isWorkingDirectory(archives[i]))
 							&& (matchArchiveName(archives[i]))
 							&& (!isCommitted(archives[i]))) {
-						TransactionPoint tp = TransactionPoint
-								.findLastTransactionPoint(getDataDirectory(archives[i]));
+						TransactionPoint tp = TransactionPoint.findLastTransactionPoint(getDataDirectory(archives[i]));
 
 						if (tp != null) {
 							TransactionPointHeader header = tp.readHeader();
@@ -686,42 +685,30 @@ implements TargetActions, IndicatorTypes {
 
 								// Check that the transaction point has been
 								// created after the last committed archive
-								if (lastManifest == null
-										|| tpDate.after(lastManifest.getDate())) {
+								if (lastManifest == null || tpDate.after(lastManifest.getDate())) {
 
 									// Check that the global source root hasn't
 									// changed since the transaction point
-									if (header.getSourcesRoot()
-											.equalsIgnoreCase(
-													target.getSourcesRoot())) {
+									if (header.getSourcesRoot().equalsIgnoreCase(target.getSourcesRoot())) {
 										// Check that the transaction point is
 										// younger than the current candidate
-										if (candidate == null
-												|| tpDate
-														.after(candidate
-																.readHeader()
-																.getDate())) {
+										if (candidate == null || tpDate.after(candidate.readHeader().getDate())) {
 											candidate = tp;
-											Logger.defaultLogger()
-													.fine("Transaction data registered.");
+											Logger.defaultLogger().fine("Transaction data registered.");
 										} else {
-											Logger.defaultLogger()
-													.fine("Transaction data ignored.");
+											Logger.defaultLogger().fine("Transaction data ignored.");
 										}
 									} else {
-										Logger.defaultLogger()
-												.fine("Transaction data rejected : incompatible source root ("
+										Logger.defaultLogger().fine("Transaction data rejected : incompatible source root ("
 														+ header.getSourcesRoot()
 														+ ")");
 									}
 								} else {
 									Logger.defaultLogger().fine(
-											"Transaction data rejected : older than last archive ("
-													+ lastArchive + ")");
+											"Transaction data rejected : older than last archive ("+ lastArchive + ")");
 								}
 							} else {
-								Logger.defaultLogger()
-										.fine("Transaction data rejected : no header file.");
+								Logger.defaultLogger().fine("Transaction data rejected : no header file.");
 							}
 						}
 					}

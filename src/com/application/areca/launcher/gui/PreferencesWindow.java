@@ -17,8 +17,8 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.TranslationData;
 import com.application.areca.Utils;
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.ListPane;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.resources.ResourceManager;
@@ -33,7 +33,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -96,11 +96,11 @@ extends AbstractWindow {
         
         lblPrfPath = new Link(composite, SWT.NONE);
         lblPrfPath.setLayoutData(new GridData(SWT.CENTER, SWT.FILL, true, false));
-        lblPrfPath.setText("<A HREF=\"\">" + ApplicationPreferences.getPath() + "</A>");
+        lblPrfPath.setText("<A HREF=\"\">" + ArecaUserPreferences.getPath() + "</A>");
         lblPrfPath.addListener (SWT.Selection, new Listener() {
             public void handleEvent(Event event) {
                 try {
-                    ViewerHandlerHelper.getViewerHandler().open(new File(ApplicationPreferences.getPath()));
+                    ViewerHandlerHelper.getViewerHandler().open(new File(ArecaUserPreferences.getPath()));
                 } catch (Exception e) {
                     Logger.defaultLogger().error(e);
                 }
@@ -128,7 +128,7 @@ extends AbstractWindow {
         lblDate.setToolTipText(RM.getLabel("preferences.dateformat.tt"));
         dateFormat = new Text(parent, SWT.BORDER);
         dateFormat.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        dateFormat.setText(ApplicationPreferences.getDateFormat() == null ? "" : ApplicationPreferences.getDateFormat());
+        dateFormat.setText(ArecaUserPreferences.getDateFormat() == null ? "" : ArecaUserPreferences.getDateFormat());
         dateFormat.setToolTipText(RM.getLabel("preferences.dateformat.tt"));
         monitorControl(dateFormat);
         
@@ -137,19 +137,19 @@ extends AbstractWindow {
         informationSynthetic = new Button(parent, SWT.CHECK);
         informationSynthetic.setText(RM.getLabel("preferences.synthetic.label"));
         informationSynthetic.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
-        informationSynthetic.setSelection(ApplicationPreferences.isInformationSynthetic());
+        informationSynthetic.setSelection(ArecaUserPreferences.isInformationSynthetic());
         monitorControl(informationSynthetic);
         
         showToolBar = new Button(parent, SWT.CHECK);
         showToolBar.setText(RM.getLabel("preferences.show.tb.label"));
         showToolBar.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
-        showToolBar.setSelection(ApplicationPreferences.isDisplayToolBar());
+        showToolBar.setSelection(ArecaUserPreferences.isDisplayToolBar());
         monitorControl(showToolBar);
         
         showWSPath = new Button(parent, SWT.CHECK);
         showWSPath.setText(RM.getLabel("preferences.show.ws.path.label"));
         showWSPath.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
-        showWSPath.setSelection(ApplicationPreferences.isDisplayWSAddress());
+        showWSPath.setSelection(ArecaUserPreferences.isDisplayWSAddress());
         monitorControl(showWSPath);
     }
     
@@ -162,8 +162,8 @@ extends AbstractWindow {
         
         openDefaultWorkspace = new Button(parent, SWT.RADIO);
         openDefaultWorkspace.setText(RM.getLabel("preferences.opendefaultworkspace.label"));
-        int startupMode = ApplicationPreferences.getStartupMode();
-        if (startupMode == ApplicationPreferences.UNDEFINED || startupMode == ApplicationPreferences.LAST_WORKSPACE_MODE) {
+        int startupMode = ArecaUserPreferences.getStartupMode();
+        if (startupMode == ArecaUserPreferences.UNDEFINED || startupMode == ArecaUserPreferences.LAST_WORKSPACE_MODE) {
             openLastWorkspace.setSelection(true);
         } else {
             openDefaultWorkspace.setSelection(true);
@@ -172,7 +172,7 @@ extends AbstractWindow {
         
         defaultWorkspace = new Text(parent, SWT.BORDER);
         defaultWorkspace.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        defaultWorkspace.setText(ApplicationPreferences.getDefaultWorkspace());
+        defaultWorkspace.setText(ArecaUserPreferences.getDefaultWorkspace());
         monitorControl(defaultWorkspace);
         
         Button btnBrowse = new Button(parent, SWT.PUSH);
@@ -190,14 +190,14 @@ extends AbstractWindow {
         
         showLogical = new Button(parent, SWT.CHECK);
         showLogical.setText(RM.getLabel("preferences.show.logical.label"));
-        showLogical.setSelection(ApplicationPreferences.isDisplayLogicalViewOnStartup());
+        showLogical.setSelection(ArecaUserPreferences.isDisplayLogicalViewOnStartup());
         showLogical.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
         monitorControl(showLogical);  
 
         checkNewVersions = new Button(parent, SWT.CHECK);
         checkNewVersions.setText(RM.getLabel("preferences.checkversions.label"));
         checkNewVersions.setToolTipText(RM.getLabel("preferences.checkversions.tt"));    
-        checkNewVersions.setSelection(ApplicationPreferences.isCheckNewVersions());
+        checkNewVersions.setSelection(ArecaUserPreferences.isCheckNewVersions());
         checkNewVersions.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 3, 1));
         monitorControl(checkNewVersions);  
     }
@@ -208,7 +208,7 @@ extends AbstractWindow {
         
         defaultArchiveStorage = new Text(parent, SWT.BORDER);
         defaultArchiveStorage.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        defaultArchiveStorage.setText(ApplicationPreferences.getDefaultArchiveStorage());
+        defaultArchiveStorage.setText(ArecaUserPreferences.getDefaultArchiveStorage());
         monitorControl(defaultArchiveStorage);
         
         Button btnBrowse = new Button(parent, SWT.PUSH);
@@ -227,20 +227,20 @@ extends AbstractWindow {
         lblEditor.setToolTipText(RM.getLabel("preferences.editor.tt", new Object[] {Application.TEXT_EDITOR_PLACE_HOLDER}));
         editor = new Text(parent, SWT.BORDER);
         editor.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-        editor.setText(ApplicationPreferences.getEditionCommand());
+        editor.setText(ArecaUserPreferences.getEditionCommand());
         editor.setToolTipText(RM.getLabel("preferences.editor.tt", new Object[] {Application.TEXT_EDITOR_PLACE_HOLDER}));
         monitorControl(editor);
         
         displayReport = new Button(parent, SWT.CHECK);
         displayReport.setText(RM.getLabel("preferences.displayreport.label"));
-        displayReport.setSelection(ApplicationPreferences.getDisplayReport());
+        displayReport.setSelection(ArecaUserPreferences.getDisplayReport());
         displayReport.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
         monitorControl(displayReport);
     }
     
     private void fillLangCombo() {
         try {
-        	String currentLg = ApplicationPreferences.resolveLanguage();
+        	String currentLg = ArecaUserPreferences.resolveLanguage();
 
         	TranslationData[] lges = Utils.getTranslations();
             for (int i=0; i<lges.length; i++) {
@@ -276,19 +276,19 @@ extends AbstractWindow {
     protected void saveChanges() {       
         if (langCombo.getSelectionIndex() != -1) {
             String lang = (String)langCombo.getItem(langCombo.getSelectionIndex());
-            ApplicationPreferences.setLang(((TranslationData)langCombo.getData(lang)).getLanguage());
+            ArecaUserPreferences.setLang(((TranslationData)langCombo.getData(lang)).getLanguage());
         }
-        ApplicationPreferences.setStartupMode(openLastWorkspace.getSelection() ? ApplicationPreferences.LAST_WORKSPACE_MODE : ApplicationPreferences.DEFAULT_WORKSPACE_MODE);
-        ApplicationPreferences.setDefaultWorkspace(defaultWorkspace.getText());
-        ApplicationPreferences.setDefaultArchiveStorage(defaultArchiveStorage.getText());
-        ApplicationPreferences.setDisplayReport(displayReport.getSelection());
-        ApplicationPreferences.setEditionCommand(editor.getText());
-        ApplicationPreferences.setInformationSynthetic(informationSynthetic.getSelection());
-        ApplicationPreferences.setDisplayLogicalViewOnStartup(showLogical.getSelection());
-        ApplicationPreferences.setDateFormat(dateFormat.getText());
-        ApplicationPreferences.setCheckNewVersion(checkNewVersions.getSelection());
-        ApplicationPreferences.setDisplayToolBar(showToolBar.getSelection());
-        ApplicationPreferences.setDisplayWSAddress(showWSPath.getSelection());
+        ArecaUserPreferences.setStartupMode(openLastWorkspace.getSelection() ? ArecaUserPreferences.LAST_WORKSPACE_MODE : ArecaUserPreferences.DEFAULT_WORKSPACE_MODE);
+        ArecaUserPreferences.setDefaultWorkspace(defaultWorkspace.getText());
+        ArecaUserPreferences.setDefaultArchiveStorage(defaultArchiveStorage.getText());
+        ArecaUserPreferences.setDisplayReport(displayReport.getSelection());
+        ArecaUserPreferences.setEditionCommand(editor.getText());
+        ArecaUserPreferences.setInformationSynthetic(informationSynthetic.getSelection());
+        ArecaUserPreferences.setDisplayLogicalViewOnStartup(showLogical.getSelection());
+        ArecaUserPreferences.setDateFormat(dateFormat.getText());
+        ArecaUserPreferences.setCheckNewVersion(checkNewVersions.getSelection());
+        ArecaUserPreferences.setDisplayToolBar(showToolBar.getSelection());
+        ArecaUserPreferences.setDisplayWSAddress(showWSPath.getSelection());
         
         this.hasBeenUpdated = false;
         this.close();

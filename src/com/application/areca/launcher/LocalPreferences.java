@@ -1,5 +1,5 @@
 
-package com.application.areca.launcher.gui.common;
+package com.application.areca.launcher;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,7 +28,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 

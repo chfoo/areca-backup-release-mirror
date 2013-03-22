@@ -70,12 +70,12 @@ import com.application.areca.impl.handler.DeltaArchiveHandler;
 import com.application.areca.impl.policy.DefaultFileSystemPolicy;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.application.areca.impl.policy.FileSystemPolicy;
+import com.application.areca.launcher.ArecaUserPreferences;
+import com.application.areca.launcher.LocalPreferences;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.Colors;
 import com.application.areca.launcher.gui.common.FileComparator;
 import com.application.areca.launcher.gui.common.ListPane;
-import com.application.areca.launcher.gui.common.LocalPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.composites.ProcessorsTable;
 import com.application.areca.launcher.gui.resources.ResourceManager;
@@ -108,7 +108,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -1429,7 +1429,7 @@ extends AbstractWindow {
 			cboDetectionMode.select(0);
 			rdSingle.setSelection(true);
 			selectEncoding(ZipConstants.DEFAULT_CHARSET);
-			processSelection(PLUGIN_HD, ApplicationPreferences.getDefaultArchiveStorage());
+			processSelection(PLUGIN_HD, ArecaUserPreferences.getDefaultArchiveStorage());
 			txtArchiveName.setText(DEFAULT_ARCHIVE_PATTERN);
 			cboWrapping.select(0);
 
@@ -1463,7 +1463,7 @@ extends AbstractWindow {
 		handleTransactionData();
 
 		// FREEZE
-		if (isFrozen(true)) {
+		if (isFrozen()) {
 			/*
 			Iterator iter = this.strRadio.keySet().iterator();
 			while (iter.hasNext()) {
@@ -1632,7 +1632,7 @@ extends AbstractWindow {
 		txtRootValue.setText(newPath);
 
 		// 1 : check the sources modification
-		if (isFrozen(false)) {
+		if (isFrozen()) {
 			String initialPath = ((FileSystemTarget)target).getSourceDirectory();
 			if (! newPath.equals(initialPath)) {
 				Application.getInstance().showWarningDialog(RM.getLabel("targetedition.rootwarning.message", new Object[] {initialPath, newPath}), RM.getLabel("targetedition.rootwarning.title"), false);
@@ -1780,7 +1780,7 @@ extends AbstractWindow {
 		if (
 				this.chkEncrypted.getSelection()
 				&& this.chkEncrypNames.getSelection()
-				&& (! this.isFrozen(false))
+				&& (! this.isFrozen())
 				&& (this.cboWrapping.getSelectionIndex() == -1)
 		) {
 			this.setInError(cboWrapping, RM.getLabel("error.field.mandatory"));
@@ -1790,7 +1790,7 @@ extends AbstractWindow {
 		this.resetErrorState(cboEncryptionAlgorithm);
 		if (
 				this.chkEncrypted.getSelection()
-				&& (! this.isFrozen(false))
+				&& (! this.isFrozen())
 				&& (this.cboEncryptionAlgorithm.getSelectionIndex() == -1)
 				) {
 			this.setInError(cboEncryptionAlgorithm, RM.getLabel("error.field.mandatory"));
@@ -1950,26 +1950,29 @@ extends AbstractWindow {
 			this.txtTransactionSize.setEnabled(false);
 		}
 	}
+	
+	private boolean frozen = false;
+	private boolean frozenSet = false;
 
 	/**
 	 * Indique si certaines zones sont desactivees ou non
 	 * @return
 	 */
-	protected boolean isFrozen(boolean showWarning) {
-		if (target == null) {
-			return false;
-		} else {
-			try {
-				return (((AbstractFileSystemMedium)target.getMedium()).listArchives(null, null, true).length != 0);
-			} catch (Throwable e) {
-				if (showWarning) {
+	protected boolean isFrozen() {
+		if (! frozenSet) {
+			if (target == null) {
+				frozen = false;
+			} else {
+				try {
+					frozen = (((AbstractFileSystemMedium)target.getMedium()).listArchives(null, null, true).length != 0);
+				} catch (Throwable e) {
 					this.application.handleException(RM.getLabel("targetedition.frozen.message"), e);
-				} else {
-					Logger.defaultLogger().error(e);
+					frozen = false;
 				}
-				return false;
 			}
+			frozenSet = true;
 		}
+		return frozen;
 	}
 
 	public AbstractTarget getTarget() {
@@ -2035,7 +2038,7 @@ extends AbstractWindow {
 			storagePolicy.setArchiveName(txtArchiveName.getText());
 			storagePolicy.validate(false);
 
-			if (isFrozen(false)) {
+			if (isFrozen()) {
 				newTarget.setMedium(target.getMedium(), false);
 				((AbstractIncrementalFileSystemMedium)newTarget.getMedium()).setFileSystemPolicy(storagePolicy);
 			} else {

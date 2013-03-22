@@ -23,8 +23,8 @@ import org.eclipse.swt.widgets.Text;
 import com.application.areca.AbstractTarget;
 import com.application.areca.CheckParameters;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.common.AbstractWindow;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.application.areca.launcher.gui.resources.ResourceManager;
@@ -38,7 +38,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -169,9 +169,9 @@ extends AbstractWindow {
         result.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         
         // INIT DATA
-        txtLocation.setText(ApplicationPreferences.getCheckSpecificLocation(application.getCurrentWorkspaceItem().getUid()));
+        txtLocation.setText(ArecaUserPreferences.getCheckSpecificLocation(application.getCurrentWorkspaceItem().getUid()));
         
-        if (ApplicationPreferences.isCheckForceDefaultLocation(application.getCurrentWorkspaceItem().getUid())) {
+        if (ArecaUserPreferences.isCheckForceDefaultLocation(application.getCurrentWorkspaceItem().getUid())) {
             radUseDefaultLocation.setSelection(true);
         } else {
             radUseSpecificLocation.setSelection(true);
@@ -263,8 +263,8 @@ extends AbstractWindow {
     }
 
     protected void saveChanges() { 
-		ApplicationPreferences.setCheckForceDefaultLocation(radUseDefaultLocation.getSelection(), application.getCurrentWorkspaceItem().getUid());
-		ApplicationPreferences.setCheckSpecificLocation(txtLocation.getText(), application.getCurrentWorkspaceItem().getUid());
+		ArecaUserPreferences.setCheckForceDefaultLocation(radUseDefaultLocation.getSelection(), application.getCurrentWorkspaceItem().getUid());
+		ArecaUserPreferences.setCheckSpecificLocation(txtLocation.getText(), application.getCurrentWorkspaceItem().getUid());
 		
     	this.viewer.setItemCount(0);
     	this.result.setText("");

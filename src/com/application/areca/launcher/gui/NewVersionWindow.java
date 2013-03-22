@@ -15,9 +15,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.ArecaURLs;
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.ArecaImages;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.system.viewer.ViewerHandlerHelper;
@@ -31,7 +31,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -96,7 +96,7 @@ extends AbstractWindow {
             checkNewVersions = new Button(ret, SWT.CHECK);
             checkNewVersions.setText(RM.getLabel("preferences.checkversions.label"));
             checkNewVersions.setToolTipText(RM.getLabel("preferences.checkversions.tt"));    
-            checkNewVersions.setSelection(ApplicationPreferences.isCheckNewVersions());
+            checkNewVersions.setSelection(ArecaUserPreferences.isCheckNewVersions());
             checkNewVersions.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false)); 
             
             GridData dt3 = new GridData(SWT.CENTER, SWT.BOTTOM, false, false);
@@ -160,12 +160,12 @@ extends AbstractWindow {
     }
 
     protected void cancelChanges() {
-        ApplicationPreferences.setCheckNewVersion(checkNewVersions.getSelection());
+        ArecaUserPreferences.setCheckNewVersion(checkNewVersions.getSelection());
         super.cancelChanges();
     }
 
     protected void saveChanges() {
-        ApplicationPreferences.setCheckNewVersion(checkNewVersions.getSelection());
+        ArecaUserPreferences.setCheckNewVersion(checkNewVersions.getSelection());
         validated = ! locked;
         this.close();
     }

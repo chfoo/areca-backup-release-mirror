@@ -1,7 +1,10 @@
 package com.application.areca.launcher.gui.donation;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
+import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.Application;
-import com.application.areca.launcher.gui.common.ApplicationPreferences;
 
 /**
  * <BR>
@@ -11,7 +14,7 @@ import com.application.areca.launcher.gui.common.ApplicationPreferences;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -30,19 +33,25 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class DonationHelper {
-	private static final int DONATION_INTERVAL = ApplicationPreferences.getDonationThreshold();
+public class GUIDonationHelper {
+	private static final int DONATION_INTERVAL = ArecaUserPreferences.getDonationThreshold();
+	private static final int LAUNCH_REQUIREMENT = (int)(0.25 * DONATION_INTERVAL);
 	
 	public static void handleDonationMessage() {
-		int launchCount = ApplicationPreferences.getLaunchCount();
-		ApplicationPreferences.setLaunchCount(launchCount+1);
-
-
-		int lastMsg = ApplicationPreferences.getDonationMsgLaunchCount();
-		int interval = launchCount - lastMsg;
+		GregorianCalendar cal = new GregorianCalendar();
+		int dayNumber = (cal.get(Calendar.YEAR)-2000)*365 + cal.get(Calendar.DAY_OF_YEAR);
 		
-		if (DONATION_INTERVAL != -1 && interval > DONATION_INTERVAL) {
-			ApplicationPreferences.setDonationMsgLaunchCount(launchCount);
+		int lastMsgDayNumber = ArecaUserPreferences.getDonationMsgDay();
+		int interval = dayNumber - lastMsgDayNumber;
+		
+		if (lastMsgDayNumber == 0) {
+			ArecaUserPreferences.setDonationMsgDay(dayNumber - (int)(0.75 * DONATION_INTERVAL));
+		} else if (
+				DONATION_INTERVAL != -1 
+				&& interval > DONATION_INTERVAL
+				&& ArecaUserPreferences.getLaunchCount() > LAUNCH_REQUIREMENT
+		) {
+			ArecaUserPreferences.setDonationMsgDay(dayNumber);
 			Application.getInstance().showDialog(new DonationWindow(), false);
 		}
 	}

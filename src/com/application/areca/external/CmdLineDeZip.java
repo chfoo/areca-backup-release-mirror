@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
-import com.application.areca.AbstractArecaLauncher;
 import com.application.areca.impl.tools.ArchiveReader;
+import com.application.areca.launcher.AbstractArecaLauncher;
 import com.application.areca.version.VersionInfos;
 import com.myJava.commandline.CmdLineParserException;
 import com.myJava.commandline.CommandLineParser;
@@ -24,7 +24,7 @@ import com.myJava.file.archive.zip64.ZipVolumeStrategy;
  */
 
  /*
- Copyright 2005-2011, Olivier PETRUCCI.
+ Copyright 2005-2013, Olivier PETRUCCI.
 
 This file is part of Areca.
 
