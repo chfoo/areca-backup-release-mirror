@@ -2,7 +2,7 @@ package com.myJava.file.delta.sequence;
 
 import com.myJava.file.delta.Constants;
 import com.myJava.file.delta.tools.HashTool;
-import com.myJava.file.delta.tools.LinkedList;
+import com.myJava.file.delta.tools.CircularList;
 
 /**
  * <BR>
@@ -40,7 +40,7 @@ implements ByteProcessor, Constants {
     private long position = 0;
     private int currentQuickHash = 0;
     private HashSequence ret;
-    private LinkedList block;
+    private CircularList block;
     private boolean closed = false;
     
     private long totalReadMod = 0;
@@ -73,7 +73,7 @@ implements ByteProcessor, Constants {
 
     public void open() {
         ret = new HashSequence(blockSize);
-        block = new LinkedList(blockSize);
+        block = new CircularList(blockSize);
     }
 
     public void processByte(byte read) {

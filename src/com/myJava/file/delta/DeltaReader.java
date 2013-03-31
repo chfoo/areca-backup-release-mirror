@@ -8,10 +8,11 @@ import java.util.List;
 
 import com.myJava.file.delta.sequence.ByteProcessor;
 import com.myJava.file.delta.sequence.ByteProcessorException;
+import com.myJava.file.delta.sequence.FileSequencerByteProcessor;
 import com.myJava.file.delta.sequence.HashSequence;
 import com.myJava.file.delta.sequence.HashSequenceEntry;
 import com.myJava.file.delta.tools.HashTool;
-import com.myJava.file.delta.tools.LinkedList;
+import com.myJava.file.delta.tools.CircularList;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 import com.myJava.util.taskmonitor.TaskMonitor;
 
@@ -51,16 +52,16 @@ public class DeltaReader implements Constants {
 	private InputStream in;
 	private String hashAlgorithm = HASH_ALG;
 	private DeltaProcessor[] processors;
-	private ByteProcessor bproc;
+	private FileSequencerByteProcessor bproc;
 
-	public DeltaReader(int blockSize, InputStream in, DeltaProcessor[] processors, ByteProcessor bproc) {
+	public DeltaReader(int blockSize, InputStream in, DeltaProcessor[] processors, FileSequencerByteProcessor bproc) {
 		this.blockSize = blockSize;
 		this.in = new BufferedInputStream(in, 10000);
 		this.processors = processors;
 		this.bproc = bproc;
 	}
 
-	public DeltaReader(HashSequence seq, InputStream in, DeltaProcessor[] processors, ByteProcessor bproc) {
+	public DeltaReader(HashSequence seq, InputStream in, DeltaProcessor[] processors, FileSequencerByteProcessor bproc) {
 		if (seq == null) {
 			throw new IllegalArgumentException("The hash sequence can't be null.");
 		}
@@ -84,9 +85,10 @@ public class DeltaReader implements Constants {
 	}
 
 	public void readNoSeq(TaskMonitor monitor) throws IOException, DeltaException, DeltaProcessorException, ByteProcessorException, TaskCancelledException {
-		LinkedList currentBlock = new LinkedList(blockSize);
+		CircularList currentBlock = new CircularList(blockSize);
 		long totalRead = 0;
 		long breakSize = -1;
+		boolean doRead = true;
 
 		for (int x=0; x<processors.length; x++) {
 			processors[x].begin();
@@ -97,17 +99,17 @@ public class DeltaReader implements Constants {
 		while (true) {
 			monitor.checkTaskState();
 
-			int read = in.read();
+			int read = doRead ? in.read() : -1;
 			byte bRead;
 			if (read == -1) {
 				if (totalRead == 0 || totalRead == breakSize) {
-					bRead = (byte)read;
 					break;
 				} else {
 					if (breakSize == -1) {
 						breakSize = totalRead + blockSize -1 ;
 					}
 					bRead = HashSequenceEntry.DEFAULT_BYTE;
+					doRead = false;
 				}
 			} else {
 				bRead = (byte)read;
@@ -117,10 +119,9 @@ public class DeltaReader implements Constants {
 			totalRead++;
 			currentBlock.add(bRead);
 
-			// Look for
 			if (totalRead >= blockSize) {
 				for (int x=0; x<processors.length; x++) {
-					processors[x].newByte((byte)currentBlock.getFirst());   
+					processors[x].newByte(currentBlock.getFirst());   
 				}
 			}
 		}
@@ -132,12 +133,13 @@ public class DeltaReader implements Constants {
 	}
 
 	public void readSeq(TaskMonitor monitor) throws IOException, DeltaException, DeltaProcessorException, ByteProcessorException, TaskCancelledException {
-		LinkedList currentBlock = new LinkedList(blockSize);
+		CircularList currentBlock = new CircularList(blockSize);
 		long totalRead = 0;
 		int currentQuickHash = 0;
 		long breakSize = -1;
 		long lastBlockIndex = -1;
 		long significant = blockSize;
+		boolean doRead = true;
 
 		for (int x=0; x<processors.length; x++) {
 			processors[x].begin();
@@ -148,11 +150,10 @@ public class DeltaReader implements Constants {
 		while (true) {
 			monitor.checkTaskState();
 
-			int read = in.read();
+			int read = doRead ? in.read() : -1;
 			byte bRead;
 			if (read == -1) {
 				if (totalRead == 0 || totalRead == breakSize) {
-					bRead = (byte)read;
 					break;
 				} else {
 					if (breakSize == -1) {
@@ -160,6 +161,7 @@ public class DeltaReader implements Constants {
 						significant = computeSig(totalRead);
 					}
 					bRead = HashSequenceEntry.DEFAULT_BYTE;
+					doRead = false;
 				}
 			} else {
 				bRead = (byte)read;
@@ -167,25 +169,22 @@ public class DeltaReader implements Constants {
 			}
 
 			totalRead++;
-			// Compute hash
-			if (totalRead > blockSize) {
-				currentQuickHash = HashTool.update(currentQuickHash, bRead, (byte)currentBlock.getFirst());
-			} else {
-				currentQuickHash = HashTool.hash(currentQuickHash, bRead);
-			}
-			currentBlock.add(bRead);
+			
+			// Register value and compute hash
+			currentQuickHash = currentBlock.addValueAndUpdateQuickHash(currentQuickHash, bRead);
 
 			// Look for
 			boolean found = false;
 			if (totalRead >= blockSize) {
-				if (seq.contains(currentQuickHash)) {
+				int idx = seq.getIndexIfExist(currentQuickHash);
+				if (idx != -1) {
 					byte[] fh = currentBlock.computeHash(hashAlgorithm);
-					List entries = seq.get(currentQuickHash, fh);
+					List entries = seq.get(currentQuickHash, idx, fh);
 					if (entries != null) {
-						Iterator iter = entries.iterator();
+
 						HashSequenceEntry candidate = null;
-						while (iter.hasNext()) {
-							HashSequenceEntry entry = (HashSequenceEntry)iter.next();
+						for (int e=0; e<entries.size(); e++) {
+							HashSequenceEntry entry = (HashSequenceEntry)entries.get(e);
 							if (entry.getIndex() > lastBlockIndex && (candidate == null || entry.getIndex() < candidate.getIndex())) {
 								candidate = entry;
 							}
@@ -208,6 +207,7 @@ public class DeltaReader implements Constants {
 							// go ahead (and reset all)
 							currentQuickHash = 0;
 							totalRead = 0;
+							currentBlock.reset();
 							found = true;
 							SUCCESS_COUNTER++;
 						} else {
@@ -221,7 +221,7 @@ public class DeltaReader implements Constants {
 
 				if (! found) {
 					for (int x=0; x<processors.length; x++) {
-						processors[x].newByte((byte)currentBlock.getFirst());   
+						processors[x].newByte(currentBlock.getFirst());   
 					}
 				}
 			}

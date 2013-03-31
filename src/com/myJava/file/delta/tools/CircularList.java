@@ -35,7 +35,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class LinkedList {
+public class CircularList {
 
     private boolean eof = false;
     private int maxSize;
@@ -43,12 +43,24 @@ public class LinkedList {
     private int currentIndex = 0;
     private int firstIndex = 0;
 
-    public LinkedList(int maxSize) {
+    public CircularList(int maxSize) {
         this.maxSize = maxSize;
         this.buffer = new byte[maxSize];
     }
+    
+    public void reset() {
+    	currentIndex = 0;
+    	firstIndex = 0;
+    	eof = false;
+    }
+    
+    public int addValueAndUpdateQuickHash(int currentHash, byte valueToBeAdded) {
+		byte removed = add(valueToBeAdded);
+		return HashTool.update(currentHash, valueToBeAdded, removed);
+    }
 
-    public void add(byte data) {       
+    public byte add(byte data) {     
+    	byte removed = eof ? buffer[currentIndex] : 0;
     	buffer[currentIndex] = data;
 
     	currentIndex++;
@@ -59,19 +71,12 @@ public class LinkedList {
     	} else if (eof) {
     		firstIndex = currentIndex;
     	}
+    	
+    	return removed;
     }
     
-    public int getFirst() {
+    public byte getFirst() {
     	return buffer[firstIndex];
-    }
-    
-    public int computeQuickHash() {
-        if (eof) {
-            int hash = HashTool.hash(0, buffer, firstIndex, maxSize - firstIndex);
-            return HashTool.hash(hash, buffer, 0, firstIndex);
-        } else {
-        	return HashTool.hash(0, buffer, 0, currentIndex);
-        }
     }
 
     public byte[] computeHash(String algorithm) {
@@ -117,7 +122,7 @@ public class LinkedList {
         int maxSize = 23;
         int maxValue = 200;
         
-        LinkedList lst = new LinkedList(maxSize);
+        CircularList lst = new CircularList(maxSize);
         for (int i=1; i<maxValue; i++) {
             lst.add((byte)i);
             System.out.println(lst.toString());

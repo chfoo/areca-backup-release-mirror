@@ -1,7 +1,7 @@
 package com.myJava.file.delta;
 
 import com.myJava.file.delta.sequence.HashSequenceEntry;
-import com.myJava.file.delta.tools.LinkedList;
+import com.myJava.file.delta.tools.CircularList;
 
 /**
  * <BR>
@@ -46,7 +46,7 @@ public class DefaultDeltaProcessor implements DeltaProcessor {
         }
     }
     
-    public void blockFound(HashSequenceEntry entry, LinkedList block) {
+    public void blockFound(HashSequenceEntry entry, CircularList block) {
         flush();
         System.out.println("Block found : " + entry.getIndex() + " - [" + block.toString().substring(0, entry.getSize()) + "]");
     }

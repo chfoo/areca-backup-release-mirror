@@ -60,19 +60,19 @@ public class HashSequence {
         return entries;
     }
     
-    public boolean contains(int quickHash) {
+    public int getIndexIfExist(int quickHash) {
         int index = computeIndex(quickHash);
         if (entries[index] == null) {
-            return false;
+            return -1;
         } else {
-            Iterator iter = entries[index].iterator();
-            while (iter.hasNext()) {
-                HashSequenceEntry entry = (HashSequenceEntry)iter.next();
+        	SimilarEntrySet set = entries[index];
+        	for (int i=0; i<set.size(); i++) {
+                HashSequenceEntry entry = (HashSequenceEntry)set.get(i);
                 if (entry.getQuickHash() == quickHash) {
-                    return true;
+                    return index;
                 }
             }
-            return false;
+            return -1;
         }
     }
 
@@ -87,15 +87,17 @@ public class HashSequence {
     /**
      * CAUTION : The return list is recycled before each call to this method.
      */
-    public List get(int quickHash, byte[] fullHash) {
+    public List get(int quickHash, int index, byte[] fullHash) {
         retList.clear();
-        int index = computeIndex(quickHash);
         if (entries[index] != null) {
-        	//Logger.defaultLogger().fine(entries[index].size() + " entries at index " + index + " for quick hash " + quickHash);
-            Iterator iter = entries[index].iterator();
-            while (iter.hasNext()) {
-                HashSequenceEntry entry = (HashSequenceEntry)iter.next();
+        	SimilarEntrySet set = entries[index];
+        	for (int e=0; e<set.size(); e++) {
+        		
+        		// Compare quick hash
+                HashSequenceEntry entry = (HashSequenceEntry)set.get(e);
                 if (entry.getQuickHash() == quickHash) {
+                	
+                	// Compare full hash
                     if (fullHash.length == entry.getFullHash().length) {
                         boolean eq = true;
                         for (int i=0; i<fullHash.length; i++) {

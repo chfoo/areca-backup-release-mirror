@@ -6,7 +6,7 @@ import java.io.OutputStream;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.delta.sequence.HashSequenceEntry;
 import com.myJava.file.delta.tools.IOHelper;
-import com.myJava.file.delta.tools.LinkedList;
+import com.myJava.file.delta.tools.CircularList;
 import com.myJava.util.log.Logger;
 
 /**
@@ -91,7 +91,7 @@ implements DeltaProcessor, Constants {
         }
     }
     
-    public void blockFound(HashSequenceEntry entry, LinkedList block) throws DeltaProcessorException {
+    public void blockFound(HashSequenceEntry entry, CircularList block) throws DeltaProcessorException {
 		if (DEBUG) {
 			Logger.defaultLogger().fine("Bucket found : index=" + entry.getIndex() + ", size=" + entry.getSize() + ", quickHash=" + entry.getQuickHash());
 		}

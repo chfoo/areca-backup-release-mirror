@@ -39,14 +39,10 @@ public class SimilarEntrySet {
     public void add(HashSequenceEntry entry) {
         entries.add(entry);
     }
-    
-    public Iterator iterator() {
-        return entries.iterator();
-    }
 
     public String toString() {
         StringBuffer sb = ToStringHelper.init(this);
-        Iterator iter = iterator();
+        Iterator iter = entries.iterator();
         int i = 0;
         while (iter.hasNext()) {
             ToStringHelper.append("Element" + i, iter.next(), sb);
@@ -57,5 +53,13 @@ public class SimilarEntrySet {
     
     public int size() {
     	return entries.size();
+    }
+    
+    public Iterator iterator() {
+    	return entries.iterator();
+    }
+    
+    public Object get(int idx) {
+    	return entries.get(idx);
     }
 }

@@ -1,7 +1,7 @@
 package com.myJava.file.delta;
 
 import com.myJava.file.delta.sequence.HashSequenceEntry;
-import com.myJava.file.delta.tools.LinkedList;
+import com.myJava.file.delta.tools.CircularList;
 
 /**
  * <BR>
@@ -34,7 +34,7 @@ public interface DeltaProcessor {
     public void begin() throws DeltaProcessorException;
     public void newBytes(byte[] data, int offset, int len) throws DeltaProcessorException;
     public void newByte(byte data) throws DeltaProcessorException;
-    public void blockFound(HashSequenceEntry entry, LinkedList block) throws DeltaProcessorException;
+    public void blockFound(HashSequenceEntry entry, CircularList block) throws DeltaProcessorException;
     public void blockFound(long readFrom, long readTo) throws DeltaProcessorException;
     public void bytesLost(long from, long to) throws DeltaProcessorException;
     public void end() throws DeltaProcessorException;
