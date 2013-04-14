@@ -216,6 +216,7 @@ public class DeltaReader implements Constants {
 						}
 					} else {
 						//Logger.defaultLogger().info("No entries found.");
+						FAILURE_COUNTER++;
 					}
 				}
 

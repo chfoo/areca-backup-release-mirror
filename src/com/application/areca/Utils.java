@@ -326,16 +326,17 @@ public class Utils implements ArecaFileConstants {
 
 	/**
 	 * Windows file paths are not case sensitive, but Areca IS.
-	 * <BR>In some cases, this can lead to errors -> we need to normalize file paths
+	 * <BR>In some cases, this can lead to errors when drive letters are in the wrong case -> we need to normalize file paths
 	 */
 	public static String normalizePath(String path) {
 		if (path == null || path.length() == 0) {
 			return path;
 		} else if (OSTool.isSystemWindows()) {
+			File f = new File(path);
 			try {
-				return FileSystemManager.getCanonicalPath(new File(path));
+				return FileSystemManager.getCanonicalPath(f);
 			} catch (IOException e) {
-				throw new IllegalArgumentException("Error caught while normalizing path : " + path, e);
+				return FileSystemManager.getAbsolutePath(f);
 			}
 		} else {
 			return path;
