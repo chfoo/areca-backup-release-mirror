@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 7959143375722376590L;
+		BUILD_ID = 6398502043275053232L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.3.2", new GregorianCalendar(2013, 4, 10), "Fixed a bug that could prevent backups to be resumed in case of error."));
 		VERSIONS.add(new VersionData("7.3.1", new GregorianCalendar(2013, 3, 14), "Fixed a bug that could prevent the workspace from loading when drives are disconnected."));
 		VERSIONS.add(new VersionData("7.3", new GregorianCalendar(2013, 2, 30), "Performance improvement on delta storage mode."));
 		VERSIONS.add(new VersionData("7.2.18", new GregorianCalendar(2013, 2, 22), "Fixed freeze issues when trying to connect to unresponsive FTP/SFTP servers; Up-to-date Chinese and Japanese translations."));

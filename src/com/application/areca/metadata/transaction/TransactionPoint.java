@@ -5,17 +5,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 
 import com.application.areca.ArecaConfiguration;
 import com.application.areca.ArecaFileConstants;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.FileSystemTarget;
+import com.application.areca.impl.tools.ArecaClassLoader;
 import com.application.areca.launcher.gui.common.FileComparator;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.trace.ArchiveTraceAdapter;
+import com.application.areca.plugins.Plugin;
+import com.application.areca.plugins.PluginRegistry;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -282,13 +288,63 @@ public class TransactionPoint implements Serializable {
 			}
 		}
 	}
+	
+	private static class TPObjectInputStream extends ObjectInputStream {
+
+		public TPObjectInputStream() throws IOException, SecurityException {
+			super();
+		}
+
+		public TPObjectInputStream(InputStream arg0) throws IOException {
+			super(arg0);
+		}
+
+		protected Class resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+			String name = desc.getName();
+			Class cls = null;
+			String strPlugins = "";
+			try {
+				cls = Class.forName(name);
+			} catch (ClassNotFoundException e) {
+				Iterator plugins = PluginRegistry.getInstance().getAll(Plugin.class, false).iterator();
+				while (plugins.hasNext()) {
+					Plugin plugin = (Plugin)plugins.next();
+					
+					String pluginName = plugin.getDisplayName();
+					if (pluginName == null || pluginName.length() == 0) {
+						pluginName = plugin.getId();
+					}
+					
+					if (strPlugins.length() != 0) {
+						strPlugins += ", ";
+					}
+					strPlugins += pluginName;
+					
+					ClassLoader cl = plugin.getClassLoader();
+					if (cl != null) {
+						try {
+							cls = cl.loadClass(name);
+							break;
+						} catch (ClassNotFoundException ignored) {
+						}
+					}
+				}
+			}
+			
+			if (cls == null) {
+				throw new ClassNotFoundException("Class " + name + " not found. (attempted to load from main class loader and the following plugins : " + strPlugins + ")");
+			}
+			
+			return cls;
+		}
+	}
 
 	public ProcessContext deserializeProcessContext(ProcessContext target) throws IOException {
-		ObjectInputStream in = null;
+		TPObjectInputStream in = null;
 		try {
 			try {
 				InputStream fin = FileSystemManager.getFileInputStream(new File(computedPath, PROCESS_CONTEXT_FILE));
-				in = new ObjectInputStream(fin);
+				in = new TPObjectInputStream(fin);
 				return (ProcessContext)in.readObject();
 			} catch (Exception e) {
 				Logger.defaultLogger().error("Error while trying to read the transaction point contained in " + computedPath + ". If the error persist, please delete this directory.", e);

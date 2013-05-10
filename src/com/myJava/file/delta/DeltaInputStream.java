@@ -78,7 +78,7 @@ implements Constants, LayerHandler {
     public long skip(long n) throws IOException {
         throw new UnsupportedOperationException();
     }
-
+    
     public int read(byte[] buffer, int off, int len) throws IOException {
         int read = 0;
 
@@ -89,7 +89,7 @@ implements Constants, LayerHandler {
         init.setReadTo(position + len - 1);
         init.setWriteOffset(off);
         instructionsToProcess.add(init);
-
+        
         for (int i=layers.size() - 1; i>=0; i--) {          // Iterate on all layers
             DeltaLayer layer = (DeltaLayer)layers.get(i);
             if (layer.getCurrentBucket() == null) {
@@ -107,15 +107,26 @@ implements Constants, LayerHandler {
                 }
                 
                 // Skip all buckets until we find an appropriate one
-                while (! (layer.getCurrentBucket().getFrom() <= from && layer.getCurrentBucket().getTo() >= from )) {
+                while (layer.getCurrentBucket() != null && (! (layer.getCurrentBucket().getFrom() <= from && layer.getCurrentBucket().getTo() >= from ))) {
                     Bucket bucket = layer.getCurrentBucket();
                     if (bucket.getSignature() == SIG_NEW) {
                         // If it is a "new bytes" bucket, skip the remaining bytes
                         NewBytesBucket current = (NewBytesBucket)bucket;
-                        IOHelper.skipFully(layer.getStream(), bucket.getLength() - current.getReadOffset());
+                        IOHelper.skipFully(layer.getStream(), current.getLength() - current.getReadOffset());
                     }
 
                     layer.readNextBucket();
+                    
+                    // Abnormal situation - log debug data
+                    if (layer.getCurrentBucket() == null) {
+                    	try {
+                    		Logger.defaultLogger().fine("Problem while reading layer=" + i + ", instruction=" + b + ", From=" + from + ", To=" + to);
+                    		logLayers(layers);
+                    		logInstructions(instructionsToProcess);
+                    	} catch (Exception e) {
+                    		Logger.defaultLogger().fine("Error while trying to reset inputstream : " + e.getMessage());
+                    	}
+                    }
                 }
 
                 // Process the bucket matching the from/to criteria
@@ -134,6 +145,7 @@ implements Constants, LayerHandler {
                             Logger.defaultLogger().error("Error processing instruction : " + instruction.toString() + ". Bucket is : " + current.toString());
                             throw new DeltaException("Incoherent read length : expected " + toWrite + ", got " + readBytes + " for diff-layer #" + i);
                         }
+
                         read += toWrite;
                         current.setReadOffset(current.getReadOffset() + toWrite + toSkip);
                     } else {
@@ -145,7 +157,7 @@ implements Constants, LayerHandler {
                         newInstruction.setReadFrom(current.getReadFrom() + toSkip);
                         newInstruction.setReadTo(newInstruction.getReadFrom() + toWrite - 1);
                         newInstruction.setWriteOffset(writeOffset);
-
+                        
                         // Add bucket for the next layer
                         tmp.add(newInstruction);
                     }
@@ -178,5 +190,24 @@ implements Constants, LayerHandler {
 
     public boolean markSupported() {
         return false;
+    }
+    
+    private static void logInstructions(List instructions) {
+    	Iterator iter = instructions.iterator();
+    	Logger.defaultLogger().fine("Start of instructions : ");
+    	int i=0;
+    	while (iter.hasNext()) {
+    		Logger.defaultLogger().fine("#" + (i++) + " : " + iter.next().toString());
+    	}
+    	Logger.defaultLogger().fine("End of instructions.");
+    }
+    
+    private static void logLayers(List layers) throws IOException {
+		Logger.defaultLogger().fine("Start of layers : ");	
+		for (int l = layers.size()-1; l>=0; l--) {
+        	String content = ((DeltaLayer)layers.get(l)).traverse();
+        	Logger.defaultLogger().fine("Layer content #" + l + ": [" + content + "]");
+		}
+		Logger.defaultLogger().fine("End of layers");	
     }
 }

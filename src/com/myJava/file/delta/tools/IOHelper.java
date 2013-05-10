@@ -89,7 +89,7 @@ public class IOHelper {
     		return 0;
     	}
 
-    	int nb = 0;
+    	long nb = 0;
     	while(nb < length && in.read() != -1) {
     		nb++;
     	}

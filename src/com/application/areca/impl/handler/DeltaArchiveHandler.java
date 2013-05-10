@@ -471,7 +471,6 @@ extends AbstractArchiveHandler {
 						in.addInputStream(FileSystemManager.getCachedFileInputStream(f2), localPath);
 						if (DEBUG) {
 							Logger.defaultLogger().fine("   Adding diff file : " + f2.getAbsolutePath());
-
 						}
 					}
 				}

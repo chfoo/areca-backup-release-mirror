@@ -54,6 +54,7 @@ implements Constants {
     public DeltaLayer(InputStream stream, String name) {
         this.stream = stream;
         this.name = name;
+        this.stream.mark(1024*1024*1024);
     }
 
     public InputStream getStream() {
@@ -104,6 +105,8 @@ implements Constants {
      * Read the whole content of the underlying stream and generates a String.
      */
     public String traverse() throws IOException {
+    	stream.reset();
+    	
         StringBuffer sb = new StringBuffer();
         readNextBucket();
         while (currentBucket != null) {
