@@ -33,12 +33,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public final class Logger {
-	public static final int[] LEVELS = new int[] {Logger.LOG_LEVEL_ERROR, Logger.LOG_LEVEL_WARNING, Logger.LOG_LEVEL_INFO, Logger.LOG_LEVEL_DETAIL};
-	public static final int LOG_LEVEL_ERROR = 1;
-	public static final int LOG_LEVEL_WARNING = 3;
-	public static final int LOG_LEVEL_INFO = 6;
-	public static final int LOG_LEVEL_DETAIL = 8;
+public final class Logger implements LogLevels {
+	public static final int[] LEVELS = new int[] {Logger.LOG_LEVEL_ERROR, Logger.LOG_LEVEL_WARNING, Logger.LOG_LEVEL_INFO, Logger.LOG_LEVEL_DETAIL,Logger.LOG_LEVEL_FINEST};
 	
 	private Object lock = this;
 	private ArrayList messages = new ArrayList();
@@ -246,11 +242,11 @@ public final class Logger {
 	}    
 
 	public void error(String message, String source) {
-		log(1, message, source);
+		log(LOG_LEVEL_ERROR, message, source);
 	}
 
 	public void error(String message) {
-		log(1, message, "");
+		log(LOG_LEVEL_ERROR, message, "");
 	}
 	
 	public void warn(String message, Throwable e) {
@@ -279,6 +275,14 @@ public final class Logger {
 
 	public void fine(String message) {
 		log(LOG_LEVEL_DETAIL, message, "");
+	}
+	
+	public void finest(String message) {
+		log(LOG_LEVEL_FINEST, message, "");
+	}
+	
+	public void finest(Throwable e) {
+		log(LOG_LEVEL_FINEST, "", e, "");
 	}
 
 	private static class LogMessage {

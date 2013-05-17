@@ -95,14 +95,17 @@ public class LogHelper {
     }
     
     public static String resolveLevel(int l) {
-    	if (l == 1) {
-    		return "ERROR";
-    	} else if (l <=4) {
-    		return "WARNING";
-    	} else if (l <=7) {
-    		return "INFO";
-    	} else {
-    		return "DETAIL";
+    	switch (l) {
+    		case 1:
+    			return "ERROR";
+    		case 2:
+        		return "WARNING";
+    		case 3:
+        		return "INFO";
+    		case 4:
+        		return "DETAIL";
+    		default:
+        		return "FINEST";
     	}
     }
 }

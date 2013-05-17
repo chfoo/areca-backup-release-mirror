@@ -82,7 +82,8 @@ public class ArchiveNameFilter implements FilenameFilter {
                 }
             }
         } catch (ApplicationException e) {
-            Logger.defaultLogger().error(e);
+            Logger.defaultLogger().error(e.getMessage());
+            Logger.defaultLogger().finest(e);
             return false;
         }
     }

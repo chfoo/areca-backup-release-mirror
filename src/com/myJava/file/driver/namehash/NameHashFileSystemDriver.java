@@ -226,7 +226,7 @@ extends AbstractLinkableFileSystemDriver {
 				try {
 					ret.add(this.decodeFileName(files[i]));
 				} catch (Throwable e) {
-					Logger.defaultLogger().error("Error parsing file " + predecessor.getAbsolutePath(files[i]) + ". This file will be refused.", e);
+					Logger.defaultLogger().error("Error reading file name " + predecessor.getAbsolutePath(files[i]) + ". This file will be ignored. (" + e.getMessage() + ")");
 				}
 			}
 
@@ -558,7 +558,7 @@ extends AbstractLinkableFileSystemDriver {
 					return filter.accept(targetDirectory, targetName);
 				}
 			} catch (Throwable e) {
-				Logger.defaultLogger().error("Error parsing file " + driver.predecessor.getAbsolutePath(dir) + "/" + name + ". This file will be refused.", e);
+				Logger.defaultLogger().error("Error reading file name " + driver.predecessor.getAbsolutePath(dir) + "/" + name + ". This file will be ignored. (" + e.getMessage() + ")");
 				return false;
 			}
 		}
@@ -623,7 +623,7 @@ extends AbstractLinkableFileSystemDriver {
 					}
 				}
 			} catch (Throwable e) {
-				Logger.defaultLogger().error("Error parsing file " + driver.predecessor.getAbsolutePath(file) + ". This file will be refused.", e);
+				Logger.defaultLogger().error("Error reading file name " + driver.predecessor.getAbsolutePath(file) + ". This file will be ignored. (" + e.getMessage() + ")");
 				return false;
 			}
 		}

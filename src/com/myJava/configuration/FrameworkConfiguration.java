@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import com.myJava.util.log.LogLevels;
 import com.myJava.util.log.Logger;
 
 /**
@@ -266,7 +267,7 @@ public class FrameworkConfiguration {
     public static String[] DEF_SSE_PROTOCOLS = {"TLS", "SSL"};  
     public static int DEF_ZIP_BUFFER = 2048;
     public static int DEF_ZIP_MV_DIGITS = 2; 
-    public static int DEF_LOG_LEVEL = 8;
+    public static int DEF_LOG_LEVEL = LogLevels.LOG_LEVEL_FINEST;
     public static boolean DEF_FS_USE_BUFFER = true;   
     public static int DEF_FS_BUFFER_SIZE = 1*1024*1024;   
     public static boolean DEF_FS_CACHE_DEBUG = false; 
@@ -286,7 +287,7 @@ public class FrameworkConfiguration {
     //public static String DEF_VIEWER_HANDLER = "com.myJava.system.viewer.DefaultViewerHandler";
     public static String DEF_VIEWER_HANDLER = "com.myJava.system.viewer.DesktopViewerHandler";
     public static int DEF_MAX_INLINE_LOG_MESSAGES = 200; 
-    public static int DEF_INLINE_LOG_LEVEL = 3; // WARNING 
+    public static int DEF_INLINE_LOG_LEVEL = LogLevels.LOG_LEVEL_WARNING;
     public static String DEF_POSIX_MTD_ACCESSOR_ARGS = "-ald1";
     public static int DEF_SFTP_TIMEOUT = 5000;
     

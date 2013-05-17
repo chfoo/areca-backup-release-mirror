@@ -1,6 +1,5 @@
 package com.application.areca.launcher.gui.composites;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,7 +28,6 @@ import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.file.driver.remote.RemoteConnectionMonitor;
 import com.myJava.system.OSTool;
-import com.myJava.system.viewer.ViewerHandlerHelper;
 import com.myJava.util.Util;
 import com.myJava.util.log.FileLogProcessor;
 import com.myJava.util.log.LogHelper;
@@ -156,6 +154,11 @@ implements LogProcessor, Refreshable {
 		if (Logger.LEVELS[3] <= Logger.defaultLogger().getLogLevel()) {
 			cboLogLevel.add(RM.getLabel("app.log.detail.label"));
 		}
+		
+		if (Logger.LEVELS[4] <= Logger.defaultLogger().getLogLevel()) {
+			cboLogLevel.add(RM.getLabel("app.log.finest.label"));
+		}
+		
 		for (int i=0; i<Logger.LEVELS.length; i++) {
 			if (Logger.LEVELS[i] == logLevel) {
 				cboLogLevel.select(i);
@@ -366,14 +369,14 @@ implements LogProcessor, Refreshable {
 	}
 
 	private static StyleRange resolveStyle(int level) {
-		if (level > 7) {
+		if (level > Logger.LOG_LEVEL_INFO) {
 			return null;
 		} 
 
 		StyleRange style = new StyleRange();
-		if (level == 1) {
+		if (level == Logger.LOG_LEVEL_ERROR) {
 			style.foreground = Colors.C_RED;
-		} else if (level <= 3) {
+		} else if (level == Logger.LOG_LEVEL_WARNING) {
 			style.foreground = Colors.C_ORANGE;
 		} else {
 			style.foreground = Colors.C_BLUE;

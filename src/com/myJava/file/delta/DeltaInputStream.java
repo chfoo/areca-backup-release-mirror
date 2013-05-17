@@ -42,172 +42,175 @@ This file is part of Areca.
 public class DeltaInputStream 
 extends InputStream
 implements Constants, LayerHandler {    
-    private List layers = new ArrayList();
-    private long position = 0;
+	private List layers = new ArrayList();
+	private long position = 0;
 
-    public void addInputStream(InputStream stream, String name) {	
-        layers.add(new DeltaLayer(stream, name));
-    }
+	public void addInputStream(InputStream stream, String name) {	
+		layers.add(new DeltaLayer(stream, name));
+	}
 
-    public void close() throws IOException {
-        Iterator iter = layers.iterator();
-        while (iter.hasNext()) {
-            DeltaLayer layer = (DeltaLayer)iter.next();
-            layer.close();
-        }
-    }
+	public void close() throws IOException {
+		Iterator iter = layers.iterator();
+		while (iter.hasNext()) {
+			DeltaLayer layer = (DeltaLayer)iter.next();
+			layer.close();
+		}
+	}
 
-    public int read() throws IOException {
-        byte[] b = new byte[1];
-        int ret = read(b);
-        if (ret == -1) {
-            return -1;
-        } else {
-            return b[0]& 0xff;
-        }
-    }
+	public int read() throws IOException {
+		byte[] b = new byte[1];
+		int ret = read(b);
+		if (ret == -1) {
+			return -1;
+		} else {
+			return b[0]& 0xff;
+		}
+	}
 
-    public int read(byte[] b) throws IOException {
-        return read(b, 0, b.length);
-    }
+	public int read(byte[] b) throws IOException {
+		return read(b, 0, b.length);
+	}
 
-    public int available() throws IOException {
-        throw new UnsupportedOperationException();
-    }
+	public int available() throws IOException {
+		throw new UnsupportedOperationException();
+	}
 
-    public long skip(long n) throws IOException {
-        throw new UnsupportedOperationException();
-    }
-    
-    public int read(byte[] buffer, int off, int len) throws IOException {
-        int read = 0;
+	public long skip(long n) throws IOException {
+		throw new UnsupportedOperationException();
+	}
 
-        List instructionsToProcess = new ArrayList();
-        List tmp = new ArrayList();
-        DeltaReadInstruction init = new DeltaReadInstruction(); // Initial Instruction : initiates the process
-        init.setReadFrom(position);
-        init.setReadTo(position + len - 1);
-        init.setWriteOffset(off);
-        instructionsToProcess.add(init);
-        
-        for (int i=layers.size() - 1; i>=0; i--) {          // Iterate on all layers
-            DeltaLayer layer = (DeltaLayer)layers.get(i);
-            if (layer.getCurrentBucket() == null) {
-                layer.readNextBucket();
-            }
+	public int read(byte[] buffer, int off, int len) throws IOException {
+		int read = 0;
 
-            for (int b = 0; b<instructionsToProcess.size(); b++) {
-                DeltaReadInstruction instruction = (DeltaReadInstruction)instructionsToProcess.get(b); // Get the next instruction to process
-                long from = instruction.getReadFrom();
-                long to = instruction.getReadTo();
-                int writeOffset = instruction.getWriteOffset();
+		List instructionsToProcess = new ArrayList();
+		List tmp = new ArrayList();
+		DeltaReadInstruction init = new DeltaReadInstruction(); // Initial Instruction : initiates the process
+		init.setReadFrom(position);
+		init.setReadTo(position + len - 1);
+		init.setWriteOffset(off);
+		instructionsToProcess.add(init);
 
-                if (layer.getCurrentBucket() == null) {
-                	return -1;
-                }
-                
-                // Skip all buckets until we find an appropriate one
-                while (layer.getCurrentBucket() != null && (! (layer.getCurrentBucket().getFrom() <= from && layer.getCurrentBucket().getTo() >= from ))) {
-                    Bucket bucket = layer.getCurrentBucket();
-                    if (bucket.getSignature() == SIG_NEW) {
-                        // If it is a "new bytes" bucket, skip the remaining bytes
-                        NewBytesBucket current = (NewBytesBucket)bucket;
-                        IOHelper.skipFully(layer.getStream(), current.getLength() - current.getReadOffset());
-                    }
+		for (int i=layers.size() - 1; i>=0; i--) {          // Iterate on all layers
+			DeltaLayer layer = (DeltaLayer)layers.get(i);
+			if (layer.getCurrentBucket() == null) {
+				layer.readNextBucket();
+			}
 
-                    layer.readNextBucket();
-                    
-                    // Abnormal situation - log debug data
-                    if (layer.getCurrentBucket() == null) {
-                    	try {
-                    		Logger.defaultLogger().fine("Problem while reading layer=" + i + ", instruction=" + b + ", From=" + from + ", To=" + to);
-                    		logLayers(layers);
-                    		logInstructions(instructionsToProcess);
-                    	} catch (Exception e) {
-                    		Logger.defaultLogger().fine("Error while trying to reset inputstream : " + e.getMessage());
-                    	}
-                    }
-                }
+			for (int b = 0; b<instructionsToProcess.size(); b++) {
+				DeltaReadInstruction instruction = (DeltaReadInstruction)instructionsToProcess.get(b); // Get the next instruction to process
+				long from = instruction.getReadFrom();
+				long to = instruction.getReadTo();
+				int writeOffset = instruction.getWriteOffset();
 
-                // Process the bucket matching the from/to criteria
-                while (layer.getCurrentBucket() != null) { // Iterate on all buckets
-                    Bucket bucket = layer.getCurrentBucket();
-                    long toSkip = from - bucket.getFrom();
-                    int toWrite = (int)Math.min(bucket.getLength() - toSkip, to - from + 1);
+				if (layer.getCurrentBucket() == null) {
+					return -1;
+				}
 
-                    if (bucket.getSignature() == SIG_NEW) {
-                        // Read the data from the stream
-                        NewBytesBucket current = (NewBytesBucket)bucket;
-                        toSkip -= current.getReadOffset();
-                        IOHelper.skipFully(layer.getStream(), toSkip);
-                        int readBytes = IOHelper.readFully(layer.getStream(), buffer, writeOffset, toWrite);                   // Read the data from the bucket's stream
-                        if (readBytes != toWrite) {
-                            Logger.defaultLogger().error("Error processing instruction : " + instruction.toString() + ". Bucket is : " + current.toString());
-                            throw new DeltaException("Incoherent read length : expected " + toWrite + ", got " + readBytes + " for diff-layer #" + i);
-                        }
+				// Skip all buckets until we find an appropriate one
+				while (layer.getCurrentBucket() != null && (! (layer.getCurrentBucket().getFrom() <= from && layer.getCurrentBucket().getTo() >= from ))) {
+					Bucket bucket = layer.getCurrentBucket();
+					if (bucket.getSignature() == SIG_NEW) {
+						// If it is a "new bytes" bucket, skip the remaining bytes
+						NewBytesBucket current = (NewBytesBucket)bucket;
+						IOHelper.skipFully(layer.getStream(), current.getLength() - current.getReadOffset());
+					}
 
-                        read += toWrite;
-                        current.setReadOffset(current.getReadOffset() + toWrite + toSkip);
-                    } else {
-                        // Read the data from underlying layer
-                        ReadPreviousBucket current = (ReadPreviousBucket)bucket;
+					layer.readNextBucket();
 
-                        // Build and add a new bucket to the next list of buckets to process
-                        DeltaReadInstruction newInstruction = new DeltaReadInstruction();
-                        newInstruction.setReadFrom(current.getReadFrom() + toSkip);
-                        newInstruction.setReadTo(newInstruction.getReadFrom() + toWrite - 1);
-                        newInstruction.setWriteOffset(writeOffset);
-                        
-                        // Add bucket for the next layer
-                        tmp.add(newInstruction);
-                    }
-                    from += toWrite;
-                    writeOffset += toWrite;
+					// Abnormal situation - log debug data
+					if (layer.getCurrentBucket() == null) {
+						try {
+							Logger.defaultLogger().fine("Problem while reading layer=" + i + ", instruction=" + b + ", From=" + from + ", To=" + to);
+							logLayers(layers);
+							logInstructions(instructionsToProcess);
+						} catch (Exception e) {
+							Logger.defaultLogger().fine("Error while trying to reset inputstream : " + e.getMessage());
+						}
+					}
+				}
 
-                    if (from == to + 1) {
-                        break; // We've processed all required bytes
-                    } else {
-                        layer.readNextBucket(); // Not finished yet ! -> Read the next bucket
-                    }
-                }
-            }
+				// Process the bucket matching the from/to criteria
+				while (layer.getCurrentBucket() != null) { // Iterate on all buckets
+					Bucket bucket = layer.getCurrentBucket();
+					long toSkip = from - bucket.getFrom();
+					int toWrite = (int)Math.min(bucket.getLength() - toSkip, to - from + 1);
 
-            instructionsToProcess = tmp; // go to the next list of instructions to process
-            tmp = new ArrayList();
-        }
+					if (bucket.getSignature() == SIG_NEW) {
+						// Read the data from the stream
+						NewBytesBucket current = (NewBytesBucket)bucket;
+						toSkip -= current.getReadOffset();
+						IOHelper.skipFully(layer.getStream(), toSkip);
+						if (toWrite != 0) {
+							int readBytes = IOHelper.readFully(layer.getStream(), buffer, writeOffset, toWrite);                   // Read the data from the bucket's stream
+							if (readBytes != toWrite) {
+								Logger.defaultLogger().error("Error processing instruction : " + instruction.toString() + ". Bucket is : " + current.toString());
+								throw new DeltaException("Incoherent read length : expected " + toWrite + ", got " + readBytes + " for diff-layer #" + i);
+							}
+	
+							read += toWrite;
+						}
+						current.setReadOffset(current.getReadOffset() + toWrite + toSkip);
+					} else if (toWrite != 0) {
+						// Read the data from underlying layer
+						ReadPreviousBucket current = (ReadPreviousBucket)bucket;
 
-        position += read;
-        return (read == 0 && len != 0) ? -1 : read;
-    }    
+						// Build and add a new bucket to the next list of buckets to process
+						DeltaReadInstruction newInstruction = new DeltaReadInstruction();
+						newInstruction.setReadFrom(current.getReadFrom() + toSkip);
+						newInstruction.setReadTo(newInstruction.getReadFrom() + toWrite - 1);
+						newInstruction.setWriteOffset(writeOffset);
 
-    public synchronized void reset() throws IOException {
-        throw new UnsupportedOperationException("Reset is not supported on this implementation");
-    }
+						// Add bucket for the next layer
+						tmp.add(newInstruction);
+					}
 
-    public synchronized void mark(int readlimit) {
-        throw new UnsupportedOperationException("Mark is not supported on this implementation");
-    }
+					from += toWrite;
+					writeOffset += toWrite;
 
-    public boolean markSupported() {
-        return false;
-    }
-    
-    private static void logInstructions(List instructions) {
-    	Iterator iter = instructions.iterator();
-    	Logger.defaultLogger().fine("Start of instructions : ");
-    	int i=0;
-    	while (iter.hasNext()) {
-    		Logger.defaultLogger().fine("#" + (i++) + " : " + iter.next().toString());
-    	}
-    	Logger.defaultLogger().fine("End of instructions.");
-    }
-    
-    private static void logLayers(List layers) throws IOException {
+					if (from == to + 1) {
+						break; // We've processed all required bytes
+					} else {
+						layer.readNextBucket(); // Not finished yet ! -> Read the next bucket
+					}
+				}
+			}
+
+			instructionsToProcess = tmp; // go to the next list of instructions to process
+			tmp = new ArrayList();
+		}
+
+		position += read;
+		return (read == 0 && len != 0) ? -1 : read;
+	}    
+
+	public synchronized void reset() throws IOException {
+		throw new UnsupportedOperationException("Reset is not supported on this implementation");
+	}
+
+	public synchronized void mark(int readlimit) {
+		throw new UnsupportedOperationException("Mark is not supported on this implementation");
+	}
+
+	public boolean markSupported() {
+		return false;
+	}
+
+	private static void logInstructions(List instructions) {
+		Iterator iter = instructions.iterator();
+		Logger.defaultLogger().fine("Start of instructions : ");
+		int i=0;
+		while (iter.hasNext()) {
+			Logger.defaultLogger().fine("#" + (i++) + " : " + iter.next().toString());
+		}
+		Logger.defaultLogger().fine("End of instructions.");
+	}
+
+	private static void logLayers(List layers) throws IOException {
 		Logger.defaultLogger().fine("Start of layers : ");	
 		for (int l = layers.size()-1; l>=0; l--) {
-        	String content = ((DeltaLayer)layers.get(l)).traverse();
-        	Logger.defaultLogger().fine("Layer content #" + l + ": [" + content + "]");
+			String content = ((DeltaLayer)layers.get(l)).traverse();
+			Logger.defaultLogger().fine("Layer content #" + l + ": [" + content + "]");
 		}
 		Logger.defaultLogger().fine("End of layers");	
-    }
+	}
 }

@@ -2053,8 +2053,10 @@ extends AbstractWindow {
 					encrArgs.setEncryptNames(chkEncrypNames.getSelection());
 					encrArgs.setEncryptionKey(encryptionKey);
 
-					String wrappingMode = (String)lstWrapping.get(cboWrapping.getSelectionIndex());
-					encrArgs.setNameWrappingMode(wrappingMode);
+					if (cboWrapping.getSelectionIndex() != -1) {
+						String wrappingMode = (String)lstWrapping.get(cboWrapping.getSelectionIndex());
+						encrArgs.setNameWrappingMode(wrappingMode);
+					}
 				}
 
 				// Clear the history - it will be written after the drivers have been initialized

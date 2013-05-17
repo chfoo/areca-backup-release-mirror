@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.CheckParameters;
+import com.application.areca.context.MaxCapacityList;
 import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.common.AbstractWindow;
@@ -191,10 +192,11 @@ extends AbstractWindow {
     	});
     }
     
-    public void setResult(final List errorFiles, final List uncheckedFiles, final List unrecoveredFiles, final long nbChecked) {
+    public void setResult(final MaxCapacityList errorFiles, final MaxCapacityList uncheckedFiles, final MaxCapacityList unrecoveredFiles, final long nbChecked) {
     	final String invalidMsg = RM.getLabel("check.invalid.label");
     	final String uncheckedMsg = RM.getLabel("check.unchecked.label");
     	final String unrecoveredMsg = RM.getLabel("check.unrecovered.label");
+    	final String truncatedList = RM.getLabel("check.truncated.label");
     	
     	SecuredRunner.execute(new Runnable() {
 			public void run() {
@@ -223,6 +225,12 @@ extends AbstractWindow {
 					    TableItem item = new TableItem(table, SWT.NONE);
 					    item.setText(0, (String)iter.next());
 					    item.setText(1, uncheckedMsg);
+					}
+					
+					if (uncheckedFiles.isSaturated() || unrecoveredFiles.isSaturated() || errorFiles.isSaturated()) {
+					    TableItem item = new TableItem(table, SWT.NONE);
+					    item.setText(0, truncatedList);
+					    item.setText(1, "...");
 					}
 					
 					if (! errorFiles.isEmpty() || ! unrecoveredFiles.isEmpty()) {

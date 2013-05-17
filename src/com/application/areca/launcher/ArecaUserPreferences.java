@@ -54,7 +54,8 @@ public final class ArecaUserPreferences {
     public static final String DISPLAY_JAVA_VENDOR_MESSAGE = "display.java.vendor.message";
     public static final String DISPLAY_DEPRECATED_IMAGE_MESSAGE = "display.deprecated.image.message";
 	private static final String CHECK_NEW_VERSIONS = "check.new.versions";
-	private static final String GUI_LOG_LEVEL = "gui.log.level";
+	private static final String GUI_LOG_LEVEL_DEPRECATED = "gui.log.level";
+	private static final String GUI_LOG_LEVEL = "log.level";
 	private static final String CHECK_FORCE_DEFAULT_LOCATION = "check.force.default.location";
 	private static final String CHECK_USE_SPECIFIC_LOCATION = "check.use.specific.location";
 	private static final String CHECK_SPECIFIC_LOCATION = "check.specific.location";
@@ -159,6 +160,7 @@ public final class ArecaUserPreferences {
 	}
 	
     public static void setLogLevel(int level) {
+        LocalPreferences.instance().remove(GUI_LOG_LEVEL_DEPRECATED);
         LocalPreferences.instance().set(GUI_LOG_LEVEL, level);
         synchronizeClientConfigurations();
     }
@@ -248,7 +250,7 @@ public final class ArecaUserPreferences {
 	}
 	
 	public static int getLogLevel() {
-	    return LocalPreferences.instance().getInt(GUI_LOG_LEVEL, FrameworkConfiguration.getInstance().getLogLevel());
+	    return LocalPreferences.instance().getInt(GUI_LOG_LEVEL, 4);
 	}
     
     public static boolean isInformationSynthetic() {

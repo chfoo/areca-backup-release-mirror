@@ -162,23 +162,23 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 	private MainWindow mainWindow;
 
 	private WorkspaceItem currentObject; // Objet en cours de selection; il peut
-											// s'agir d'un workspace, groupe ou
-											// target
+	// s'agir d'un workspace, groupe ou
+	// target
 	private GregorianCalendar currentFromDate; // Debut de l'intervalle de dates
-												// en cours de selection
+	// en cours de selection
 	private GregorianCalendar currentToDate; // Fin de l'intervalle de dates en
-												// cours de selection
+	// cours de selection
 	private TraceEntry currentEntry; // Entree en cours de selection (utile pour
-										// le detail d'une archive)
+	// le detail d'une archive)
 	private EntryArchiveData currentEntryData; // En cas d'affichage de
-												// l'historique d'une entree,
-												// date en cours de selection
+	// l'historique d'une entree,
+	// date en cours de selection
 	private UIRecoveryFilter currentFilter; // En cas de selection d'un noeud sur
-											// le panel de detail d'une archive
-											// (repertoire ou Entry reelle), nom
-											// de celui ci.
+	// le panel de detail d'une archive
+	// (repertoire ou Entry reelle), nom
+	// de celui ci.
 	private boolean latestVersionRecoveryMode; // Indique si la recovery se fera
-												// en derniere version ou non
+	// en derniere version ou non
 
 	private Set channels = new HashSet();
 
@@ -222,7 +222,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			showDoNotShowAgainWindow(RM.getLabel("common.java.vendor.title"),
 					RM.getLabel("common.java.vendor.message",
 							new Object[] { OSTool.getJavaVendor() }),
-					ArecaUserPreferences.DISPLAY_JAVA_VENDOR_MESSAGE);
+							ArecaUserPreferences.DISPLAY_JAVA_VENDOR_MESSAGE);
 		}
 	}
 
@@ -357,7 +357,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 					"app.deletearchivesaction.confirmverbose.message",
 					new Object[] { Utils
 							.formatDisplayDate(this.currentFromDate) }),
-					RM.getLabel("app.deletearchivesaction.confirm.title"));
+							RM.getLabel("app.deletearchivesaction.confirm.title"));
 
 			if (result == SWT.YES) {
 				if (FileSystemTarget.class.isAssignableFrom(this
@@ -480,21 +480,21 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 					} else {
 						policy = new AlwaysOverwriteCopyPolicy();
 					}
-					
+
 					ProcessRunner rn = new ProcessRunner(target) {
 						public void runCommand() throws ApplicationException {
 							policy.setContext(context);
-							
+
 							ActionProxy.processRecoverOnTarget(
 									rTarget,
 									argument == null ? null : new ArecaRawFileList(((UIRecoveryFilter) argument).getFilter()), 
-									policy,
-									rPath,
-									addSubdirectory,
-									rFromDate, 
-									recoverDeletedEntries,
-									checkRecoveredFiles, 
-									context);
+											policy,
+											rPath,
+											addSubdirectory,
+											rFromDate, 
+											recoverDeletedEntries,
+											checkRecoveredFiles, 
+											context);
 						}
 
 						protected void finishCommand() {
@@ -610,18 +610,18 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 
 								if (command.equals(CMD_VIEW_FILE_AS_TEXT_HISTO)
 										|| command
-												.equals(CMD_VIEW_FILE_AS_TEXT)) {
+										.equals(CMD_VIEW_FILE_AS_TEXT)) {
 									launchFileEditor(
 											FileSystemManager
-													.getAbsolutePath(f),
+											.getAbsolutePath(f),
 											true);
 								} else {
 									SecuredRunner.execute(new Runnable() {
 										public void run() {
 											try {
 												ViewerHandlerHelper
-														.getViewerHandler()
-														.open(f);
+												.getViewerHandler()
+												.open(f);
 											} catch (Throwable e) {
 												if (ArecaUserPreferences.hasEditionCommand()) {
 													Logger.defaultLogger().fine("No default viewer found for "+ FileSystemManager.getDisplayPath(f)+ ". Launching text viewer.");
@@ -650,8 +650,8 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 					rn.rFromDate = command.equals(CMD_RECOVER_ENTRY_HISTO)
 							|| command.equals(CMD_VIEW_FILE_AS_TEXT_HISTO)
 							|| command.equals(CMD_VIEW_FILE_HISTO) ? this.currentEntryData
-							.getManifest().getDate() : null;
-					rn.launch();
+									.getManifest().getDate() : null;
+									rn.launch();
 				}
 			}
 		} else if (command.equals(CMD_VIEW_MANIFEST)) {
@@ -659,10 +659,9 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		}
 	}
 
-	public ProcessRunner launchArchiveCheck(final CheckParameters checkParams,
-			final AbstractTarget target, final CheckWindow window) {
-		TargetGroup process = target.getParent();
-		ProcessRunner rn = new ProcessRunner(target) {
+	public ProcessRunner launchArchiveCheck(final CheckParameters checkParams, final AbstractTarget target, final CheckWindow window) {
+			TargetGroup process = target.getParent();
+			ProcessRunner rn = new ProcessRunner(target) {
 			public void runCommand() throws ApplicationException {
 				ActionProxy.processCheckOnTarget(rTarget, checkParams,
 						rFromDate, context);
@@ -726,15 +725,15 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			this.mainWindow.refresh(true, true);
 		}
 	}
-	
+
 	/**
 	 * Try to open the file with the system editor.
 	 * <br>Switch to the configured text editor in case of failure
 	 * @param path
 	 */
 	public void secureOpenFile(String path) {
-        try {
-            ViewerHandlerHelper.getViewerHandler().open(new File(path));
+		try {
+			ViewerHandlerHelper.getViewerHandler().open(new File(path));
 		} catch (Exception e) {
 			launchFileEditor(path, true);
 		}
@@ -811,11 +810,11 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			this.mainWindow.refresh(true, true);
 		}
 	}
-	
+
 	public void refreshWorkspace() {
 		this.openWorkspaceImpl(this.workspace.getPath());
 	}
-	
+
 	public void openWorkspace(String path) {
 		if (path != null && ((this.workspace == null) || (! path.equals(this.workspace.getPath())))) {
 			this.openWorkspaceImpl(path);
@@ -881,11 +880,11 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 														new Object[] {
 																data.getVersionId(),
 																VersionInfos
-																		.formatVersionDate(data
-																				.getVersionDate()),
-																data.getDownloadUrl(),
-																data.getDescription() }),
-												false);
+																.formatVersionDate(data
+																		.getVersionDate()),
+																		data.getDownloadUrl(),
+																		data.getDescription() }),
+																		false);
 										showDialog(win);
 									}
 								});
@@ -901,26 +900,26 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 													new Object[] {
 															data.getVersionId(),
 															VersionInfos
-																	.formatVersionDate(data
-																			.getVersionDate()),
-															data.getDownloadUrl(),
-															data.getDescription() }),
-											true);
+															.formatVersionDate(data
+																	.getVersionDate()),
+																	data.getDownloadUrl(),
+																	data.getDescription() }),
+																	true);
 									showDialog(win);
 									if (win.isValidated()) {
 										try {
 											ViewerHandlerHelper
-													.getViewerHandler()
-													.browse(data
-															.getDownloadUrl());
+											.getViewerHandler()
+											.browse(data
+													.getDownloadUrl());
 										} catch (IOException e1) {
 											Logger.defaultLogger().error(e1);
 										} catch (NoBrowserFoundException e1) {
 											Logger.defaultLogger()
-													.error("Error connecting to : "
-															+ data.getDownloadUrl()
-															+ " - No web browser could be found.",
-															e1);
+											.error("Error connecting to : "
+													+ data.getDownloadUrl()
+													+ " - No web browser could be found.",
+													e1);
 										}
 
 										Application.this.processExit();
@@ -1006,7 +1005,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 				if (i == 0) {
 					// Backup
 					fileContent += "\n" + commentPrefix + "Daily backup\n";
-					
+
 					String strCheck = "";
 					if (check) {
 						strCheck = "-c -wdir \"" + getWorkingDirectoryWithoutTrailingSlash() + "\" ";
@@ -1085,14 +1084,14 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 					+ VersionInfos.getLastVersion().getVersionId() + " on "
 					+ Utils.formatDisplayDate(new GregorianCalendar()) + "\n\n";
 			File executable = Utils.buildExecutableFile();
-			
+
 			content += precommands;
 
 			if (forSelectedOnly) {
 				content += generateShortcutScript(executable,
 						this.getCurrentTargetGroup(),
 						isCurrentObjectTarget() ? getCurrentTarget() : null,
-						commentPrefix, commandPrefix, check, full, differential);
+								commentPrefix, commandPrefix, check, full, differential);
 			} else {
 				Iterator iter = this.workspace.getIterator();
 				while (iter.hasNext()) {
@@ -1192,13 +1191,13 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 
 		return comments + command + "\n\n";
 	}
-	
+
 	private static String getWorkingDirectoryWithoutTrailingSlash() {
 		String wdir = OSTool.getTempDirectory();
-        if (wdir.endsWith("\\")) {
-        	wdir = wdir.substring(0, wdir.length()-1);
-        }
-        return wdir;
+		if (wdir.endsWith("\\")) {
+			wdir = wdir.substring(0, wdir.length()-1);
+		}
+		return wdir;
 	}
 
 	public void createWorkspaceCopy(File root, boolean removeEncryptionData) {
@@ -1317,7 +1316,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			int result = showConfirmDialog(
 					RM.getLabel("appdialog.confirmexit.message"),
 					RM.getLabel("appdialog.confirmexit.title"), SWT.YES
-							| SWT.NO | SWT.CANCEL);
+					| SWT.NO | SWT.CANCEL);
 
 			if (result == SWT.YES) {
 				// on ferme la fenetre
@@ -1441,7 +1440,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			handleException(e);
 		}
 	}
-	
+
 	public void showDialog(final AbstractWindow window, boolean block) {
 		try {
 			window.setModal(getMainWindow());
@@ -1464,8 +1463,8 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 				if (e != null) {
 					if (!(e instanceof ApplicationException)) {
 						Logger.defaultLogger().error(e); // Unexpected exception
-															// ... that may not
-															// have been logged.
+						// ... that may not
+						// have been logged.
 					}
 					e.printStackTrace(System.err);
 				}
@@ -1578,7 +1577,7 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 	public void setCurrentObject(WorkspaceItem currentObject,
 			boolean refreshTree) {
 		if (this.currentObject != currentObject) { // Yes, we DO use reference
-													// comparison
+			// comparison
 			this.enableWaitCursor();
 			this.currentObject = currentObject;
 

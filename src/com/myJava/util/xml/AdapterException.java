@@ -29,6 +29,7 @@ This file is part of Areca.
 public class AdapterException extends Exception {
 
     protected String source;
+    protected boolean potentialEncryptionIssue;
     
     public AdapterException() {
         super();
@@ -53,4 +54,12 @@ public class AdapterException extends Exception {
     public void setSource(String source) {
         this.source = source;
     }
+
+	public boolean isPotentialEncryptionIssue() {
+		return potentialEncryptionIssue;
+	}
+
+	public void setPotentialEncryptionIssue(boolean potentialEncryptionIssue) {
+		this.potentialEncryptionIssue = potentialEncryptionIssue;
+	}
 }

@@ -61,7 +61,7 @@ implements LogProcessor {
     }
 
     public void displayApplicationMessage(String messageKey, String title, String message) {
-        log(3, message, null, title);
+        log(LogLevels.LOG_LEVEL_WARNING, message, null, title);
     }
     
 	public void unmount() {

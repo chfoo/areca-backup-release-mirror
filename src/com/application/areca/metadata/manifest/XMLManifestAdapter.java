@@ -7,6 +7,7 @@ import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -71,6 +72,11 @@ public class XMLManifestAdapter implements ManifestReader {
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			Document xml = builder.parse(new GZIPInputStream(FileSystemManager.getFileInputStream(file)));
 			return readManifest(xml);
+		} catch (ZipException e) {
+			AdapterException ex = new AdapterException(e);
+			ex.setSource(FileSystemManager.getAbsolutePath(file));
+			ex.setPotentialEncryptionIssue(true);
+			throw ex;
 		} catch (Exception e) {
 			AdapterException ex = new AdapterException(e);
 			ex.setSource(FileSystemManager.getAbsolutePath(file));

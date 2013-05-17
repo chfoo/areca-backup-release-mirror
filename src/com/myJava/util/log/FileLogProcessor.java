@@ -112,7 +112,7 @@ implements LogProcessor {
         // Log complete :
         String logCt = LogHelper.format(level, message, source, true);
         
-    	if (level <= 3) {
+    	if (level <= LogLevels.LOG_LEVEL_WARNING) {
             System.out.println(logCt);
             if (e != null) {
                 e.printStackTrace();

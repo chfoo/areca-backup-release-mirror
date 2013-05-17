@@ -44,9 +44,9 @@ public class LogMessagesContainer implements Serializable {
 	private boolean hasErrors = false;
 	
 	public void addLogMessage(LogMessage message) {
-		if (message.getLevel() <= Logger.LOG_LEVEL_ERROR) {
+		if (message.getLevel() <= LogLevels.LOG_LEVEL_ERROR) {
 			hasErrors = true;
-		} else if (message.getLevel() <= Logger.LOG_LEVEL_WARNING) {
+		} else if (message.getLevel() <= LogLevels.LOG_LEVEL_WARNING) {
 			hasWarnings = true;
 		}
 		if (! maxSizeReached && content.size() < MAX_SIZE) {

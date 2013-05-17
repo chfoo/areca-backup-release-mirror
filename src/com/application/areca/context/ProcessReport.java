@@ -116,17 +116,17 @@ public class ProcessReport implements Serializable {
     /**
      * Check : List of recovered files that were detected as invalid
      */
-    protected transient List invalidRecoveredFiles = new ArrayList();
+    protected transient MaxCapacityList invalidRecoveredFiles = new MaxCapacityList();
     
     /**
      * Check : List of recovered files that could not be checked
      */
-    protected transient List uncheckedRecoveredFiles = new ArrayList();
+    protected transient MaxCapacityList uncheckedRecoveredFiles = new MaxCapacityList();
     
     /**
      * Check : List of files that were not recovered
      */
-    protected transient List unrecoveredFiles = new ArrayList();
+    protected transient MaxCapacityList unrecoveredFiles = new MaxCapacityList();
 
     /**
      * Tells whether the process has errors
@@ -230,16 +230,28 @@ public class ProcessReport implements Serializable {
 		return nbChecked;
 	}
 
-	public List getInvalidRecoveredFiles() {
+	public MaxCapacityList getInvalidRecoveredFiles() {
 		return invalidRecoveredFiles;
 	}
 	
-	public List getUncheckedRecoveredFiles() {
+	public void addInvalidRecoveredFile(String file) {
+		invalidRecoveredFiles.add(file);
+	}
+	
+	public MaxCapacityList getUncheckedRecoveredFiles() {
 		return uncheckedRecoveredFiles;
 	}
+	
+	public void addUncheckedRecoveredFile(String file) {
+		uncheckedRecoveredFiles.add(file);
+	}
 
-	public List getUnrecoveredFiles() {
+	public MaxCapacityList getUnrecoveredFiles() {
 		return unrecoveredFiles;
+	}
+	
+	public void addUnrecoveredFile(String file) {
+		unrecoveredFiles.add(file);
 	}
 
 	public boolean hasRecoveryIssues() {

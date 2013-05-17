@@ -260,7 +260,7 @@ extends AbstractLinkableFileSystemDriver {
 				try {
 					ret.add(this.decryptFileName(files[i]));
 				} catch (Throwable e) {
-					Logger.defaultLogger().error("Error parsing file " + predecessor.getAbsolutePath(files[i]) + ". This file will be refused.", e);
+					Logger.defaultLogger().error("Invalid encryption key or encryption parameters : unable to read file name for " + predecessor.getAbsolutePath(files[i]) + ". This file will be ignored. (" + e.getMessage() + ")");
 				}
 			}
 
@@ -450,16 +450,12 @@ extends AbstractLinkableFileSystemDriver {
 				 byte[] decrypted = this.fileNameDecryptionCipher.doFinal(values);
 				 return new String(decrypted);
 			 } catch (NumberFormatException e) {
-				 Logger.defaultLogger().error(e);
 				 throw new IllegalArgumentException(e.getMessage());
 			 } catch (IllegalStateException e) {
-				 Logger.defaultLogger().error(e);
 				 throw new IllegalArgumentException("IllegalStateException : [" + shortName + "] - " + e.getMessage());
 			 } catch (IllegalBlockSizeException e) {
-				 Logger.defaultLogger().error(e);
 				 throw new IllegalArgumentException("IllegalBlockSizeException : [" + shortName + "] - " + e.getMessage());
 			 } catch (BadPaddingException e) {
-				 Logger.defaultLogger().error(e);
 				 throw new IllegalArgumentException("BadPaddingException : [" + shortName + "] - " + e.getMessage());
 			 }
 		 } else {
@@ -525,7 +521,7 @@ extends AbstractLinkableFileSystemDriver {
 
 				 return filter.accept(targetDirectory, targetName);
 			 } catch (Throwable e) {
-				 Logger.defaultLogger().error("Error filtering file " + driver.predecessor.getAbsolutePath(dir) + "/" + name + ". This file will be refused.", e);
+				 Logger.defaultLogger().error("Invalid encryption key or encryption parameters : unable to read file name for " + driver.predecessor.getAbsolutePath(dir) + "/" + name + ". This file will be ignored. (" + e.getMessage() + ")");
 				 return false;
 			 }
 		 }
@@ -575,7 +571,7 @@ extends AbstractLinkableFileSystemDriver {
 				 File target = driver.decryptFileName(filename);
 				 return filter.accept(target);
 			 } catch (Throwable e) {
-				 Logger.defaultLogger().error("Error filtering file " + driver.predecessor.getAbsolutePath(filename) + ". This file will be refused.", e);
+				 Logger.defaultLogger().error("Invalid encryption key or encryption parameters : unable to read file name for " + driver.predecessor.getAbsolutePath(filename) + ". This file will be ignored. (" + e.getMessage() + ")");
 				 return false;
 			 }
 		 }
