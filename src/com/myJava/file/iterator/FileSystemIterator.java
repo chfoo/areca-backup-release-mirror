@@ -343,7 +343,7 @@ public class FileSystemIterator implements Iterator, Serializable {
 								pushFileAndParents(null);
 							}
 						}
-					} else if (warnDanglingLinks) {
+					} else if (warnDanglingLinks && followSymLinks && (isSymbolicLink = isSymbolicLink(f, isSymbolicLink)) == 1) {
 						String absPath = FileSystemManager.getAbsolutePath(f);
 						String canPath = absPath;
 						try {

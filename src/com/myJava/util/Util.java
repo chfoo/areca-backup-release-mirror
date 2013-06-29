@@ -185,6 +185,17 @@ public abstract class Util {
     public static double getRnd() {
         return ((rndGenerator.nextDouble() - .5) * 2.);
     }
+    
+    /**
+     * Compute a random double between 0 and 1
+     */
+    public static double getRnd01() {
+        return rndGenerator.nextDouble();
+    }
+    
+    public static int getRndInt(int lowerBoundIncluded, int upperBoundExcluded) {
+    	return (int)(lowerBoundIncluded + (rndGenerator.nextDouble() * (upperBoundExcluded - lowerBoundIncluded)));
+    }
 
     /**
      * Compute a random long

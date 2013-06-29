@@ -1,5 +1,6 @@
 package com.myJava.object;
 
+import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,13 +35,19 @@ This file is part of Areca.
 
  */
 public class ToStringHelper {
-
+	private static NumberFormat nf = NumberFormat.getNumberInstance();
+	
+	static {
+		nf.setMinimumFractionDigits(3);
+		nf.setMaximumFractionDigits(3);
+	}
+	
     public static StringBuffer init(Object o) {
         StringBuffer sb = new StringBuffer();
         if (o == null) {
             sb.append("<null>");
         } else {
-            sb.append("[").append(o.getClass().getName());
+            sb.append("[").append(o.getClass().getSimpleName());
         }
         return sb;
     }
@@ -97,7 +104,7 @@ public class ToStringHelper {
                 Map.Entry entry = (Map.Entry)iter.next();
                 sb.append("[");
                 normalize(entry.getKey(), sb);
-                sb.append("] = [");
+                sb.append("]=[");
                 normalize(entry.getValue(), sb);
                 sb.append("]");
             }
@@ -171,21 +178,26 @@ public class ToStringHelper {
     
     public static void append(String name, double d, StringBuffer sb) {
         preAppend(name, sb);
-        sb.append(d);
+        sb.append(formatDouble(d));
         postAppend(sb);
     }
     
+    public static String formatDouble(double d) {
+    	return nf.format(d);
+    }
+    
     public static String close(StringBuffer sb) {
-        return sb.append("]").toString();
+    	String ret = sb.toString().trim();
+    	return ret + "]";
     }
     
     private static void preAppend(String name, StringBuffer sb) {
         sb.append(" - ");
-        sb.append(name).append(" = ");
+        sb.append(name).append("=");
     }
     
     private static void postAppend(StringBuffer sb) {
-        sb.append(" ");
+        //sb.append(" ");
     }
     
     private static void normalize(Object o, StringBuffer sb) {
