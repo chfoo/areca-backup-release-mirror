@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.AbstractWorkspaceItem;
 import com.application.areca.ActionProxy;
 import com.application.areca.ApplicationException;
 import com.application.areca.ArchiveMedium;
@@ -1095,10 +1096,17 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			} else {
 				Iterator iter = this.workspace.getIterator();
 				while (iter.hasNext()) {
-					TargetGroup process = (TargetGroup) iter.next();
-					content += generateShortcutScript(executable, process,
-							null, commentPrefix, commandPrefix, check, full,
-							differential);
+					AbstractWorkspaceItem item = (AbstractWorkspaceItem) iter.next();
+					if (item instanceof TargetGroup) {
+						content += generateShortcutScript(executable, (TargetGroup)item,
+								null, commentPrefix, commandPrefix, check, full,
+								differential);
+					} else {
+						FileSystemTarget target = (FileSystemTarget)item;
+						content += generateShortcutScript(executable, target.getParent(),
+								target, commentPrefix, commandPrefix, check, full,
+								differential);
+					}
 				}
 			}
 
@@ -1161,13 +1169,13 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 		}
 	}
 
-	private String generateShortcutScript(File executable, TargetGroup process,
+	private String generateShortcutScript(File executable, TargetGroup targetGroup,
 			AbstractTarget target, String commentPrefix, String commandPrefix,
 			boolean check, boolean full, boolean differential) {
 		String type = full ? AbstractTarget.BACKUP_SCHEME_FULL: (differential ? AbstractTarget.BACKUP_SCHEME_DIFFERENTIAL: AbstractTarget.BACKUP_SCHEME_INCREMENTAL);
 
-		String comments = commentPrefix + type + "\n" + commentPrefix + "Target Group : \"" + process.getName() + "\"\n";
-		File config = new File(workspace.getPath(), process.getFullPath());
+		String comments = commentPrefix + type + "\n" + commentPrefix + "Target Group : \"" + targetGroup.getName() + "\"\n";
+		File config = new File(workspace.getPath(), targetGroup.getFullPath());
 		if (target != null) {
 			config = target.computeConfigurationFile(config, false);
 		}

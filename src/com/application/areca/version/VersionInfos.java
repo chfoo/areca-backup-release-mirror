@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 1337643882758240715L;
+		BUILD_ID = 3998447537643563056L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.3.5", new GregorianCalendar(2013, 6, 14), "Fixed a but that prevented from creating backup shortcuts in some configurations."));
 		VERSIONS.add(new VersionData("7.3.4", new GregorianCalendar(2013, 5, 24), "Improved error messages when dangling symbolic links are encountered."));
 		VERSIONS.add(new VersionData("7.3.3", new GregorianCalendar(2013, 4, 12), "Improved error messages in case of invalid encryption configuration; Delta storage bugfix; Fixed memory issues that could occur when too many errors were encountered while checking archives."));
 		VERSIONS.add(new VersionData("7.3.2", new GregorianCalendar(2013, 4, 10), "Fixed a bug that could prevent backups to be resumed in case of error."));
