@@ -60,6 +60,7 @@ import com.myJava.file.CompressionArguments;
 import com.myJava.file.driver.EncryptedFileSystemDriver;
 import com.myJava.util.log.Logger;
 import com.myJava.util.xml.AdapterException;
+import com.myJava.util.xml.XMLTool;
 
 /**
  * Adapter for target serialization / deserialization
@@ -496,9 +497,10 @@ public class TargetXMLReader implements XMLTags {
 		if (userNode != null) {
 			pp.setUser(userNode.getNodeValue());
 		}
-		Node passwordNode = node.getAttributes().getNamedItem(XML_PP_EMAIL_PASSWORD);
-		if (passwordNode != null) {
-			pp.setPassword(passwordNode.getNodeValue());
+		
+		String password = XMLTool.extractPassword(XML_PP_EMAIL_PASSWORD, node);
+		if (password != null) {
+			pp.setPassword(password);
 		}
 
 		readProcessorAttributes(node, pp);
@@ -764,12 +766,11 @@ public class TargetXMLReader implements XMLTags {
 		Node encryptedNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTED);
 		boolean isEncrypted = (encryptedNode != null && encryptedNode.getNodeValue().equalsIgnoreCase("true"));   
 
-		Node encryptionKeyNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTIONKEY);
 		Node encryptionAlgoNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTIONALGO);
 		Node encryptNamesNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ENCRYPTNAMES);
 		Node wrapNamesNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_WRAPNAMES);
 
-		String encryptionKey = encryptionKeyNode != null ? encryptionKeyNode.getNodeValue() : null;   
+		String encryptionKey = XMLTool.extractPassword(XML_MEDIUM_ENCRYPTIONKEY, mediumNode);
 		String encryptionAlgo = encryptionAlgoNode != null ? encryptionAlgoNode.getNodeValue() : null;   
 		Boolean encryptNames = encryptNamesNode != null ? Boolean.valueOf(encryptNamesNode.getNodeValue()) : null;  
 		String nameWrappingMode = EncryptedFileSystemDriver.WRAP_DEFAULT;

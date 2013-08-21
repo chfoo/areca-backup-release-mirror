@@ -19,6 +19,7 @@ import com.jcraft.jsch.SftpException;
 import com.jcraft.jsch.UserInfo;
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.FileNameUtil;
+import com.myJava.file.FileSystemManager;
 import com.myJava.file.driver.remote.AbstractProxy;
 import com.myJava.file.driver.remote.AbstractRemoteFileSystemDriver;
 import com.myJava.file.driver.remote.FictiveFile;
@@ -76,8 +77,12 @@ public class SFTPProxy extends AbstractProxy {
 	private String password;
 	private String testFile;
 	
-	private String hostKey;
+	private String hostKeyBase64;
 	private boolean checkHostKey;
+	
+	private boolean useCertificateAuth;
+	private String certificateFileName;
+	private String certPassPhrase;
 
 	// CLIENT
 	private ChannelSftp client;
@@ -116,15 +121,39 @@ public class SFTPProxy extends AbstractProxy {
 	}
 
 	public String getHostKeyAsString() {
-		return hostKey;
+		return hostKeyBase64;
 	}
 	
 	public byte[] getHostKeyAsByteArray() {
-		return Util.base64Decode(hostKey);
+		return Util.base64Decode(hostKeyBase64);
 	}
 
-	public void setHostKey(String hostKey) {
-		this.hostKey = hostKey;
+	public void setHostKey(String hostKeyBase64) {
+		this.hostKeyBase64 = hostKeyBase64;
+	}
+
+	public boolean isUseCertificateAuth() {
+		return useCertificateAuth;
+	}
+
+	public void setUseCertificateAuth(boolean useCertificateAuth) {
+		this.useCertificateAuth = useCertificateAuth;
+	}
+
+	public String getCertificateFileName() {
+		return certificateFileName;
+	}
+
+	public void setCertificateFileName(String certificateFileName) {
+		this.certificateFileName = certificateFileName;
+	}
+
+	public String getCertPassPhrase() {
+		return certPassPhrase;
+	}
+
+	public void setCertPassPhrase(String certPassPhrase) {
+		this.certPassPhrase = certPassPhrase;
 	}
 
 	public boolean isCheckHostKey() {
@@ -138,19 +167,6 @@ public class SFTPProxy extends AbstractProxy {
 	public SFTPProxy(String testFile) {
 		super();
 		this.testFile = testFile;
-	}
-
-	public static void main(String[] args) {
-		try {
-			SFTPProxy p = new SFTPProxy("/");
-			p.setLogin("admin");
-			p.setPassword("Datura31");
-			p.setRemotePort(22);
-			p.setRemoteServer("192.168.2.100");
-			p.connect();
-		} catch (SFTPConnectionException e) {
-			e.printStackTrace();
-		}
 	}
 
 	/**
@@ -179,15 +195,27 @@ public class SFTPProxy extends AbstractProxy {
 				jsch.setHostKeyRepository(hkr);
 			}
 
+			if (useCertificateAuth) {
+				if (certificateFileName == null || certificateFileName.trim().length() == 0 || ! FileSystemManager.exists(new File(certificateFileName))) {
+					throw new SFTPConnectionException("Certificate file not set or not found : " + certificateFileName);
+				} else {
+					Logger.defaultLogger().info("Using private key file : " + certificateFileName);
+					if (certificateFileName.toLowerCase().endsWith(".ppk")) {
+						Logger.defaultLogger().warn("Your private key file seems to be in PuTTY's \"ppk\" file format. Please convert it to the standard OpenSSH format (this can be done by using the \"puttygen.exe\" utility - see \"Convertions\" menu.)");
+					}
+					jsch.addIdentity(certificateFileName);
+				}
+			}
 			session = jsch.getSession(login, remoteServer, remotePort);
-			UserInfo ui = new DefaultUserInfo(this.password);
+			UserInfo ui = new DefaultUserInfo(this.password, certPassPhrase, certificateFileName);
 			session.setUserInfo(ui);
+
 			session.setDaemonThread(true);
 			session.setConfig("StrictHostKeyChecking", checkHostKey ? "yes":"no");
 			session.setTimeout(FrameworkConfiguration.getInstance().getSFTPTimeout());
 
-			Logger.defaultLogger().info("Trying to log in with user : " + this.login +  " ...");
-			debug("connect : login", login + "/" + password);
+			Logger.defaultLogger().info("Trying to log in with user : " + this.login + " (" + (useCertificateAuth ? "certificate":"password") + ") ...");
+			debug("connect : login", login);
 			session.connect();
 
 			client = (ChannelSftp)session.openChannel("sftp");
@@ -528,9 +556,12 @@ public class SFTPProxy extends AbstractProxy {
 		proxy.setLogin(login);
 		proxy.setPassword(password);
 		proxy.setRemotePort(remotePort);
-		proxy.setHostKey(hostKey);
+		proxy.setHostKey(hostKeyBase64);
 		proxy.setRemoteServer(remoteServer);
 		proxy.setFileInfoCache(fileInfoCache);
+		proxy.setUseCertificateAuth(this.useCertificateAuth);
+		proxy.setCertPassPhrase(this.certPassPhrase);
+		proxy.setCertificateFileName(this.certificateFileName);
 		proxy.setCheckHostKey(checkHostKey);
 
 		return proxy;
@@ -544,8 +575,11 @@ public class SFTPProxy extends AbstractProxy {
 			return
 			EqualsHelper.equals(this.remotePort, o.remotePort)
 			&& EqualsHelper.equals(this.login, o.login)
-			&& EqualsHelper.equals(this.hostKey, o.hostKey)
+			&& EqualsHelper.equals(this.hostKeyBase64, o.hostKeyBase64)
 			&& EqualsHelper.equals(this.password, o.password)
+			&& EqualsHelper.equals(this.useCertificateAuth, o.useCertificateAuth)
+			&& EqualsHelper.equals(this.certificateFileName, o.certificateFileName)
+			&& EqualsHelper.equals(this.certPassPhrase, o.certPassPhrase)
 			&& EqualsHelper.equals(this.checkHostKey, o.checkHostKey)
 			&& EqualsHelper.equals(this.remoteServer, o.remoteServer);
 		} else {
@@ -558,8 +592,11 @@ public class SFTPProxy extends AbstractProxy {
 		h = HashHelper.hash(h, this.remotePort);
 		h = HashHelper.hash(h, this.login);
 		h = HashHelper.hash(h, this.password);
-		h = HashHelper.hash(h, this.hostKey);
+		h = HashHelper.hash(h, this.hostKeyBase64);
 		h = HashHelper.hash(h, this.checkHostKey);
+		h = HashHelper.hash(h, this.useCertificateAuth);
+		h = HashHelper.hash(h, this.certificateFileName);
+		h = HashHelper.hash(h, this.certPassPhrase);
 		h = HashHelper.hash(h, this.remoteServer);
 		return h;
 	}    

@@ -53,14 +53,13 @@ extends AbstractFileSystemPolicyXMLHandler {
         Node protectionNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PROTECTION);
         Node implicitNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_IMPLICIT);
         Node loginNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_LOGIN);
-        Node passwordNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_PASSWORD);
         Node dirNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_REMOTEDIR);
         Node nameNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_ARCHIVENAME);
         Node ctrlEncodingNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_CTRL_ENCODING);
         Node ignorePsvErrorsNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_FTP_IGNORE_PSV_ERR);
 
         // No storage policy found
-        if (serverNode == null && portNode == null && passivNode == null && loginNode == null && passwordNode == null && dirNode == null) {
+        if (serverNode == null && portNode == null && passivNode == null && loginNode == null && dirNode == null) {
             throw new AdapterException("Medium storage policy not found : your medium must have either a '" + XML_MEDIUM_PATH + "' attribute or FTP attributes (" + XML_MEDIUM_FTP_HOST + ", " + XML_MEDIUM_FTP_LOGIN + ", " + XML_MEDIUM_FTP_PASSWORD + " ...)");            
         }
         
@@ -95,10 +94,12 @@ extends AbstractFileSystemPolicyXMLHandler {
             }
         }
 
+        String password = XMLTool.extractPassword(XML_MEDIUM_FTP_PASSWORD, mediumNode);
+        
         policy.setLogin(loginNode.getNodeValue());
-        if (passwordNode != null) {
+        if (password != null) {
         	// Standard case
-        	policy.setPassword(passwordNode.getNodeValue());
+        	policy.setPassword(password);
         } else {
         	// FTP Password missing
         	if (reader.getMissingDataListener() != null) {
@@ -150,7 +151,7 @@ extends AbstractFileSystemPolicyXMLHandler {
         sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_LOGIN, policy.getLogin()));
         
         if (! removeSensitiveData) {
-            sb.append(XMLTool.encodeProperty(XML_MEDIUM_FTP_PASSWORD, policy.getPassword()));
+            sb.append(XMLTool.encodePassword(XML_MEDIUM_FTP_PASSWORD, policy.getPassword()));
         }
         
         if (policy.getControlEncoding() != null) {

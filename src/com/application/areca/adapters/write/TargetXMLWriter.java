@@ -230,7 +230,7 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_RECIPIENTS, pp.getRecipients()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_SMTP, pp.getSmtpServer()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_USER, pp.getUser()));
-        sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_PASSWORD, pp.getPassword()));
+        sb.append(XMLTool.encodePassword(XML_PP_EMAIL_PASSWORD, pp.getPassword()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_SMTPS, pp.isSmtps()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_DISABLE_STARTTLS, pp.isDisableSTARTTLS()));
         sb.append(XMLTool.encodeProperty(XML_PP_EMAIL_TITLE, pp.getTitle()));
@@ -475,12 +475,12 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         
         if (policy.isEncrypted()) {
         	if (! removeSensitiveData) {
-        		sb.append(XMLTool.encodeProperty(XML_MEDIUM_ENCRYPTIONKEY, policy.getEncryptionKey())); 
+        		sb.append(XMLTool.encodePassword(XML_MEDIUM_ENCRYPTIONKEY, policy.getEncryptionKey())); 
         	}
         	
         	// Since version 7.1.6, algorithm and "encrypt names" properties are written - even if
         	// the "removeSensitiveData" flag is set to "true".
-        	// This to avoid newbies to forget these important parameters ...
+        	// This to avoid users to forget these important parameters ...
             sb.append(XMLTool.encodeProperty(XML_MEDIUM_ENCRYPTIONALGO, policy.getEncryptionAlgorithm()));
             sb.append(XMLTool.encodeProperty(XML_MEDIUM_ENCRYPTNAMES, policy.isEncryptNames()));
             sb.append(XMLTool.encodeProperty(XML_MEDIUM_WRAPNAMES, policy.getNameWrappingMode()));

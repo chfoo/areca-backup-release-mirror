@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 3998447537643563056L;
+		BUILD_ID = 4479290705646695599L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.3.6", new GregorianCalendar(2013, 7, 21), "Added certificate authentication for SFTP connectivity; Passwords are now encrypted in configuration files."));
 		VERSIONS.add(new VersionData("7.3.5", new GregorianCalendar(2013, 6, 14), "Fixed a but that prevented from creating backup shortcuts in some configurations."));
 		VERSIONS.add(new VersionData("7.3.4", new GregorianCalendar(2013, 5, 24), "Improved error messages when dangling symbolic links are encountered."));
 		VERSIONS.add(new VersionData("7.3.3", new GregorianCalendar(2013, 4, 12), "Improved error messages in case of invalid encryption configuration; Delta storage bugfix; Fixed memory issues that could occur when too many errors were encountered while checking archives."));

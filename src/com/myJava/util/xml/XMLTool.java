@@ -1,11 +1,18 @@
 package com.myJava.util.xml;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+
 import org.w3c.dom.Node;
 
+import com.myJava.encryption.EncryptionUtil;
 import com.myJava.util.Util;
+import com.myJava.util.log.Logger;
 
 /**
- * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -33,70 +40,163 @@ This file is part of Areca.
 
  */
 public class XMLTool {
-    public static String encode(long orig) {
-    	return encode("" + orig);
-    }
-    
-    public static String encode(int orig) {
-    	return encode("" + orig);
-    }
-    
-    public static String encode(boolean orig) {
-    	return encode("" + orig);
-    }
+	private static String PASSWORD_ENCODING_SUFFIX = "_e";
+	private static Cipher ENCRYPTION_CIPHER;
+	private static Cipher DECRYPTION_CIPHER;
 
-    public static String encode(String orig) {
-        String ret = orig;
+	static {
+		ENCRYPTION_CIPHER = buildNewCipher(Cipher.ENCRYPT_MODE);
+		DECRYPTION_CIPHER = buildNewCipher(Cipher.DECRYPT_MODE);
+	}
 
-        ret = Util.replace(ret, "&", "&amp;");
-        ret = Util.replace(ret, "\n", "&#xA;");
-        ret = Util.replace(ret, "<", "&lt;");
-        ret = Util.replace(ret, ">", "&gt;");  
-        ret = Util.replace(ret, "\"", "&quot;");
-        ret = Util.replace(ret, "'", "&apos;");            
-        
-        return "\"" + ret + "\"";
-    }
-    
-    public static String getHeader(String encoding) {
-        return "<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>";
-    }
-    
-    public static String encodeProperty(String property, int value) {
-    	return encodeProperty(property, "" + value);
-    }
-    
-    public static String encodeProperty(String property, boolean value) {
-    	return encodeProperty(property, "" + value);
-    }
-    
-    public static String encodeProperty(String property, long value) {
-    	return encodeProperty(property, "" + value);
-    }
-    
-    public static String encodeProperty(String property, String value) {
+	private static Cipher buildNewCipher(int mode) {
+		try {
+			Cipher cipher = Cipher.getInstance("AES");
+			cipher.init(mode, EncryptionUtil.buildKeyFromPassphrase("-- ! Gl0ub1boulg4 ! --", 16, "AES"));                
+
+			return cipher;
+		} catch (InvalidKeyException e1) {
+			Logger.defaultLogger().error(e1);
+			throw new IllegalArgumentException(e1.getMessage());
+		} catch (NoSuchAlgorithmException e1) {
+			Logger.defaultLogger().error(e1);
+			throw new IllegalArgumentException(e1.getMessage());
+		} catch (NoSuchPaddingException e1) {
+			Logger.defaultLogger().error(e1);
+			throw new IllegalArgumentException(e1.getMessage());
+		}
+	}
+
+	public static String encode(long orig) {
+		return encode("" + orig);
+	}
+
+	public static String encode(int orig) {
+		return encode("" + orig);
+	}
+
+	public static String encode(boolean orig) {
+		return encode("" + orig);
+	}
+
+	public static String encode(String orig) {
+		String ret = orig;
+
+		ret = Util.replace(ret, "&", "&amp;");
+		ret = Util.replace(ret, "\n", "&#xA;");
+		ret = Util.replace(ret, "<", "&lt;");
+		ret = Util.replace(ret, ">", "&gt;");  
+		ret = Util.replace(ret, "\"", "&quot;");
+		ret = Util.replace(ret, "'", "&apos;");            
+
+		return "\"" + ret + "\"";
+	}
+
+	public static String getHeader(String encoding) {
+		return "<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>";
+	}
+
+	public static String encodeProperty(String property, int value) {
+		return encodeProperty(property, "" + value);
+	}
+
+	public static String encodeProperty(String property, boolean value) {
+		return encodeProperty(property, "" + value);
+	}
+
+	public static String encodeProperty(String property, long value) {
+		return encodeProperty(property, "" + value);
+	}
+
+	public static String encodeProperty(String property, String value) {
 		StringBuffer sb = new StringBuffer();
 		if (value != null) {
 			sb.append(" ").append(property).append("=").append(encode(value));
 		}
 		return sb.toString();
-    }
-    
-    public static String readNonNullableNode(Node data, String tag) throws AdapterException {
-        Node node = data.getAttributes().getNamedItem(tag);
-        if (node == null) {
-        	throw new AdapterException("Invalid XML content : missing '" + tag + "' tag.");
-        } else {
-        	return node.getNodeValue();
-        }
-    }
-    
-    public static String readNullableNode(Node data, String tag) throws AdapterException {
-        Node node = data.getAttributes().getNamedItem(tag);
-        if (node == null) {
-        	return null;
-        } else {
-        	return node.getNodeValue();
-        }
-    }
+	}
+
+	public static String readNonNullableNode(Node data, String tag) throws AdapterException {
+		Node node = data.getAttributes().getNamedItem(tag);
+		if (node == null) {
+			throw new AdapterException("Invalid XML content : missing '" + tag + "' tag.");
+		} else {
+			return node.getNodeValue();
+		}
+	}
+
+	public static String readNullableNode(Node data, String tag) throws AdapterException {
+		Node node = data.getAttributes().getNamedItem(tag);
+		if (node == null) {
+			return null;
+		} else {
+			return node.getNodeValue();
+		}
+	}
+
+	private static String encrypt(String value) {
+		if (value == null) {
+			return "";
+		}
+
+		try {
+			byte[] bytes = ENCRYPTION_CIPHER.doFinal(value.getBytes("UTF-8"));
+			StringBuffer sb = new StringBuffer();
+			for (int i=0; i<bytes.length; i++) {
+				String str = Integer.toHexString((int)bytes[i] + 128);
+				if (str.length() == 1) {
+					sb.append("0");
+				}
+				sb.append(str);
+			}
+
+			return sb.toString();
+		} catch (Exception e) {
+			Logger.defaultLogger().error(e);
+			throw new IllegalArgumentException("Error while encrypting [" + value + "]", e);
+		}
+	}
+
+	private static String decrypt(String value) {
+		if (value == null || value.trim().length() == 0) {
+			return null;
+		}
+
+		try {
+			int nb = value.length() / 2;
+			byte[] values = new byte[nb];
+
+			for (int i=0; i<nb; i++) {
+				String str = value.substring(2*i, 2*i+2);
+
+				int iValue = Integer.parseInt(str, 16);
+				values[i] = (byte)(iValue - 128);
+			}
+
+			byte[] decrypted = DECRYPTION_CIPHER.doFinal(values);
+			return new String(decrypted, "UTF-8");
+		} catch (Exception e) {
+			Logger.defaultLogger().error(e);
+			throw new IllegalArgumentException("Error while decrypting [" + value + "]", e);
+		}
+	}
+
+	public static String encodePassword(String basePropertyName, String value) {
+		String encodedValue = encrypt(value);
+		return encodeProperty(basePropertyName + PASSWORD_ENCODING_SUFFIX, encodedValue);
+	}
+
+	public static String extractPassword(String basePropertyName, Node node) {
+		Node encodedNode = node.getAttributes().getNamedItem(basePropertyName + PASSWORD_ENCODING_SUFFIX);
+		if (encodedNode == null) {
+			Node decodedNode = node.getAttributes().getNamedItem(basePropertyName);	
+			if (decodedNode == null) {
+				return null;
+			} else {
+				return decodedNode.getNodeValue();
+			}
+		} else {
+			return decrypt(encodedNode.getNodeValue());
+		}
+	}
 }

@@ -34,13 +34,20 @@ This file is part of Areca.
  */
 public class DefaultUserInfo implements UserInfo {
 	private String password;
+	private String certPassphrase;
+	private String certPath;
 
-	public DefaultUserInfo(String password) {
+	public DefaultUserInfo(String password, String certPassphrase, String certPath) {
 		this.password = password;
+		this.certPassphrase = certPassphrase;
+		this.certPath = certPath;
 	}
 
 	public String getPassphrase() {
-		throw new UnsupportedOperationException();
+		if (certPassphrase == null || certPassphrase.trim().length() == 0) {
+			Logger.defaultLogger().warn("No passphrase set for SSH private key file.");
+		}
+		return certPassphrase;
 	}
 
 	public String getPassword() {
@@ -52,7 +59,8 @@ public class DefaultUserInfo implements UserInfo {
 	}
 
 	public boolean promptPassphrase(String message) {
-		throw new UnsupportedOperationException(message);
+		Logger.defaultLogger().info("Using passphrase for private key file : " + certPath);
+		return true;
 	}
 
 	public boolean promptYesNo(String message) {

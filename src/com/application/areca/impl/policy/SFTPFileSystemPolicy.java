@@ -49,6 +49,9 @@ implements FileSystemPolicy {
     private String password;
     private String hostKey;
     private boolean checkHostKey;
+	private boolean useCertificateAuth;
+	private String certificateFileName;
+	private boolean encryptedCert;
     
     public String getDisplayableParameters(boolean fullPath) {
         StringBuffer sb = new StringBuffer();
@@ -67,15 +70,18 @@ implements FileSystemPolicy {
     }
     
     protected AbstractProxy buildProxy() {
-		//ArecaHostKeyVerification verification = new ArecaHostKeyVerification(this.fingerPrint);
-		
-		SFTPProxy proxy = new SFTPProxy(this.remoteDirectory);//new SFTPProxy(verification, this.remoteDirectory);
+		SFTPProxy proxy = new SFTPProxy(this.remoteDirectory);
         proxy.setLogin(login);
         proxy.setPassword(password);
         proxy.setRemotePort(remotePort);
         proxy.setRemoteServer(remoteServer);
         proxy.setHostKey(hostKey);
         proxy.setCheckHostKey(checkHostKey);
+        proxy.setUseCertificateAuth(useCertificateAuth);
+        proxy.setCertificateFileName(certificateFileName);
+        if (encryptedCert) {
+            proxy.setCertPassPhrase(password);	
+        }
         
         return proxy;
     }
@@ -89,8 +95,17 @@ implements FileSystemPolicy {
             return base;
         }
     }
-    
-    public void copyAttributes(SFTPFileSystemPolicy policy) {
+
+
+    public boolean isEncryptedCert() {
+		return encryptedCert;
+	}
+
+	public void setEncryptedCert(boolean encryptedCert) {
+		this.encryptedCert = encryptedCert;
+	}
+
+	public void copyAttributes(SFTPFileSystemPolicy policy) {
     	super.copyAttributes(policy);
         policy.setRemoteServer(this.remoteServer);
         policy.setRemotePort(this.remotePort);
@@ -98,6 +113,9 @@ implements FileSystemPolicy {
         policy.setHostKey(this.hostKey);
         policy.setPassword(this.password);
         policy.setCheckHostKey(checkHostKey);
+        policy.setUseCertificateAuth(this.useCertificateAuth);
+        policy.setCertificateFileName(this.certificateFileName);
+        policy.setEncryptedCert(encryptedCert);
     }
     
     public Duplicable duplicate() {
@@ -109,6 +127,22 @@ implements FileSystemPolicy {
 	public AccessInformations checkReachable() {
 		AccessInformations ret = new AccessInformations();
 		return ret;
+	}
+	
+	public boolean isUseCertificateAuth() {
+		return useCertificateAuth;
+	}
+
+	public void setUseCertificateAuth(boolean useCertificateAuth) {
+		this.useCertificateAuth = useCertificateAuth;
+	}
+
+	public String getCertificateFileName() {
+		return certificateFileName;
+	}
+
+	public void setCertificateFileName(String certificateFileName) {
+		this.certificateFileName = certificateFileName;
 	}
 
     public boolean isCheckHostKey() {
@@ -180,6 +214,9 @@ implements FileSystemPolicy {
         ToStringHelper.append("Name", this.archiveName, sb);
         ToStringHelper.append("HostKey", this.hostKey, sb); 
         ToStringHelper.append("CheckHostKey", this.checkHostKey, sb);     
+        ToStringHelper.append("UseCertificateAuth", this.useCertificateAuth, sb);  
+        ToStringHelper.append("CertificateFileName", this.certificateFileName, sb);  
+        ToStringHelper.append("EncryptedCert", this.encryptedCert, sb); 
         return ToStringHelper.close(sb);
     }
 }

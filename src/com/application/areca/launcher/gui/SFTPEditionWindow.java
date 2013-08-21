@@ -1,5 +1,7 @@
 package com.application.areca.launcher.gui;
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -25,6 +27,7 @@ import com.jcraft.jsch.HostKeyAccessor;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.myJava.file.FileSystemManager;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 
@@ -80,8 +83,23 @@ extends AbstractWindow {
 	protected Button btnCancel;
 	protected Button btnHostKey;
 	protected Button chkCheckHostKey;
+	
+	protected Button radPassword;
+	protected Button radCertificate;
+	
+	protected Group grpPassword;
+	protected Group grpCert;
+	
+	protected Label lblLogin;
+	protected Label lblPrivateKey;
+	protected Text txtPrivateKey;
+	protected Button btnBrowse;
+	protected Text txtPassphrase;
+	protected Text lblCertHint;
+	protected Button chkEncrypedtCert;
 
 	protected Button btnReveal;
+	protected Button btnReveal2;
 
 	public SFTPEditionWindow(SFTPFileSystemPolicy currentPolicy) {
 		super();
@@ -99,14 +117,19 @@ extends AbstractWindow {
 		Composite itm1 = tabs.addElement("ftpedition.main.title", RM.getLabel("ftpedition.main.title"));
 		initMainPanel(itm1);
 
-		Composite itm2 = tabs.addElement("sftpedition.hostkey.title", RM.getLabel("sftpedition.hostkey.title"));
-		initFGPanel(itm2);
+		Composite itm2 = tabs.addElement("ftpedition.authentgroup.label", RM.getLabel("ftpedition.authentgroup.label"));
+		initAuthPanel(itm2);
+		
+		Composite itm3 = tabs.addElement("sftpedition.hostkey.title", RM.getLabel("sftpedition.hostkey.title"));
+		initFGPanel(itm3);
 
 		buildSaveComposite(ret);
 		initValues();
-
+		
 		tabs.setSelection(0);
-		ret.pack();
+		ret.pack(true);
+		ret.layout(true);
+		
 		return ret;
 	}
 
@@ -115,14 +138,27 @@ extends AbstractWindow {
 			this.txtHost.setText(currentPolicy.getRemoteServer());
 			this.txtPort.setText("" + currentPolicy.getRemotePort());
 			this.txtLogin.setText(currentPolicy.getLogin());
-			this.txtPassword.setText(currentPolicy.getPassword());
 			this.txtRemoteDir.setText(currentPolicy.getRemoteDirectory());
 			if (currentPolicy.getHostKey() != null) {
 				this.txtHostKey.setText(currentPolicy.getHostKey());
 			}
 			this.chkCheckHostKey.setSelection(currentPolicy.isCheckHostKey());
+			
+			if (currentPolicy.isUseCertificateAuth()) {
+				this.radCertificate.setSelection(true);
+				this.txtPassphrase.setText(currentPolicy.getPassword());
+				this.txtPrivateKey.setText(currentPolicy.getCertificateFileName());
+				this.chkEncrypedtCert.setSelection(currentPolicy.isEncryptedCert());
+			} else {
+				this.radPassword.setSelection(true);
+				this.txtPassword.setText(currentPolicy.getPassword());
+			}
+		} else {
+			radPassword.setSelection(true);
+			txtPort.setText("22");
 		}
 		handleCheckHostKeyModification();
+		handleAuthModification();
 		updateFingerPrint();
 	}
 
@@ -144,13 +180,15 @@ extends AbstractWindow {
 		Group grpServer = new Group(composite, SWT.NONE);
 		grpServer.setText(RM.getLabel("ftpedition.servergroup.label"));
 		grpServer.setLayout(new GridLayout(2, false));
-		grpServer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		GridData dt2 = new GridData(SWT.FILL, SWT.FILL, true, false);
+		dt2.widthHint = computeWidth(450);
+		dt2.heightHint = computeHeight(350);
+		grpServer.setLayoutData(dt2);
 
 		Label lblHost = new Label(grpServer, SWT.NONE);
 		lblHost.setText(RM.getLabel("ftpedition.host.label"));
 		txtHost = new Text(grpServer, SWT.BORDER);
 		GridData dt = new GridData(SWT.FILL, SWT.CENTER, true, false);
-		dt.widthHint = computeWidth(300);
 		txtHost.setLayoutData(dt);
 		monitorControl(txtHost);
 
@@ -166,27 +204,43 @@ extends AbstractWindow {
 		txtRemoteDir.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		monitorControl(txtRemoteDir);
 
-		new Label(composite, SWT.NONE);
-
-		final Group grpAuthent = new Group(composite, SWT.NONE);
-		grpAuthent.setText(RM.getLabel("ftpedition.authentgroup.label"));
-		grpAuthent.setLayout(new GridLayout(3, false));
-		grpAuthent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-
-		Label lblLogin = new Label(grpAuthent, SWT.NONE);
+		return composite;
+	}
+	
+	private Composite initAuthPanel(Composite parent) {
+		parent.setLayout(new FillLayout());
+		Composite composite = new Composite(parent, SWT.NONE);
+		composite.setLayout(initLayout(2));
+		
+		lblLogin = new Label(composite, SWT.NONE);
 		lblLogin.setText(RM.getLabel("ftpedition.login.label"));
-		txtLogin = new Text(grpAuthent, SWT.BORDER);
-		txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		lblLogin.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+		txtLogin = new Text(composite, SWT.BORDER);
+		txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		monitorControl(txtLogin);
+		
+		radPassword = new Button(composite, SWT.RADIO);
+		radPassword.setText(RM.getLabel("sftpedition.passauth.label"));
+		radPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		monitorControl(radPassword);
+		
+		radPassword.addListener(SWT.Selection, new Listener(){
+			public void handleEvent(Event event) {
+				handleAuthModification();
+			}
+		});
 
-		Label lblPassword = new Label(grpAuthent, SWT.NONE);
-		lblPassword.setText(RM.getLabel("ftpedition.password.label"));
-		txtPassword = new Text(grpAuthent, SWT.BORDER);
+		grpPassword= new Group(composite, SWT.NONE);
+		grpPassword.setText(RM.getLabel("sftpedition.passwordgroup.label"));
+		grpPassword.setLayout(new GridLayout(2, false));
+		grpPassword.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+
+		txtPassword = new Text(grpPassword, SWT.BORDER);
 		txtPassword.setEchoChar('*');
 		txtPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		monitorControl(txtPassword);
 
-		btnReveal = new Button(grpAuthent, SWT.PUSH);
+		btnReveal = new Button(grpPassword, SWT.PUSH);
 		btnReveal.setText(RM.getLabel("targetedition.reveal.label"));
 		btnReveal.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 		btnReveal.addListener(SWT.Selection, new Listener() {
@@ -194,16 +248,106 @@ extends AbstractWindow {
 				if (txtPassword.getEchoChar() == '*') {
 					txtPassword.setEchoChar('\0');
 					btnReveal.setText(RM.getLabel("targetedition.mask.label"));
-					grpAuthent.layout();
+					grpPassword.layout();
 				} else {
 					txtPassword.setEchoChar('*');
 					btnReveal.setText(RM.getLabel("targetedition.reveal.label"));
-					grpAuthent.layout();
+					grpPassword.layout();
+				}
+			}
+		});
+		
+		
+		radCertificate = new Button(composite, SWT.RADIO);
+		radCertificate.setText(RM.getLabel("sftpedition.certauth.label"));
+		radCertificate.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		monitorControl(radCertificate);
+
+		grpCert= new Group(composite, SWT.NONE);
+		grpCert.setText(RM.getLabel("sftpedition.certificategroup.label"));
+		grpCert.setLayout(new GridLayout(3, false));
+		grpCert.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+
+		lblPrivateKey = new Label(grpCert, SWT.NONE);
+		lblPrivateKey.setText(RM.getLabel("sftpedition.privkey.label"));
+		txtPrivateKey = new Text(grpCert, SWT.BORDER);
+		txtPrivateKey.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		monitorControl(txtPrivateKey);
+		
+		btnBrowse = new Button(grpCert, SWT.PUSH);
+		btnBrowse.setText(RM.getLabel("common.browseaction.label"));
+		btnBrowse.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				String dir = txtPrivateKey.getText();
+				String path = Application.getInstance().showFileDialog(dir, SFTPEditionWindow.this);
+				if (path != null) {
+					txtPrivateKey.setText(path);
 				}
 			}
 		});
 
+		chkEncrypedtCert = new Button(grpCert, SWT.CHECK);
+		chkEncrypedtCert.setText(RM.getLabel("sftpedition.passphrase.label"));
+		chkEncrypedtCert.addListener(SWT.Selection, new Listener(){
+			public void handleEvent(Event event) {
+				handleEncryptedCertModification();
+			}
+		});
+		
+		txtPassphrase = new Text(grpCert, SWT.BORDER);
+		txtPassphrase.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		txtPassphrase.setEchoChar('*');
+		monitorControl(txtPassphrase);
+		
+		btnReveal2 = new Button(grpCert, SWT.PUSH);
+		btnReveal2.setText(RM.getLabel("targetedition.reveal.label"));
+		btnReveal2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+		btnReveal2.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				if (txtPassphrase.getEchoChar() == '*') {
+					txtPassphrase.setEchoChar('\0');
+					btnReveal2.setText(RM.getLabel("targetedition.mask.label"));
+					grpCert.layout();
+				} else {
+					txtPassphrase.setEchoChar('*');
+					btnReveal2.setText(RM.getLabel("targetedition.reveal.label"));
+					grpCert.layout();
+				}
+			}
+		});
+		
+		lblCertHint = new Text(grpCert, SWT.MULTI | SWT.WRAP);
+		lblCertHint.setText(RM.getLabel("sftpedition.cert.hint.label"));
+		lblCertHint.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		lblCertHint.setEnabled(false);
+		
+		composite.pack(true);
+		composite.layout(true);
+		
 		return composite;
+	}
+	
+	private void handleEncryptedCertModification() {
+		btnReveal2.setEnabled(chkEncrypedtCert.getSelection());
+		txtPassphrase.setEnabled(chkEncrypedtCert.getSelection());
+	}
+	
+	private void handleAuthModification() {
+		grpPassword.setEnabled(radPassword.getSelection());
+		txtPassword.setEnabled(radPassword.getSelection());
+		btnReveal.setEnabled(radPassword.getSelection());
+		
+		grpCert.setEnabled(radCertificate.getSelection());
+		chkEncrypedtCert.setEnabled(radCertificate.getSelection());
+		txtPassphrase.setEnabled(radCertificate.getSelection());
+		lblPrivateKey.setEnabled(radCertificate.getSelection());
+		txtPrivateKey.setEnabled(radCertificate.getSelection());
+		btnBrowse.setEnabled(radCertificate.getSelection());
+		btnReveal2.setEnabled(radCertificate.getSelection());
+		
+		if (chkEncrypedtCert.isEnabled()) {
+			handleEncryptedCertModification();
+		}
 	}
 
 	private void handleCheckHostKeyModification() {
@@ -446,7 +590,9 @@ extends AbstractWindow {
 		this.resetErrorState(txtLogin);
 		this.resetErrorState(txtPassword);
 		this.resetErrorState(txtHostKey);
-
+		this.resetErrorState(txtPrivateKey);
+		this.resetErrorState(txtPassphrase);
+		
 		if (! check(txtHost)) {
 			return false;
 		}
@@ -470,8 +616,21 @@ extends AbstractWindow {
 			return false;
 		}
 
-		if (! check(txtPassword)) {
-			return false;
+		if (radCertificate.getSelection()) {
+			if (! check(txtPrivateKey)) {
+				return false;
+			} else if (! FileSystemManager.exists(new File(txtPrivateKey.getText()))) {
+				this.setInError(txtPrivateKey, RM.getLabel("error.file.does.not.exist"));
+				return false;
+			}
+			
+			if (chkEncrypedtCert.getSelection() && ! check(txtPassphrase)) {
+				return false;
+			}
+		} else {
+			if (! check(txtPassword)) {
+				return false;
+			}
 		}
 
 		if (chkCheckHostKey.getSelection() && (! check(txtHostKey))) {
@@ -506,12 +665,19 @@ extends AbstractWindow {
 
 	protected void initPolicy(SFTPFileSystemPolicy policy) {
 		policy.setLogin(txtLogin.getText());
-		policy.setPassword(txtPassword.getText());
 		policy.setRemoteDirectory(txtRemoteDir.getText());
 		policy.setRemotePort(Integer.parseInt(txtPort.getText()));
 		policy.setRemoteServer(txtHost.getText());
 		policy.setHostKey(txtHostKey.getText());
 		policy.setCheckHostKey(chkCheckHostKey.getSelection());
+		policy.setUseCertificateAuth(radCertificate.getSelection());
+		if (policy.isUseCertificateAuth()) {
+			policy.setCertificateFileName(txtPrivateKey.getText());
+			policy.setEncryptedCert(chkEncrypedtCert.getSelection());
+			policy.setPassword(txtPassphrase.getText());
+		} else {
+			policy.setPassword(txtPassword.getText());
+		}
 	}
 
 	public SFTPFileSystemPolicy getCurrentPolicy() {
