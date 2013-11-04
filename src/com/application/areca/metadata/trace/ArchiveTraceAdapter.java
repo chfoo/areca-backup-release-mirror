@@ -6,13 +6,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import com.application.areca.ArecaConfiguration;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.metadata.AbstractMetaDataEntry;
 import com.application.areca.metadata.AbstractMetadataAdapter;
 import com.application.areca.metadata.MetadataConstants;
 import com.application.areca.metadata.MetadataEncoder;
-import com.myJava.file.iterator.FilePathComparator;
 import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
@@ -47,24 +47,18 @@ This file is part of Areca.
  */
 public class ArchiveTraceAdapter extends AbstractMetadataAdapter {
 	protected boolean trackSymlinks;
-	protected String previousKey = null;
 
 	private ArchiveTraceAdapter(File traceFile) throws IOException {
 		this(traceFile, null, false);
 	}
 
 	public ArchiveTraceAdapter(File traceFile, String prefix, boolean trackSymlinks) {
-		super(traceFile, prefix);
+		super(traceFile, prefix, ArecaConfiguration.get().useGzip());
 		this.trackSymlinks = trackSymlinks;
 	}
 
 	public void writeEntry(FileSystemRecoveryEntry entry, String shaBase64) 
 	throws IOException, FileMetaDataSerializationException {
-		if (previousKey != null) {
-			if (FilePathComparator.instance().compare(entry.getKey(), previousKey) <= 0) {
-				throw new IllegalStateException(entry.getKey() + " <= " + previousKey);
-			}
-		}
 		write(ArchiveTraceParser.serialize(entry, trackSymlinks, shaBase64));
 	}
 

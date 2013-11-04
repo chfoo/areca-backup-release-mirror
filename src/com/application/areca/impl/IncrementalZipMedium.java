@@ -28,10 +28,8 @@ import com.myJava.file.archive.zip64.ZipArchiveAdapter;
 import com.myJava.file.archive.zip64.ZipConstants;
 import com.myJava.file.archive.zip64.ZipVolumeStrategy;
 import com.myJava.file.iterator.FileNameComparator;
-import com.myJava.file.iterator.FileSystemIterator;
 import com.myJava.file.multivolumes.VolumeStrategy;
 import com.myJava.object.Duplicable;
-import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 

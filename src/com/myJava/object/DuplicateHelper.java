@@ -107,6 +107,18 @@ public class DuplicateHelper {
             return clone;
         }
     }
+    
+    public static boolean[] duplicate(boolean[] array) {
+        if (array == null) {
+            return null;
+        } else {
+        	boolean[] clone = new boolean[array.length];
+            for (int i=0; i<array.length; i++) {
+                clone[i] = array[i];
+            }
+            return clone;
+        }
+    }
 
     public static Object duplicate(Object o) {
         if (o == null) {
@@ -118,7 +130,9 @@ public class DuplicateHelper {
         } else if (o instanceof Set) {
             return duplicate((Set)o);       
         } else if (o instanceof int[]) {
-            return duplicate((int[])o);                  
+            return duplicate((int[])o);      
+        } else if (o instanceof boolean[]) {
+            return duplicate((boolean[])o);     
         } else {
             throw new IllegalArgumentException(o.toString() + " is not cloneable.");
         }

@@ -18,6 +18,7 @@ import com.application.areca.adapters.XMLTags;
 import com.application.areca.adapters.write.XMLVersions;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
+import com.myJava.util.log.Logger;
 import com.myJava.util.xml.AdapterException;
 
 /**
@@ -65,7 +66,8 @@ implements XMLTags, TargetGroupXMLReader {
             DocumentBuilder builder = factory.newDocumentBuilder();
             
             xmlConfig = builder.parse(configurationFile);
-        } catch (Exception e) {
+        } catch (Throwable e) {
+        	Logger.defaultLogger().error("Invalid configuration file: " + configurationFile, e);
             AdapterException ex = new AdapterException(e);
             setSource(ex);
             throw ex;

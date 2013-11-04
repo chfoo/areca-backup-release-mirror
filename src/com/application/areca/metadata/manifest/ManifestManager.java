@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 
 import com.application.areca.ApplicationException;
+import com.application.areca.ArecaConfiguration;
 import com.application.areca.impl.AbstractFileSystemMedium;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
@@ -69,7 +70,7 @@ public class ManifestManager {
                 tool.createDir(metadataDir);
             }
             File manifestFile = new File(metadataDir, medium.getManifestName());
-            XMLManifestAdapter adapter = new XMLManifestAdapter();
+            XMLManifestAdapter adapter = new XMLManifestAdapter(ArecaConfiguration.get().useGzip());
             adapter.write(mf, manifestFile);
         } catch (AdapterException e) {
             Logger.defaultLogger().error("An error occurred while writing the manifest file for the following archive : " + FileSystemManager.getDisplayPath(archive), e);
@@ -84,12 +85,12 @@ public class ManifestManager {
 		try {
 			String r = FileTool.getInstance().getFirstRow(new GZIPInputStream(FileSystemManager.getFileInputStream(file)), XMLManifestAdapter.ENCODING);
 			if (r.equalsIgnoreCase(XMLTool.getHeader(XMLManifestAdapter.ENCODING))) {
-				return new XMLManifestAdapter();
+				return new XMLManifestAdapter(ArecaConfiguration.get().useGzip());
 			} else {
 				return new DeprecatedManifestAdapter();
 			}
 		} catch (IOException e) {
-			return new XMLManifestAdapter();
+			return new XMLManifestAdapter(ArecaConfiguration.get().useGzip());
 		}
 	}
 }

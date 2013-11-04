@@ -651,7 +651,7 @@ implements TargetActions, IndicatorTypes {
 	/**
 	 * Search for a valid transaction point
 	 */
-	public TransactionPoint getLastTransactionPoint()
+	public TransactionPoint getLastTransactionPoint(String backupScheme)
 			throws ApplicationException {
 		try {
 			// Retrieve the last committed archive
@@ -662,7 +662,7 @@ implements TargetActions, IndicatorTypes {
 			// List all non-committed archive files
 			File storageDir = fileSystemPolicy.getArchiveDirectory();
 			File[] archives = FileSystemManager.listFiles(storageDir);
-
+			
 			TransactionPoint candidate = null;
 
 			if (archives != null) {
@@ -690,14 +690,24 @@ implements TargetActions, IndicatorTypes {
 									// Check that the global source root hasn't
 									// changed since the transaction point
 									if (header.getSourcesRoot().equalsIgnoreCase(target.getSourcesRoot())) {
-										// Check that the transaction point is
-										// younger than the current candidate
-										if (candidate == null || tpDate.after(candidate.readHeader().getDate())) {
-											candidate = tp;
-											Logger.defaultLogger().fine("Transaction data registered.");
+										
+										// Check backup scheme
+										if (header.getBackupScheme().equals(backupScheme)) {
+											
+											// Check that the transaction point is
+											// younger than the current candidate
+											if (candidate == null || tpDate.after(candidate.readHeader().getDate())) {
+												candidate = tp;
+												Logger.defaultLogger().fine("Transaction data registered.");
+											} else {
+												Logger.defaultLogger().fine("Transaction data ignored.");
+											}
 										} else {
-											Logger.defaultLogger().fine("Transaction data ignored.");
+											Logger.defaultLogger().fine("Transaction data rejected : incompatible backup scheme ("
+													+ header.getBackupScheme()
+													+ ")");
 										}
+
 									} else {
 										Logger.defaultLogger().fine("Transaction data rejected : incompatible source root ("
 														+ header.getSourcesRoot()

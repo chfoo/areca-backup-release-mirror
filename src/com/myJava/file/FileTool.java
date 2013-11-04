@@ -524,7 +524,7 @@ public class FileTool {
 		FileTool.getInstance().createDir(target);
 		return target;
 	}
-	
+
 	/**
 	 * Return a new - non existing - temporary file or directory in the user's
 	 * main temporary directory. <BR>

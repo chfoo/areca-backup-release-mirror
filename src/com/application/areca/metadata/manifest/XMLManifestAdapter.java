@@ -2,6 +2,7 @@ package com.application.areca.metadata.manifest;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
@@ -65,12 +66,24 @@ public class XMLManifestAdapter implements ManifestReader {
 	private static final String XML_VALUE = "value";
 
 	public static final String ENCODING = "UTF-8";
+	
+	private boolean compress = true;
+	
+	public XMLManifestAdapter(boolean compress) {
+		this.compress = compress;
+	}
 
 	public Manifest read(File file) throws AdapterException {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
-			Document xml = builder.parse(new GZIPInputStream(FileSystemManager.getFileInputStream(file)));
+			InputStream stream;
+			if (compress) {
+				stream = new GZIPInputStream(FileSystemManager.getFileInputStream(file));
+			} else {
+				stream = FileSystemManager.getFileInputStream(file);
+			}
+			Document xml = builder.parse(stream);
 			return readManifest(xml);
 		} catch (ZipException e) {
 			AdapterException ex = new AdapterException(e);
@@ -131,7 +144,11 @@ public class XMLManifestAdapter implements ManifestReader {
 	public void write(Manifest manifest, File file) throws AdapterException {
 		OutputStreamWriter writer = null;
 		try {
-			writer = new OutputStreamWriter(new GZIPOutputStream(FileSystemManager.getFileOutputStream(file)), ENCODING);
+			if (compress) {
+				writer = new OutputStreamWriter(new GZIPOutputStream(FileSystemManager.getFileOutputStream(file)), ENCODING);
+			} else {
+				writer = new OutputStreamWriter(FileSystemManager.getFileOutputStream(file), ENCODING);
+			}
 			writer.write(XMLTool.getHeader(ENCODING));
 
 			writer.write("\n<");

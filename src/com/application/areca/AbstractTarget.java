@@ -1053,8 +1053,8 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 		secureUpdateCurrentTask(0, 1, task, context);
 	}
 
-	public TransactionPoint getLastTransactionPoint() throws ApplicationException {
-		return ((AbstractFileSystemMedium)medium).getLastTransactionPoint();
+	public TransactionPoint getLastTransactionPoint(String backupScheme) throws ApplicationException {
+		return ((AbstractFileSystemMedium)medium).getLastTransactionPoint(backupScheme);
 	}
 }
 

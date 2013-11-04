@@ -88,22 +88,22 @@ public class CalendarUtils {
     /**
      * Return [HH]h[mm] 
      */
-    public static String getTimeToString(GregorianCalendar argCal) {
-        GregorianCalendar cal = argCal;
+    public static String getTimeToString(Calendar argCal) {
+    	Calendar cal = argCal;
         if (cal == null) {
             cal = new GregorianCalendar();
         }        
         
         String date = "";
-        if (cal.get(GregorianCalendar.HOUR_OF_DAY) < 10) {
+        if (cal.get(Calendar.HOUR_OF_DAY) < 10) {
             date += "0";
         }        
-        date += cal.get(GregorianCalendar.HOUR_OF_DAY) + TIME_SEPARATOR;
+        date += cal.get(Calendar.HOUR_OF_DAY) + TIME_SEPARATOR;
 
-        if (cal.get(GregorianCalendar.MINUTE) < 10) {
+        if (cal.get(Calendar.MINUTE) < 10) {
             date += "0";
         }        
-        date += cal.get(GregorianCalendar.MINUTE);
+        date += cal.get(Calendar.MINUTE);
         
         return date;
     }
@@ -111,25 +111,25 @@ public class CalendarUtils {
     /**
      * Return [HH]h[mm]-[ss]-[ms]
      */
-    public static String getFullTimeToString(GregorianCalendar argCal) {
-        GregorianCalendar cal = argCal;
+    public static String getFullTimeToString(Calendar argCal) {
+    	Calendar cal = argCal;
         if (cal == null) {
             cal = new GregorianCalendar();
         }        
         
         String date = getTimeToString(cal) + FULL_TIME_SEPARATOR;
-        if (cal.get(GregorianCalendar.SECOND) < 10) {
+        if (cal.get(Calendar.SECOND) < 10) {
             date += "0";
         }        
-        date += cal.get(GregorianCalendar.SECOND) + FULL_TIME_SEPARATOR;
+        date += cal.get(Calendar.SECOND) + FULL_TIME_SEPARATOR;
 
-        if (cal.get(GregorianCalendar.MILLISECOND) < 10) {
+        if (cal.get(Calendar.MILLISECOND) < 10) {
             date += "0";
         }
-        if (cal.get(GregorianCalendar.MILLISECOND) < 100) {
+        if (cal.get(Calendar.MILLISECOND) < 100) {
             date += "0";
         }                
-        date += cal.get(GregorianCalendar.MILLISECOND);
+        date += cal.get(Calendar.MILLISECOND);
         
         return date;
     }    
@@ -137,21 +137,21 @@ public class CalendarUtils {
     /**
      * Return YYYYMMDD 
      */
-    public static String getDateToString(GregorianCalendar argCal) {
-        GregorianCalendar cal = argCal;
+    public static String getDateToString(Calendar argCal) {
+    	Calendar cal = argCal;
         if (cal == null) {
             cal = new GregorianCalendar();
         }
         
-        String date = "" + cal.get(GregorianCalendar.YEAR) + DATE_SEPARATOR;
-        if (cal.get(GregorianCalendar.MONTH) + 1 < 10) {
+        String date = "" + cal.get(Calendar.YEAR) + DATE_SEPARATOR;
+        if (cal.get(Calendar.MONTH) + 1 < 10) {
             date += "0";
         }
-        date += (cal.get(GregorianCalendar.MONTH) + 1) + DATE_SEPARATOR;
-        if (cal.get(GregorianCalendar.DAY_OF_MONTH) < 10) {
+        date += (cal.get(Calendar.MONTH) + 1) + DATE_SEPARATOR;
+        if (cal.get(Calendar.DAY_OF_MONTH) < 10) {
             date += "0";
         }        
-        date += cal.get(GregorianCalendar.DAY_OF_MONTH);
+        date += cal.get(Calendar.DAY_OF_MONTH);
         
         return date;
     }
@@ -159,7 +159,7 @@ public class CalendarUtils {
     /**
      * Return YYYYMMDD [HH]h[mm]-[ss]-[ms]
      */
-    public static String getFullDateToString(GregorianCalendar cal) {
+    public static String getFullDateToString(Calendar cal) {
         return getDateToString(cal) + " " + getFullTimeToString(cal);
     }
     

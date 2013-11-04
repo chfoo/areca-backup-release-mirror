@@ -46,6 +46,10 @@ This file is part of Areca.
 public class FrameworkConfiguration {
     private static FrameworkConfiguration instance = new FrameworkConfiguration(); 
     
+    
+    public static String KEY_USE_GZIP = "gzip.enabled";
+    
+    
     /**
      * Number of iterations used during the key derivation process
      */
@@ -182,7 +186,7 @@ public class FrameworkConfiguration {
     /**
      * Size of the buffer used by the "filediff" classes
      */
-    public static String KEY_DELTA_LINKEDLIST_BUFFER_SIZE = "delta.linkedlist.buffer.size"; 
+    // public static String KEY_DELTA_LINKEDLIST_BUFFER_SIZE = "delta.linkedlist.buffer.size"; 
     
     /**
      * Size of the hashmap used by the "filediff" classes
@@ -249,6 +253,7 @@ public class FrameworkConfiguration {
      */
     public static String KEY_SFTP_TIMEOUT = "sftp.timeout";
     
+    public static boolean DEF_USE_GZIP = true;
     public static int DEF_ENCRYPTION_KG_ITER = 96731;
     public static String DEF_ENCRYPTION_KG_SALT = "ù%${{²]}}[|`è€$£^¤*!§:/..;;,,_?\"\\°à@@%µ";
     public static String DEF_ENCRYPTION_KG_SALT_ENC = "UTF-8";
@@ -269,13 +274,13 @@ public class FrameworkConfiguration {
     public static int DEF_ZIP_MV_DIGITS = 2; 
     public static int DEF_LOG_LEVEL = LogLevels.LOG_LEVEL_FINEST;
     public static boolean DEF_FS_USE_BUFFER = true;   
-    public static int DEF_FS_BUFFER_SIZE = 1*1024*1024;   
+    public static int DEF_FS_BUFFER_SIZE = 10*1024;   
     public static boolean DEF_FS_CACHE_DEBUG = false; 
     public static boolean DEF_ZIP_ENTRY_CHECK_ENABLE = true;  
     public static long DEF_MAX_FILEPATH_LENGTH = 256;   
     public static int DEF_FORCE_FILEPATH_LENGTH_CHECK = -1;   // -1 = UNSET, 0 = FORCE DISABLE, 1 = FORCE ENABLE
     public static int DEF_DEFAULT_LOG_HISTORY = 10;  
-    public static int DEF_DELTA_LINKEDLIST_BUFFER_SIZE = 200 * 1024; 
+    //public static int DEF_DELTA_LINKEDLIST_BUFFER_SIZE = 200 * 1024; 
     public static int DEF_DELTA_HASHMAP_SIZE = 10007;
     public static int DEF_DELTA_QUICKHASH_MULTIPLIER = 691 * 13 * 11; 
     public static int DEF_DELTA_QUICKHASH_MODULUS = 4013423 * 17; 
@@ -357,6 +362,12 @@ public class FrameworkConfiguration {
     public int getEncryptionKGIters() {
     	return getProperty(KEY_ENCRYPTION_KG_ITER, DEF_ENCRYPTION_KG_ITER);
     }
+    
+    
+    public boolean useGzip() {
+        return getProperty(KEY_USE_GZIP, DEF_USE_GZIP);
+    }
+    
     
     public int getSFTPTimeout() {
     	return getProperty(KEY_SFTP_TIMEOUT, DEF_SFTP_TIMEOUT);
@@ -518,10 +529,6 @@ public class FrameworkConfiguration {
         } else {
             return p;
         }
-    }
-    
-    public int getDeltaLinkedListBufferSize() {
-        return getProperty(KEY_DELTA_LINKEDLIST_BUFFER_SIZE, DEF_DELTA_LINKEDLIST_BUFFER_SIZE);
     }
     
     public boolean getProperty(String key, boolean defaultValue) {

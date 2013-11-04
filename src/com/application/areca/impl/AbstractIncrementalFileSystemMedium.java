@@ -400,7 +400,7 @@ implements TargetActions {
 				if (context.getRecoveryDestination() == null) {
 					context.getInfoChannel().print("No archive to check.");
 				} else {
-					context.getInfoChannel().print("Deleting recovered files (" + FileSystemManager.getDisplayPath(context.getRecoveryDestination()) + ") ...");
+					context.getInfoChannel().print("Cleaning recovered files (" + FileSystemManager.getDisplayPath(context.getRecoveryDestination()) + ") ...");
 					if (FileSystemManager.exists(context.getRecoveryDestination())) {
 						FileTool.getInstance().delete(context.getRecoveryDestination());
 					}
@@ -621,7 +621,7 @@ implements TargetActions {
 
 				if (recoveredFiles.length >= 2) {
 					// Delete recovered archives
-					Logger.defaultLogger().info("Deleting recovered archives : " + recoveredFiles.length + " archives.");
+					Logger.defaultLogger().info("Cleaning recovered archives : " + recoveredFiles.length + " archives.");
 					for (int i=0; i<recoveredFiles.length; i++) {
 						Logger.defaultLogger().info("Deleting " + FileSystemManager.getDisplayPath(recoveredFiles[i]) + " ...");
 						this.deleteArchive(recoveredFiles[i]);                       
@@ -869,6 +869,19 @@ implements TargetActions {
 
 			ret = elementaryArchives;
 		}
+		
+/*
+		if (ret != null) {
+			for (int i=0; i<ret.length; i++) {
+				try {
+					File trc = ArchiveTraceManager.resolveTraceFileForArchive(this, ret[i]);
+					TraceMerger.checkTrace(trc);
+				} catch (Throwable e) {
+					Logger.defaultLogger().error("Error while checking " + ret[i], e);
+				}
+			}
+		}
+*/
 
 		return ret;
 	}
@@ -1212,6 +1225,8 @@ implements TargetActions {
 			applyMetaData((File)destination, traceFile, policy.listExcludedFiles(), context);
 		} catch (IOException e) {
 			throw new ApplicationException(e);
+		} catch (FileMetaDataSerializationException e) {
+			throw new ApplicationException(e);
 		}
 	}
 
@@ -1501,11 +1516,8 @@ implements TargetActions {
 							public void run() throws IOException, TaskCancelledException, ApplicationException {
 								InputStream in = FileSystemManager.getFileInputStream(fEntry.getFile());
 								in = new EventInputStream(in, listener);
-								try {
-									listener.reset();
-								} catch (NoSuchAlgorithmException e) {
-									throw new ApplicationException(e);
-								}
+								listener.reset();
+
 					    		//Chronometer.instance().start("storeImpl");
 								storeFileInArchive(fEntry, in, context);
 					    		//Chronometer.instance().stop("storeImpl");
@@ -1850,7 +1862,7 @@ implements TargetActions {
 			}
 		} catch (TaskCancelledException e) {
 			throw e;
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
 		} finally {
@@ -1949,10 +1961,11 @@ implements TargetActions {
 
 	private RecoveryFilterMap buildEntriesMap(File[] optimizedArchives, ArecaRawFileList filters, File traceFile, ProcessContext context) 
 	throws IOException, FileMetaDataSerializationException, TaskCancelledException, ApplicationException {
-
+		Logger.defaultLogger().fine("Building entries map for " + optimizedArchives.length + " archives.");
+		
 		// Create a normalized copy of the file list
-		filters.deduplicate();
 		filters.sort();
+		filters.deduplicate();
 		ArecaRawFileList normalized = (ArecaRawFileList)filters.duplicate();
 		normalized.removeTrailingSlashes();
 
@@ -1971,6 +1984,7 @@ implements TargetActions {
 					EntrySetTraceHandler handler = new EntrySetTraceHandler(normalized, dispatcher);
 					ArchiveTraceAdapter.traverseTraceFile(handler, traceFile, context);
 				} catch (IllegalStateException e) {
+					Logger.defaultLogger().fine("Error reading " + traceFile);
 					return null;
 				}
 			}
@@ -2475,6 +2489,9 @@ implements TargetActions {
 			Logger.defaultLogger().error(e); // SHALL NEVER HAPPEN
 			return null;
 		} catch (IOException e) {
+			Logger.defaultLogger().error(e);
+			throw new ApplicationException(e);
+		} catch (FileMetaDataSerializationException e) {
 			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
 		}

@@ -34,6 +34,7 @@ public class TransactionPointHeader {
     private GregorianCalendar date;
     private String arecaVersion;
     private String sourcesRoot;
+    private String backupScheme;
 
 	public GregorianCalendar getDate() {
 		return date;
@@ -57,5 +58,13 @@ public class TransactionPointHeader {
 
 	public void setSourcesRoot(String sourcesRoot) {
 		this.sourcesRoot = sourcesRoot;
+	}
+
+	public String getBackupScheme() {
+		return backupScheme;
+	}
+
+	public void setBackupScheme(String backupScheme) {
+		this.backupScheme = backupScheme;
 	}
 }

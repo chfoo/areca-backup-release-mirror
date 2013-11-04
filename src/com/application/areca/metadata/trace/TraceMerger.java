@@ -9,6 +9,7 @@ import com.application.areca.metadata.AbstractMetaDataFileIterator;
 import com.application.areca.metadata.MetadataConstants;
 import com.myJava.file.FileTool;
 import com.myJava.file.iterator.FilePathComparator;
+import com.myJava.file.metadata.FileMetaDataSerializationException;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 
@@ -50,7 +51,7 @@ public class TraceMerger {
 	 * Aggregates the traces provided as argument
 	 */
 	public static File buildAggregatedTraceFile(AbstractIncrementalFileSystemMedium medium, File[] archives) 
-	throws IOException, TaskCancelledException {
+	throws IOException, TaskCancelledException, FileMetaDataSerializationException {
 		return buildAggregatedTraceFile(medium, archives, null);
 	}
 
@@ -61,16 +62,27 @@ public class TraceMerger {
 			AbstractIncrementalFileSystemMedium medium, 
 			File[] archives, 
 			AbstractMetaDataFileIterator referenceIterator) 
-	throws IOException, TaskCancelledException {
+	throws IOException, TaskCancelledException, FileMetaDataSerializationException {
 		Logger.defaultLogger().info("Building aggregated archive trace ...");
 
 		File tmpFile = FileTool.getInstance().generateNewWorkingFile(null, "areca", "mtrc", true);
 		ArchiveTraceAdapter writer = new ArchiveTraceAdapter(tmpFile, ((FileSystemTarget)medium.getTarget()).getSourceDirectory(), false);
 		TraceMerger merger = new TraceMerger(medium, writer, archives, referenceIterator);
 		merger.merge();
+		
+		// Make sure that the trace file was written in the right order. 
+		// This step should not be necessary, but some users reported entries to appear in the wrong order in merged archives
+		TraceMerger.checkTrace(tmpFile);
 
 		Logger.defaultLogger().info("Aggregated archive trace built.");
 		return tmpFile;
+	}
+	
+	// Checks the merged trace for consistency
+	public static void checkTrace(File file) throws TaskCancelledException, FileMetaDataSerializationException, IOException {
+		Logger.defaultLogger().fine("Checking trace file consistency: " + file);
+		CheckTraceHandler handler = new CheckTraceHandler();
+		ArchiveTraceAdapter.traverseTraceFile(handler, file, null);
 	}
 
 	private TraceMerger(AbstractIncrementalFileSystemMedium medium, ArchiveTraceAdapter writer, File[] archives, AbstractMetaDataFileIterator referenceIterator) {

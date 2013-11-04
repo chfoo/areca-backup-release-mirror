@@ -62,7 +62,7 @@ public class ActionProxy {
 					// Look for pending transactions
 					Logger.defaultLogger().info("Looking for pending transactions ...");
 					try {
-						transactionPoint = target.getLastTransactionPoint();
+						transactionPoint = target.getLastTransactionPoint(backupScheme);
 					} catch (ApplicationException ex) {
 						Logger.defaultLogger().error("Error detected while trying to read transaction points.", ex);
 					}

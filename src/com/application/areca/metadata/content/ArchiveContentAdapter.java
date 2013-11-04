@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import com.application.areca.ApplicationException;
+import com.application.areca.ArecaConfiguration;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.FileSystemRecoveryEntry;
 import com.application.areca.metadata.AbstractMetaDataEntry;
@@ -53,7 +54,7 @@ public class ArchiveContentAdapter extends AbstractMetadataAdapter {
 	}
 	
 	public ArchiveContentAdapter(File contentFile, String prefix) {
-		super(contentFile, prefix);
+		super(contentFile, prefix, ArecaConfiguration.get().useGzip());
 	}
 
 	public void writeGenericEntry(ContentEntry entry) throws IOException {

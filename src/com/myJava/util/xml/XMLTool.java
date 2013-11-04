@@ -124,13 +124,59 @@ public class XMLTool {
 			return node.getNodeValue();
 		}
 	}
+	
+	public static long readNonNullableLong(Node data, String tag) throws AdapterException {
+		String str = readNonNullableNode(data, tag);
+		return Long.parseLong(str);
+	}
+	
+	public static int readNonNullableInt(Node data, String tag) throws AdapterException {
+		String str = readNonNullableNode(data, tag);
+		return Integer.parseInt(str);
+	}
 
-	public static String readNullableNode(Node data, String tag) throws AdapterException {
+	public static String readNullableNode(Node data, String tag) {
 		Node node = data.getAttributes().getNamedItem(tag);
 		if (node == null) {
 			return null;
 		} else {
 			return node.getNodeValue();
+		}
+	}
+	
+	public static String readNullableNode(Node data, String tag, String defaultValue) {
+		String val = readNullableNode(data, tag);
+		if (val == null) {
+			return defaultValue;
+		} else {
+			return val;
+		}
+	}
+	
+	public static int readNullableNode(Node data, String tag, int defaultValue) {
+		String val = readNullableNode(data, tag);
+		if (val == null) {
+			return defaultValue;
+		} else {
+			return Integer.parseInt(val);
+		}
+	}
+	
+	public static boolean readNullableNode(Node data, String tag, boolean defaultValue) {
+		String val = readNullableNode(data, tag);
+		if (val == null) {
+			return defaultValue;
+		} else {
+			return val.trim().equalsIgnoreCase("true");
+		}
+	}
+	
+	public static long readNullableNode(Node data, String tag, long defaultValue) {
+		String val = readNullableNode(data, tag);
+		if (val == null) {
+			return defaultValue;
+		} else {
+			return Long.parseLong(val);
 		}
 	}
 

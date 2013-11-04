@@ -98,9 +98,10 @@ public abstract class AbstractMetadataAdapter {
 	 */
 	protected AbstractMetadataAdapter secondaryAdapter;
 
-	public AbstractMetadataAdapter(File file, String globalPrefix) {
+	public AbstractMetadataAdapter(File file, String globalPrefix, boolean compressed) {
 		this.file = file;
 		this.globalPrefix = globalPrefix;
+		this.isCompressed = compressed;
 	}
 
 	private void initOutputStream() throws IOException {
@@ -224,14 +225,6 @@ public abstract class AbstractMetadataAdapter {
 	}
 
 	public abstract AbstractMetaDataEntry decodeEntry(String line);
-
-	public boolean isCompressed() {
-		return isCompressed;
-	}
-
-	public void setCompressed(boolean isCompressed) {
-		this.isCompressed = isCompressed;
-	}
 
 	public AbstractMetadataAdapter getSecondaryAdapter() {
 		return secondaryAdapter;

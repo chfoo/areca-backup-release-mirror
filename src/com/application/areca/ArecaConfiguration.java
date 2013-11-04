@@ -32,7 +32,7 @@ This file is part of Areca.
 public class ArecaConfiguration 
 extends FrameworkConfiguration {   
     public static String URI = "fwk.properties";
-    
+
     /**
      * Activate SMTP accesses debug log
      */
@@ -224,7 +224,7 @@ extends FrameworkConfiguration {
         ArecaConfiguration cfg = new ArecaConfiguration(URI);
         FrameworkConfiguration.setInstance(cfg);
     }
-    
+
     public boolean isSMTPDebugMode() {
         return getProperty(KEY_SMTP_DEBUG, DEF_SMTP_DEBUG);
     }

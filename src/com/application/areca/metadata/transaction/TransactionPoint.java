@@ -9,14 +9,12 @@ import java.io.ObjectStreamClass;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 
 import com.application.areca.ArecaConfiguration;
 import com.application.areca.ArecaFileConstants;
 import com.application.areca.context.ProcessContext;
 import com.application.areca.impl.FileSystemTarget;
-import com.application.areca.impl.tools.ArecaClassLoader;
 import com.application.areca.launcher.gui.common.FileComparator;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.trace.ArchiveTraceAdapter;
@@ -228,6 +226,7 @@ public class TransactionPoint implements Serializable {
 			TransactionPointHeader header = new TransactionPointHeader();
 			header.setDate(context.getManifest().getDate());
 			header.setArecaVersion(VersionInfos.getLastVersion().getVersionId());
+			header.setBackupScheme(context.getBackupScheme());
 			header.setSourcesRoot(((FileSystemTarget)context.getReport().getTarget()).getSourcesRoot());
 			adapter.write(header, marker);
 			

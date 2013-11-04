@@ -7,6 +7,8 @@ import com.application.areca.impl.AbstractIncrementalFileSystemMedium;
 import com.application.areca.metadata.content.ArchiveContentAdapter;
 import com.application.areca.metadata.content.ArchiveContentManager;
 import com.application.areca.metadata.content.ContentFileIterator;
+import com.myJava.file.FileTool;
+import com.myJava.system.OSTool;
 
 /**
  * 
@@ -86,4 +88,20 @@ public class DefaultEntriesDispatcher extends AbstractEntriesDispatcher {
 			}
 		}
 	}
+	/*
+	public static void main(String[] args) {
+		try {
+			for (int i=0; i<2000; i++) {
+				System.out.println("File " + i);
+				File f = new File("C:\\Users\\Olivier\\Desktop\\src", "File_" + i + ".txt");
+				FileTool.getInstance().createFile(f, "File number " + i);
+				String cmd = "C:/Users/Olivier/Desktop/backup_1012077951.bat";
+				OSTool.execute(new String[] {cmd});
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	*/
 }

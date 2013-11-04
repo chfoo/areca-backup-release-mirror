@@ -32,14 +32,26 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class HashInputStreamListener implements InputStreamListener {
+public class HashOutputStreamListener implements OutputStreamListener {
 	private static final String HASH_ALGORITHM = FrameworkConfiguration.getInstance().getFileHashAlgorithm();
 	
 	private boolean closed = false;
 	private MessageDigest dg;
 	
 	// Reset has to be called
-	public HashInputStreamListener() {
+	public HashOutputStreamListener() {
+	}
+	
+	public void bytesWritten(byte[] data, int offset, int length) {
+		if (length > 0) {
+			dg.update(data, offset, length);			
+		}
+	}
+
+	public void byteWritten(int b) {
+		if (b >= 0) {
+			dg.update((byte)b);	
+		}
 	}
 	
 	public void reset() {
@@ -49,21 +61,9 @@ public class HashInputStreamListener implements InputStreamListener {
 			throw new IllegalStateException(e.getMessage());
 		}
 	}
-	
-	public void close() {
+
+	public void closed() {
 		closed = true;
-	}
-
-	public void read(byte[] b, int off, int len, int read) {
-		if (read > 0) {
-			dg.update(b, off, read);			
-		}
-	}
-
-	public void read(int b) {
-		if (b >= 0) {
-			dg.update((byte)b);	
-		}
 	}
 
 	public byte[] getHash() {
@@ -71,8 +71,5 @@ public class HashInputStreamListener implements InputStreamListener {
 			throw new IllegalStateException("The stream is not closed");
 		}
 		return dg.digest();
-	}
-
-	public void available(int available) {
 	}
 }

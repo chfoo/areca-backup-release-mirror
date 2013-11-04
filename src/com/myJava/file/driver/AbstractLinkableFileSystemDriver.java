@@ -4,9 +4,14 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
+import com.myJava.file.OutputStreamListener;
 import com.myJava.file.metadata.FileMetaData;
 import com.myJava.object.ToStringHelper;
+import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 
 
 /**
@@ -37,7 +42,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public abstract class AbstractLinkableFileSystemDriver
+public class AbstractLinkableFileSystemDriver
 extends AbstractFileSystemDriver 
 implements LinkableFileSystemDriver {
 
@@ -53,6 +58,41 @@ implements LinkableFileSystemDriver {
 
     public boolean delete(File file) {
         return predecessor.delete(file);
+	}
+
+	public void forceDelete(File file, TaskMonitor monitor) throws IOException,
+			TaskCancelledException {
+		predecessor.forceDelete(file, monitor);
+	}
+
+	public InputStream getFileInputStream(File file) throws IOException {
+		return predecessor.getFileInputStream(file);
+	}
+
+	public OutputStream getFileOutputStream(File file) throws IOException {
+		return predecessor.getFileOutputStream(file);
+	}
+
+	public OutputStream getFileOutputStream(File file, boolean append,
+			OutputStreamListener listener) throws IOException {
+		return predecessor.getFileOutputStream(file, append, listener);
+	}
+
+	public OutputStream getFileOutputStream(File file, boolean append)
+			throws IOException {
+		return predecessor.getFileOutputStream(file, append);
+	}
+
+	public OutputStream getCachedFileOutputStream(File file) throws IOException {
+		return predecessor.getCachedFileOutputStream(file);
+	}
+
+	public InputStream getCachedFileInputStream(File file) throws IOException {
+		return predecessor.getCachedFileInputStream(file);
+	}
+
+	public String getPhysicalPath(File file) {
+		return predecessor.getPhysicalPath(file);
 	}
 
 	public boolean setReadOnly(File file) {

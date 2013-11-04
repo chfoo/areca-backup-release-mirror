@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.GregorianCalendar;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -55,6 +53,7 @@ public class TransactionHeaderAdapter {
 	private static final String XML_DATE = "date";
 	private static final String XML_ARECA_VERSION = "areca_version";
 	private static final String XML_SOURCES_ROOT = "sources_root";
+	private static final String XML_BACKUP_SCHEME = "backup_scheme";
 	
 	public static final String ENCODING = "UTF-8";
 
@@ -62,7 +61,7 @@ public class TransactionHeaderAdapter {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
-			Document xml = builder.parse(new GZIPInputStream(FileSystemManager.getFileInputStream(file)));
+			Document xml = builder.parse(FileSystemManager.getFileInputStream(file));
 			return readTransactionPointHeader(xml);
 		} catch (Exception e) {
 			AdapterException ex = new AdapterException(e);
@@ -93,6 +92,7 @@ public class TransactionHeaderAdapter {
 		header.setDate(cal);
 		header.setArecaVersion(XMLTool.readNonNullableNode(root, XML_ARECA_VERSION));
 		header.setSourcesRoot(XMLTool.readNonNullableNode(root, XML_SOURCES_ROOT));
+		header.setBackupScheme(XMLTool.readNonNullableNode(root, XML_BACKUP_SCHEME));
 		
 		return header;
 	}
@@ -100,7 +100,7 @@ public class TransactionHeaderAdapter {
 	public void write(TransactionPointHeader header, File file) throws IOException {
 		OutputStreamWriter writer = null;
 		try {
-			writer = new OutputStreamWriter(new GZIPOutputStream(FileSystemManager.getFileOutputStream(file)), ENCODING);
+			writer = new OutputStreamWriter(FileSystemManager.getFileOutputStream(file), ENCODING);
 			writer.write(XMLTool.getHeader(ENCODING));
 
 			writer.write("\n<");
@@ -109,6 +109,7 @@ public class TransactionHeaderAdapter {
 			writer.write(XMLTool.encodeProperty(XML_DATE, CalendarUtils.getFullDateToString(header.getDate())));
 			writer.write(XMLTool.encodeProperty(XML_ARECA_VERSION, header.getArecaVersion()));
 			writer.write(XMLTool.encodeProperty(XML_SOURCES_ROOT, header.getSourcesRoot()));
+			writer.write(XMLTool.encodeProperty(XML_BACKUP_SCHEME, header.getBackupScheme()));
 			writer.write("/>");
 		} finally {
 			if (writer != null) {

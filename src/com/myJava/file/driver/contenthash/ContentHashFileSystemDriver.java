@@ -6,8 +6,8 @@ import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 
 import com.myJava.file.OutputStreamListener;
-import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
 import com.myJava.file.driver.FileSystemDriver;
+import com.myJava.file.driver.AbstractLinkableFileSystemDriver;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
 import com.myJava.util.taskmonitor.TaskMonitor;
@@ -41,7 +41,8 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class ContentHashFileSystemDriver extends AbstractLinkableFileSystemDriver {
+public class ContentHashFileSystemDriver 
+extends AbstractLinkableFileSystemDriver {
 
 	public ContentHashFileSystemDriver(FileSystemDriver predecessor) {
 		super();
