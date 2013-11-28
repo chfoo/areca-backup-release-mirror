@@ -1,5 +1,7 @@
 package com.myJava.object;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.List;
@@ -50,6 +52,72 @@ public class ToStringHelper {
             sb.append("[").append(o.getClass().getSimpleName());
         }
         return sb;
+    }
+    
+    /**
+     * Low performance tostring default implementation
+     * @param o
+     * @return
+     */
+    public static String defaultToString(Object o, Class refClass) {
+    	if (o == null) {
+    		return "<null>";
+    	} else {
+    		Method[] methods = refClass.getMethods();
+    		StringBuffer sb = init(o);
+    		for (int i=0; i<methods.length; i++) {
+    			Method m = methods[i];
+    			String prop = getPropertyName(m);
+    			if (prop != null) {
+    				try {
+    					Object value = m.invoke(o, new Object[0]);
+    					append(prop, value, sb);
+    				} catch (Exception ignored) {
+    				}
+    			}
+    		}
+    		return close(sb);
+    	}
+    }
+    
+    /**
+     * returns null if not a getter, property name otherwise
+     * @param m
+     * @return
+     */
+    private static String getPropertyName(Method m) {
+    	if (Modifier.isStatic(m.getModifiers())) {
+    		return null;
+    	}
+    	
+    	String name = m.getName();
+    	int idx = -1;
+    	if (name.startsWith("get")) {
+    		idx = 3;
+    	} else if (name.startsWith("is")) {
+    		idx = 2;
+    	} else {
+    		return null;
+    	}
+    	
+    	char c = name.charAt(idx);
+    	if (c < 65 || c > 90) {
+    		return null;
+    	}
+    	
+    	if (m.getParameterTypes().length != 0) {
+    		return null;
+    	}
+
+    	if (m.getReturnType().equals(Void.TYPE)) {
+    		return null;
+    	}
+    	
+    	if (name.equals("getClass")) {
+    		return null;
+    	}
+    	
+    	return name.substring(idx);
     }
     
     public static void append(String name, Object o, StringBuffer sb) {

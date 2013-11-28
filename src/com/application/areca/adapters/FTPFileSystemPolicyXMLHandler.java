@@ -103,7 +103,7 @@ extends AbstractFileSystemPolicyXMLHandler {
         } else {
         	// FTP Password missing
         	if (reader.getMissingDataListener() != null) {
-        		Object[] ftpData = (Object[])reader.getMissingDataListener().missingFTPDataDetected(target);
+        		Object[] ftpData = (Object[])reader.getMissingDataListener().missingFTPDataDetected(target, reader.getSource());
                 if (ftpData != null) {
                 	policy.setPassword((String)ftpData[0]);
                 }

@@ -292,7 +292,7 @@ implements MouseListener, Listener, Refreshable {
 	}
 
 	private void addItems(TargetGroup group) {
-		Iterator iter = group.getSortedIterator();
+		Iterator iter = group.getSortedIterator(true);
 		while (iter.hasNext()) {
 			WorkspaceItem item = (WorkspaceItem)iter.next();
 			if (item instanceof AbstractTarget) {

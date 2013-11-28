@@ -90,7 +90,11 @@ public class Utils implements ArecaFileConstants {
 				url = ClassLoader.getSystemClassLoader().getResource("COPYING");
 				if (url == null) {
 					url = ClassLoader.getSystemClassLoader().getResource(ResourceManager.RESOURCE_NAME + "_en.properties");
-					refFile = FileSystemManager.getParentFile(new File(URLDecoder.decode(url.getFile())));
+					if (url != null) {
+						refFile = FileSystemManager.getParentFile(new File(URLDecoder.decode(url.getFile())));
+					} else {
+						refFile = new File("dummy");
+					}
 				} else {
 					refFile = new File(URLDecoder.decode(url.getFile()));
 				}

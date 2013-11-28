@@ -1,6 +1,7 @@
 package com.application.areca;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -38,10 +39,23 @@ public class TargetGroup
 extends AbstractWorkspaceItem {
     private String name;
     private HashMap content = new HashMap();
+    private boolean hasDeepTargets = false; // Does the group have target linked to it (or to one of its descendants)
     
     public TargetGroup(String name) {
         this.name = name;
     }
+
+	public boolean hasDeepTargets() {
+		return hasDeepTargets;
+	}
+
+	public void setHasDeepTargets(boolean hasDeepTargets) {
+		this.hasDeepTargets = hasDeepTargets;
+		
+		if (hasDeepTargets && parent != null && ! parent.hasDeepTargets) {
+			parent.setHasDeepTargets(hasDeepTargets);
+		}
+	}
 
 	public void doBeforeDelete() {
     	Iterator iter = this.getIterator();
@@ -59,13 +73,18 @@ extends AbstractWorkspaceItem {
     	}
     }
     
-	public Iterator getSortedIterator() {
-		Object[] data = new Object[content.size()];
+	public Iterator getSortedIterator(boolean filterEmptyGroups) {
+		ArrayList lst = new ArrayList();
+		
 		Iterator iter = getIterator();
-		int i = 0;
 		while (iter.hasNext()) {
-			data[i++] = iter.next();
+			WorkspaceItem item = (WorkspaceItem)iter.next();
+			if (! filterEmptyGroups || item.hasDeepTargets()) {
+				lst.add(item);
+			}
 		}
+		
+		Object[] data = lst.toArray();
 		Arrays.sort(data, new WorkspaceItemComparator());
 
 		return Arrays.asList(data).iterator();
@@ -118,11 +137,28 @@ extends AbstractWorkspaceItem {
 	}
 
 	public void linkChild(WorkspaceItem item) {
-		if (this != item.getParent()) { // Yeah .... instance check !
+		TargetGroup oldParent = item.getParent();
+		
+		if (this != oldParent) { // Yeah .... instance check !
 			item.setParent(this);
+			
+			if (item.hasDeepTargets()) {
+				this.setHasDeepTargets(true);
+			}
 		}
         this.content.put(item.getUid(), item);
     }
+	
+	private void recomputeHasDeepTargets() {
+		Iterator iter = this.getIterator();
+		while (iter.hasNext()) {
+			WorkspaceItem item = (WorkspaceItem)iter.next();
+			if (item.hasDeepTargets()) {
+				this.hasDeepTargets = true;
+				break;
+			}
+		}
+	}
     
     // Backward compatibility
     public AbstractTarget getTarget(int id) {
@@ -154,6 +190,10 @@ extends AbstractWorkspaceItem {
 			itm.doBeforeDelete();
 			this.content.remove(id);
 			itm.doAfterDelete();
+			
+			if (itm.hasDeepTargets()) {
+				this.recomputeHasDeepTargets();
+			}
 		}
 	}
     

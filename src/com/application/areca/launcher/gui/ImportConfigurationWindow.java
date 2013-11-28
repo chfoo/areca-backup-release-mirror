@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Text;
 import com.application.areca.Workspace;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
+import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.application.areca.launcher.gui.composites.ImportTargetTreeComposite;
 import com.application.areca.launcher.gui.resources.ResourceManager;
 import com.myJava.file.FileSystemManager;
@@ -81,7 +82,7 @@ extends AbstractWindow {
 		Listener listener = new Listener() {
 			public void handleEvent(Event event) {
 				File f= new File(location.getText());
-				String path;
+				final String path;
 				if (FileSystemManager.exists(f)) {
 					if (FileSystemManager.isFile(f)) {
 						path = Application.getInstance().showDirectoryDialog(FileSystemManager.getParent(f), ImportConfigurationWindow.this);
@@ -92,24 +93,37 @@ extends AbstractWindow {
 					path = Application.getInstance().showDirectoryDialog(ImportConfigurationWindow.this);
 				}
 
-				if (path != null) {
-					try {
-						application.enableWaitCursor(ImportConfigurationWindow.this);
+				Runnable rn = new Runnable() {
+					public void run() {
+						if (path != null) {
+							try {
+								application.enableWaitCursor(ImportConfigurationWindow.this);
 
-						location.setText(path);
-						Workspace workspace = null;
+								SecuredRunner.execute(new Runnable() {
+									public void run() {
+										location.setText(path);
+									}
+								});
 
-						try {
-							workspace = Workspace.open(path, application, false);
-						} catch (AdapterException e) {
-							Logger.defaultLogger().warn("Some files will be ignored : " + e.getMessage());
+								Workspace workspace = null;
+
+								try {
+									workspace = Workspace.open(path, application, false);
+								} catch (AdapterException e) {
+									Logger.defaultLogger().warn("Some files will be ignored : " + e.getMessage());
+								}
+
+								view.setWorkspace(workspace);
+							} finally {
+								application.disableWaitCursor(ImportConfigurationWindow.this);
+							}
 						}
-
-						view.setWorkspace(workspace);
-					} finally {
-						application.disableWaitCursor(ImportConfigurationWindow.this);
 					}
-				}
+				};
+				
+				Thread th = new Thread(rn);
+				th.setDaemon(true);
+				th.start();
 			}
 		};
 

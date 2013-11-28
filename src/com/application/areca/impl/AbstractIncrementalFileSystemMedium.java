@@ -2061,6 +2061,7 @@ implements TargetActions {
 		result.addProcessedArchives(listedArchives);
 
 		if (recoverDeletedEntries) {
+			Logger.defaultLogger().info("Keeping deleted entries - no archive optimization required.");
 			result.addRecoveredArchives(listedArchives);
 		} else {
 			boolean ignoreIncrementalAndDifferentialArchives = false;

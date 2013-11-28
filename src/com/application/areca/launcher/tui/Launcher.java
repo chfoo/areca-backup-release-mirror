@@ -2,6 +2,8 @@ package com.application.areca.launcher.tui;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 
@@ -508,15 +510,32 @@ implements CommandConstants {
 			);
 		} else {
 			// A full date is provided
+			GregorianCalendar date = CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null);
+			adjustDate(date, true);
+			
 			ActionProxy.processMergeOnTarget(
 					target,
 					null,
-					CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null),
+					date,
 					manifest,
 					params, 
 					checkParams,
 					context
 			);
+		}
+	}
+	
+	private static void adjustDate(Calendar date, boolean isToDate) {
+		// No specific time provided : the whole day will be included
+		if (
+				isToDate 
+				&& date != null
+				&& date.get(Calendar.HOUR_OF_DAY) == 0 
+				&& date.get(Calendar.MINUTE) == 0 
+				&& date.get(Calendar.SECOND) == 0
+		) {
+			date.add(Calendar.DATE, 1);
+			date.add(Calendar.MILLISECOND, -10);
 		}
 	}
 
@@ -543,10 +562,13 @@ implements CommandConstants {
 					context
 			);
 		} else {
+			GregorianCalendar date = CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null);
+			adjustDate(date, false);
+			
 			// A full date is provided
 			ActionProxy.processDeleteOnTarget(
 					target,
-					CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null),
+					date,
 					context
 			);
 		}
@@ -591,6 +613,8 @@ implements CommandConstants {
 		}
 		policy.setContext(context);
 
+		GregorianCalendar date = CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null);
+		adjustDate(date, true);
 
 		ActionProxy.processRecoverOnTarget(
 				target,
@@ -598,7 +622,7 @@ implements CommandConstants {
 				policy,
 				destination,
 				! noSubDir,
-				CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null),
+				date,
 				false, 
 				checkRecoveredFiles,
 				context
@@ -633,11 +657,14 @@ implements CommandConstants {
 				destination != null,
 				destination
 		);
-
+		
+		GregorianCalendar date = CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null);
+		adjustDate(date, true);
+		
 		ActionProxy.processCheckOnTarget(
 				target,
 				checkParams,
-				CalendarUtils.resolveDate(command.getOption(OPTION_DATE), null),
+				date,
 				context
 		);
 

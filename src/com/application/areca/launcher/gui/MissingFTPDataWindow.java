@@ -10,6 +10,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.ConfigurationSource;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.resources.ResourceManager;
@@ -47,13 +48,15 @@ extends AbstractWindow {
     
     private String password;
     private AbstractTarget target;    
-    
+    private ConfigurationSource source;
     private Text txtPassword;
     private Button saveButton;
+    protected Label lblPath;
 
-    public MissingFTPDataWindow(AbstractTarget target) {
+    public MissingFTPDataWindow(AbstractTarget target, ConfigurationSource source) {
         super();
         this.target = target;
+        this.source = source;
     }
     
     protected Control createContents(Composite parent) {
@@ -62,8 +65,14 @@ extends AbstractWindow {
         layout.numColumns = 2;
         composite.setLayout(layout);
         
+        lblPath = new Label(composite, SWT.NONE);
+        lblPath.setText("" + this.source.getSource());
+        lblPath.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1)); 
+        lblPath.setEnabled(false);
+        new Label(composite, SWT.NONE).setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+        
         Label lblIntro = new Label(composite, SWT.WRAP);
-        lblIntro.setText(RM.getLabel("mftpd.intro.label", new Object[] {target.getName()}));
+        lblIntro.setText(RM.getLabel("mftpd.intro.label", new Object[] {target.getName(), this.source.getSource()}));
         GridData mainData0 = new GridData();
         mainData0.grabExcessHorizontalSpace = true;
         mainData0.widthHint = computeWidth(600);

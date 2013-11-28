@@ -205,7 +205,7 @@ public class ConfigurationHandler {
 					}
 					return target;
 				} else {
-					Logger.defaultLogger().info("Ignoring " + FileSystemManager.getDisplayPath(file));
+					// Logger.defaultLogger().info("Ignoring " + FileSystemManager.getDisplayPath(file));
 					return null;
 				}
 			} else if (forceRead || ! FileSystemManager.getName(file).startsWith(".")) {
@@ -215,11 +215,15 @@ public class ConfigurationHandler {
 				File[] children = FileSystemManager.listFiles(file);
 				if (children != null) {
 					for (int i=0; i<children.length; i++) {
-						WorkspaceItem childItem = readObject(children[i], listener, group, installMedium, false);
-						if (childItem != null) {
-							if (childItem.getLoadedFrom().isBackupCopy()) {
-								group.getLoadedFrom().setBackupCopy(true);
+						try {
+							WorkspaceItem childItem = readObject(children[i], listener, group, installMedium, false);
+							if (childItem != null) {
+								if (childItem.getLoadedFrom().isBackupCopy()) {
+									group.getLoadedFrom().setBackupCopy(true);
+								}
 							}
+						} catch (Exception e) {
+							Logger.defaultLogger().error("Error while reading " + children[i], e);
 						}
 					}
 				}
@@ -228,7 +232,7 @@ public class ConfigurationHandler {
 				}
 				return group;
 			} else {
-				Logger.defaultLogger().info("Ignoring " + FileSystemManager.getDisplayPath(file));
+				// Logger.defaultLogger().info("Ignoring " + FileSystemManager.getDisplayPath(file));
 				return null;
 			}
 		} catch (AdapterException e) {

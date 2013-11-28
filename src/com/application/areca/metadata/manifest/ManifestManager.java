@@ -53,11 +53,14 @@ public class ManifestManager {
             }
             ManifestReader reader = buildReader(manifestFile);
             return reader.read(manifestFile);
-        } catch (AdapterException e) {
+        } catch (Throwable e) {
             String message = "An error occurred while reading the manifest file for the following archive : " + FileSystemManager.getDisplayPath(archive);
-        	if (e.isPotentialEncryptionIssue()) {
-        		message += "\nIMPORTANT: If your archive are encrypted, your encryption key is most certainly invalid.";
-        	}
+            if (e instanceof AdapterException) {
+            	AdapterException ae = (AdapterException)e;
+                if (ae.isPotentialEncryptionIssue()) {
+            		message += "\nIMPORTANT: If your archive are encrypted, your encryption key is most certainly invalid.";
+            	}
+            }
             
             throw new ApplicationException(message, e);
         }

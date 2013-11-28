@@ -45,20 +45,13 @@ public class MergeParameters implements Duplicable {
 	public boolean isKeepDeletedEntries() {
 		return keepDeletedEntries;
 	}
-	public void setKeepDeletedEntries(boolean keepDeletedEntries) {
-		this.keepDeletedEntries = keepDeletedEntries;
-	}
+
 	public boolean isUseSpecificLocation() {
 		return useSpecificLocation;
 	}
-	public void setUseSpecificLocation(boolean useSpecificLocation) {
-		this.useSpecificLocation = useSpecificLocation;
-	}
+
 	public String getSpecificLocation() {
 		return specificLocation;
-	}
-	public void setSpecificLocation(String specificLocation) {
-		this.specificLocation = specificLocation;
 	}
 
 	public boolean equals(Object obj) {

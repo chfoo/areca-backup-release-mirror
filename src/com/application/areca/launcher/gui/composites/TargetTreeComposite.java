@@ -72,7 +72,8 @@ extends AbstractTargetTreeComposite {
 	protected Link more;
 
     public TargetTreeComposite(Composite parent) {
-        super(parent, false, ArecaUserPreferences.isDisplayWSAddress());
+        super(parent, false, ArecaUserPreferences.isDisplayWSAddress(), false);
+        
         
         viewer.addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {

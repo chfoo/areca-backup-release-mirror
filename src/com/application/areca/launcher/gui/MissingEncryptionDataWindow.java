@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.ConfigurationSource;
 import com.application.areca.impl.EncryptionConfiguration;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
@@ -61,11 +62,14 @@ extends AbstractWindow {
     protected Button chkEncrypNames;
     protected Combo cboEncryptionAlgorithm;
     protected Button saveButton;
+    protected ConfigurationSource source;
+    protected Label lblPath;
 
-    public MissingEncryptionDataWindow(AbstractTarget target, String algorithm, Boolean encryptNames) {
+    public MissingEncryptionDataWindow(AbstractTarget target, String algorithm, Boolean encryptNames, ConfigurationSource source) {
         super();
         this.target = target;
         this.algo = algorithm;
+        this.source = source;
         this.encryptFileNames = encryptNames;
     }
     
@@ -75,8 +79,14 @@ extends AbstractWindow {
         layout.numColumns = 2;
         composite.setLayout(layout);
         
+        lblPath = new Label(composite, SWT.NONE);
+        lblPath.setText("" + this.source.getSource());
+        lblPath.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1)); 
+        lblPath.setEnabled(false);
+        new Label(composite, SWT.NONE).setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+        
         Label lblIntro = new Label(composite, SWT.WRAP);
-        lblIntro.setText(RM.getLabel("med.intro.label", new Object[] {target.getName()}));
+        lblIntro.setText(RM.getLabel("med.intro.label", new Object[] {target.getName(), this.source.getSource()}));
         GridData mainData0 = new GridData();
         mainData0.grabExcessHorizontalSpace = true;
         mainData0.widthHint = computeWidth(600);

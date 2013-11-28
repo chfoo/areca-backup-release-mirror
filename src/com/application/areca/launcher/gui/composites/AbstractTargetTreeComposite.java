@@ -30,6 +30,7 @@ import com.application.areca.WorkspaceItem;
 import com.application.areca.launcher.ArecaUserPreferences;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.ArecaImages;
+import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.application.areca.launcher.gui.resources.ResourceManager;
 
@@ -68,9 +69,12 @@ implements MouseListener, Listener {
 	protected Combo txtPath;
 	protected Button btnWsp;
 	protected int width;
+	protected boolean filterEmptyGroups = false;
 
-    public AbstractTargetTreeComposite(Composite parent, boolean multi, boolean addPath) {
+    public AbstractTargetTreeComposite(Composite parent, boolean multi, boolean addPath, boolean filterEmptyGroups) {
         super(parent, SWT.NONE);
+        this.filterEmptyGroups = filterEmptyGroups;
+        
         width = addPath ? 2:1;
         	
         GridLayout layout = new GridLayout(width, false);
@@ -134,22 +138,27 @@ implements MouseListener, Listener {
     protected abstract String getCurrentId();
 
     public void refresh() {
-        tree.removeAll();
-        String currentObjectId = getCurrentId();
+    	SecuredRunner.execute(new Runnable() {
+			public void run() {
+		        tree.removeAll();
+		        
+		        String currentObjectId = getCurrentId();
 
-        if (getWorkspace() != null) {
-        	Iterator iter = getWorkspace().getContent().getSortedIterator();
-        	while (iter.hasNext()) {
-        		TreeItem node = new TreeItem(tree, SWT.NONE);
-        		Object o = iter.next();
-        		
-        		if (o instanceof TargetGroup) {
-            		fillGroupData(node, (TargetGroup)o, currentObjectId);
-        		} else {
-        			fillTargetData(node, (AbstractTarget)o, currentObjectId);
-        		}
-        	}
-        }
+		        if (getWorkspace() != null) {
+		        	Iterator iter = getWorkspace().getContent().getSortedIterator(filterEmptyGroups);
+		        	while (iter.hasNext()) {
+		        		TreeItem node = new TreeItem(tree, SWT.NONE);
+		        		Object o = iter.next();
+		        		
+		        		if (o instanceof TargetGroup) {
+		            		fillGroupData(node, (TargetGroup)o, currentObjectId);
+		        		} else {
+		        			fillTargetData(node, (AbstractTarget)o, currentObjectId);
+		        		}
+		        	}
+		        }
+			}
+		});
     }
 
     private void fillGroupData(TreeItem groupNode, TargetGroup group, String currentObjectId) {
@@ -157,7 +166,7 @@ implements MouseListener, Listener {
     	groupNode.setImage(ArecaImages.ICO_REF_PROCESS);
     	groupNode.setData(group);
 
-        Iterator iter = group.getSortedIterator();
+        Iterator iter = group.getSortedIterator(filterEmptyGroups);
         while (iter.hasNext()) {
             TreeItem targetNode = new TreeItem(groupNode, SWT.NONE);
             groupNode.setExpanded(true);

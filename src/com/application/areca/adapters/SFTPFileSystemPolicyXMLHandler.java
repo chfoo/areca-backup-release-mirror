@@ -120,7 +120,7 @@ extends AbstractFileSystemPolicyXMLHandler {
         } else if ((! useCert) || encryptedCert ) {
         	// SFTP Password missing
         	if (reader.getMissingDataListener() != null) {
-        		Object[] sftpData = (Object[])reader.getMissingDataListener().missingFTPDataDetected(target);
+        		Object[] sftpData = (Object[])reader.getMissingDataListener().missingFTPDataDetected(target, reader.getSource());
                 if (sftpData != null) {
                 	policy.setPassword((String)sftpData[0]);
                 }

@@ -104,6 +104,10 @@ public class TargetXMLReader implements XMLTags {
 		this.targetNode = targetNode;
 		this.installMedium = installMedium;
 	}
+	
+	public ConfigurationSource getSource() {
+		return source;
+	}
 
 	public void setVersion(int version) {
 		this.version = version;
@@ -780,7 +784,7 @@ public class TargetXMLReader implements XMLTags {
 
 		if (isEncrypted && encryptionKey == null) {
 			if (missingDataListener != null) {
-				EncryptionPolicy encrData = missingDataListener.missingEncryptionDataDetected(target, encryptionAlgo, encryptNames, nameWrappingMode);
+				EncryptionPolicy encrData = missingDataListener.missingEncryptionDataDetected(target, encryptionAlgo, encryptNames, nameWrappingMode, this.source);
 				if (encrData != null) {
 					encryptionAlgo = encrData.getEncryptionAlgorithm();
 					encryptionKey = encrData.getEncryptionKey();

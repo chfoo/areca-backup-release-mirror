@@ -1,8 +1,10 @@
 package com.application.areca.launcher.gui;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.ConfigurationSource;
 import com.application.areca.adapters.XMLTags;
 import com.application.areca.impl.policy.EncryptionPolicy;
+import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.myJava.util.xml.AdapterException;
 
 /**
@@ -35,9 +37,21 @@ This file is part of Areca.
 public class MissingDataListener
 implements com.application.areca.adapters.MissingDataListener, XMLTags {
     
-    public EncryptionPolicy missingEncryptionDataDetected(AbstractTarget target, String algorithm, Boolean encryptNames, String nameWrappingMode) throws AdapterException {
-		MissingEncryptionDataWindow frm = new MissingEncryptionDataWindow(target, algorithm, encryptNames);
-		Application.getInstance().showDialog(frm);
+    public EncryptionPolicy missingEncryptionDataDetected(
+    		AbstractTarget target, 
+    		String algorithm, 
+    		Boolean encryptNames, 
+    		String nameWrappingMode,
+    		ConfigurationSource source
+    ) throws AdapterException {
+		final MissingEncryptionDataWindow frm = new MissingEncryptionDataWindow(target, algorithm, encryptNames, source);
+		
+		SecuredRunner.execute(
+				new Runnable() {
+					public void run() {
+						Application.getInstance().showDialog(frm);
+					}
+				});
 		
 		if (frm.isSaved()) {
 			EncryptionPolicy policy = new EncryptionPolicy();
@@ -53,8 +67,8 @@ implements com.application.areca.adapters.MissingDataListener, XMLTags {
 		}
     }
 
-	public Object missingFTPDataDetected(AbstractTarget target) throws AdapterException {
-		MissingFTPDataWindow frm = new MissingFTPDataWindow(target);
+	public Object missingFTPDataDetected(AbstractTarget target, ConfigurationSource source) throws AdapterException {
+		MissingFTPDataWindow frm = new MissingFTPDataWindow(target, source);
 		Application.getInstance().showDialog(frm);
 		return new Object[] {frm.getPassword()};
 	}

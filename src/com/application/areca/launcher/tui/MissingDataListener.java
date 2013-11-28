@@ -1,6 +1,7 @@
 package com.application.areca.launcher.tui;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.ConfigurationSource;
 import com.application.areca.adapters.XMLTags;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.myJava.util.xml.AdapterException;
@@ -35,11 +36,11 @@ This file is part of Areca.
 public class MissingDataListener
 implements com.application.areca.adapters.MissingDataListener, XMLTags {
 
-    public EncryptionPolicy missingEncryptionDataDetected(AbstractTarget target, String algorithm, Boolean encryptNames, String nameWrappingMode) throws AdapterException {
-        throw new AdapterException("No encryption key found : your medium must have a '" + XML_MEDIUM_ENCRYPTIONKEY + "' attribute because it is encrypted (" + XML_MEDIUM_ENCRYPTED + " = true).");
+    public EncryptionPolicy missingEncryptionDataDetected(AbstractTarget target, String algorithm, Boolean encryptNames, String nameWrappingMode, ConfigurationSource source) throws AdapterException {
+        throw new AdapterException("No encryption key found in " + source.getSource() + " : your medium must have a '" + XML_MEDIUM_ENCRYPTIONKEY + "' attribute because it is encrypted (" + XML_MEDIUM_ENCRYPTED + " = true).");
     }
 
-	public Object missingFTPDataDetected(AbstractTarget target) throws AdapterException {
-        throw new AdapterException("No FTP password found : your medium must have a '" + XML_MEDIUM_FTP_PASSWORD + "' attribute.");
+	public Object missingFTPDataDetected(AbstractTarget target, ConfigurationSource source) throws AdapterException {
+        throw new AdapterException("No FTP password found in " + source.getSource() + " : your medium must have a '" + XML_MEDIUM_FTP_PASSWORD + "' attribute.");
 	}
 }

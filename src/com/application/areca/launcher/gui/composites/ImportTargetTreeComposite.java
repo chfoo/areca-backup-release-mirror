@@ -50,7 +50,7 @@ extends AbstractTargetTreeComposite {
 	private Workspace workspace;
 
     public ImportTargetTreeComposite(Composite parent, final ImportConfigurationWindow window) {
-        super(parent, true, false);
+        super(parent, true, false, true);
         
 		TreeColumn column1 = new TreeColumn(tree, SWT.LEFT);
 		column1.setText(RM.getLabel("property.element.label"));
@@ -62,7 +62,11 @@ extends AbstractTargetTreeComposite {
 		
 		TreeColumn column3 = new TreeColumn(tree, SWT.LEFT);
 		column3.setText(RM.getLabel("property.source.label"));
-		column3.setWidth(AbstractWindow.computeWidth(160));
+		column3.setWidth(AbstractWindow.computeWidth(200));
+		
+		TreeColumn column4 = new TreeColumn(tree, SWT.LEFT);
+		column4.setText(RM.getLabel("targetedition.storagedirfield.label"));
+		column4.setWidth(AbstractWindow.computeWidth(360));
 		
 		tree.setLinesVisible(AbstractWindow.getTableLinesVisible());
 		tree.setHeaderVisible(true);
@@ -99,7 +103,11 @@ extends AbstractTargetTreeComposite {
 	
     protected void fillTargetData(TreeItem targetNode, AbstractTarget target, String currentObjectId) {
     	super.fillTargetData(targetNode, target, currentObjectId);
-        targetNode.setText(1, target.computeConfigurationFileName());
-        targetNode.setText(2, ((FileSystemTarget)target).getSourcesRoot());
+        
+    	FileSystemTarget fTarget = (FileSystemTarget)target;
+    	
+    	targetNode.setText(1, fTarget.computeConfigurationFileName());
+        targetNode.setText(2, fTarget.getSourcesRoot());
+        targetNode.setText(3, fTarget.getMedium().getDescription());       
     }
 }

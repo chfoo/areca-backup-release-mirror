@@ -46,4 +46,5 @@ public interface WorkspaceItem {
 	public boolean isChildOf(WorkspaceItem ancestor);
 	public ConfigurationSource getLoadedFrom();
 	public void setLoadedFrom(ConfigurationSource loadedFrom);
+	public boolean hasDeepTargets();
 }

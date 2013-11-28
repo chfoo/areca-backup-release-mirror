@@ -105,6 +105,10 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 		other.createSecurityCopyOnBackup = this.createSecurityCopyOnBackup;
 	}
 
+	public boolean hasDeepTargets() {
+		return true;
+	}
+
 	public SupportedBackupTypes getSupportedBackupSchemes() {
 		SupportedBackupTypes ret = new SupportedBackupTypes();
 

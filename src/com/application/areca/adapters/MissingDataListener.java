@@ -1,6 +1,7 @@
 package com.application.areca.adapters;
 
 import com.application.areca.AbstractTarget;
+import com.application.areca.ConfigurationSource;
 import com.application.areca.impl.policy.EncryptionPolicy;
 import com.myJava.util.xml.AdapterException;
 
@@ -33,6 +34,6 @@ This file is part of Areca.
 
  */
 public interface MissingDataListener {
-    public EncryptionPolicy missingEncryptionDataDetected(AbstractTarget target, String algorithm, Boolean encryptNames, String nameWrappingMode) throws AdapterException;
-    public Object missingFTPDataDetected(AbstractTarget target) throws AdapterException;
+    public EncryptionPolicy missingEncryptionDataDetected(AbstractTarget target, String algorithm, Boolean encryptNames, String nameWrappingMode, ConfigurationSource source) throws AdapterException;
+    public Object missingFTPDataDetected(AbstractTarget target, ConfigurationSource source) throws AdapterException;
 }
