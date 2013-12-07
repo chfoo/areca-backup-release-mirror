@@ -194,7 +194,7 @@ extends AbstractWindow {
 	
 	protected boolean checkExistingFiles() {
 		try {
-			File[] children = FileSystemManager.listFiles(new File(txtLocation.getText()));
+			String[] children = FileSystemManager.list(new File(txtLocation.getText()));
 			return (children != null && children.length != 0);
 		} catch (Exception e) {
 			com.myJava.util.log.Logger.defaultLogger().warn("Error while checking recovery directory", e);

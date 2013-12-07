@@ -23,6 +23,7 @@ import com.application.areca.plugins.PluginRegistry;
 import com.application.areca.version.VersionInfos;
 import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
+import com.myJava.file.iterator.FileNameComparator;
 import com.myJava.object.ToStringHelper;
 import com.myJava.util.log.Logger;
 import com.myJava.util.xml.AdapterException;
@@ -128,18 +129,18 @@ public class TransactionPoint implements Serializable {
 			return null;
 		}
 
-		File[] transactionPoints = FileSystemManager.listFiles(dir);
+		String[] transactionPoints = FileSystemManager.list(dir);
 		if (transactionPoints != null) {
-			Arrays.sort(transactionPoints, new FileComparator());
+			Arrays.sort(transactionPoints, new FileNameComparator());
 
 			for (int i=transactionPoints.length-1; i>=0; i--) {
 				try {
-					TransactionPoint tp = new TransactionPoint(rootPath, Integer.parseInt(FileSystemManager.getName(transactionPoints[i])));
+					TransactionPoint tp = new TransactionPoint(rootPath, Integer.parseInt(transactionPoints[i]));
 					if (tp.isCommitted()) {
 						return tp;
 					}
 				} catch (NumberFormatException e) {
-					Logger.defaultLogger().info("Ignoring " + FileSystemManager.getDisplayPath(transactionPoints[i]));
+					Logger.defaultLogger().info("Ignoring " + FileSystemManager.getDisplayPath(new File(dir, transactionPoints[i])));
 				}
 			}
 		}

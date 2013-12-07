@@ -81,10 +81,12 @@ public class TemporaryDirectoryCleaner extends ScheduledTask {
 
         synchronized(this) {
             File tmpDir = new File(this.tpcPath);
-            File[] files = FileSystemManager.listFiles(tmpDir);
-            for (int i=0; i<files.length; i++) {
-                if (this.checkFileToBeDeleted(files[i])) {
-                    FileSystemManager.delete(files[i]);
+            String[] fileNames = FileSystemManager.list(tmpDir);
+            for (int i=0; i<fileNames.length; i++) {
+            	File file = new File(tmpDir, fileNames[i]);
+            	
+                if (this.checkFileToBeDeleted(file)) {
+                    FileSystemManager.delete(file);
                 }
             }
         }

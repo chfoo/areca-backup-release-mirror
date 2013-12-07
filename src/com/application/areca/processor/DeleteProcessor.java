@@ -55,7 +55,7 @@ public class DeleteProcessor extends AbstractProcessor {
         this.delay = delay;
     }
 
-    public boolean requireStatictics() {
+    public boolean requireStatistics() {
 		return false;
 	}
 

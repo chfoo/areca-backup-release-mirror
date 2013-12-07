@@ -63,6 +63,7 @@ import com.application.areca.launcher.gui.common.CTabFolderManager;
 import com.application.areca.launcher.gui.common.SecuredRunner;
 import com.application.areca.launcher.gui.composites.GUIInformationChannel;
 import com.application.areca.launcher.gui.composites.LogComposite;
+import com.application.areca.launcher.gui.confimport.ImportConfigurationWindow;
 import com.application.areca.launcher.gui.menus.AppActionReferenceHolder;
 import com.application.areca.launcher.gui.menus.MenuBuilder;
 import com.application.areca.launcher.gui.resources.ResourceManager;
@@ -1125,47 +1126,6 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 			}
 		} catch (Throwable e) {
 			handleException("Error during command file creation", e);
-		}
-	}
-
-	public void importWorkspaceItems(WorkspaceItem[] items) {
-		try {
-			// deduplicate the list
-			ArrayList list = new ArrayList();
-			for (int i = 0; i < items.length; i++) {
-				boolean alreadyIncluded = false;
-				for (int j = 0; j < items.length; j++) {
-					if (i != j && items[i].isChildOf(items[j])) {
-						alreadyIncluded = true;
-						break;
-					}
-				}
-
-				if (!alreadyIncluded) {
-					list.add(items[i]);
-				}
-			}
-
-			// import items
-			Iterator iter = list.iterator();
-			while (iter.hasNext()) {
-				WorkspaceItem item = (WorkspaceItem) iter.next();
-
-				if (item instanceof TargetGroup) {
-					TargetGroup group = (TargetGroup) item;
-					File file = new File(workspace.getPath(), group.getName());
-					ConfigurationHandler.getInstance().serialize(group, file,
-							false, false);
-				} else {
-					FileSystemTarget target = (FileSystemTarget) item;
-					ConfigurationHandler.getInstance().serialize(target,
-							new File(workspace.getPath()), false, false);
-				}
-			}
-
-			this.refreshWorkspace();
-		} catch (Throwable e) {
-			handleException(RM.getLabel("error.importgrp.message"), e);
 		}
 	}
 

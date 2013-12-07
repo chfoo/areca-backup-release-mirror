@@ -223,33 +223,33 @@ extends AbstractLinkableFileSystemDriver {
 	}
 
 	public String[] list(File file, FilenameFilter filter) {
-		File[] files = this.listFiles(file, filter);
-		if (files != null) {
-			String[] ret = new String[files.length];
-			for (int i=0; i<files.length; i++) {
-				ret[i] = predecessor.getAbsolutePath(files[i]);
-			}
-
-			return ret;
-		} else {
-			return null;
-		}
+		String[] files = this.predecessor.list(this.encryptFileName(file), new FilenameFilterAdapter(filter, this));
+		return parseFiles(files);
 	}
 
 	public String[] list(File file) {
-		File[] files = this.listFiles(file);
-		if (files != null) {
-			String[] ret = new String[files.length];
-			for (int i=0; i<files.length; i++) {
-				ret[i] = predecessor.getAbsolutePath(files[i]);
-			}
-
-			return ret;
-		} else {
-			return null;
-		}
+		String[] files = this.predecessor.list(this.encryptFileName(file));
+		return parseFiles(files);
 	}
 
+	private String[] parseFiles(String[] files) {
+		ArrayList ret = new ArrayList();
+
+		if (files == null) {
+			return null;
+		} else {
+			for (int i=0; i<files.length; i++) {
+				try {
+					ret.add(this.decryptFileName(files[i]));
+				} catch (Throwable e) {
+					Logger.defaultLogger().error("Invalid encryption key or encryption parameters : unable to read file name for " + files[i] + ". This file will be ignored. (" + e.getMessage() + ")");
+				}
+			}
+
+			return (String[])ret.toArray(new String[ret.size()]);   
+		}
+	}
+	
 	private File[] parseFiles(File[] files) {
 		ArrayList ret = new ArrayList();
 

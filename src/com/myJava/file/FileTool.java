@@ -17,6 +17,7 @@ import java.util.Comparator;
 
 import com.myJava.configuration.FrameworkConfiguration;
 import com.myJava.file.copypolicy.CopyPolicy;
+import com.myJava.file.driver.DefaultFileSystemDriver;
 import com.myJava.system.OSTool;
 import com.myJava.util.Util;
 import com.myJava.util.log.Logger;
@@ -27,6 +28,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  * File handling utility <BR>
  * 
  * @author Olivier PETRUCCI <BR>
+ *         
  *
  */
 
@@ -52,8 +54,10 @@ This file is part of Areca.
  */
 
 public class FileTool {
-	private static final int BUFFER_SIZE = FrameworkConfiguration.getInstance().getFileToolBufferSize();
-	public static final String HASH_ALGORITHM = FrameworkConfiguration.getInstance().getFileHashAlgorithm();
+	private static final int BUFFER_SIZE = FrameworkConfiguration.getInstance()
+			.getFileToolBufferSize();
+	public static final String HASH_ALGORITHM = FrameworkConfiguration
+			.getInstance().getFileHashAlgorithm();
 
 	private static FileTool instance = new FileTool();
 
@@ -65,9 +69,10 @@ public class FileTool {
 	}
 
 	public void copy(File sourceFileOrDirectory, File targetParentDirectory)
-	throws IOException {
+			throws IOException {
 		try {
-			copy(sourceFileOrDirectory, targetParentDirectory, null, null, null, null);
+			copy(sourceFileOrDirectory, targetParentDirectory, null, null,
+					null, null);
 		} catch (TaskCancelledException ignored) {
 			// Never happens since no monitor is set.
 		}
@@ -76,14 +81,10 @@ public class FileTool {
 	/**
 	 * Copy the source file or directory in the parent destination.
 	 */
-	public void copy(
-			File sourceFileOrDirectory, 
-			File targetParentDirectory, 
-			CopyPolicy policy, 
-			Comparator comparator, 
-			TaskMonitor monitor, 
-			OutputStreamListener listener
-	) throws IOException, TaskCancelledException {
+	public void copy(File sourceFileOrDirectory, File targetParentDirectory,
+			CopyPolicy policy, Comparator comparator, TaskMonitor monitor,
+			OutputStreamListener listener) throws IOException,
+			TaskCancelledException {
 		if (sourceFileOrDirectory == null || targetParentDirectory == null) {
 			throw new IllegalArgumentException("Source : "
 					+ sourceFileOrDirectory + ", Destination : "
@@ -95,46 +96,53 @@ public class FileTool {
 		}
 
 		if (FileSystemManager.isFile(sourceFileOrDirectory)) {
-			if (policy == null || policy.accept(new File(targetParentDirectory, FileSystemManager.getName(sourceFileOrDirectory)))) {
-				copyFile(sourceFileOrDirectory, targetParentDirectory, FileSystemManager.getName(sourceFileOrDirectory), monitor, listener);
+			if (policy == null
+					|| policy.accept(new File(targetParentDirectory,
+							FileSystemManager.getName(sourceFileOrDirectory)))) {
+				copyFile(sourceFileOrDirectory, targetParentDirectory,
+						FileSystemManager.getName(sourceFileOrDirectory),
+						monitor, listener);
 			}
 		} else {
-			File td = new File(targetParentDirectory, FileSystemManager.getName(sourceFileOrDirectory));
+			File td = new File(targetParentDirectory,
+					FileSystemManager.getName(sourceFileOrDirectory));
 			this.createDir(td);
-			this.copyDirectoryContent(sourceFileOrDirectory, td, policy, comparator, monitor,listener);
+			this.copyDirectoryContent(sourceFileOrDirectory, td, policy,
+					comparator, monitor, listener);
 		}
 	}
-	
+
 	/**
 	 * Copy the content of sourceDirectory into targetDirectory <BR>
-	 * Example : <BR>- sourceDirectory = c:\toto\sourceDir <BR>-
-	 * targetDirectory = d:\myDir <BR>
+	 * Example : <BR>
+	 * - sourceDirectory = c:\toto\sourceDir <BR>
+	 * - targetDirectory = d:\myDir <BR>
 	 * <BR>
 	 * The content of c:\toto\sourceDir will be copied into d:\myDir
 	 */
-	public void copyDirectoryContent(
-			File sourceDirectory, 
-			File targetDirectory, 
-			CopyPolicy policy, 
-			Comparator comparator,
-			TaskMonitor monitor, 
-			OutputStreamListener listener
-	) throws IOException, TaskCancelledException {
+	public void copyDirectoryContent(File sourceDirectory,
+			File targetDirectory, CopyPolicy policy, Comparator comparator,
+			TaskMonitor monitor, OutputStreamListener listener)
+			throws IOException, TaskCancelledException {
 		this.createDir(targetDirectory);
 
-		File[] files = FileSystemManager.listFiles(sourceDirectory);
+		String[] files = FileSystemManager.list(sourceDirectory);
 		if (files == null) {
 			if (FileSystemManager.exists(sourceDirectory)) {
-				Logger.defaultLogger().warn(FileSystemManager.getDisplayPath(sourceDirectory) + " : Directory exists but no children.");
+				Logger.defaultLogger().warn(
+						FileSystemManager.getDisplayPath(sourceDirectory)
+								+ " : Directory exists but no children.");
 			} else {
-				Logger.defaultLogger().warn(FileSystemManager.getDisplayPath(sourceDirectory) + " : Directory doesn't exist.");
+				Logger.defaultLogger().warn(
+						FileSystemManager.getDisplayPath(sourceDirectory)
+								+ " : Directory doesn't exist.");
 			}
 		} else {
 			if (comparator != null) {
 				Arrays.sort(files, comparator);
 			}
 			for (int i = 0; i < files.length; i++) {
-				this.copy(files[i], targetDirectory, policy, comparator, monitor, listener);
+				this.copy(new File(sourceDirectory, files[i]), targetDirectory, policy, comparator, monitor, listener);
 			}
 		}
 	}
@@ -143,19 +151,17 @@ public class FileTool {
 	 * Copy the file to the parent target directory, with the short name passed
 	 * as argument.
 	 */
-	public void copyFile(
-			File sourceFile, 
-			File targetDirectory, 
-			String targetShortFileName, 
-			TaskMonitor monitor, 
-			OutputStreamListener listener
-	) throws IOException,	TaskCancelledException {
+	public void copyFile(File sourceFile, File targetDirectory,
+			String targetShortFileName, TaskMonitor monitor,
+			OutputStreamListener listener) throws IOException,
+			TaskCancelledException {
 		if (!FileSystemManager.exists(targetDirectory)) {
 			this.createDir(targetDirectory);
 		}
 
 		File tf = new File(targetDirectory, targetShortFileName);
-		OutputStream outStream = FileSystemManager.getFileOutputStream(tf, false, listener);
+		OutputStream outStream = FileSystemManager.getFileOutputStream(tf,
+				false, listener);
 
 		this.copyFile(sourceFile, outStream, true, monitor);
 	}
@@ -163,12 +169,9 @@ public class FileTool {
 	/**
 	 * Copy the source file to the target outputstream
 	 */
-	public void copyFile(
-			File sourceFile, 
-			OutputStream outStream, 
-			boolean closeStream, 
-			TaskMonitor monitor
-	) throws IOException, TaskCancelledException {
+	public void copyFile(File sourceFile, OutputStream outStream,
+			boolean closeStream, TaskMonitor monitor) throws IOException,
+			TaskCancelledException {
 		InputStream in;
 		try {
 			in = FileSystemManager.getFileInputStream(sourceFile);
@@ -181,16 +184,13 @@ public class FileTool {
 				}
 			}
 			throw e;
-		} 
+		}
 		this.copy(in, outStream, true, closeStream, monitor);
 	}
 
-	public void copy(
-			InputStream inStream, 
-			OutputStream outStream, 
-			boolean closeInputStream, 
-			boolean closeOutputStream
-	) throws IOException {
+	public void copy(InputStream inStream, OutputStream outStream,
+			boolean closeInputStream, boolean closeOutputStream)
+			throws IOException {
 		try {
 			copy(inStream, outStream, closeInputStream, closeOutputStream, null);
 		} catch (TaskCancelledException ignored) {
@@ -200,45 +200,42 @@ public class FileTool {
 	/**
 	 * Copy inStream into outStream.
 	 */
-	public void copy(
-			InputStream inStream, 
-			OutputStream outStream,
-			boolean closeInputStream, 
-			boolean closeOutputStream, 
-			TaskMonitor monitor
-	) throws IOException, TaskCancelledException {
+	public void copy(InputStream inStream, OutputStream outStream,
+			boolean closeInputStream, boolean closeOutputStream,
+			TaskMonitor monitor) throws IOException, TaskCancelledException {
 
-		//Chronometer.instance().start("copy");
+		// Chronometer.instance().start("copy");
 		try {
 			byte[] in = new byte[BUFFER_SIZE];
 			int nbRead;
 
-			//Chronometer.instance().start("while");
+			// Chronometer.instance().start("while");
 			while (true) {
 				if (monitor != null) {
 					monitor.checkTaskState();
 				}
-				
-				//Chronometer.instance().start("read");
-				//int available = inStream.available();
-				//if (available == 0) {
-				//	available = BUFFER_SIZE;
-				//}
-				//nbRead = inStream.read(in, 0, Math.min(available, in.length));
+
+				// Chronometer.instance().start("read");
+				// int available = inStream.available();
+				// if (available == 0) {
+				// available = BUFFER_SIZE;
+				// }
+				// nbRead = inStream.read(in, 0, Math.min(available,
+				// in.length));
 				nbRead = inStream.read(in);
-				//Chronometer.instance().stop("read");
-				
+				// Chronometer.instance().stop("read");
+
 				if (nbRead == -1) {
 					break;
 				}
-				
-				//Chronometer.instance().start("write");
+
+				// Chronometer.instance().start("write");
 				outStream.write(in, 0, nbRead);
-				//Chronometer.instance().stop("write");
+				// Chronometer.instance().stop("write");
 			}
-			//Chronometer.instance().stop("while");
+			// Chronometer.instance().stop("while");
 		} finally {
-			//Chronometer.instance().start("close");
+			// Chronometer.instance().start("close");
 			try {
 				if (closeInputStream && inStream != null) {
 					inStream.close();
@@ -248,14 +245,14 @@ public class FileTool {
 					outStream.close();
 				}
 			}
-			//Chronometer.instance().stop("close");
+			// Chronometer.instance().stop("close");
 		}
-		//Chronometer.instance().stop("copy");
+		// Chronometer.instance().stop("copy");
 	}
 
-	public void delete(File fileOrDirectory)
-	throws IOException {
+	public void delete(File fileOrDirectory) throws IOException {
 		try {
+			DefaultFileSystemDriver drv = new DefaultFileSystemDriver();
 			FileSystemManager.forceDelete(fileOrDirectory, null);
 		} catch (TaskCancelledException ignored) {
 			// Never happens since no monitor is set
@@ -263,8 +260,9 @@ public class FileTool {
 	}
 
 	public void createFile(File destinationFile, String content)
-	throws IOException {
-		OutputStream fos = FileSystemManager.getFileOutputStream(destinationFile);
+			throws IOException {
+		OutputStream fos = FileSystemManager
+				.getFileOutputStream(destinationFile);
 		OutputStreamWriter fw = new OutputStreamWriter(fos);
 		fw.write(content);
 		fw.flush();
@@ -274,8 +272,7 @@ public class FileTool {
 	/**
 	 * Return the content of the file as a String.
 	 */
-	public String getFileContent(File sourceFile)
-	throws IOException {
+	public String getFileContent(File sourceFile) throws IOException {
 		return getFileContent(sourceFile, null);
 	}
 
@@ -288,10 +285,10 @@ public class FileTool {
 			byte[] ret = new byte[0];
 			while ((read = in.read(buffer)) != -1) {
 				byte[] newRet = new byte[ret.length + read];
-				for (int i=0; i<ret.length; i++) {
+				for (int i = 0; i < ret.length; i++) {
 					newRet[i] = ret[i];
 				}
-				for (int i=0; i<read; i++) {
+				for (int i = 0; i < read; i++) {
 					newRet[ret.length + i] = buffer[i];
 				}
 				ret = newRet;
@@ -308,21 +305,21 @@ public class FileTool {
 	 * Return the content of the file as a String.
 	 */
 	public String getFileContent(File sourceFile, String encoding)
-	throws IOException {
+			throws IOException {
 		InputStream inStream = FileSystemManager.getFileInputStream(sourceFile);
 		return getInputStreamContent(inStream, encoding, true);
 	}
 
-	public String getInputStreamContent(InputStream inStream, boolean closeStreamOnExit)
-	throws IOException {
+	public String getInputStreamContent(InputStream inStream,
+			boolean closeStreamOnExit) throws IOException {
 		return getInputStreamContent(inStream, null, closeStreamOnExit);
 	}
 
 	/**
 	 * Return the content of the inputStream as a String.
 	 */
-	public String getInputStreamContent(InputStream inStream, String encoding, boolean closeStreamOnExit) 
-	throws IOException {
+	public String getInputStreamContent(InputStream inStream, String encoding,
+			boolean closeStreamOnExit) throws IOException {
 		if (inStream == null) {
 			return null;
 		}
@@ -332,7 +329,7 @@ public class FileTool {
 		try {
 			Reader reader = new BufferedReader(
 					encoding == null ? new InputStreamReader(inStream)
-					: new InputStreamReader(inStream, encoding),
+							: new InputStreamReader(inStream, encoding),
 					BUFFER_SIZE);
 			int read = 0;
 			while ((read = reader.read(b)) != -1) {
@@ -347,13 +344,12 @@ public class FileTool {
 	}
 
 	/**
-	 * Return the content of the file as a String array (one string by line).
-	 * <BR>
+	 * Return the content of the file as a String array (one string by line). <BR>
 	 * The lines are trimmed and empty lines are ignored.
 	 */
-	public String[] getFileRows(File sourceFile) 
-	throws IOException {
-		return getInputStreamRows(FileSystemManager.getFileInputStream(sourceFile), null, true);
+	public String[] getFileRows(File sourceFile) throws IOException {
+		return getInputStreamRows(
+				FileSystemManager.getFileInputStream(sourceFile), null, true);
 	}
 
 	/**
@@ -361,8 +357,8 @@ public class FileTool {
 	 * line). <BR>
 	 * The lines are trimmed and empty lines are ignored.
 	 */
-	public String[] getInputStreamRows(InputStream inStream, String encoding, boolean closeStreamOnExit)
-	throws IOException {
+	public String[] getInputStreamRows(InputStream inStream, String encoding,
+			boolean closeStreamOnExit) throws IOException {
 		return getInputStreamRows(inStream, encoding, -1, closeStreamOnExit);
 	}
 
@@ -371,8 +367,8 @@ public class FileTool {
 	 * line). <BR>
 	 * The lines are trimmed and empty lines are ignored.
 	 */
-	public String[] getInputStreamRows(InputStream inStream, String encoding, long maxRows, boolean closeStreamOnExit)
-	throws IOException {
+	public String[] getInputStreamRows(InputStream inStream, String encoding,
+			long maxRows, boolean closeStreamOnExit) throws IOException {
 		if (inStream == null) {
 			return null;
 		}
@@ -381,7 +377,7 @@ public class FileTool {
 		try {
 			BufferedReader reader = new BufferedReader(
 					encoding == null ? new InputStreamReader(inStream)
-					: new InputStreamReader(inStream, encoding),
+							: new InputStreamReader(inStream, encoding),
 					BUFFER_SIZE);
 			String line = null;
 			while ((line = reader.readLine()) != null && (maxRows != v.size())) {
@@ -398,11 +394,12 @@ public class FileTool {
 	}
 
 	public String getFirstRow(InputStream stream, String encoding)
-	throws IOException {
+			throws IOException {
 		BufferedReader reader = null;
 		String line;
 		try {
-			reader = new BufferedReader(new InputStreamReader(stream, encoding), 20000);
+			reader = new BufferedReader(
+					new InputStreamReader(stream, encoding), 20000);
 			line = reader.readLine();
 		} finally {
 			if (reader != null) {
@@ -417,15 +414,17 @@ public class FileTool {
 	/**
 	 * Replace all occurences or searchstring by newstring in basefile
 	 */
-	public void replaceInFile(File baseFile, String searchString, String newString)
-	throws IOException {
+	public void replaceInFile(File baseFile, String searchString,
+			String newString) throws IOException {
 
 		// Todo : TO BE OPTIMIZED ! > this version is awful !
 		String content = this.getFileContent(baseFile);
 		content = Util.replace(content, searchString, newString);
 		OutputStreamWriter fw = null;
 		try {
-			OutputStream fos = FileSystemManager.getFileOutputStream(FileSystemManager.getAbsolutePath(baseFile));
+			OutputStream fos = FileSystemManager
+					.getFileOutputStream(FileSystemManager
+							.getAbsolutePath(baseFile));
 			fw = new OutputStreamWriter(fos);
 			fw.write(content);
 			fw.flush();
@@ -440,7 +439,7 @@ public class FileTool {
 	 * Return true if the file contains the string passed as argument.
 	 */
 	public boolean checkContains(File baseFile, String searchString)
-	throws IOException {
+			throws IOException {
 		String content = this.getFileContent(baseFile);
 		return (content.indexOf(searchString) != -1);
 	}
@@ -455,24 +454,24 @@ public class FileTool {
 				FileSystemManager.getAbsoluteFile(child))) {
 			return true;
 		} else {
-			return this.isParentOf(parent, FileSystemManager
-					.getParentFile(child));
+			return this.isParentOf(parent,
+					FileSystemManager.getParentFile(child));
 		}
 	}
 
 	/**
 	 * Return the file's or directory's total length.
 	 */
-	public long getSize(File fileOrDirectory) 
-	throws FileNotFoundException {
+	public long getSize(File fileOrDirectory) throws FileNotFoundException {
 		if (FileSystemManager.isFile(fileOrDirectory)) {
 			return FileSystemManager.length(fileOrDirectory);
 		} else {
-			File[] content = FileSystemManager.listFiles(fileOrDirectory);
+			String[] childNames = FileSystemManager.list(fileOrDirectory);
 			long l = 0;
 
-			for (int i = 0; i < content.length; i++) {
-				l += getSize(content[i]);
+			for (int i = 0; i < childNames.length; i++) {
+				File f = new File(fileOrDirectory, childNames[i]);
+				l += getSize(f);
 			}
 
 			return l;
@@ -482,8 +481,7 @@ public class FileTool {
 	/**
 	 * Recursive creation of a directory
 	 */
-	public void createDir(File directory) 
-	throws IOException {
+	public void createDir(File directory) throws IOException {
 		if (directory == null || FileSystemManager.exists(directory)) {
 			return;
 		} else {
@@ -496,7 +494,8 @@ public class FileTool {
 	 * Read the file's content and compute a hash code
 	 */
 	public byte[] hashFileContent(File target, TaskMonitor monitor)
-	throws IOException, NoSuchAlgorithmException, TaskCancelledException {
+			throws IOException, NoSuchAlgorithmException,
+			TaskCancelledException {
 		InputStream is = null;
 		try {
 			is = FileSystemManager.getFileInputStream(target);
@@ -517,10 +516,11 @@ public class FileTool {
 			}
 		}
 	}
-	
-	public File createNewWorkingDirectory(File parent, String dirName, boolean registerDeleteHook)
-	throws IOException {
-		File target = generateNewWorkingFile(parent, null, dirName, registerDeleteHook);
+
+	public File createNewWorkingDirectory(File parent, String dirName,
+			boolean registerDeleteHook) throws IOException {
+		File target = generateNewWorkingFile(parent, null, dirName,
+				registerDeleteHook);
 		FileTool.getInstance().createDir(target);
 		return target;
 	}
@@ -534,8 +534,8 @@ public class FileTool {
 	 * However, it is strongly advised to handle the created file's destruction
 	 * explicitly as soon as it is not needed anymore and avoid using hooks
 	 */
-	public File generateNewWorkingFile(File rootFile, String subdir, String prefix, boolean registerDeleteHook)
-	throws IOException {
+	public File generateNewWorkingFile(File rootFile, String subdir,
+			String prefix, boolean registerDeleteHook) throws IOException {
 		File tmp = null;
 		int i = 0;
 		File root = rootFile;

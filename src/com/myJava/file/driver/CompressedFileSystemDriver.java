@@ -162,31 +162,13 @@ extends AbstractLinkableFileSystemDriver {
 	}
 
 	public String[] list(File file, FilenameFilter filter) {
-		File[] files = this.listFiles(file, filter);
-		if (files != null) {
-			String[] ret = new String[files.length];
-			for (int i=0; i<files.length; i++) {
-				ret[i] = predecessor.getAbsolutePath(files[i]);
-			}
-
-			return ret;
-		} else {
-			return null;
-		}
+		String[] files = this.predecessor.list(this.encode(file), new FilenameFilterAdapter(filter, this));
+		return processFiles(files);
 	}
 
 	public String[] list(File file) {
-		File[] files = this.listFiles(file);
-		if (files != null) {
-			String[] ret = new String[files.length];
-			for (int i=0; i<files.length; i++) {
-				ret[i] = predecessor.getAbsolutePath(files[i]);
-			}
-
-			return ret;
-		} else {
-			return null;
-		}
+		String[] files = this.predecessor.list(this.encode(file));        
+		return processFiles(files);
 	}
 
 	private static void logDecodingIssue(String f) {
@@ -206,6 +188,24 @@ extends AbstractLinkableFileSystemDriver {
 				}
 			}
 			return (File[])list.toArray(new File[list.size()]);
+		} else {
+			return null;
+		}
+	}
+	
+	private String[] processFiles(String[] files) {
+		if (files != null) {
+			ArrayList list = new ArrayList();
+			for (int i=0; i<files.length; i++) {
+				if ((! compression.isAddExtension()) || files[i].endsWith(CompressionArguments.ZIP_SUFFIX)) {
+					try {
+						list.add(this.decode(files[i]));
+					} catch (FileNameException e) {
+						logDecodingIssue(""+files[i]);
+					}
+				}
+			}
+			return (String[])list.toArray(new String[list.size()]);
 		} else {
 			return null;
 		}
@@ -598,6 +598,14 @@ extends AbstractLinkableFileSystemDriver {
 			ToStringHelper.append("Filter", this.filter, sb);
 			ToStringHelper.append("Driver", this.driver, sb);
 			return ToStringHelper.close(sb);
+		}
+		
+		public static void main(String[] args) {
+			File dir = new File("c:\\users\\olivier");
+			String[] data = dir.list();
+			for (int i=0; i<data.length; i++) {
+				System.out.println(data[i]);
+			}
 		}
 	}
 }

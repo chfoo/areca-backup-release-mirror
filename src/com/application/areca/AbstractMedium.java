@@ -53,6 +53,12 @@ public abstract class AbstractMedium implements ArchiveMedium {
         this.installed = true;
     }
     
+    protected void ensureInstalled() throws ApplicationException {
+    	if (! installed) {
+    		install();
+    	}
+    }
+    
     protected void copyAttributes(Object clone) {
     }
     

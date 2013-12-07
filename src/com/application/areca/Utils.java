@@ -11,6 +11,7 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 
@@ -129,7 +130,8 @@ public class Utils implements ArecaFileConstants {
 			}
 			return new TranslationData[0];
 		} else {
-			TranslationData[] languages = new TranslationData[files.length];
+			HashMap languageMap = new HashMap();
+
 			for (int i=0; i<files.length; i++) {
 				String fileName = FileSystemManager.getName(files[i]);
 				String data = fileName.substring(ResourceManager.RESOURCE_NAME.length(), fileName.length() - suffix.length() + 1);
@@ -142,10 +144,21 @@ public class Utils implements ArecaFileConstants {
 					deprecated = false;
 					lg = data.substring(1, 3);
 				}
-				languages[i] = new TranslationData(lg, deprecated);
+				TranslationData td = new TranslationData(lg, deprecated, FileSystemManager.lastModified(files[i]));
+				TranslationData existing = (TranslationData)languageMap.get(lg);
+				if (existing == null || td.isMoreRecentThan(existing)) {
+					languageMap.put(lg, td);
+				}
 			}
 
+			TranslationData[] languages = new TranslationData[languageMap.size()];
+			Iterator iter = languageMap.values().iterator();
+			for (int i=0; iter.hasNext(); i++) {
+				languages[i] = (TranslationData)iter.next();
+			}
+			
 			Arrays.sort(languages);
+			
 			return languages;
 		}
 	}

@@ -56,7 +56,7 @@ public class MergeProcessor extends AbstractProcessor {
 		return toDelay;
 	}
 
-	public boolean requireStatictics() {
+	public boolean requireStatistics() {
 		return false;
 	}
 

@@ -129,10 +129,11 @@ public class FileSystemDriverUtils {
 		}
 
 		if (driver.isDirectory(fileOrDirectory)) {
-			File[] filez = driver.listFiles(fileOrDirectory);
-			if (filez != null) {
-				for (int i = 0; i < filez.length; i++) {
-					forceDelete(filez[i], driver, monitor);
+			String[] itemNames = driver.list(fileOrDirectory);
+			if (itemNames != null) {
+				for (int i = 0; i < itemNames.length; i++) {
+					File f = new File(fileOrDirectory, itemNames[i]);
+					forceDelete(f, driver, monitor);
 				}
 			}
 		}

@@ -234,8 +234,7 @@ implements TargetActions, IndicatorTypes {
 		}
 
 		if (action != ACTION_DESCRIBE) {
-			Iterator iter = ((FileSystemTarget) this.getTarget()).sources
-					.iterator();
+			Iterator iter = ((FileSystemTarget) this.getTarget()).getSources().iterator();
 			while (iter.hasNext()) {
 				File src = (File) iter.next();
 				if (CHECK_DIRECTORY_CONSISTENCY
@@ -254,6 +253,8 @@ implements TargetActions, IndicatorTypes {
 	}
 
 	public IndicatorMap computeIndicators() throws ApplicationException {
+		ensureInstalled();
+		
 		Logger.defaultLogger().info("Computing statistics ...");
 		try {
 			IndicatorMap indicators = new IndicatorMap();
@@ -402,8 +403,8 @@ implements TargetActions, IndicatorTypes {
 		}
 	}
 
-	public void deleteArchives(GregorianCalendar fromDate,
-			ProcessContext context) throws ApplicationException {
+	public void deleteArchives(GregorianCalendar fromDate, ProcessContext context) throws ApplicationException {
+		this.ensureInstalled();
 		this.checkRepository();
 
 		Logger.defaultLogger().info(
@@ -447,6 +448,7 @@ implements TargetActions, IndicatorTypes {
 	}
 
 	public void destroyRepository() throws ApplicationException {
+		this.ensureInstalled();
 		File storage = fileSystemPolicy.getArchiveDirectory();
 		try {
 			// Delete repository
@@ -470,8 +472,7 @@ implements TargetActions, IndicatorTypes {
 	public void doBeforeDelete() {
 	}
 
-	public abstract long getArchiveSize(File archive, boolean forceComputation)
-			throws ApplicationException;
+	public abstract long getArchiveSize(File archive, boolean forceComputation) throws ApplicationException;
 
 	public CompressionArguments getCompressionArguments() {
 		return compressionArguments;
@@ -482,8 +483,7 @@ implements TargetActions, IndicatorTypes {
 	 * argument.
 	 */
 	public static File getDataDirectory(File archive) {
-		return new File(FileSystemManager.getParentFile(archive),
-				FileSystemManager.getName(archive) + DATA_DIRECTORY_SUFFIX);
+		return new File(FileSystemManager.getParentFile(archive), FileSystemManager.getName(archive) + DATA_DIRECTORY_SUFFIX);
 	}
 
 	public EncryptionPolicy getEncryptionPolicy() {
@@ -503,8 +503,7 @@ implements TargetActions, IndicatorTypes {
 		return this.historyHandler;
 	}
 
-	public EntryArchiveData[] getHistory(String entry)
-			throws ApplicationException {
+	public EntryArchiveData[] getHistory(String entry) throws ApplicationException {
 		File[] archives = this.listArchives(null, null, true);
 		ArrayList list = new ArrayList();
 
@@ -512,8 +511,7 @@ implements TargetActions, IndicatorTypes {
 			list.add(getArchiveData(entry, archives[i]));
 		}
 
-		return processEntryArchiveData((EntryArchiveData[]) list
-				.toArray(new EntryArchiveData[0]));
+		return processEntryArchiveData((EntryArchiveData[]) list.toArray(new EntryArchiveData[0]));
 	}
 
 	public File getLastArchive() throws ApplicationException {
@@ -523,8 +521,7 @@ implements TargetActions, IndicatorTypes {
 	/**
 	 * Return the last archive before the date passed as argument
 	 */
-	public abstract File getLastArchive(String backupScheme,
-			GregorianCalendar date) throws ApplicationException;
+	public abstract File getLastArchive(String backupScheme, GregorianCalendar date) throws ApplicationException;
 
 	public String getManifestName() {
 		return MANIFEST_FILE;
@@ -547,10 +544,8 @@ implements TargetActions, IndicatorTypes {
 
 		try {
 			try {
-				baseDriver = EventFileSystemDriver.wrapDriver(baseDriver,
-						REPOSITORY_ACCESS_DEBUG_ID, listeners);
-				FileSystemManager.getInstance().registerDriver(
-						storageDir.getParentFile(), baseDriver);
+				baseDriver = EventFileSystemDriver.wrapDriver(baseDriver, REPOSITORY_ACCESS_DEBUG_ID, listeners);
+				FileSystemManager.getInstance().registerDriver( storageDir.getParentFile(), baseDriver);
 			} catch (Throwable e) {
 				// Non-fatal error but DANGEROUS : It is highly advised to store
 				// archives in subdirectories - not at the root
@@ -561,10 +556,8 @@ implements TargetActions, IndicatorTypes {
 								e, "Driver initialization");
 			}
 
-			storageDriver = EventFileSystemDriver.wrapDriver(storageDriver,
-					REPOSITORY_ACCESS_DEBUG_ID, listeners);
-			FileSystemManager.getInstance().registerDriver(storageDir,
-					storageDriver);
+			storageDriver = EventFileSystemDriver.wrapDriver(storageDriver, REPOSITORY_ACCESS_DEBUG_ID, listeners);
+			FileSystemManager.getInstance().registerDriver(storageDir, storageDriver);
 		} catch (DriverAlreadySetException e) {
 			Logger.defaultLogger().error(e);
 			throw new ApplicationException(e);
@@ -615,15 +608,12 @@ implements TargetActions, IndicatorTypes {
 		return ToStringHelper.close(sb);
 	}
 
-	protected FileSystemDriver buildBaseDriver(boolean main)
-			throws ApplicationException {
+	protected FileSystemDriver buildBaseDriver(boolean main) throws ApplicationException {
 		return this.fileSystemPolicy.initFileSystemDriver();
 	}
 
-	protected FileSystemDriver buildStorageDriver(File storageDir)
-			throws ApplicationException {
-		return this.encryptionPolicy.initFileSystemDriver(storageDir,
-				this.buildBaseDriver(false));
+	protected FileSystemDriver buildStorageDriver(File storageDir) throws ApplicationException {
+		return this.encryptionPolicy.initFileSystemDriver(storageDir, this.buildBaseDriver(false));
 	}
 
 	protected abstract void checkFileSystemPolicy();
@@ -636,13 +626,13 @@ implements TargetActions, IndicatorTypes {
 		File storageDir = fileSystemPolicy.getArchiveDirectory();
 
 		// List all potential archive files
-		File[] archives = FileSystemManager.listFiles(storageDir);
-		if (archives != null) {
-			for (int i = 0; i < archives.length; i++) {
+		String[] archiveNames = FileSystemManager.list(storageDir);
+		if (archiveNames != null) {
+			for (int i = 0; i < archiveNames.length; i++) {
 				// If it has not been committed - destroy it
-				if ((matchArchiveName(archives[i]) && (!isCommitted(archives[i])))
-						|| (isWorkingDirectory(archives[i]))) {
-					destroyTemporaryFile(archives[i]);
+				File archive = new File(storageDir, archiveNames[i]);
+				if ((matchArchiveName(archive) && (!isCommitted(archive))) || (isWorkingDirectory(archive))) {
+					destroyTemporaryFile(archive);
 				}
 			}
 		}
@@ -651,8 +641,9 @@ implements TargetActions, IndicatorTypes {
 	/**
 	 * Search for a valid transaction point
 	 */
-	public TransactionPoint getLastTransactionPoint(String backupScheme)
-			throws ApplicationException {
+	public TransactionPoint getLastTransactionPoint(String backupScheme) throws ApplicationException {
+		this.ensureInstalled();
+		
 		try {
 			// Retrieve the last committed archive
 			File lastArchive = this.getLastArchive();
@@ -661,16 +652,18 @@ implements TargetActions, IndicatorTypes {
 
 			// List all non-committed archive files
 			File storageDir = fileSystemPolicy.getArchiveDirectory();
-			File[] archives = FileSystemManager.listFiles(storageDir);
+			String[] archiveNames = FileSystemManager.list(storageDir);
 			
 			TransactionPoint candidate = null;
 
-			if (archives != null) {
-				for (int i = 0; i < archives.length; i++) {
-					if ((!isWorkingDirectory(archives[i]))
-							&& (matchArchiveName(archives[i]))
-							&& (!isCommitted(archives[i]))) {
-						TransactionPoint tp = TransactionPoint.findLastTransactionPoint(getDataDirectory(archives[i]));
+			if (archiveNames != null) {
+				for (int i = 0; i < archiveNames.length; i++) {
+					File archive = new File(storageDir, archiveNames[i]);
+					
+					if ((!isWorkingDirectory(archive))
+							&& (matchArchiveName(archive))
+							&& (!isCommitted(archive))) {
+						TransactionPoint tp = TransactionPoint.findLastTransactionPoint(getDataDirectory(archive));
 
 						if (tp != null) {
 							TransactionPointHeader header = tp.readHeader();
@@ -796,8 +789,7 @@ implements TargetActions, IndicatorTypes {
 	/**
 	 * Return the status of the entry passed as argument in the archive
 	 */
-	protected abstract EntryArchiveData getArchiveData(String entry,
-			File archive) throws ApplicationException;
+	protected abstract EntryArchiveData getArchiveData(String entry, File archive) throws ApplicationException;
 
 	protected abstract String getArchiveExtension();
 
@@ -852,6 +844,8 @@ implements TargetActions, IndicatorTypes {
 	 * This copy can be used later - in case of computer crash.
 	 */
 	protected void storeTargetConfigBackup(ProcessContext context) throws ApplicationException {
+		this.ensureInstalled();
+		
 		if (this.target.isCreateSecurityCopyOnBackup()) {
 			File dir = computeConfigurationBackupDirectory();
 			Logger.defaultLogger().info("Creating a XML backup copy of target \""+ this.target.getName() + "\" on : " + FileSystemManager.getDisplayPath(dir));

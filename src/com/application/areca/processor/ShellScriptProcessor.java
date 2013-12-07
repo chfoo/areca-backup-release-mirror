@@ -60,7 +60,7 @@ public class ShellScriptProcessor extends AbstractProcessor {
         this.command = command;
     }
     
-    public boolean requireStatictics() {
+    public boolean requireStatistics() {
 		return false;
 	}
     

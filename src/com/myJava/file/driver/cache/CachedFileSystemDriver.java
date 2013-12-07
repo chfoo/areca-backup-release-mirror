@@ -397,7 +397,7 @@ implements LinkableFileSystemDriver {
 
         String[] ret = new String[files.length];
         for (int i=0; i<files.length; i++) {
-            ret[i] = predecessor.getAbsolutePath(files[i]);
+            ret[i] = predecessor.getName(files[i]);
         }
 
         return ret;
@@ -411,7 +411,7 @@ implements LinkableFileSystemDriver {
 
         String[] ret = new String[files.length];
         for (int i=0; i<files.length; i++) {
-            ret[i] = predecessor.getAbsolutePath(files[i]);
+            ret[i] = predecessor.getName(files[i]);
         }
 
         return ret;

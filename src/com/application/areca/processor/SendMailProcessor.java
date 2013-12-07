@@ -45,7 +45,7 @@ public class SendMailProcessor extends AbstractMailSendProcessor {
 		super();
 	}
 	
-	public boolean requireStatictics() {
+	public boolean requireStatistics() {
 		return false;
 	}
 

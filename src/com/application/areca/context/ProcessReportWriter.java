@@ -112,11 +112,11 @@ public class ProcessReportWriter {
 
 			if (this.appendStatistics) {
 				writeSeparator();
-				write("Archive statictics :");
+				write("Archive statistics :");
 
 				IndicatorMap indicators = report.getIndicators();
 				if (indicators == null) {
-					write("<no statictics available>");
+					write("<no statistics available>");
 				} else {
 					Integer[] ids = indicators.getSortedIndicatorKeys();
 					for (int i=0; i<ids.length; i++) {

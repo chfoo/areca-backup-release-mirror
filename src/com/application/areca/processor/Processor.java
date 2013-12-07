@@ -40,7 +40,7 @@ public interface Processor extends Comparable, Duplicable {
 	
     public void run(ProcessContext context) throws ApplicationException;
     public String getParametersSummary();
-    public boolean requireStatictics();
+    public boolean requireStatistics();
     public void validate() throws ProcessorValidationException;
     
     public boolean isRunIfOK();

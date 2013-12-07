@@ -74,12 +74,13 @@ public class LogCleaner extends ScheduledTask {
 
         File logDir = this.lgcLogger.getLogDirectory();
         if (logDir != null) {
-            File[] files = FileSystemManager.listFiles(logDir);
-            if (files != null) {
-                for (int i=0; i<files.length; i++) {
-                    if (this.checkFileToBeDeleted(FileSystemManager.getAbsolutePath(files[i]))) {
+            String[] fileNames = FileSystemManager.list(logDir);
+            if (fileNames != null) {
+                for (int i=0; i<fileNames.length; i++) {
+                	File f = new File(logDir, fileNames[i]);
+                    if (this.checkFileToBeDeleted(FileSystemManager.getAbsolutePath(f))) {
                         synchronized(this.lgcLogger) {
-                            FileSystemManager.delete(files[i]);
+                            FileSystemManager.delete(f);
                         }
                     }
                 }

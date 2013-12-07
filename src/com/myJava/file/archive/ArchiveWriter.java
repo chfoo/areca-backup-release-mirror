@@ -89,14 +89,15 @@ public class ArchiveWriter {
 				this.tool.copyFile(file, this.adapter.getArchiveOutputStream(), false, monitor);
 				this.adapter.closeEntry();
 			} else {
-				File[] children = FileSystemManager.listFiles(file);
+				String[] children = FileSystemManager.list(file);
 				if (comparator != null) {
 					Arrays.sort(children, comparator);
 				}
 				for (int i=0; i<children.length; i++) {
+					File child = new File(file, children[i]);
 					this.addFile(
-							children[i], 
-							Util.replace(FileSystemManager.getCanonicalPath(children[i]), FileSystemManager.getCanonicalPath(file), fullName), 
+							child, 
+							Util.replace(FileSystemManager.getCanonicalPath(child), FileSystemManager.getCanonicalPath(file), fullName), 
 							comparator,
 							monitor
 							);

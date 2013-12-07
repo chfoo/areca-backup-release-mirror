@@ -96,6 +96,15 @@ public class FileSystemManager {
 			this.roots.add(rootArray[i]);
 		}
 	}
+	
+	public FileSystemDriversRestorePoint buildRestorePoint() {
+		return new FileSystemDriversRestorePoint(this.driversReference);
+	}
+	
+	public void applyRestorePoint(FileSystemDriversRestorePoint restorePoint) {
+		restorePoint.apply(driversReference);
+		this.resetDriverCache();
+	}
 
 	/**
 	 * Register a driver for a specific mount point

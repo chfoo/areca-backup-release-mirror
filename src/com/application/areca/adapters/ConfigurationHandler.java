@@ -212,18 +212,19 @@ public class ConfigurationHandler {
 				Logger.defaultLogger().info("Reading content of " + FileSystemManager.getDisplayPath(file));
 				TargetGroup group = new TargetGroup(FileSystemManager.getName(file));
 				group.setLoadedFrom(new ConfigurationSource(false, file));
-				File[] children = FileSystemManager.listFiles(file);
-				if (children != null) {
-					for (int i=0; i<children.length; i++) {
+				String[] childrenNames = FileSystemManager.list(file);
+				if (childrenNames != null) {
+					for (int i=0; i<childrenNames.length; i++) {
+						File child = new File(file, childrenNames[i]);
 						try {
-							WorkspaceItem childItem = readObject(children[i], listener, group, installMedium, false);
+							WorkspaceItem childItem = readObject(child, listener, group, installMedium, false);
 							if (childItem != null) {
 								if (childItem.getLoadedFrom().isBackupCopy()) {
 									group.getLoadedFrom().setBackupCopy(true);
 								}
 							}
 						} catch (Exception e) {
-							Logger.defaultLogger().error("Error while reading " + children[i], e);
+							Logger.defaultLogger().error("Error while reading " + child, e);
 						}
 					}
 				}

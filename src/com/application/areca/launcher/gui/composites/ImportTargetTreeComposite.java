@@ -13,8 +13,8 @@ import org.eclipse.swt.widgets.TreeItem;
 import com.application.areca.AbstractTarget;
 import com.application.areca.Workspace;
 import com.application.areca.impl.FileSystemTarget;
-import com.application.areca.launcher.gui.ImportConfigurationWindow;
 import com.application.areca.launcher.gui.common.AbstractWindow;
+import com.application.areca.launcher.gui.confimport.ImportConfigurationWindow;
 import com.application.areca.launcher.gui.resources.ResourceManager;
 
 /**

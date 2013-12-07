@@ -67,7 +67,7 @@ public class FileDumpProcessor extends AbstractProcessor {
 		this.destinationFolder = destinationFolder;
 	}
 
-	public boolean requireStatictics() {
+	public boolean requireStatistics() {
 		return appendStatistics;
 	}
 

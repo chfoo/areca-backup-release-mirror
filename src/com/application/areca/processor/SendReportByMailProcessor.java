@@ -57,7 +57,7 @@ public class SendReportByMailProcessor extends AbstractMailSendProcessor {
 		setMessage("Backup report :");
 	}
 
-	public boolean requireStatictics() {
+	public boolean requireStatistics() {
 		return appendStatistics;
 	}
 

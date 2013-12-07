@@ -1,9 +1,9 @@
-package com.myJava.file.iterator;
+package com.myJava.file;
 
-import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -30,10 +30,16 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class FileNameComparator implements Comparator {
-	public int compare(Object arg0, Object arg1) {
-		String f0 = (String)arg0;
-		String f1 = (String)arg1;
-		return f0.compareTo(f1);
+public class FileSystemDriversRestorePoint {
+	private Map driversReference;
+	
+	protected FileSystemDriversRestorePoint(Map driversReferenceToSnapshot) {
+		this.driversReference = new HashMap();
+		driversReferenceToSnapshot.putAll(driversReferenceToSnapshot);
+	}
+	
+	public void apply(Map driversReferenceToUpdate) {
+		driversReferenceToUpdate.clear();
+		driversReferenceToUpdate.putAll(this.driversReference);
 	}
 }

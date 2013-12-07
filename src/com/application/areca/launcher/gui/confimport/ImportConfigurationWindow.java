@@ -1,4 +1,4 @@
-package com.application.areca.launcher.gui;
+package com.application.areca.launcher.gui.confimport;
 
 import java.io.File;
 
@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.application.areca.Workspace;
+import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.common.AbstractWindow;
 import com.application.areca.launcher.gui.common.SavePanel;
 import com.application.areca.launcher.gui.common.SecuredRunner;
@@ -164,7 +165,7 @@ extends AbstractWindow {
 	}
 
 	protected void saveChanges() {
-		application.importWorkspaceItems(view.getSelectedItems());
+		WorkspaceItemImportHelper.importWorkspaceItems(view.getSelectedItems());
 		this.hasBeenUpdated = false;
 		this.close();
 	}

@@ -135,6 +135,11 @@ public class XMLTool {
 		return Integer.parseInt(str);
 	}
 
+	public static boolean readNonNullableBoolean(Node data, String tag) throws AdapterException {
+		String str = readNonNullableNode(data, tag);
+		return Boolean.parseBoolean(str);
+	}
+	
 	public static String readNullableNode(Node data, String tag) {
 		Node node = data.getAttributes().getNamedItem(tag);
 		if (node == null) {
@@ -230,6 +235,14 @@ public class XMLTool {
 	public static String encodePassword(String basePropertyName, String value) {
 		String encodedValue = encrypt(value);
 		return encodeProperty(basePropertyName + PASSWORD_ENCODING_SUFFIX, encodedValue);
+	}
+	
+	public static void writeOpeningTag(String tag, StringBuffer sb) {
+		sb.append("\n<").append(tag).append(">");
+	}
+	
+	public static void writeClosingTag(String tag, StringBuffer sb) {
+		sb.append("\n</").append(tag).append(">");
 	}
 
 	public static String extractPassword(String basePropertyName, Node node) {

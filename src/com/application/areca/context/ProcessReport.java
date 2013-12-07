@@ -2,10 +2,8 @@ package com.application.areca.context;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.List;
 
 import com.application.areca.AbstractTarget;
 import com.application.areca.indicator.IndicatorMap;

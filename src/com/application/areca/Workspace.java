@@ -99,44 +99,50 @@ public class Workspace {
     	&& getContent().getLoadedFrom() != null
     	&& getContent().getLoadedFrom().isBackupCopy();
     }
+    
+    private void setupLogProcessorsForWorkspace(File workspaceLocation) {
+    	// Handle log configuration
+		Logger.defaultLogger().remove(FileLogProcessor.class);
+		Logger.defaultLogger().remove(ConsoleLogProcessor.class); // we don't want the default console processor that is set in the Logger class.
+		FileLogProcessor proc;
+		if (ArecaConfiguration.get().getLogLocationOverride() == null) {
+			File directoryLog = new File(FileSystemManager.getAbsolutePath(workspaceLocation) + "/" + ArecaFileConstants.LOG_SUBDIRECTORY_NAME + "/");
+			
+			// Backward compatibility
+			File deprecatedDirectoryLog = new File(FileSystemManager.getAbsolutePath(workspaceLocation) + "/" + ArecaFileConstants.DEPRECATED_LOG_SUBDIRECTORY_NAME + "/");					
+			if (FileSystemManager.exists(deprecatedDirectoryLog)) {
+				if (FileSystemManager.exists(directoryLog)) {
+					try {
+						FileTool.getInstance().delete(deprecatedDirectoryLog);
+					} catch (IOException e) {
+						Logger.defaultLogger().warn("Error while trying to move " + FileSystemManager.getDisplayPath(deprecatedDirectoryLog) + " to " + FileSystemManager.getDisplayPath(directoryLog) + " : " + e.getMessage());
+					}
+				} else {
+					FileSystemManager.renameTo(deprecatedDirectoryLog, directoryLog);
+				}
+				Logger.defaultLogger().info("Backward compatibility : Log directory : " + FileSystemManager.getDisplayPath(deprecatedDirectoryLog) + " moved to " + FileSystemManager.getDisplayPath(directoryLog));
+			}
+			// EOF Backward compatibility					
+
+			proc = new FileLogProcessor(new File(directoryLog, VersionInfos.APP_SHORT_NAME.toLowerCase()));
+		} else {
+			proc = new FileLogProcessor(new File(ArecaConfiguration.get().getLogLocationOverride(), VersionInfos.APP_SHORT_NAME.toLowerCase()));
+		}
+		Logger.defaultLogger().addProcessor(proc);
+
+		LogHelper.logStartupInformations();
+		LocalPreferences.instance().logProperties();
+    }
 
 	/**
 	 * Load the workspace denoted by the path passed as argument.
 	 */
 	private void loadDirectory(File f, boolean installMedium) throws AdapterException {
 		try {
-			// Handle log configuration
-			Logger.defaultLogger().remove(FileLogProcessor.class);
-			Logger.defaultLogger().remove(ConsoleLogProcessor.class); // we don't want the default console processor that is set in the Logger class.
-			FileLogProcessor proc;
-			if (ArecaConfiguration.get().getLogLocationOverride() == null) {
-				File directoryLog = new File(FileSystemManager.getAbsolutePath(f) + "/" + ArecaFileConstants.LOG_SUBDIRECTORY_NAME + "/");
-				
-				// Backward compatibility
-				File deprecatedDirectoryLog = new File(FileSystemManager.getAbsolutePath(f) + "/" + ArecaFileConstants.DEPRECATED_LOG_SUBDIRECTORY_NAME + "/");					
-				if (FileSystemManager.exists(deprecatedDirectoryLog)) {
-					if (FileSystemManager.exists(directoryLog)) {
-						try {
-							FileTool.getInstance().delete(deprecatedDirectoryLog);
-						} catch (IOException e) {
-							Logger.defaultLogger().warn("Error while trying to move " + FileSystemManager.getDisplayPath(deprecatedDirectoryLog) + " to " + FileSystemManager.getDisplayPath(directoryLog) + " : " + e.getMessage());
-						}
-					} else {
-						FileSystemManager.renameTo(deprecatedDirectoryLog, directoryLog);
-					}
-					Logger.defaultLogger().info("Backward compatibility : Log directory : " + FileSystemManager.getDisplayPath(deprecatedDirectoryLog) + " moved to " + FileSystemManager.getDisplayPath(directoryLog));
-				}
-				// EOF Backward compatibility					
-
-				proc = new FileLogProcessor(new File(directoryLog, VersionInfos.APP_SHORT_NAME.toLowerCase()));
-			} else {
-				proc = new FileLogProcessor(new File(ArecaConfiguration.get().getLogLocationOverride(), VersionInfos.APP_SHORT_NAME.toLowerCase()));
+			if (installMedium) {
+				setupLogProcessorsForWorkspace(f);
 			}
-			Logger.defaultLogger().addProcessor(proc);
 
-			LogHelper.logStartupInformations();
-			LocalPreferences.instance().logProperties();
-			
 			if (FileSystemManager.exists(f)) {
 				// Load content
 				content = ConfigurationHandler.getInstance().readTargetGroup(f, new MissingDataListener(), installMedium);

@@ -33,7 +33,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public final class Logger implements LogLevels {
+public class Logger implements LogLevels {
 	public static final int[] LEVELS = new int[] {Logger.LOG_LEVEL_ERROR, Logger.LOG_LEVEL_WARNING, Logger.LOG_LEVEL_INFO, Logger.LOG_LEVEL_DETAIL,Logger.LOG_LEVEL_FINEST};
 	
 	private Object lock = this;
@@ -170,6 +170,10 @@ public final class Logger implements LogLevels {
 			tlLogProcessor.displayApplicationMessage(messageKey, title, message);
 		}
 	}
+	
+	public static void overrideDefaultLogger(Logger newDefaultLogger) {
+		defaultLogger = newDefaultLogger;
+	}
 
 	public LogProcessor find(Class c) {
 		Iterator iter = this.processors.iterator();
@@ -212,7 +216,7 @@ public final class Logger implements LogLevels {
 		}
 	}
 
-	private void log(int level, String message, Throwable e, String source) {
+	protected void log(int level, String message, Throwable e, String source) {
 		if (level <= logLevel) {
 			synchronized (lock) {
 				messages.add(new LogMessage(level, message, e, source));

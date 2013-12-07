@@ -290,7 +290,7 @@ public class Test {
 	
 	public static void main(String[] args) {
 		String ws = args[0].replace('\\', '/');
-		test(ws, true);
+		test(ws, false);
 		//test(ws, false);
 	}
 	

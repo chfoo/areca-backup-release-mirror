@@ -80,10 +80,10 @@ public class PluginRegistry implements ArecaFileConstants {
 
     public void load(File pluginsDirectory) {
         Logger.defaultLogger().info("Looking for plugins in directory : " + FileSystemManager.getDisplayPath(pluginsDirectory));
-        File[] pluginFiles = FileSystemManager.listFiles(pluginsDirectory);
-        if (pluginFiles != null) {
-            for (int i=0; i<pluginFiles.length; i++) {
-                File pluginDirectory = pluginFiles[i];
+        String[] pluginFileNames = FileSystemManager.list(pluginsDirectory);
+        if (pluginFileNames != null) {
+            for (int i=0; i<pluginFileNames.length; i++) {
+                File pluginDirectory = new File(pluginsDirectory, pluginFileNames[i]);
                 if (FileSystemManager.isDirectory(pluginDirectory)) {
                     Logger.defaultLogger().info("Attempting to load plugin directory : " + FileSystemManager.getDisplayPath(pluginDirectory));
                     File configFile = new File(pluginDirectory, FileSystemManager.getName(pluginDirectory) + ".properties");

@@ -111,7 +111,7 @@ public class FileSystemIterator implements Iterator, Serializable {
 		init(root, sources.length, followSymLinks, followSubdirectories, returnEmptyDirectories, sorted);
 		this.pushedRoots = new HashSet();
 
-		// 1 : Sort
+		// 1 : Sort (VERY important to ensure consistency : Areca relies on the assumption that files are sorted)
 		if (this.sorted) {
 			Arrays.sort(sources, new FilePathComparator());
 		}

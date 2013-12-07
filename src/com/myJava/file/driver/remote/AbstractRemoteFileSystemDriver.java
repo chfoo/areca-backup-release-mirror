@@ -308,7 +308,7 @@ extends AbstractFileSystemDriver {
         String[] ret = new String[files.length];
 
         for (int i=0; i<files.length; i++) {
-            ret[i] = normalizeIfNeeded(files[i].getAbsolutePath());
+            ret[i] = normalizeIfNeeded(files[i].getName());
         }
 
         return ret;
@@ -319,7 +319,7 @@ extends AbstractFileSystemDriver {
         String[] ret = new String[files.length];
 
         for (int i=0; i<files.length; i++) {
-            ret[i] = normalizeIfNeeded(files[i].getAbsolutePath());
+            ret[i] = normalizeIfNeeded(files[i].getName());
         }
 
         return ret;

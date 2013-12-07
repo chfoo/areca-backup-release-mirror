@@ -1,6 +1,7 @@
 package com.myJava.system;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.myJava.configuration.FrameworkConfiguration;
+import com.myJava.file.FileSystemManager;
 import com.myJava.object.ToStringHelper;
 import com.myJava.util.log.Logger;
 
@@ -102,10 +104,13 @@ public class OSTool {
             }
         }
         
-        String configuredTmpDir = FrameworkConfiguration.getInstance().getTemporaryDirectory();
-        TMP_DIR = configuredTmpDir == null ? System.getProperty("java.io.tmpdir") : configuredTmpDir;
         USER_HOME = System.getProperty("user.home");
         USER_NAME = System.getProperty("user.name");
+        
+        String configuredTmpDir = FrameworkConfiguration.getInstance().getTemporaryDirectory();
+        TMP_DIR = configuredTmpDir == null ? System.getProperty("java.io.tmpdir") : configuredTmpDir;
+        File f = new File(TMP_DIR, USER_NAME);
+        TMP_DIR = f.getAbsolutePath();
         
         Map map = Charset.availableCharsets();
         Iterator iter = map.values().iterator();
@@ -205,10 +210,6 @@ public class OSTool {
 	
 	public static boolean is64BitsOS() {
 	    return (System.getenv("ProgramW6432") != null);
-	}
-	
-	public static void main(String[] args) {
-		isAdmin();
 	}
 
 	public static int execute(String[] cmd, boolean async) throws IOException {

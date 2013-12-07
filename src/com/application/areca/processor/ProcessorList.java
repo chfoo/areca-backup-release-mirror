@@ -71,7 +71,7 @@ public class ProcessorList implements Duplicable {
         Iterator iter = this.processors.iterator();
         while (iter.hasNext()) {
             Processor processor = (Processor)iter.next();
-            if (processor.shallRun(action) && processor.requireStatictics()) {
+            if (processor.shallRun(action) && processor.requireStatistics()) {
             	return true;
             }
         }

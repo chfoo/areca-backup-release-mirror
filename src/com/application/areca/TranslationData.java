@@ -31,10 +31,12 @@ This file is part of Areca.
 public class TranslationData implements Comparable {
 	private String language;
 	private boolean deprecated;
+	private long date;
 
-	public TranslationData(String language, boolean deprecated) {
+	public TranslationData(String language, boolean deprecated, long date) {
 		this.language = language;
 		this.deprecated = deprecated;
+		this.date = date;
 	}
 
 	public String getLanguage() {
@@ -51,6 +53,18 @@ public class TranslationData implements Comparable {
 	
 	public void setDeprecated(boolean deprecated) {
 		this.deprecated = deprecated;
+	}
+
+	public long getDate() {
+		return date;
+	}
+
+	public void setDate(long date) {
+		this.date = date;
+	}
+	
+	public boolean isMoreRecentThan(TranslationData other) {
+		return this.date > other.date;
 	}
 
 	public int compareTo(Object arg0) {

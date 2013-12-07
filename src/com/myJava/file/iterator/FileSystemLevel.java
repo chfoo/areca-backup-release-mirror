@@ -37,21 +37,23 @@ This file is part of Areca.
 public class FileSystemLevel implements Serializable {
 	private static final long serialVersionUID = -6530590949196639062L;
 	
-	private File[] levelFiles;
+	private String[] levelFiles;
 	private int index;
     private boolean hasBeenReturned = false;
     private FileSystemLevel parent;
-    private File root;
+    private File root;									// The root can be a file or a directory
     private double completionIncrement = 0;
     private boolean directoryRoot;						// The root can be a file or a directory
+    private File referenceDirectory;					// This is most of the time the root itself ... except when the root is a file
     
 	public FileSystemLevel(File root, FileSystemLevel parent, boolean sorted) {
 		this.directoryRoot = FileSystemManager.isDirectory(root);
 		if (directoryRoot) {
-			File[] files = FileSystemManager.listFiles(root);
+			this.referenceDirectory = root;
+			String[] files = FileSystemManager.list(root);
 
 			if (files == null) {
-				this.levelFiles = new File[0];
+				this.levelFiles = new String[0];
 			} else {
 				if (sorted) {
 					Arrays.sort(files, new FileNameComparator());
@@ -59,7 +61,8 @@ public class FileSystemLevel implements Serializable {
 				this.levelFiles = files;
 			}
 		} else {
-			this.levelFiles = new File[] {root};
+			this.levelFiles = new String[] {FileSystemManager.getName(root)};
+			this.referenceDirectory = FileSystemManager.getParentFile(root);
 		}
 		this.index = 0;
         this.parent = parent;
@@ -77,7 +80,7 @@ public class FileSystemLevel implements Serializable {
 
 	public File nextElement() {
 		this.index++;
-		return this.levelFiles[index-1];
+		return new File(referenceDirectory, this.levelFiles[index-1]);
 	}
 
     public FileSystemLevel getParent() {

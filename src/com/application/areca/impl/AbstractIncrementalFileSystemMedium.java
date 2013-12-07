@@ -3,7 +3,6 @@ package com.application.areca.impl;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilePermission;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
@@ -350,6 +349,8 @@ implements TargetActions {
 			Set ignoreList,
 			ProcessContext context) 
 	throws ApplicationException, TaskCancelledException {
+		this.ensureInstalled();
+		
 		try {
 			// Compute recovery destination
 			File destinationRoot = destination == null ? fileSystemPolicy.getArchiveDirectory() : new File((String)destination);
@@ -795,7 +796,8 @@ implements TargetActions {
 	}
 
 	public void install() throws ApplicationException {
-		super.install();		
+		super.install();
+		
 		if (compressionArguments.isMultiVolumes() && ! compressionArguments.isAddExtension()) {
 			throw new ApplicationException("The \".zip\" extension is mandatory if zip-splitting is enabled.");
 		}
@@ -805,36 +807,12 @@ implements TargetActions {
 		}
 	}
 	
-	/*
-	public File lookupArchives(String root) {
-		String name = FileSystemManager.getName(fileSystemPolicy.getArchiveDirectory());
-		return lookupArchives(name, new File(root));
-	}
-	
-	private File lookupArchives(String name, File root) {
-		if (FileSystemManager.getName(root).equals(name)) {
-			return root;
-		} else {
-			File[] children = FileSystemManager.listFiles(root);
-			if (children == null) {
-				return null;
-			} else {
-				for (int i=0; i<children.length; i++) {
-					File found = lookupArchives(name, children[i]);
-					if (found != null) {
-						return found;
-					}
-				}
-				return null;
-			}
-		}
-	}
-	*/
-	
 	/**
 	 * Lists the medium's archives
 	 */
 	public File[] listArchives(String root, GregorianCalendar fromDate, GregorianCalendar toDate, Set excludeList, boolean committedOnly) throws ApplicationException {
+		this.ensureInstalled();
+		
 		if (root == null) {
 			root = fileSystemPolicy.getArchivePath();
 		}
@@ -869,19 +847,6 @@ implements TargetActions {
 
 			ret = elementaryArchives;
 		}
-		
-/*
-		if (ret != null) {
-			for (int i=0; i<ret.length; i++) {
-				try {
-					File trc = ArchiveTraceManager.resolveTraceFileForArchive(this, ret[i]);
-					TraceMerger.checkTrace(trc);
-				} catch (Throwable e) {
-					Logger.defaultLogger().error("Error while checking " + ret[i], e);
-				}
-			}
-		}
-*/
 
 		return ret;
 	}
@@ -943,7 +908,8 @@ implements TargetActions {
 			MergeParameters params,
 			ProcessContext context        
 	) throws ApplicationException {
-
+		this.ensureInstalled();
+		
 		try {
 			this.checkRepository();
 
@@ -1051,6 +1017,7 @@ implements TargetActions {
 	}  
 
 	public void open(Manifest manifest, TransactionPoint transactionPoint, ProcessContext context) throws ApplicationException { 
+		this.ensureInstalled();
 		//Chronometer.instance().start("open_to_commit");
 		//Chronometer.instance().start("open");
 		
@@ -1185,6 +1152,8 @@ implements TargetActions {
 			boolean checkRecoveredFiles,
 			ProcessContext context) 
 	throws ApplicationException, TaskCancelledException {  
+		this.ensureInstalled();
+		
 		try {
 			File traceFile;
 			if (recoverDeletedEntries) {
@@ -1355,6 +1324,8 @@ implements TargetActions {
 	}
 
 	public TargetSearchResult search(SearchCriteria criteria) throws ApplicationException, TaskCancelledException {
+		this.ensureInstalled();
+		
 		TargetSearchResult result = new TargetSearchResult();
 		DefaultSearchCriteria dCriteria = (DefaultSearchCriteria)criteria;
 
@@ -1907,6 +1878,8 @@ implements TargetActions {
 			boolean simulateRecovery,					// If the "checkRecoveredFiles" flag has been enabled, this flag controls whether a full recovery will be performed or not
 			ProcessContext context                		// Execution context
 	) throws ApplicationException, TaskCancelledException {
+		this.ensureInstalled();
+		
 		RecoveryResult result = new RecoveryResult();
 		context.getReport().setRecoveryResult(result);
 

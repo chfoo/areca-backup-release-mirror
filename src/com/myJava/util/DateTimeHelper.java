@@ -88,6 +88,10 @@ public class DateTimeHelper {
 		return translateToMilliseconds(new GregorianCalendar());
 	}
 	
+	public static long AddDays(long initialDateMilliSeconds, int dayNumber) {
+		return initialDateMilliSeconds + dayNumber * 24 * 3600 * 1000;
+	}
+	
 	public static int getDayOfWeek(int day) {
 		return (day+ZERO_DOW)%7;
 	}
