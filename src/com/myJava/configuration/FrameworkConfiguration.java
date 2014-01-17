@@ -24,7 +24,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -249,6 +249,11 @@ public class FrameworkConfiguration {
     public static String KEY_POSIX_MTD_ACCESSOR_ARGS = "posix.def.metadata.accessor.args";
     
     /**
+     * Command used - typically "ls" - on POSIX systems to get file attributes
+     */
+    public static String KEY_POSIX_MTD_ACCESSOR_COMMAND = "posix.def.metadata.accessor.command";
+    
+    /**
      * SFTP timeout
      */
     public static String KEY_SFTP_TIMEOUT = "sftp.timeout";
@@ -294,6 +299,7 @@ public class FrameworkConfiguration {
     public static int DEF_MAX_INLINE_LOG_MESSAGES = 200; 
     public static int DEF_INLINE_LOG_LEVEL = LogLevels.LOG_LEVEL_WARNING;
     public static String DEF_POSIX_MTD_ACCESSOR_ARGS = "-ald1";
+    public static String DEF_POSIX_MTD_ACCESSOR_COMMAND = "ls";
     public static int DEF_SFTP_TIMEOUT = 5000;
     
     
@@ -384,6 +390,10 @@ public class FrameworkConfiguration {
     
     public String getPosixMetadataAccessorArgs() {
         return getProperty(KEY_POSIX_MTD_ACCESSOR_ARGS, DEF_POSIX_MTD_ACCESSOR_ARGS);
+    }
+    
+    public String getPosixMetadataAccessorCommand() {
+        return getProperty(KEY_POSIX_MTD_ACCESSOR_COMMAND, DEF_POSIX_MTD_ACCESSOR_COMMAND);
     }
     
     public String getViewerHandlerImpl() {

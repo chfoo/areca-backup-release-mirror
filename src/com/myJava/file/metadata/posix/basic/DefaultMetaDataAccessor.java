@@ -26,7 +26,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -50,6 +50,7 @@ public class DefaultMetaDataAccessor implements FileMetaDataAccessor {
 	private static final String DESCRIPTION = "Default meta data accessor for Posix systems. It uses the \"ls\", \"chmod\" and \"chown\" system commands to handle file attributes (owner, group and permissions).\nExtended attributes, ACL and special bits are not handled by this accessor.";
 	private static final FileMetaDataSerializer SERIALIZER = new PosixMetaDataSerializer();
 	private static final String LS_ARGS = FrameworkConfiguration.getInstance().getPosixMetadataAccessorArgs();
+	private static final String LS_CMD = FrameworkConfiguration.getInstance().getPosixMetadataAccessorCommand();
 	
 	public FileMetaData getMetaData(File f, boolean onlyBasicAttributes) throws IOException {
         PosixMetaDataImpl p = new PosixMetaDataImpl();
@@ -59,7 +60,7 @@ public class DefaultMetaDataAccessor implements FileMetaDataAccessor {
         String str = null;
         
         try {
-            process = Runtime.getRuntime().exec(new String[] {"ls", LS_ARGS, FileSystemManager.getAbsolutePath(f)});
+            process = Runtime.getRuntime().exec(new String[] {LS_CMD, LS_ARGS, FileSystemManager.getAbsolutePath(f)});
             process.waitFor();
             reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             str = reader.readLine();
@@ -78,7 +79,10 @@ public class DefaultMetaDataAccessor implements FileMetaDataAccessor {
             p.setMode(perm);
             
             // Size
-            int index = 10;
+            int index = 9;
+            while (str.charAt(index) != ' ') {
+                index++;
+            }
             while (str.charAt(index) == ' ') {
                 index++;
             }
@@ -99,9 +103,9 @@ public class DefaultMetaDataAccessor implements FileMetaDataAccessor {
             
             // Date
             p.setLastmodified(f.lastModified());
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             Logger.defaultLogger().error(e);
-            throw new IOException("Unable to read attributes for file : " + FileSystemManager.getDisplayPath(f));
+            throw new IOException("Unable to parse attributes for file : " + FileSystemManager.getDisplayPath(f) + " (" + str + ")");
         } finally {
             str = null;
             

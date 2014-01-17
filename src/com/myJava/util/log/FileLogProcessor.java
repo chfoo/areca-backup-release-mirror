@@ -20,7 +20,7 @@ import com.myJava.system.OSTool;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -110,7 +110,7 @@ implements LogProcessor {
     
     public void log(int level, String message, Throwable e, String source) {
         // Log complete :
-        String logCt = LogHelper.format(level, message, source, true);
+        String logCt = LogHelper.format(level, message, source, true).toString();
         
     	if (level <= LogLevels.LOG_LEVEL_WARNING) {
             System.out.println(logCt);
@@ -122,16 +122,17 @@ implements LogProcessor {
         // Ecriture de la log.
         try {
             String tgFile = getCurrentLogFile();
-            synchronized(this) { 
-                Writer fw = FileSystemManager.getWriter(tgFile, true);
-                fw.write(OSTool.getLineSeparator() + logCt);
-                fw.flush();
-                if (e != null) {
-                    fw.write(" - ");
-                    e.printStackTrace(new PrintWriter(fw, true));
-                }
-                fw.close();
+ 
+            Writer fw = FileSystemManager.getWriter(tgFile, true);
+            fw.write(OSTool.getLineSeparator());
+            fw.write(logCt);
+            fw.flush();
+            if (e != null) {
+                fw.write(" - ");
+                e.printStackTrace(new PrintWriter(fw, true));
             }
+            fw.close();
+
         } catch (Exception exc) {
             System.out.println(" ");
             exc.printStackTrace();

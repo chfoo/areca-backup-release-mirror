@@ -13,7 +13,7 @@ import java.util.Date;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -37,7 +37,7 @@ public class LogHelper {
     public static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yy-MM-dd HH:mm");
     public static String SEPARATOR = " - ";
     
-    public static String format(int level, String message, String source, boolean verbose) {   	
+    public static StringBuffer format(int level, String message, String source, boolean verbose) {   	
     	return verbose ?
     			formatVerbose(level, message, source)
     			: formatNonVerbose(level, message, source);
@@ -51,47 +51,47 @@ public class LogHelper {
 		return new String(baos.toByteArray());
     }
     
-    private static String formatVerbose(int level, String message, String source) {
+    private static StringBuffer formatVerbose(int level, String message, String source) {
+    	StringBuffer sb = new StringBuffer();
         // Date de la log
-        String logDate = "" + DATE_FORMAT.format(new Date());
+        sb.append(DATE_FORMAT.format(new Date()));
         
         // Level de la log
-        String logLev = SEPARATOR + resolveLevel(level);
+        sb.append(SEPARATOR).append(resolveLevel(level));
         
         // Source de la log
-        String logSource = "";
         if (source != null && !source.equals("")) {
-            logSource = SEPARATOR + source;
+            sb.append(SEPARATOR).append(source);
         }
         
         // Message de la log
-        String logMess = "";
         if (message!= null && !message.equals("")) {
-            logMess = SEPARATOR + message;
+            sb.append(SEPARATOR).append(message);
         }
         
         // Log complete :
-        return logDate + logLev + logSource + logMess;
+        return sb;
     }
     
-    private static String formatNonVerbose(int level, String message, String source) {
+    private static StringBuffer formatNonVerbose(int level, String message, String source) {
+    	StringBuffer sb = new StringBuffer();
         // Level de la log
-        String logLev = (level <= 4 ? resolveLevel(level) + SEPARATOR : "");
+    	if (level <= 4) {
+            sb.append(resolveLevel(level)).append(SEPARATOR);
+    	}
         
         // Source de la log
-        String logSource = "";
         if (source != null && !source.equals("")) {
-            logSource = source + SEPARATOR;
+            sb.append(SEPARATOR).append(source);
         }
         
         // Message de la log
-        String logMess = "";
         if (message!= null && !message.equals("")) {
-            logMess = message;
+            sb.append(SEPARATOR).append(message);
         }
         
         // Log complete :
-        return logLev + logSource + logMess;
+        return sb;
     }
     
     public static String resolveLevel(int l) {

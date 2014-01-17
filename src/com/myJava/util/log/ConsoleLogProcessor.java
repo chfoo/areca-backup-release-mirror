@@ -8,7 +8,7 @@ package com.myJava.util.log;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -46,7 +46,7 @@ implements LogProcessor {
 
 	public void log(int level, String message, Throwable e, String source) {
         // build log string
-        String logCt = LogHelper.format(level, message, source, fullLog);
+        String logCt = LogHelper.format(level, message, source, fullLog).toString();
         
         // write log
         System.out.println(logCt);

@@ -10,7 +10,7 @@ import java.io.Serializable;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -37,8 +37,10 @@ public class LogMessage implements Serializable {
 	private String source;
 	private Throwable exception;
 	
-	public LogMessage(int level, String message, String source, Throwable exception) {
-		super();
+	public LogMessage() {
+	}
+	
+	public void init(int level, String message, String source, Throwable exception) {
 		this.level = level;
 		this.message = message;
 		this.source = source;

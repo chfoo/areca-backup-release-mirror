@@ -12,7 +12,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -70,7 +70,9 @@ public class ThreadLocalLogProcessor implements LogProcessor {
 		if (level <= THRESHOLD) {
 			LogMessagesContainer ctn = getMessageContainer();
 			if (ctn != null) {
-				ctn.addLogMessage(new LogMessage(level, message, source, e));	
+				LogMessage msg = new LogMessage();
+				msg.init(level, message, source, e);
+				ctn.addLogMessage(msg);	
 			}
 		}
 	}

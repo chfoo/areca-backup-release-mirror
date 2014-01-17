@@ -15,7 +15,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -49,6 +49,7 @@ public class LogMessagesContainer implements Serializable {
 		} else if (message.getLevel() <= LogLevels.LOG_LEVEL_WARNING) {
 			hasWarnings = true;
 		}
+		
 		if (! maxSizeReached && content.size() < MAX_SIZE) {
 			content.add(message);
 		} else {

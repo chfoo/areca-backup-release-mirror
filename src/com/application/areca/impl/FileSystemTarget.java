@@ -42,7 +42,7 @@ import com.myJava.util.taskmonitor.TaskCancelledException;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -173,12 +173,12 @@ implements TargetActions {
      * Returns the next element. It may be a file or a directory.
      * <BR>Filters are applied.
      */
-    public RecoveryEntry nextElement(ProcessContext context) throws ApplicationException {
+    public boolean nextElement(ProcessContext context, RecoveryEntry cursor) throws ApplicationException {
 		//Chronometer.instance().start("nextElement");
 		
     	if (context.getFileSystemIterator() == null) {
     		//Chronometer.instance().stop("nextElement");
-    		return null;
+    		return false;
     	} else {
     		File f = context.getFileSystemIterator().nextFile();
     		if (f == null) {
@@ -186,13 +186,14 @@ implements TargetActions {
     			context.getReport().setUnfilteredFiles((int)context.getFileSystemIterator().getFiles());
     			context.getReport().setFilteredEntries((int)context.getFileSystemIterator().getFiltered());
         		//Chronometer.instance().stop("nextElement");
-    			return null;
+    			return false;
     		} else {
-    			FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry(context.getFileSystemIterator().getRoot() == null ? null : FileSystemManager.getAbsolutePath(context.getFileSystemIterator().getRoot()), f);
+    			FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)cursor;
+    			entry.init(context.getFileSystemIterator().getRoot() == null ? null : FileSystemManager.getAbsolutePath(context.getFileSystemIterator().getRoot()), f);
 
                 if (entry.getKey().length() == 0) {
             		//Chronometer.instance().stop("nextElement");
-            		return nextElement(context);
+            		return nextElement(context, cursor);
                 } else {
                     entry.setSize(FileSystemManager.length(f));
                     try {
@@ -203,7 +204,7 @@ implements TargetActions {
     				}
                     
             		//Chronometer.instance().stop("nextElement");
-                	return entry;
+                	return true;
                 }
     		}
     	}

@@ -52,7 +52,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -389,8 +389,8 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 				}
 				context.setChecked(checkParams.isCheck());
 
-				RecoveryEntry entry = this.nextElement(context);
-				while (entry != null) {
+				RecoveryEntry entry = new FileSystemRecoveryEntry();
+				while (this.nextElement(context, entry)) {
 					context.getInfoChannel().getTaskMonitor().checkTaskState();
 					if (this.filterEntryBeforeStore(entry)) {
 						try {
@@ -402,8 +402,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 						} catch (StoreException e) {
 							throw new ApplicationException(e);
 						}
-					}
-					entry = this.nextElement(context); 
+					} 
 				}
 				if (context.getReport().getSavedFiles() == 0 && ! ((AbstractIncrementalFileSystemMedium)medium).isImage()) {
 					cancelBackup(context);
@@ -493,9 +492,10 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			TaskMonitor simulationGlobalMonitor = context.getInfoChannel().getTaskMonitor().getCurrentActiveSubTask();
 
 			SimulationResult entries = new SimulationResult();
-			FileSystemRecoveryEntry entry = (FileSystemRecoveryEntry)this.nextElement(context);
+			FileSystemRecoveryEntry entry = new FileSystemRecoveryEntry();
+			
 			long index = 0;
-			while (entry != null) {
+			while (this.nextElement(context, entry)) {
 				context.getTaskMonitor().checkTaskState();
 				if (this.filterEntryBeforeStore(entry)) {
 					index++;
@@ -509,7 +509,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 						}
 
 						if (returnDetailedResult) {
-							entries.addEntry(entry);
+							entries.addEntry((FileSystemRecoveryEntry)entry.duplicate());
 						} else {
 							// Once we get a stored entry in "not detailed" mode, stop this method --> We know that it will be necessary to make a backup
 							simulationGlobalMonitor.enforceCompletion();
@@ -519,7 +519,6 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 						context.getReport().addIgnoredFile();
 					}
 				}
-				entry = (FileSystemRecoveryEntry)this.nextElement(context); 
 			}
 			context.getTaskMonitor().checkTaskState();
 			medium.closeSimulation(context); 
@@ -985,7 +984,7 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 		}
 	}
 
-	public abstract RecoveryEntry nextElement(ProcessContext context) throws ApplicationException;
+	public abstract boolean nextElement(ProcessContext context, RecoveryEntry cursor) throws ApplicationException;
 
 	public abstract Manifest buildDefaultMergeManifest(GregorianCalendar fromDate, GregorianCalendar toDate) throws ApplicationException;
 

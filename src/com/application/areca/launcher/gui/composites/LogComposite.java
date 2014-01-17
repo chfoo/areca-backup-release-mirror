@@ -42,7 +42,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -277,12 +277,12 @@ implements LogProcessor, Refreshable {
 
 		try {
 			if (level <= logLevel) {			
-				String txt = LogHelper.format(level, message, source, true);
+				StringBuffer txt = LogHelper.format(level, message, source, true);
 				if (e != null) {
-					txt += "\n" + LogHelper.formatException(e);
+					txt.append("\n").append(LogHelper.formatException(e));
 				}
-				txt += "\n";
-				final String fTxt = txt;
+				txt.append("\n");
+				final String fTxt = txt.toString();
 				SecuredRunner.execute(this, new Runnable() {
 					public void run() {
 						int l = fTxt.length();

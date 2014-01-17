@@ -5,16 +5,16 @@ import java.util.Iterator;
 
 import com.myJava.configuration.FrameworkConfiguration;
 
-
 /**
  * <BR>
- * @author Olivier PETRUCCI
- * <BR>
+ * 
+ * @author Olivier PETRUCCI <BR>
+ *         
  *
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -34,68 +34,76 @@ This file is part of Areca.
 
  */
 public class Logger implements LogLevels {
-	public static final int[] LEVELS = new int[] {Logger.LOG_LEVEL_ERROR, Logger.LOG_LEVEL_WARNING, Logger.LOG_LEVEL_INFO, Logger.LOG_LEVEL_DETAIL,Logger.LOG_LEVEL_FINEST};
-	
+	public static final int[] LEVELS = new int[] { Logger.LOG_LEVEL_ERROR,
+			Logger.LOG_LEVEL_WARNING, Logger.LOG_LEVEL_INFO,
+			Logger.LOG_LEVEL_DETAIL, Logger.LOG_LEVEL_FINEST };
+
 	private Object lock = this;
 	private ArrayList messages = new ArrayList();
+	private LogMessagePool pool = new LogMessagePool(200);
 	private int logLevel;
 	private ArrayList processors = new ArrayList();
 	private static int WAIT = 5000;
-	private ThreadLocalLogProcessor tlLogProcessor; // specific log processor - depends on the current thread ... to be refactored
+	private ThreadLocalLogProcessor tlLogProcessor; // specific log processor -
+													// depends on the current
+													// thread ... to be
+													// refactored
 
 	private static Logger defaultLogger = new Logger();
-	
-	private class LogConsumer implements Runnable {	
-		private boolean infiniteLoop = true;
 
-		public LogConsumer(boolean infiniteLoop) {
+	private class LogConsumer implements Runnable {
+		private boolean infiniteLoop = true;
+		private LogMessagePool pool;
+		
+		public LogConsumer(boolean infiniteLoop, LogMessagePool pool) {
 			this.infiniteLoop = infiniteLoop;
+			this.pool = pool;
 		}
 
 		public void run() {
 			try {
-				while (infiniteLoop || (! messages.isEmpty())) {
+				while (infiniteLoop || (!messages.isEmpty())) {
 					LogMessage msg = null;
-					synchronized(lock) {
-						if (! messages.isEmpty()) {
+					synchronized (lock) {
+						if (!messages.isEmpty()) {
 							msg = (LogMessage)messages.remove(0);
 						}
 					}
 
 					if (msg != null) {
-						Iterator iter = processors.iterator();
-						while(iter.hasNext()) {
-							LogProcessor proc = (LogProcessor)iter.next();
+						for (int i=0; i<processors.size(); i++) {
+							LogProcessor proc = (LogProcessor)processors.get(i);
 							try {
-								proc.log(msg.level, msg.message, msg.e, msg.source);
+								proc.log(msg.getLevel(), msg.getMessage(), msg.getException(), msg.getSource());
 							} catch (Throwable e) {
 								e.printStackTrace();
 							}
 						}
 					}
 
-					synchronized(lock) {
+					synchronized (lock) {
+						//this.pool.release(msg);
+						
 						if (infiniteLoop && messages.isEmpty()) {
 							try {
 								lock.wait(WAIT);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
+							} catch (InterruptedException ignored) {
 							}
 						}
 					}
 				}
 			} catch (Throwable e) {
 				// Unexpected exception during logging
-				
+
 				// Show a message in the console
 				String msg = "An error occurred during logging. No more application messages will be displayed. It is advisable to restart the application.";
 				System.out.println(msg);
 				e.printStackTrace();
-				
+
 				// Try to log the error
 				Iterator iter = processors.iterator();
-				while(iter.hasNext()) {
-					LogProcessor proc = (LogProcessor)iter.next();
+				while (iter.hasNext()) {
+					LogProcessor proc = (LogProcessor) iter.next();
 					try {
 						proc.log(1, msg, e, "");
 					} catch (RuntimeException e1) {
@@ -118,14 +126,14 @@ public class Logger implements LogLevels {
 		this.addProcessor(new ConsoleLogProcessor(true));
 
 		// Create and launch consumer thread
-		LogConsumer consumer = new LogConsumer(true);
+		LogConsumer consumer = new LogConsumer(true, this.pool);
 		Thread consumerThread = new Thread(consumer);
 		consumerThread.setDaemon(true);
 		consumerThread.setName("Logger");
 		consumerThread.start();
-		
+
 		// Create and register shutdown hook
-		LogConsumer hook = new LogConsumer(false);
+		LogConsumer hook = new LogConsumer(false, this.pool);
 		Thread shutdownThread = new Thread(hook);
 		shutdownThread.setDaemon(false);
 		shutdownThread.setName("Logger - Shutdown Thread");
@@ -159,18 +167,20 @@ public class Logger implements LogLevels {
 		return clone;
 	}
 
-	public void displayApplicationMessage(String messageKey, String title, String message) {
+	public void displayApplicationMessage(String messageKey, String title,
+			String message) {
 		Iterator iter = this.processors.iterator();
-		while(iter.hasNext()) {
-			LogProcessor proc = (LogProcessor)iter.next();
+		while (iter.hasNext()) {
+			LogProcessor proc = (LogProcessor) iter.next();
 			proc.displayApplicationMessage(messageKey, title, message);
 		}
-		
+
 		if (tlLogProcessor != null) {
-			tlLogProcessor.displayApplicationMessage(messageKey, title, message);
+			tlLogProcessor
+					.displayApplicationMessage(messageKey, title, message);
 		}
 	}
-	
+
 	public static void overrideDefaultLogger(Logger newDefaultLogger) {
 		defaultLogger = newDefaultLogger;
 	}
@@ -180,7 +190,7 @@ public class Logger implements LogLevels {
 		while (iter.hasNext()) {
 			Object o = iter.next();
 			if (c.isAssignableFrom(o.getClass())) {
-				return (LogProcessor)o;
+				return (LogProcessor) o;
 			}
 		}
 		return null;
@@ -191,7 +201,7 @@ public class Logger implements LogLevels {
 
 		Iterator iter = list.iterator();
 		while (iter.hasNext()) {
-			LogProcessor o = (LogProcessor)iter.next();
+			LogProcessor o = (LogProcessor) iter.next();
 			if (c.isAssignableFrom(o.getClass())) {
 				o.unmount();
 				iter.remove();
@@ -206,11 +216,11 @@ public class Logger implements LogLevels {
 		while (iter.hasNext()) {
 			Object o = iter.next();
 			if (c.isAssignableFrom(o.getClass())) {
-				LogProcessor proc = (LogProcessor)o;
+				LogProcessor proc = (LogProcessor) o;
 				proc.clearLog();
 			}
 		}
-		
+
 		if (tlLogProcessor != null) {
 			tlLogProcessor.clearLog();
 		}
@@ -218,12 +228,16 @@ public class Logger implements LogLevels {
 
 	protected void log(int level, String message, Throwable e, String source) {
 		if (level <= logLevel) {
+			//LogMessage msg = pool.get();			// This row has to be added in the synchronized block because the messagePool is not thread safe (and we do not want to add another lock)
+			LogMessage msg = new LogMessage();
+			msg.init(level, message, source, e);
+			
 			synchronized (lock) {
-				messages.add(new LogMessage(level, message, e, source));
+				messages.add(msg);
 				lock.notify();
 			}
 		}
-		
+
 		if (tlLogProcessor != null) {
 			tlLogProcessor.log(level, message, e, source);
 		}
@@ -243,7 +257,7 @@ public class Logger implements LogLevels {
 
 	public void error(Throwable e) {
 		error("", e, "");
-	}    
+	}
 
 	public void error(String message, String source) {
 		log(LOG_LEVEL_ERROR, message, source);
@@ -252,7 +266,7 @@ public class Logger implements LogLevels {
 	public void error(String message) {
 		log(LOG_LEVEL_ERROR, message, "");
 	}
-	
+
 	public void warn(String message, Throwable e) {
 		warn(message, e, "");
 	}
@@ -263,7 +277,7 @@ public class Logger implements LogLevels {
 
 	public void warn(String message) {
 		log(LOG_LEVEL_WARNING, message, "");
-	}    
+	}
 
 	public void warn(String message, Throwable e, String source) {
 		log(LOG_LEVEL_WARNING, message, e, source);
@@ -280,26 +294,12 @@ public class Logger implements LogLevels {
 	public void fine(String message) {
 		log(LOG_LEVEL_DETAIL, message, "");
 	}
-	
+
 	public void finest(String message) {
 		log(LOG_LEVEL_FINEST, message, "");
 	}
-	
+
 	public void finest(Throwable e) {
 		log(LOG_LEVEL_FINEST, "", e, "");
-	}
-
-	private static class LogMessage {
-		private String message;
-		private String source;
-		private int level;
-		private Throwable e;
-
-		public LogMessage(int level, String message, Throwable e, String source) {
-			this.message = message;
-			this.source = source;
-			this.level = level;
-			this.e = e;
-		}
 	}
 }

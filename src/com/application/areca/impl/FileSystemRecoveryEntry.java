@@ -5,6 +5,7 @@ import java.io.File;
 import com.application.areca.EntryStatus;
 import com.application.areca.RecoveryEntry;
 import com.application.areca.Utils;
+import com.myJava.object.Duplicable;
 import com.myJava.object.EqualsHelper;
 import com.myJava.object.HashHelper;
 
@@ -16,7 +17,7 @@ import com.myJava.object.HashHelper;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -35,7 +36,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public class FileSystemRecoveryEntry implements RecoveryEntry {
+public class FileSystemRecoveryEntry implements RecoveryEntry, Duplicable {
     private File file;
     private String rootDirectory;
     private short status = EntryStatus.STATUS_NOT_STORED;
@@ -43,7 +44,10 @@ public class FileSystemRecoveryEntry implements RecoveryEntry {
     private boolean isLink = false;
     private String key;
     
-    public FileSystemRecoveryEntry(String rootDirectory, File file) {
+    public FileSystemRecoveryEntry() {
+    }
+    
+    public void init(String rootDirectory, File file) {
         this.rootDirectory = rootDirectory;            
         this.file = file;
         this.key = Utils.extractShortFilePath(this.getFile(), this.rootDirectory);
@@ -67,6 +71,21 @@ public class FileSystemRecoveryEntry implements RecoveryEntry {
 
 	public void setStatus(short status) {
 		this.status = status;
+	}
+	
+	public void copyAttributes(FileSystemRecoveryEntry other) {
+		other.file = this.file;
+		other.isLink = this.isLink;
+		other.key = this.key;
+		other.rootDirectory = this.rootDirectory;
+		other.size = this.size;
+		other.status = this.status;
+	}
+
+	public Duplicable duplicate() {
+		FileSystemRecoveryEntry other = new FileSystemRecoveryEntry();
+		this.copyAttributes(other);
+		return other;
 	}
 
 	public short getStatus() {

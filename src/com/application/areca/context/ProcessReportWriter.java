@@ -26,7 +26,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -158,7 +158,7 @@ public class ProcessReportWriter {
 			Iterator iter = ctn.iterator();
 			while (iter.hasNext()) {
 				LogMessage message = (LogMessage)iter.next();
-				write(com.myJava.util.log.LogHelper.format(message.getLevel(), message.getMessage(), message.getSource(), true));
+				write(LogHelper.format(message.getLevel(), message.getMessage(), message.getSource(), true).toString());
 				if (message.getException() != null) {
 					write(LogHelper.formatException(message.getException()));
 				}

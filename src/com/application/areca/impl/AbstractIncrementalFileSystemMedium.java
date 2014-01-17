@@ -98,7 +98,7 @@ import com.myJava.util.threadmonitor.ThreadMonitorItem;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -405,7 +405,7 @@ implements TargetActions {
 					if (FileSystemManager.exists(context.getRecoveryDestination())) {
 						FileTool.getInstance().delete(context.getRecoveryDestination());
 					}
-					context.getInfoChannel().print("Recovered files deleted.");
+					context.getInfoChannel().print("Recovered files cleaned.");
 				}
 			} catch (IOException e) {
 				Logger.defaultLogger().error("Error during archive verification.", e);

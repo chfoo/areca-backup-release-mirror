@@ -19,7 +19,7 @@ import com.myJava.util.version.VersionData;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 398922531437627033L;
+		BUILD_ID = 100739950055265965L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.4.1", new GregorianCalendar(2014, 0, 17), "Minor memory optimizations"));
 		VERSIONS.add(new VersionData("7.4", new GregorianCalendar(2013, 11, 05), "Fixed issues that could occur on temporary files in multi-users environment; Areca now attempts to locate your archives when importing backup configurations; Minor memory optimizations when handling large directories; Max memory that can be used by Areca has been increased from 256MB to 512MB."));
 		VERSIONS.add(new VersionData("7.3.9", new GregorianCalendar(2013, 10, 29), "Better error management when reading metadata; Cleaner configuration import window; Fixed a bug that occurred when using the '-date' switch in the command line tool"));
 		VERSIONS.add(new VersionData("7.3.8", new GregorianCalendar(2013, 10, 03), "Additional integrity checks after archive merges; Fixed memory management issue when recovering; Prevent from modifying backup scheme (full, differential, incremental) when resuming an interrupted backup."));

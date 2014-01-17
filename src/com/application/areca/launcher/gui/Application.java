@@ -99,7 +99,7 @@ import com.myJava.util.xml.AdapterException;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -1455,8 +1455,48 @@ public class Application implements ActionConstants, Window.IExceptionHandler, A
 	}
 
 	private String getExceptionMessage(Throwable e) {
-		return e.getMessage() == null ? "Unexpected error ("
-				+ e.getClass().getName() + ")" : e.getMessage();
+		if (e.getMessage() == null || e.getMessage().trim().length() == 0) {
+			return "Unexpected error";
+		} else {
+			String ret = e.getMessage();
+
+			try {
+				int idxExcep = ret.indexOf("Exception");
+				int l = "Exception".length();
+				if (idxExcep == -1) {
+					idxExcep = ret.indexOf("Error");
+					l = "Error".length();
+				}
+				
+				if (idxExcep != -1) {
+					int idxSpace = ret.indexOf(' ');
+					if (idxSpace == -1 || idxSpace > idxExcep) {
+						int idxDot = ret.indexOf('.');
+						if (idxDot < idxExcep) {
+							ret = ret.substring(idxExcep + l).trim();
+							if (ret.length() != 0) {
+								int i=0;
+								while (i<ret.length()) {
+									char c = ret.charAt(i);
+									if (c != ' ' && c != ':' && c != ',' && c != ';' && c != '.' && c != ',' && c != '-' && c != '_') {
+										break;
+									}
+									i++;
+								}
+								if (i == ret.length()) {
+									ret = "";
+								} else {
+									ret = ret.substring(i);
+								}
+							}
+						}
+					}
+				}
+			} catch (Throwable ignored) {
+				ret = e.getMessage();
+			}
+			return ret;
+		}
 	}
 
 	public TargetGroup getCurrentTargetGroup() {

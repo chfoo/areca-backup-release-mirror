@@ -26,7 +26,7 @@ import com.application.areca.launcher.gui.common.SavePanel;
  */
 
  /*
- Copyright 2005-2013, Olivier PETRUCCI.
+ Copyright 2005-2014, Olivier PETRUCCI.
 
 This file is part of Areca.
 
