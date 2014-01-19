@@ -54,7 +54,7 @@ implements Constants {
     public DeltaLayer(InputStream stream, String name) {
         this.stream = stream;
         this.name = name;
-        this.stream.mark(1024*1024*1024);
+        //this.stream.mark(1024*1024*1024); // Why this instruction ?? It causes OutOfMemory exceptions when recovering large files and doesn't seem to be of any use ...
     }
 
     public InputStream getStream() {
