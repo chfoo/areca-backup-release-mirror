@@ -42,6 +42,8 @@ import com.myJava.file.FileSystemManager;
 import com.myJava.file.FileTool;
 import com.myJava.file.driver.DriverAlreadySetException;
 import com.myJava.file.driver.FileSystemDriver;
+import com.myJava.file.driver.ThrottleHandler;
+import com.myJava.file.driver.ThrottledFileSystemDriver;
 import com.myJava.file.driver.event.EventFileSystemDriver;
 import com.myJava.file.driver.event.LoggerFileSystemDriverListener;
 import com.myJava.file.driver.event.OpenFileMonitorDriverListener;
@@ -51,6 +53,7 @@ import com.myJava.util.errors.ActionReport;
 import com.myJava.util.history.HistoryHandler;
 import com.myJava.util.log.Logger;
 import com.myJava.util.taskmonitor.TaskCancelledException;
+import com.myJava.util.taskmonitor.TaskMonitor;
 import com.myJava.util.xml.AdapterException;
 
 /**
@@ -140,6 +143,14 @@ implements TargetActions, IndicatorTypes {
 	protected long transactionSize = DEFAULT_TRANSACTION_SIZE;
 	
 	protected boolean useTransactions = true;
+	
+	protected ThrottleHandler throttleHandler;
+	
+	/**
+	 * Maximum throughput, in kBytes per second
+	 * <= 0 means "no limit"
+	 */
+	protected double maxThroughput = -1;
 
 	public boolean isImage() {
 		return this.image;
@@ -167,6 +178,14 @@ implements TargetActions, IndicatorTypes {
 
 	public void setTransactionSize(long transactionSize) {
 		this.transactionSize = transactionSize;
+	}
+
+	public double getMaxThroughput() {
+		return maxThroughput;
+	}
+
+	public void setMaxThroughput(double maxThroughput) {
+		this.maxThroughput = maxThroughput;
 	}
 
 	/**
@@ -604,12 +623,19 @@ implements TargetActions, IndicatorTypes {
 		ToStringHelper.append("EncryptionPolicy", this.encryptionPolicy, sb);
 		ToStringHelper.append("CompressionArguments", this.compressionArguments, sb);
 		ToStringHelper.append("Image", this.image, sb);
+		ToStringHelper.append("MaxThroughput", this.maxThroughput, sb);
 		ToStringHelper.append("Transaction Size", this.transactionSize, sb);
 		return ToStringHelper.close(sb);
 	}
 
 	protected FileSystemDriver buildBaseDriver(boolean main) throws ApplicationException {
-		return this.fileSystemPolicy.initFileSystemDriver();
+		FileSystemDriver ret = this.fileSystemPolicy.initFileSystemDriver();
+		if (this.maxThroughput > 0) {
+			ThrottledFileSystemDriver th = new ThrottledFileSystemDriver(ret, maxThroughput);
+			this.throttleHandler = th.getThrottleHandler();
+			ret = th;
+		}
+		return ret;
 	}
 
 	protected FileSystemDriver buildStorageDriver(File storageDir) throws ApplicationException {
@@ -757,6 +783,7 @@ implements TargetActions, IndicatorTypes {
 		other.image = this.image;
 		other.transactionSize = this.transactionSize;
 		other.useTransactions = this.useTransactions;
+		other.maxThroughput = this.maxThroughput;
 	}
 
 	protected void destroyTemporaryFile(File archive) {
@@ -855,6 +882,12 @@ implements TargetActions, IndicatorTypes {
 			}
 		} else {
 			Logger.defaultLogger().warn("Configuration security copy has been disabled for this target. No XML configuration copy will be created. It is HIGHLY advisable to create a backup copy of your configuration !");
+		}
+	}
+	
+	protected void initializeThrottling(TaskMonitor monitor) {
+		if (this.throttleHandler != null) {
+			throttleHandler.initializeTimer(monitor);
 		}
 	}
 }

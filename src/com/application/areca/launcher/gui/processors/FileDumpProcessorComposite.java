@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.application.areca.impl.tools.TagHelper;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
 import com.application.areca.processor.FileDumpProcessor;
@@ -85,7 +86,7 @@ public class FileDumpProcessorComposite extends AbstractProcessorComposite {
         // Example
         new Label(this, SWT.NONE);
         Label lblExample = new Label(this, SWT.NONE);
-        lblExample.setText(RM.getLabel("procedition.dynparams.label"));
+        lblExample.setText(RM.getLabel("procedition.dynparams.label", new String[] {TagHelper.getTagListHelp()}));
         lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         new Label(this, SWT.NONE);
         

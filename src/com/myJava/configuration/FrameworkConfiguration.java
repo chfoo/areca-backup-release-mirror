@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import com.myJava.system.OSTool;
 import com.myJava.util.log.LogLevels;
 import com.myJava.util.log.Logger;
 
@@ -298,7 +299,9 @@ public class FrameworkConfiguration {
     public static String DEF_VIEWER_HANDLER = "com.myJava.system.viewer.DesktopViewerHandler";
     public static int DEF_MAX_INLINE_LOG_MESSAGES = 200; 
     public static int DEF_INLINE_LOG_LEVEL = LogLevels.LOG_LEVEL_WARNING;
-    public static String DEF_POSIX_MTD_ACCESSOR_ARGS = "-ald1";
+    public static String DEF_POSIX_MTD_ACCESSOR_ARGS_LINUX = "-ald1";
+    public static String DEF_POSIX_MTD_ACCESSOR_ARGS = DEF_POSIX_MTD_ACCESSOR_ARGS_LINUX;
+    public static String DEF_POSIX_MTD_ACCESSOR_ARGS_MACOS = "-1ald";
     public static String DEF_POSIX_MTD_ACCESSOR_COMMAND = "ls";
     public static int DEF_SFTP_TIMEOUT = 5000;
     
@@ -389,7 +392,7 @@ public class FrameworkConfiguration {
     
     
     public String getPosixMetadataAccessorArgs() {
-        return getProperty(KEY_POSIX_MTD_ACCESSOR_ARGS, DEF_POSIX_MTD_ACCESSOR_ARGS);
+        return getProperty(KEY_POSIX_MTD_ACCESSOR_ARGS, OSTool.isSystemMACOS() ? DEF_POSIX_MTD_ACCESSOR_ARGS_MACOS : DEF_POSIX_MTD_ACCESSOR_ARGS_LINUX);
     }
     
     public String getPosixMetadataAccessorCommand() {

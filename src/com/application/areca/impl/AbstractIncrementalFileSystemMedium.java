@@ -351,6 +351,8 @@ implements TargetActions {
 	throws ApplicationException, TaskCancelledException {
 		this.ensureInstalled();
 		
+		this.initializeThrottling(context.getTaskMonitor());
+		
 		try {
 			// Compute recovery destination
 			File destinationRoot = destination == null ? fileSystemPolicy.getArchiveDirectory() : new File((String)destination);
@@ -910,6 +912,8 @@ implements TargetActions {
 	) throws ApplicationException {
 		this.ensureInstalled();
 		
+		this.initializeThrottling(context.getTaskMonitor());
+		
 		try {
 			this.checkRepository();
 
@@ -1018,6 +1022,8 @@ implements TargetActions {
 
 	public void open(Manifest manifest, TransactionPoint transactionPoint, ProcessContext context) throws ApplicationException { 
 		this.ensureInstalled();
+		
+		this.initializeThrottling(context.getTaskMonitor());
 		//Chronometer.instance().start("open_to_commit");
 		//Chronometer.instance().start("open");
 		

@@ -1,11 +1,12 @@
 package com.myJava.file;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.myJava.file.driver.ThrottleHandler;
+import com.myJava.util.log.Logger;
+
 /**
- * 
  * <BR>
  * @author Olivier PETRUCCI
  * <BR>
@@ -33,17 +34,15 @@ This file is part of Areca.
 
  */
 public class ThrottledOutputStream extends OutputStream {
-
-	/**
-	 * Expected throughput - in bytes per second
-	 */
-	private long throughput;
+	
 	private OutputStream out;
-	private long timer = 0;
+	private ThrottleHandler tHandler;
+	private int maxBatchSize;
 
-	public ThrottledOutputStream(OutputStream out, long throughput) {
-		this.throughput = throughput;
+	public ThrottledOutputStream(OutputStream out, ThrottleHandler tHandler) {
 		this.out = out;
+		this.tHandler = tHandler;
+		this.maxBatchSize = tHandler.getMaxBatchSizeBytes();
 	}
 
 	public void close() throws IOException {
@@ -59,65 +58,31 @@ public class ThrottledOutputStream extends OutputStream {
 	}
 
 	public void write(int b) throws IOException {
-		startTimer();
 		out.write(b);
-		stopTimer(1);
+		tHandler.checkTimer(1);
+	}
+	
+	public void write(byte[] b, int off, int len) throws IOException {
+		if (len > maxBatchSize) {
+			int nrFullBatches = (len / maxBatchSize);
+			int remainingBytes = len - nrFullBatches * maxBatchSize;
+			
+			int currentOffset = off;
+			for (int i=0; i<nrFullBatches; i++) {
+				writeUnit(b, currentOffset, maxBatchSize);
+				currentOffset += maxBatchSize;
+			}
+			
+			if (remainingBytes > 0) {
+				writeUnit(b, currentOffset, remainingBytes);
+			}
+		} else {
+			writeUnit(b, off, len);
+		}
 	}
 
-	public void write(byte[] b, int off, int len) throws IOException {
-		startTimer();
+	private void writeUnit(byte[] b, int off, int len) throws IOException {
 		out.write(b, off, len);
-		stopTimer(len);
-	}
-	
-	private void startTimer() {
-		timer = System.currentTimeMillis();
-	}
-	
-	private void stopTimer(int nrOfBytes) {
-		long millis = timer + ((1000 * nrOfBytes)/throughput) - System.currentTimeMillis();
-        if (millis > 0) {
-            try {
-                Thread.sleep(millis);
-            } catch (InterruptedException ignored) {
-            }
-        }
-	}
-	
-	public static void main(String[] args) {
-		String content = "";
-		for (int i=0; i<10*1024; i++) {
-			content += "0123456789";
-		}
-		byte[] data = content.getBytes();
-		System.out.println("Writing " + data.length + " bytes.");
-		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		long start = System.currentTimeMillis();
-		ThrottledOutputStream out = new ThrottledOutputStream(baos, 50*1024);
-		try {
-			out.write(data);
-			out.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		long stop = System.currentTimeMillis();
-		
-		System.out.println("Elapsed : " + (stop-start) + " ms");
-		byte[] read = baos.toByteArray();
-		
-		boolean ok = true;
-		for (int i=0; i<read.length; i++) {
-			if (read[i] != data[i]) {
-				ok = false;
-				break;
-			}
-		}
-		if (ok) {
-			System.out.println("Content successfully checked.");
-		} else {
-			System.out.println("Content not consistent.");
-		}
+		tHandler.checkTimer(len);
 	}
 }

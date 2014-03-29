@@ -48,9 +48,27 @@ public class TagHelper {
     public static final String PARAM_COMPUTER_NAME = "%COMPUTER_NAME%";
     public static final String PARAM_USER_NAME = "%USER_NAME%";
     public static final String PARAM_DATE = "%DATE%";
+    public static final String PARAM_BACKUP_TYPE = "%BACKUP_TYPE%";
     public static final String PARAM_TIME = "%TIME%";
     public static final String PARAM_SUCCESS = "%SUCCESS%";
     public static final String PARAM_HAS_WARNINGS = "%HAS_WARNINGS%";
+    
+    public static String getTagListHelp() {
+    	return 
+    			PARAM_ARCHIVE_PATH + ", " +
+    			PARAM_ARCHIVE_LOGICAL_PATH + ",\n" +
+    			PARAM_ARCHIVE_NAME + ", " +
+    			PARAM_TARGET_UID + ",\n" +
+    			PARAM_TARGET_NAME + ", " +
+    			PARAM_COMPUTER_NAME + ",\n" +
+    			PARAM_USER_NAME + ", " +
+    			PARAM_DATE + ", " +
+    			PARAM_BACKUP_TYPE + ",\n" +
+    			PARAM_TIME + ", " +
+    			PARAM_SUCCESS + ", " +
+    			PARAM_HAS_WARNINGS			
+    	;
+    }
     
     public static String replaceTag(String value, String oldTag, String newTag) {
         return Util.replace(value, oldTag, newTag);
@@ -98,6 +116,8 @@ public class TagHelper {
             
             value = Util.replace(value, PARAM_SUCCESS, (! context.getReport().hasError()) ? "1" : "0");
             value = Util.replace(value, PARAM_HAS_WARNINGS, context.getReport().getLogMessagesContainer().hasWarnings() ? "1" : "0");
+
+            value = Util.replace(value, PARAM_BACKUP_TYPE, context.getBackupScheme());
 
             return value;
         }

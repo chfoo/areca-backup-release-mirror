@@ -595,7 +595,7 @@ public class TargetXMLReader implements XMLTags {
 		Node typeNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_TYPE);
 		if (typeNode == null) {
 			throw new AdapterException("Medium type not found : your medium must have a '" + XML_MEDIUM_TYPE + "' attribute.");
-		}      
+		}  
 
 		// backward compatibility
 		Node trackDirsNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_TRACK_DIRS);
@@ -667,6 +667,12 @@ public class TargetXMLReader implements XMLTags {
 			}
 		}  else {
 			throw new AdapterException("Unknown medium : " + typeNode.getNodeValue());
+		}
+
+		Node maxThroughputNode = mediumNode.getAttributes().getNamedItem(XML_MEDIUM_MAX_THROUGHPUT);
+		if (maxThroughputNode != null) {
+			double mt = Double.parseDouble(maxThroughputNode.getNodeValue());
+			medium.setMaxThroughput(mt);
 		}
 
 		NodeList children = mediumNode.getChildNodes();

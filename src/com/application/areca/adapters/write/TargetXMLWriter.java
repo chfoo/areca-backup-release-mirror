@@ -406,6 +406,9 @@ public class TargetXMLWriter extends AbstractXMLWriter {
         serializeFileSystemPolicy(medium.getFileSystemPolicy());
         serializeEncryptionPolicy(medium.getEncryptionPolicy());
         sb.append(" ");
+        if (medium.getMaxThroughput() > 0) {
+            sb.append(XMLTool.encodeProperty(XML_MEDIUM_MAX_THROUGHPUT, medium.getMaxThroughput())); 
+        }
         sb.append(XMLTool.encodeProperty(XML_MEDIUM_OVERWRITE, medium.isImage()));  
         sb.append(XMLTool.encodeProperty(XML_MEDIUM_INSPECT_FILE_CONTENT, medium.isInspectFileContent()));  
         

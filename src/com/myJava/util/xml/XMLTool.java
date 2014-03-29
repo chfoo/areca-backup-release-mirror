@@ -95,6 +95,10 @@ public class XMLTool {
 	public static String getHeader(String encoding) {
 		return "<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>";
 	}
+	
+	public static String encodeProperty(String property, double value) {
+		return encodeProperty(property, "" + value);
+	}
 
 	public static String encodeProperty(String property, int value) {
 		return encodeProperty(property, "" + value);

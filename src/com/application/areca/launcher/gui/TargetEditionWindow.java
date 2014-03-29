@@ -170,6 +170,8 @@ extends AbstractWindow {
 	public Button rdZip;
 	protected Button rdZip64;
 	protected Button chkFollowSubDirectories;
+	protected Label lblMaxThroughput;
+	protected Text txtMaxThroughput;
 	protected Button chkNoXMLCopy;
 	protected Button chkEncrypted;
 	protected Button chkMultiVolumes;
@@ -886,6 +888,16 @@ extends AbstractWindow {
 		monitorControl(cboDetectionMode);
 		cboDetectionMode.setToolTipText(RM.getLabel("targetedition.detect.mode.tt"));
 
+		lblMaxThroughput = new Label(grpFileManagement, SWT.NONE);
+		lblMaxThroughput.setText(RM.getLabel("targetedition.maxthroughput.label"));
+		lblMaxThroughput.setToolTipText(RM.getLabel("targetedition.maxthroughput.tooltip"));
+		txtMaxThroughput = new Text(grpFileManagement, SWT.BORDER);
+		GridData gd = new GridData(SWT.LEFT, SWT.CENTER, false, false);
+		gd.widthHint = 70;
+		txtMaxThroughput.setLayoutData(gd);
+	
+		txtMaxThroughput.setToolTipText(RM.getLabel("targetedition.maxthroughput.tooltip"));
+		
 		// ENCRYPTION
 		grpEncryption = new Group(composite, SWT.NONE);
 		grpEncryption.setText(RM.getLabel("targetedition.encryption.label"));
@@ -1311,6 +1323,9 @@ extends AbstractWindow {
 			}
 
 			chkFollowSubDirectories.setSelection(((FileSystemTarget)target).isFollowSubdirectories());
+			if (fMedium.getMaxThroughput() > 0) {
+				txtMaxThroughput.setText("" + fMedium.getMaxThroughput());
+			}
 			cboDetectionMode.select(fMedium.isInspectFileContent() ? 1 : 0);
 			chkNoXMLCopy.setSelection(! target.isCreateSecurityCopyOnBackup());
 			if (chkFollowLinks != null) {
@@ -1482,8 +1497,8 @@ extends AbstractWindow {
 			grpZipOptions.setEnabled(false);
 			grpZipComment.setEnabled(false);
 			grpStorage.setEnabled(false);
-			grpFileManagement.setEnabled(false);
-			grpConfiguration.setEnabled(false);
+			//grpFileManagement.setEnabled(false);
+			//grpConfiguration.setEnabled(false);
 
 			rdDir.setEnabled(false);
 			rdZip.setEnabled(false);
@@ -1511,10 +1526,10 @@ extends AbstractWindow {
 			txtMultivolumesDigits.setEnabled(false);
 			lblMultiVolumesUnit.setEnabled(false);
 			lblMultiVolumesDigits.setEnabled(false);
-			chkFollowSubDirectories.setEnabled(false);
+			//chkFollowSubDirectories.setEnabled(false);
 			lblDetectionMode.setEnabled(false);
 			cboDetectionMode.setEnabled(false);
-			chkNoXMLCopy.setEnabled(false);
+			//chkNoXMLCopy.setEnabled(false);
 			if (chkFollowLinks != null) {
 				chkFollowLinks.setEnabled(false);
 			}
@@ -1529,6 +1544,8 @@ extends AbstractWindow {
 			pgbPwdQuality.setEnabled(false);
 			cboZipLevel.setEnabled(false);
 			lblZipLevel.setEnabled(false);
+			//lblMaxThroughput.setEnabled(false);
+			//txtMaxThroughput.setEnabled(false);
 		}    
 	}
 
@@ -2038,9 +2055,23 @@ extends AbstractWindow {
 			storagePolicy.setArchiveName(txtArchiveName.getText());
 			storagePolicy.validate(false);
 
+			double maxThroughput = -1;
+			if (txtMaxThroughput.getText() != null && txtMaxThroughput.getText().trim().length() > 0) {
+				maxThroughput = Double.parseDouble(txtMaxThroughput.getText().trim());
+			}
+			
 			if (isFrozen()) {
 				newTarget.setMedium(target.getMedium(), false);
-				((AbstractIncrementalFileSystemMedium)newTarget.getMedium()).setFileSystemPolicy(storagePolicy);
+				
+				AbstractFileSystemMedium medium = (AbstractFileSystemMedium)newTarget.getMedium();
+				medium.setFileSystemPolicy(storagePolicy);
+				
+				// Throughput must be set before installing
+				if (maxThroughput > 0) {
+					medium.setMaxThroughput(maxThroughput);
+				}
+				
+				medium.install();
 			} else {
 				boolean isEncrypted = this.chkEncrypted.getSelection();
 				EncryptionPolicy encrArgs = new EncryptionPolicy();
@@ -2113,6 +2144,11 @@ extends AbstractWindow {
 					medium.setImage(this.rdImage != null && this.rdImage.getSelection());
 				}
 
+				// Throughput must be set before installing
+				if (maxThroughput > 0) {
+					medium.setMaxThroughput(maxThroughput);
+				}
+				
 				newTarget.setMedium(medium, false);
 				medium.install();
 
@@ -2126,9 +2162,11 @@ extends AbstractWindow {
 				}
 			}
 
-			((AbstractFileSystemMedium)newTarget.getMedium()).setUseTransactions(chkUseTransactions.getSelection());
+			AbstractFileSystemMedium medium = (AbstractFileSystemMedium)newTarget.getMedium();
+			
+			medium.setUseTransactions(chkUseTransactions.getSelection());
 			if (CommonRules.checkInteger(txtTransactionSize.getText())) {
-				((AbstractFileSystemMedium)newTarget.getMedium()).setTransactionSize(Long.parseLong(txtTransactionSize.getText()));
+				medium.setTransactionSize(Long.parseLong(txtTransactionSize.getText()));
 			}
 
 			newTarget.setFilterGroup(this.mdlFilters);

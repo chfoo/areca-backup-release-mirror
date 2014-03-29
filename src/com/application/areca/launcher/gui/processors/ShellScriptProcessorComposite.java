@@ -10,6 +10,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import com.application.areca.impl.tools.TagHelper;
 import com.application.areca.launcher.gui.Application;
 import com.application.areca.launcher.gui.ProcessorEditionWindow;
 import com.application.areca.processor.Processor;
@@ -79,7 +80,7 @@ public class ShellScriptProcessorComposite extends AbstractProcessorComposite {
         new Label(this, SWT.NONE);
         Label lblExample = new Label(this, SWT.NONE);
         lblExample.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-        lblExample.setText(RM.getLabel("procedition.scriptparams.example.label"));
+        lblExample.setText(RM.getLabel("procedition.scriptparams.example.label", new String[] {TagHelper.getTagListHelp()}));
         
         if (proc != null) {
             ShellScriptProcessor sProc = (ShellScriptProcessor)proc;

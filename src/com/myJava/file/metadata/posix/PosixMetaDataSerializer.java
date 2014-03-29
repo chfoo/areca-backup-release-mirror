@@ -65,34 +65,35 @@ implements FileMetaDataSerializer {
 		PosixMetaDataImpl p = new PosixMetaDataImpl();
 		
         try {
-        	StringTokenizer stt = new StringTokenizer(s, ";");
+        	String[] tokens = s.split(";");
         	
         	// Base attributes
-        	p.setMode(Integer.parseInt(stt.nextToken()));
-        	p.setOwner(stt.nextToken());
-        	p.setGroup(stt.nextToken());
+        	int t=0;
+        	p.setMode(Integer.parseInt(tokens[t++]));
+        	p.setOwner(tokens[t++]);
+        	p.setGroup(tokens[t++]);
         	
         	// Extended attributes
-        	int attrSize = Integer.parseInt(stt.nextToken());
+        	int attrSize = Integer.parseInt(tokens[t++]);
         	if (attrSize != 0) {
 	        	p.setXattrList(new ExtendedAttributeList());
 	        	for (int i=0; i<attrSize; i++) {
-	        		p.getXattrList().addAttribute(stt.nextToken(), Util.base64Decode(stt.nextToken()));
+	        		p.getXattrList().addAttribute(tokens[t++], Util.base64Decode(tokens[t++]));
 	        	}
         	}
         	
         	// Default acl
-        	int defACLSize = Integer.parseInt(stt.nextToken());
+        	int defACLSize = Integer.parseInt(tokens[t++]);
         	if (defACLSize != 0) {
 	        	p.setDefaultAcl(new ACL());
-	        	readACL(p.getDefaultAcl(), stt, defACLSize);
+	        	t = readACL(p.getDefaultAcl(), tokens, t, defACLSize);
         	}
         	
         	// Access acl
-        	int accessACLSize = Integer.parseInt(stt.nextToken());
+        	int accessACLSize = Integer.parseInt(tokens[t++]);
         	if (accessACLSize != 0) {
 	        	p.setAccessAcl(new ACL());
-	        	readACL(p.getAccessAcl(), stt, accessACLSize);
+	        	t = readACL(p.getAccessAcl(), tokens, t, accessACLSize);
         	}
         	
 			return p;
@@ -102,15 +103,16 @@ implements FileMetaDataSerializer {
 		}
 	}
 	
-	private void readACL(ACL acl, StringTokenizer stt, int size) {
+	private int readACL(ACL acl, String[] tokens, int tokenIndex, int size) {
     	for (int i=0; i<size; i++) {
-    		int tag =  Integer.parseInt(stt.nextToken());
+    		int tag =  Integer.parseInt(tokens[tokenIndex++]);
     		int identifier = -1;
     		if (tag == ACLEntry.ACL_USER || tag == ACLEntry.ACL_GROUP) {
-    			identifier = Integer.parseInt(stt.nextToken());
+    			identifier = Integer.parseInt(tokens[tokenIndex++]);
     		}
-    		acl.addEntry(tag, identifier, Integer.parseInt(stt.nextToken()));
+    		acl.addEntry(tag, identifier, Integer.parseInt(tokens[tokenIndex++]));
     	}
+    	return tokenIndex;
 	}
 
 	public void serialize(FileMetaData attr, StringBuffer sb) throws FileMetaDataSerializationException {

@@ -118,6 +118,7 @@ public interface XMLTags {
     public static final String XML_MEDIUM_ZIP_CHARSET = "zip_charset";   
     public static final String XML_MEDIUM_ZIP_EXTENSION = "zip_ext";   
     public static final String XML_MEDIUM_TYPE = "type";
+    public static final String XML_MEDIUM_MAX_THROUGHPUT = "max_throughput";
     public static final String XML_MEDIUM_TYPE_ZIP = "zip";
     public static final String XML_MEDIUM_TYPE_ZIP64 = "zip64"; // DEPRECATED 
     public static final String XML_MEDIUM_TYPE_DIR = "directory";        

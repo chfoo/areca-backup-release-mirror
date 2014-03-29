@@ -93,8 +93,12 @@ public class TaskMonitor implements Serializable {
         this.parentTask = null; 
         this.clearAllListeners();  
     }
-    
-    public TaskMonitor(String name) {
+
+    public boolean isCancelRequested() {
+		return cancelRequested;
+	}
+
+	public TaskMonitor(String name) {
     	this();
         this.name = name;
     }
