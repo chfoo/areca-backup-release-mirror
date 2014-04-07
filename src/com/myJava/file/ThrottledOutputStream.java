@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import com.myJava.file.driver.ThrottleHandler;
-import com.myJava.util.log.Logger;
 
 /**
  * <BR>

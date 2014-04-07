@@ -8,9 +8,11 @@
 package com.myJava.file.archive.zip64;
 
 import java.io.Serializable;
+import java.security.PrivilegedAction;
 import java.util.Date;
 
 import com.myJava.object.ToStringHelper;
+import com.myJava.util.log.Logger;
 
 /**
  * This class is used to represent a ZIP file entry.
@@ -19,7 +21,7 @@ import com.myJava.object.ToStringHelper;
  * @author	David Connelly
  * 
  * <BR>This class was derived from the original java.util.zip.ZipEntry.
- * <BR>No modifications were made except package change.
+ * <BR>No modifications were made except package change and library loading
  * <BR>
  * <BR>CAUTION :
  * <BR>This file has been integrated into Areca.
@@ -55,11 +57,19 @@ class ZipEntry implements ZipConstants, Cloneable, Serializable {
     public static final int DEFLATED = 8;
 
     static {
-        /* load the zip library */
-	java.security.AccessController.doPrivileged(
-		  new sun.security.action.LoadLibraryAction("zip"));
+    	try {
+            /* load the zip library */
+    	    java.security.AccessController.doPrivileged(new PrivilegedAction() {
+    	        public Object run() {
+    	            System.loadLibrary("zip");
+    	            return null;
+    	        }
+    	    });
+    	}
+    	catch (UnsatisfiedLinkError ignored) {
+    		Logger.defaultLogger().info("Tried to load zip library (" + ignored.getMessage() + ")");
+    	}
     }
-
 
     /**
      * Creates a new zip entry with the specified name.

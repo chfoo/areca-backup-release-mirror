@@ -52,7 +52,7 @@ This file is part of Areca.
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  */
-public abstract class SerializedCollection implements Collection {
+public abstract class SerializedCollection {
     
     protected File bufferFile;
     private ObjectOutputStream out;
@@ -68,6 +68,8 @@ public abstract class SerializedCollection implements Collection {
     public int size() {
         return (int)this.count;
     }
+    
+    
     
     public void lock() throws IOException {
         checkInitialized();
