@@ -212,6 +212,17 @@ public class SFTPProxy extends AbstractProxy {
 
 			session.setDaemonThread(true);
 			session.setConfig("StrictHostKeyChecking", checkHostKey ? "yes":"no");
+			
+			String preferredAuth;
+			String configuredPAuth = FrameworkConfiguration.getInstance().getSftpPreferredAuthOverride();
+			if (configuredPAuth != null && configuredPAuth.trim().length() != 0) {
+				preferredAuth = configuredPAuth;
+			} else {
+				preferredAuth = useCertificateAuth ? "publickey,password" : "password,publickey";
+			}
+			Logger.defaultLogger().fine("Authentication methods: " + preferredAuth);
+
+			session.setConfig("PreferredAuthentications", preferredAuth);
 			session.setTimeout(FrameworkConfiguration.getInstance().getSFTPTimeout());
 
 			Logger.defaultLogger().info("Trying to log in with user : " + this.login + " (" + (useCertificateAuth ? "certificate":"password") + ") ...");

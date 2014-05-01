@@ -259,6 +259,11 @@ public class FrameworkConfiguration {
      */
     public static String KEY_SFTP_TIMEOUT = "sftp.timeout";
     
+    /**
+     * SFTP preferred auth override
+     */
+    public static String KEY_SFTP_PAUTH_OVERRIDE = "sftp.preferred.auth.override";
+    
     public static boolean DEF_USE_GZIP = true;
     public static int DEF_ENCRYPTION_KG_ITER = 96731;
     public static String DEF_ENCRYPTION_KG_SALT = "ù%${{²]}}[|`è€$£^¤*!§:/..;;,,_?\"\\°à@@%µ";
@@ -304,7 +309,7 @@ public class FrameworkConfiguration {
     public static String DEF_POSIX_MTD_ACCESSOR_ARGS_MACOS = "-1ald";
     public static String DEF_POSIX_MTD_ACCESSOR_COMMAND = "ls";
     public static int DEF_SFTP_TIMEOUT = 5000;
-    
+    public static String DEF_SFTP_PAUTH_OVERRIDE = "";
     
     private static String VM_PROPS_PREFIX = "launcher.d.";
     
@@ -405,6 +410,10 @@ public class FrameworkConfiguration {
     
     public String getEncryptionKGAlg() {
     	return getProperty(KEY_ENCRYPTION_KG_ALG, DEF_ENCRYPTION_KG_ALG);
+    }
+    
+    public String getSftpPreferredAuthOverride() {
+    	return getProperty(KEY_SFTP_PAUTH_OVERRIDE, DEF_SFTP_PAUTH_OVERRIDE);
     }
     
     public String getEncryptionKGSalt() {

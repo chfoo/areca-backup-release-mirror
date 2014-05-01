@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 3281088046699773111L;
+		BUILD_ID = 4821399973326602576L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.4.5", new GregorianCalendar(2014, 4, 1), "Fixes the SFTP kerberos dialog box issue with Java7; Fixes SWT issues on 64 bit JREs."));
 		VERSIONS.add(new VersionData("7.4.4", new GregorianCalendar(2014, 3, 06), "Fixes a compatibility issue with Java-8; Chineese translation update."));
 		VERSIONS.add(new VersionData("7.4.3", new GregorianCalendar(2014, 2, 19), "Fixes a bug that could occur on Posix systems when the file's owner group was empty; New '%BACKUP_TYPE%' dynamic tag for post-processors (full/incremental/differential); Ability to limit Areca's throughput when writing files; If 32 and 64 bits Java environments are installed on the system, Areca will use the 64 bit by default (windows only); Areca can now use up to 1GB RAM."));
 		VERSIONS.add(new VersionData("7.4.2", new GregorianCalendar(2014, 0, 19), "Fixes a bug in Delta storage that could generate 'out of memory' errors when reading large files."));
