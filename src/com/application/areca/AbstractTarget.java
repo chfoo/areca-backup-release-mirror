@@ -714,6 +714,11 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 			context.getTaskMonitor().getCurrentActiveSubTask().addNewSubTask(remaining, "merge");
 
 			context.getInfoChannel().print("Merge in progress ...");
+			if (checkParams.isCheck()) {
+				Logger.defaultLogger().info("Post-merge archive verification is enabled.");
+			} else {
+				Logger.defaultLogger().warn("Post-merge archive verification is disabled - this is *not* safe !");
+			}
 			context.setChecked(checkParams.isCheck());
 			HistoryHandler handler = medium.getHistoryHandler();
 			handler.addEntryAndFlush(new HistoryEntry(HISTO_MERGE, "Merge from " + Utils.formatDisplayDate(fromDate) + " to " + Utils.formatDisplayDate(toDate) + "."));

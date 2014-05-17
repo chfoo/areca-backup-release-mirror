@@ -517,10 +517,8 @@ public class FileTool {
 		}
 	}
 
-	public File createNewWorkingDirectory(File parent, String dirName,
-			boolean registerDeleteHook) throws IOException {
-		File target = generateNewWorkingFile(parent, null, dirName,
-				registerDeleteHook);
+	public synchronized File createNewWorkingDirectory(File parent, String dirName, boolean registerDeleteHook) throws IOException {
+		File target = computeNewWorkingFile(parent, null, dirName, registerDeleteHook);
 		FileTool.getInstance().createDir(target);
 		return target;
 	}
@@ -534,8 +532,13 @@ public class FileTool {
 	 * However, it is strongly advised to handle the created file's destruction
 	 * explicitly as soon as it is not needed anymore and avoid using hooks
 	 */
-	public File generateNewWorkingFile(File rootFile, String subdir,
-			String prefix, boolean registerDeleteHook) throws IOException {
+	public synchronized File generateNewWorkingFile(File rootFile, String subdir, String prefix, boolean registerDeleteHook) throws IOException {
+		File target = computeNewWorkingFile(rootFile, subdir, prefix, registerDeleteHook);
+		FileSystemManager.createNewFile(target);
+		return target;
+	}
+
+	private File computeNewWorkingFile(File rootFile, String subdir, String prefix, boolean registerDeleteHook) throws IOException {
 		File tmp = null;
 		int i = 0;
 		File root = rootFile;
@@ -556,6 +559,7 @@ public class FileTool {
 		if (registerDeleteHook) {
 			FileCleaningShutdownHook.getInstance().addFile(tmp);
 		}
+
 		return tmp;
 	}
 }
