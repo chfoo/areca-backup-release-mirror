@@ -109,7 +109,7 @@ public class OSTool {
         
         String configuredTmpDir = FrameworkConfiguration.getInstance().getTemporaryDirectory();
         TMP_DIR = configuredTmpDir == null ? System.getProperty("java.io.tmpdir") : configuredTmpDir;
-        File f = new File(TMP_DIR, USER_NAME);
+        File f = new File(TMP_DIR, "tmp-" + USER_NAME);
         TMP_DIR = f.getAbsolutePath();
         
         Map map = Charset.availableCharsets();

@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 6014261340085365909L;
+		BUILD_ID = 7387415856693692460L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.4.7", new GregorianCalendar(2014, 5, 16), "Fixed a performance regression introduced in v7.4"));
 		VERSIONS.add(new VersionData("7.4.6", new GregorianCalendar(2014, 4, 15), "Fixes a concurrency issue that could occur when creating temporary files; Minor improvements."));
 		VERSIONS.add(new VersionData("7.4.5", new GregorianCalendar(2014, 4, 1), "Fixes the SFTP kerberos dialog box issue with Java7; Fixes SWT issues on 64 bit JREs."));
 		VERSIONS.add(new VersionData("7.4.4", new GregorianCalendar(2014, 3, 06), "Fixes a compatibility issue with Java-8; Chineese translation update."));

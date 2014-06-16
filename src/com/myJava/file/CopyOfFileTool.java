@@ -53,19 +53,17 @@ This file is part of Areca.
 
  */
 
-public class FileTool {
-	private static final int BUFFER_SIZE = FrameworkConfiguration.getInstance()
-			.getFileToolBufferSize();
-	public static final String HASH_ALGORITHM = FrameworkConfiguration
-			.getInstance().getFileHashAlgorithm();
+public class CopyOfFileTool {
+	private static final int BUFFER_SIZE = FrameworkConfiguration.getInstance().getFileToolBufferSize();
+	public static final String HASH_ALGORITHM = FrameworkConfiguration.getInstance().getFileHashAlgorithm();
 
-	private static FileTool instance = new FileTool();
+	private static CopyOfFileTool instance = new CopyOfFileTool();
 
-	public static FileTool getInstance() {
+	public static CopyOfFileTool getInstance() {
 		return instance;
 	}
 
-	private FileTool() {
+	private CopyOfFileTool() {
 	}
 
 	public void copy(File sourceFileOrDirectory, File targetParentDirectory)
@@ -517,9 +515,9 @@ public class FileTool {
 		}
 	}
 
-	public synchronized File createNewWorkingDirectory(File parent, String dirName, boolean registerDeleteHook) throws IOException {
+	public File createNewWorkingDirectory(File parent, String dirName, boolean registerDeleteHook) throws IOException {
 		File target = computeNewWorkingFile(parent, null, dirName, registerDeleteHook);
-		FileTool.getInstance().createDir(target);
+		CopyOfFileTool.getInstance().createDir(target);
 		return target;
 	}
 
@@ -533,7 +531,9 @@ public class FileTool {
 	 * explicitly as soon as it is not needed anymore and avoid using hooks
 	 */
 	public File generateNewWorkingFile(File rootFile, String subdir, String prefix, boolean registerDeleteHook) throws IOException {
-		return computeNewWorkingFile(rootFile, subdir, prefix, registerDeleteHook);
+		File target = computeNewWorkingFile(rootFile, subdir, prefix, registerDeleteHook);
+		//FileSystemManager.createNewFile(target);
+		return target;
 	}
 
 	private File computeNewWorkingFile(File rootFile, String subdir, String prefix, boolean registerDeleteHook) throws IOException {
@@ -542,7 +542,6 @@ public class FileTool {
 		File root = rootFile;
 		if (root == null) {
 			root = new File(OSTool.getTempDirectory());
-			prefix += Util.getRndLong();
 		}
 		if (subdir != null) {
 			root = new File(root, subdir);
