@@ -309,23 +309,28 @@ extends AbstractLinkableFileSystemDriver {
 	
 	public InputStream getCachedFileInputStream(File file) throws IOException {
 		File target = this.encryptFileName(file);
-		return new CipherInputStream(predecessor.getCachedFileInputStream(target), buildNewCipher(Cipher.DECRYPT_MODE));
+		return buildInputStream(predecessor.getCachedFileInputStream(target));
 	}
 
 	public InputStream getFileInputStream(File file) throws IOException {
 		File target = this.encryptFileName(file);
-		return new CipherInputStream(predecessor.getFileInputStream(target), buildNewCipher(Cipher.DECRYPT_MODE));
+		return buildInputStream(predecessor.getFileInputStream(target));
 	}
 
+	private InputStream buildInputStream(InputStream sourceStream) {
+		CipherInputStream cis = new CipherInputStream(sourceStream, buildNewCipher(Cipher.DECRYPT_MODE));
+		return new CipherInputStreamWrapper(cis, sourceStream);
+	}
+	
 	public OutputStream getCachedFileOutputStream(File file) throws IOException {
 		File target = this.encryptFileName(file);
-		return new CipherOutputStream(predecessor.getCachedFileOutputStream(target), buildNewCipher(Cipher.ENCRYPT_MODE));
-	}    
+		return buildOutputStream(predecessor.getCachedFileOutputStream(target));
+	} 
 
 	public OutputStream getFileOutputStream(File file) throws IOException {
 		File target = this.encryptFileName(file);
-		return new CipherOutputStream(predecessor.getFileOutputStream(target), buildNewCipher(Cipher.ENCRYPT_MODE));
-	}    
+		return buildOutputStream(predecessor.getFileOutputStream(target));
+	}    	
 
 	public OutputStream getFileOutputStream(File file, boolean append) throws IOException {
 		return getFileOutputStream(file, append, null);
@@ -337,7 +342,11 @@ extends AbstractLinkableFileSystemDriver {
 		}
 
 		File target = this.encryptFileName(file);
-		return new CipherOutputStream(predecessor.getFileOutputStream(target, append, listener), buildNewCipher(Cipher.ENCRYPT_MODE)); 
+		return buildOutputStream(predecessor.getFileOutputStream(target, append, listener)); 
+	}
+	
+	private OutputStream buildOutputStream(OutputStream targetStream) {
+		return new CipherOutputStream(targetStream, buildNewCipher(Cipher.ENCRYPT_MODE));
 	}
 
 	private Cipher buildNewCipher(int mode) {
