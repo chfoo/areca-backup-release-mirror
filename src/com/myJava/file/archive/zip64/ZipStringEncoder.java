@@ -1,6 +1,5 @@
 package com.myJava.file.archive.zip64;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -77,10 +76,15 @@ public class ZipStringEncoder {
             bytes[i] = b[i+off];
         }
         ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(bais, charset));
-        String ret;
+       
+        InputStreamReader reader = new InputStreamReader(bais, charset);
+        StringBuffer ret = new StringBuffer();
+        int read;
+        char[] buffer = new char[100];
         try {
-            ret = reader.readLine();
+        	while((read = reader.read(buffer)) != -1) {
+        		ret.append(buffer, 0, read);
+        	}
         } catch (IOException e) {
             Logger.defaultLogger().error(e);
             throw new IllegalArgumentException(e.getMessage());
@@ -91,6 +95,6 @@ public class ZipStringEncoder {
                 Logger.defaultLogger().error(e);
             }
         }
-        return ret;
+        return ret.toString();
     }
 }

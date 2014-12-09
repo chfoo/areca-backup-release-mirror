@@ -265,7 +265,9 @@ public abstract class AbstractMetadataAdapter {
 			
 			// Copy data
 			while ((line = reader.readLine()) != null) {
-				write(line);
+				if (line.trim().length() != 0) {
+					write(line);
+				}
 			}
 		} finally {
 			try {

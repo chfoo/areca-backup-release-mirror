@@ -85,14 +85,14 @@ public abstract class AbstractMetaDataFileIterator {
 	}
 	
 	private void fetchNext() throws IOException {
-		String line = in.readLine();
-		if (line == null) {
-			pointer = null;
-		} else {
-			if (line.trim().length() == 0) {
-				fetchNext();
-			} else {
+		while (true) {
+			String line = in.readLine();
+			if (line == null) {
+				pointer = null;
+				break;
+			} else if (line.trim().length() != 0) {
 				pointer = adapter.decodeEntry(line);
+				break;
 			}
 		}
 	}

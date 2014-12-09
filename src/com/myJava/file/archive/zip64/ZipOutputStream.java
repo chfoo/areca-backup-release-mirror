@@ -55,7 +55,7 @@ implements ZipConstants {
 	private static long ZIP32_OVERALL_SIZE_LIMIT = 4294967295L;
 	private static long ZIP32_MAX_ENTRIES = 65535L;
 
-	private static String ZIP32_OVERALL_SIZE_MESSAGE = "Archive too voluminous : Zip32 archives can't grow over " + (long)(ZIP32_OVERALL_SIZE_LIMIT/1024) + " kbytes. Use Zip64 instead.";
+	private static String ZIP32_OVERALL_SIZE_MESSAGE = "Archive too big : Zip32 archives can't grow over " + (long)(ZIP32_OVERALL_SIZE_LIMIT/1024) + " kbytes. Use Zip64 instead.";
 
 	private ZipEntry entry;
 	private SerializedCollection entries;
@@ -202,7 +202,7 @@ implements ZipConstants {
 			e.crc = crc.getValue();
 
 			if ((!useZip64) && e.getSize() > ZIP32_ENTRY_SIZE_LIMIT) {
-				throw new IOException(e.name + " is too voluminous (" + (long)(e.getSize() / 1024) + " kbytes). Zip32 archives can't store files bigger than " + (long)(ZIP32_ENTRY_SIZE_LIMIT / 1024) + " kbytes.");
+				throw new IOException(e.name + " is too big (" + (long)(e.getSize() / 1024) + " kbytes). Zip32 archives can't store files bigger than " + (long)(ZIP32_ENTRY_SIZE_LIMIT / 1024) + " kbytes.");
 			}
 
 			writeEXT(e);
