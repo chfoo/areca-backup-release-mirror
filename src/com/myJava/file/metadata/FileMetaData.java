@@ -8,7 +8,7 @@ package com.myJava.file.metadata;
  */
 
  /*
- Copyright 2005-2014, Olivier PETRUCCI.
+ Copyright 2005-2015, Olivier PETRUCCI.
 
 This file is part of Areca.
 

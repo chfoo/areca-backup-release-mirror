@@ -10,7 +10,7 @@ import com.myJava.configuration.FrameworkConfiguration;
  */
 
  /*
- Copyright 2005-2014, Olivier PETRUCCI.
+ Copyright 2005-2015, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -177,6 +177,11 @@ extends FrameworkConfiguration {
      * Whether target properties are logged when an action is performed (merge, backup, ...)
      */
     public static String KEY_LOG_TARGET_PROPERTIES = "log.target.properties";
+    
+    /**
+     * Prevent empty archives from being created
+     */
+    public static String KEY_PREVENT_EMPTY_ARCHIVES = "prevent.empty.archives";
 
     public static boolean DEF_SMTP_DEBUG = false;
     public static long DEF_MEMORY_BASE_KB = 4 * 1024;
@@ -207,6 +212,7 @@ extends FrameworkConfiguration {
     public static String DEF_COMMIT_FILE_NAME = ".committed";
     public static long DEF_TRANSACTION_SIZE_KB = 50*1024;
     public static boolean DEF_LOG_TARGET_PROPERTIES = true;
+    public static boolean DEF_PREVENT_EMPTY_ARCHIVES = false;
     
     public ArecaConfiguration() {
         super();
@@ -231,6 +237,10 @@ extends FrameworkConfiguration {
     
     public boolean isLogTargetProperties() {
         return getProperty(KEY_LOG_TARGET_PROPERTIES, DEF_LOG_TARGET_PROPERTIES);
+    }
+    
+    public boolean isPreventEmptyArchives() {
+        return getProperty(KEY_PREVENT_EMPTY_ARCHIVES, DEF_PREVENT_EMPTY_ARCHIVES);
     }
     
     public String getLogLocationOverride() {

@@ -98,7 +98,7 @@ import com.myJava.util.threadmonitor.ThreadMonitorItem;
  */
 
  /*
- Copyright 2005-2014, Olivier PETRUCCI.
+ Copyright 2005-2015, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -2357,6 +2357,7 @@ implements TargetActions {
 				return true;
 			} else {
 				// File found in trace but not among source files -> deleted file
+				context.getReport().addDeletedFile();
 				iter.next();
 			}
 		}

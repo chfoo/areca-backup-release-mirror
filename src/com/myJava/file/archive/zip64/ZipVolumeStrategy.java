@@ -20,7 +20,7 @@ import com.myJava.file.multivolumes.VolumeStrategy;
  */
 
  /*
- Copyright 2005-2014, Olivier PETRUCCI.
+ Copyright 2005-2015, Olivier PETRUCCI.
 
 This file is part of Areca.
 

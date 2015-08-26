@@ -19,7 +19,7 @@ import com.myJava.util.version.VersionData;
  */
 
  /*
- Copyright 2005-2014, Olivier PETRUCCI.
+ Copyright 2005-2015, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -58,9 +58,10 @@ public class VersionInfos {
 
 	static {
 		// INIT BUILD ID - DO NOT MODIFY THE FOLLOWING COMMENT :
-		BUILD_ID = 7856197430637268730L;
+		BUILD_ID = 5872222636083894532L;
 
 		// INIT VERSION DATA
+		VERSIONS.add(new VersionData("7.5", new GregorianCalendar(2015, 7, 26), "Fixed the issue that prevented archives from being created when there were only deleted files (no new files);Fixed a minor issue when reconnecting to a FTP server."));
 		VERSIONS.add(new VersionData("7.4.9", new GregorianCalendar(2014, 10, 26), "Fixed compression issue that could occur with filenames containing line breaks."));
 		VERSIONS.add(new VersionData("7.4.8", new GregorianCalendar(2014, 10, 02), "Fixed encryption issued which could occur with recent versions of JREs"));
 		VERSIONS.add(new VersionData("7.4.7", new GregorianCalendar(2014, 5, 16), "Fixed a performance regression introduced in v7.4"));

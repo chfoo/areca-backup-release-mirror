@@ -11,7 +11,7 @@ import org.eclipse.swt.widgets.Composite;
  */
 
  /*
- Copyright 2005-2014, Olivier PETRUCCI.
+ Copyright 2005-2015, Olivier PETRUCCI.
 
 This file is part of Areca.
 

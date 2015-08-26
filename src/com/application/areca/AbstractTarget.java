@@ -52,7 +52,7 @@ import com.myJava.util.taskmonitor.TaskMonitor;
  */
 
  /*
- Copyright 2005-2014, Olivier PETRUCCI.
+ Copyright 2005-2015, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -404,7 +404,11 @@ implements HistoryEntryTypes, Duplicable, TargetActions {
 						}
 					} 
 				}
-				if (context.getReport().getSavedFiles() == 0 && ! ((AbstractIncrementalFileSystemMedium)medium).isImage()) {
+				if (
+						(context.getReport().getDeletedFiles() == 0 || ArecaConfiguration.get().isPreventEmptyArchives())
+						&& context.getReport().getSavedFiles() == 0 
+						&& ! ((AbstractIncrementalFileSystemMedium)medium).isImage()
+				) {
 					cancelBackup(context);
 				} else {
 					this.commitBackup(context);

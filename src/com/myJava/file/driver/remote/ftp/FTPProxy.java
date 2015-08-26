@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPConnectionClosedException;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 
@@ -36,7 +37,7 @@ import com.myJava.util.log.Logger;
  */
 
  /*
- Copyright 2005-2014, Olivier PETRUCCI.
+ Copyright 2005-2015, Olivier PETRUCCI.
 
 This file is part of Areca.
 
@@ -376,6 +377,8 @@ public class FTPProxy extends AbstractProxy {
 					shallReconnect = false;
 					debug("checkConnection : no need to check connection");
 				}
+			} catch (FTPConnectionClosedException e) {
+				// Do nothing, since this response is expected.
 			} catch (Throwable e) {
 				debug("checkConnection", e);
 				Logger.defaultLogger().error("Got an error during connection check", e);
