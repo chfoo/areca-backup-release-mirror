@@ -8,7 +8,8 @@
 #include <jni.h>
 #include <grp.h>
 #include <pwd.h>
-#include <attr/xattr.h>
+#include <attr/attributes.h>
+#include <sys/xattr.h>
 #include <sys/acl.h>
 #include <acl/libacl.h>
 #include "com_myJava_file_metadata_posix_jni_wrapper_FileAccessWrapper.h"
